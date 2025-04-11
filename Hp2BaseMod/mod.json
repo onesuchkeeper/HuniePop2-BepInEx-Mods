@@ -1,0 +1,13 @@
+{
+  "ModImagePath": "images\\CreditsLogo.png",
+  "CreditsEntries": [
+    {
+      "CreditButtonImagePath": "images\\onesuchkeeper_credits.png",
+      "CreditButtonImageOverPath": "images\\onesuchkeeper_credits_over.png",
+      "RedirectLink": "https://www.youtube.com/@onesuchkeeper8389"
+    }
+  ],
+  "LogoImages": [
+    "images\\logo.png"
+  ]
+}

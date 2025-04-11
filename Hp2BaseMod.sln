@@ -1,0 +1,58 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cheat", "Cheat\Cheat.csproj", "{AA384D45-9B6A-41F0-B05C-E5C1F0135F2F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExtraOptions", "ExtraOptions\ExtraOptions.csproj", "{D806AE91-76E2-4760-8355-2A63E45EFF72}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hp2BaseMod", "Hp2BaseMod\Hp2BaseMod.csproj", "{43BDC1C7-16D2-467D-AFAA-3F9F8B2A90F6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hp2BaseModTweaks", "Hp2BaseModTweaks\Hp2BaseModTweaks.csproj", "{47CF9B4E-81E4-4E08-A097-5D89794C89D6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Randomizer", "Randomizer\Randomizer.csproj", "{1F26C213-DB7E-48AE-B60F-49A3F61BB2F2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RepeatThreesome", "RepeatThreesome\RepeatThreesome.csproj", "{860D2BFB-D571-4584-B394-4006CE6EA882}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScallyCapFanOutfits", "ScallyCapFanOutfits\ScallyCapFanOutfits.csproj", "{4CC8D54C-E8DE-4B53-B3B4-B51605DDB865}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{AA384D45-9B6A-41F0-B05C-E5C1F0135F2F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AA384D45-9B6A-41F0-B05C-E5C1F0135F2F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AA384D45-9B6A-41F0-B05C-E5C1F0135F2F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AA384D45-9B6A-41F0-B05C-E5C1F0135F2F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D806AE91-76E2-4760-8355-2A63E45EFF72}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D806AE91-76E2-4760-8355-2A63E45EFF72}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D806AE91-76E2-4760-8355-2A63E45EFF72}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D806AE91-76E2-4760-8355-2A63E45EFF72}.Release|Any CPU.Build.0 = Release|Any CPU
+		{43BDC1C7-16D2-467D-AFAA-3F9F8B2A90F6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{43BDC1C7-16D2-467D-AFAA-3F9F8B2A90F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{43BDC1C7-16D2-467D-AFAA-3F9F8B2A90F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{43BDC1C7-16D2-467D-AFAA-3F9F8B2A90F6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{47CF9B4E-81E4-4E08-A097-5D89794C89D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{47CF9B4E-81E4-4E08-A097-5D89794C89D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{47CF9B4E-81E4-4E08-A097-5D89794C89D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{47CF9B4E-81E4-4E08-A097-5D89794C89D6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1F26C213-DB7E-48AE-B60F-49A3F61BB2F2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1F26C213-DB7E-48AE-B60F-49A3F61BB2F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1F26C213-DB7E-48AE-B60F-49A3F61BB2F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1F26C213-DB7E-48AE-B60F-49A3F61BB2F2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{860D2BFB-D571-4584-B394-4006CE6EA882}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{860D2BFB-D571-4584-B394-4006CE6EA882}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{860D2BFB-D571-4584-B394-4006CE6EA882}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{860D2BFB-D571-4584-B394-4006CE6EA882}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4CC8D54C-E8DE-4B53-B3B4-B51605DDB865}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4CC8D54C-E8DE-4B53-B3B4-B51605DDB865}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4CC8D54C-E8DE-4B53-B3B4-B51605DDB865}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4CC8D54C-E8DE-4B53-B3B4-B51605DDB865}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
