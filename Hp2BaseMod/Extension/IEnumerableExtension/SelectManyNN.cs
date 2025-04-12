@@ -5,6 +5,9 @@ namespace Hp2BaseMod.Extension.IEnumerableExtension
 {
     public static partial class IEnumerableExtension
     {
+        /// <summary>
+        /// Selects many from non-null IEnumerables
+        /// </summary>
         public static IEnumerable<Tb> SelectManyNN<Ta, Tb>(this IEnumerable<Ta> source, Func<Ta, IEnumerable<Tb>> getSelection)
         {
             foreach (var element in source)

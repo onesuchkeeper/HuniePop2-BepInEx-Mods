@@ -26,7 +26,7 @@ public class Plugin : BaseUnityPlugin
         var hairstyleFrontPartId_1 = new RelativeId(_modId, 1);
         var hairstyleBackPartId_1 = new RelativeId(_modId, 2);
 
-        var ashleyAshleyPart = new GirlPartDataMod(outfitPartId_1, InsertStyle.replace)
+        var ashleyBikerPart = new GirlPartDataMod(outfitPartId_1, InsertStyle.replace)
         {
             PartType = GirlPartType.OUTFIT,
             PartName = "ashleyOutfitAshley",
@@ -75,12 +75,12 @@ public class Plugin : BaseUnityPlugin
 
         ModInterface.AddDataMod(new GirlDataMod(Girls.AshleyId, InsertStyle.append)
         {
-            parts = new List<IGirlSubDataMod<GirlPartSubDefinition>>() { ashleyAshleyPart },
+            parts = new List<IGirlSubDataMod<GirlPartSubDefinition>>() { ashleyBikerPart },
             outfits = new List<IGirlSubDataMod<ExpandedOutfitDefinition>>()
             {
                 new OutfitDataMod(_styleId_1, InsertStyle.replace)
                 {
-                    Name = "Risky Biker Laces",
+                    Name = "Biker Laces",
                     OutfitPartId = outfitPartId_1,
                     IsNSFW = false,
                     HideNipples = true,
@@ -90,7 +90,7 @@ public class Plugin : BaseUnityPlugin
             }
         });
 
-        ModInterface.PreLoadSaveFile += On_PrePersistenceReset;
+        ModInterface.Events.PreLoadSaveFile += On_PrePersistenceReset;
     }
 
     private void On_PrePersistenceReset(SaveFile file)

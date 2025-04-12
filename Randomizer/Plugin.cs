@@ -14,15 +14,70 @@ namespace Hp2Randomizer;
 public class Plugin : BaseUnityPlugin
 {
     internal static Config ModConfig;
-    internal static int ModId;
+    private static int ModId;
+
+    /// <summary>
+    /// Sets the swap handler for a particular Special Girl.
+    /// Handler accepts the the special girl, then the girl she swaps with
+    /// and swaps their properties
+    /// </summary>
+    public static void SetSpecialCharacterSwapHandler(RelativeId specialGirlId, Action<GirlDefinition, GirlDefinition> swapHandler)
+        => _swapHandlers[specialGirlId] = swapHandler;
+
+    private static Dictionary<RelativeId, Action<GirlDefinition, GirlDefinition>> _swapHandlers = new Dictionary<RelativeId, Action<GirlDefinition, GirlDefinition>>();
+
+    private DialogTriggerDefinition[] _moanTriggers;
 
     private void Awake()
     {
         ModId = ModInterface.GetSourceId(MyPluginInfo.PLUGIN_GUID);
+
         ModInterface.AddCommand(new SetSeedCommand());
 
-        ModInterface.PreGameSave += On_PreSave;
-        ModInterface.PostDataMods += On_PostDataMods;
+        _swapHandlers.Add(Girls.KyuId, SwapKyu);
+        _swapHandlers.Add(Girls.MoxieId, SwapNymphojinn);
+        _swapHandlers.Add(Girls.JewnId, SwapNymphojinn);
+
+        ModInterface.Events.PreGameSave += On_PreSave;
+        ModInterface.Events.PostDataMods += On_PostDataMods;
+    }
+
+    private void SwapNymphojinn(GirlDefinition nymphojinnDef, GirlDefinition otherGirlDef)
+    {
+        foreach (var expression in otherGirlDef.expressions)
+        {
+            if (expression.partIndexEyesGlow != -1)
+            {
+                expression.partIndexEyes = expression.partIndexEyesGlow;
+            }
+        }
+
+        foreach (var dt in _moanTriggers)
+        {
+            var hold = dt.dialogLineSets[(int)nymphojinnDef.dialogTriggerTab];
+            dt.dialogLineSets[(int)nymphojinnDef.dialogTriggerTab] = dt.dialogLineSets[(int)otherGirlDef.dialogTriggerTab];
+            dt.dialogLineSets[(int)otherGirlDef.dialogTriggerTab] = hold;
+        }
+
+        nymphojinnDef.defaultHairstyleIndex = 0;
+        nymphojinnDef.defaultOutfitIndex = 0;
+
+        if (ModConfig.SwappedSpecialCharactersKeepWings)
+        {
+            otherGirlDef.specialEffectPrefab = nymphojinnDef.specialEffectPrefab;
+        }
+    }
+
+    private void SwapKyu(GirlDefinition kyuDef, GirlDefinition otherGirlDef)
+    {
+        kyuDef.defaultHairstyleIndex = 1;
+        kyuDef.defaultOutfitIndex = 1;
+
+        if (ModConfig.SwappedSpecialCharactersKeepWings)
+        {
+            otherGirlDef.specialEffectPrefab = kyuDef.specialEffectPrefab;
+            otherGirlDef.specialEffectOffset = kyuDef.specialEffectOffset;
+        }
     }
 
     private void On_PreSave()
@@ -108,7 +163,7 @@ public class Plugin : BaseUnityPlugin
             ("Renee", null),
         };
 
-        var names = new Dictionary<GirlDefinition, (string name, string nickName)>();
+        var assignedNames = new Dictionary<GirlDefinition, (string name, string nickName)>();
 
         var baggagePool = new List<(GirlDefinition girl, ItemDefinition ailment)>();
 
@@ -125,13 +180,13 @@ public class Plugin : BaseUnityPlugin
             //special characters don't have all the stuff they need,
             //so instead I'll just swap their visuals and other bits with someone
             //swaps like this aren't the same odds but I don't really care
-            var moanTriggers = new DialogTriggerDefinition[] {
-                Game.Data.DialogTriggers.Get(ModInterface.Data.GetRuntimeDataId( GameDataType.DialogTrigger, new RelativeId(-1, 43))),
-                Game.Data.DialogTriggers.Get(ModInterface.Data.GetRuntimeDataId( GameDataType.DialogTrigger, new RelativeId(-1, 44))),
-                Game.Data.DialogTriggers.Get(ModInterface.Data.GetRuntimeDataId( GameDataType.DialogTrigger, new RelativeId(-1, 45))),
-                Game.Data.DialogTriggers.Get(ModInterface.Data.GetRuntimeDataId( GameDataType.DialogTrigger, new RelativeId(-1, 46))),
-                Game.Data.DialogTriggers.Get(ModInterface.Data.GetRuntimeDataId( GameDataType.DialogTrigger, new RelativeId(-1, 47)))
-            };
+            _moanTriggers = [
+                ModInterface.GameData.GetDialogTrigger(new RelativeId(-1, 43)),
+                ModInterface.GameData.GetDialogTrigger(new RelativeId(-1, 44)),
+                ModInterface.GameData.GetDialogTrigger(new RelativeId(-1, 45)),
+                ModInterface.GameData.GetDialogTrigger(new RelativeId(-1, 46)),
+                ModInterface.GameData.GetDialogTrigger(new RelativeId(-1, 47))
+            ];
 
             foreach (var specialGirl in specialGirls)
             {
@@ -139,7 +194,7 @@ public class Plugin : BaseUnityPlugin
 
                 GirlDefinition target = null;
 
-                if (ModConfig.ForceSpecialCharacters)
+                if (ModConfig.ForceSwapSpecialWithNormal)
                 {
                     target = normalGirls[random.Next() % normalGirls.Count];
                 }
@@ -153,45 +208,18 @@ public class Plugin : BaseUnityPlugin
 
                 if (ModConfig.RandomizeNames)
                 {
-                    names[specialGirl] = PopRandom(random, namePool);
+                    assignedNames[specialGirl] = PopRandom(random, namePool);
                 }
 
-                //nymphojinn
-                if (specialGirl.id == 14 || specialGirl.id == 15)
+                var specialId = ModInterface.Data.GetDataId(GameDataType.Girl, specialGirl.id);
+                var targetId = ModInterface.Data.GetDataId(GameDataType.Girl, target.id);
+
+                if (_swapHandlers.TryGetValue(specialId, out var swapHandler))
                 {
-                    foreach (var expression in target.expressions)
-                    {
-                        if (expression.partIndexEyesGlow != -1)
-                        {
-                            expression.partIndexEyes = expression.partIndexEyesGlow;
-                        }
-                    }
-
-                    foreach (var dt in moanTriggers)
-                    {
-                        var hold = dt.dialogLineSets[(int)specialGirl.dialogTriggerTab];
-                        dt.dialogLineSets[(int)specialGirl.dialogTriggerTab] = dt.dialogLineSets[(int)target.dialogTriggerTab];
-                        dt.dialogLineSets[(int)target.dialogTriggerTab] = hold;
-                    }
-
-                    specialGirl.defaultHairstyleIndex = target.defaultHairstyleIndex;
-                    target.defaultHairstyleIndex = 0;
-
-                    specialGirl.defaultOutfitIndex = target.defaultOutfitIndex;
-                    target.defaultOutfitIndex = 0;
-                }
-                //kyu
-                else if (specialGirl.id == 13)
-                {
-                    specialGirl.defaultHairstyleIndex = target.defaultHairstyleIndex;
-                    target.defaultHairstyleIndex = 1;
-
-                    specialGirl.defaultOutfitIndex = target.defaultOutfitIndex;
-                    target.defaultOutfitIndex = 1;
+                    swapHandler.Invoke(specialGirl, target);
                 }
 
-                ModInterface.Data.SwapGirlStyles(ModInterface.Data.GetDataId(GameDataType.Girl, specialGirl.id),
-                    ModInterface.Data.GetDataId(GameDataType.Girl, target.id));
+                ModInterface.Data.SwapGirlStyles(specialId, targetId);
 
                 var holdParts = specialGirl.parts;
                 specialGirl.parts = target.parts;
@@ -233,6 +261,14 @@ public class Plugin : BaseUnityPlugin
                 specialGirl.partIndexNipples = target.partIndexNipples;
                 target.partIndexNipples = holdInt;
 
+                holdInt = specialGirl.defaultOutfitIndex;
+                specialGirl.defaultOutfitIndex = target.defaultOutfitIndex;
+                target.defaultOutfitIndex = holdInt;
+
+                holdInt = specialGirl.defaultHairstyleIndex;
+                specialGirl.defaultHairstyleIndex = target.defaultHairstyleIndex;
+                target.defaultHairstyleIndex = holdInt;
+
                 var holdOutfits = specialGirl.outfits;
                 specialGirl.outfits = target.outfits;
                 target.outfits = holdOutfits;
@@ -249,16 +285,12 @@ public class Plugin : BaseUnityPlugin
                 specialGirl.expressions = target.expressions;
                 target.expressions = holdExpressions;
 
-
                 var holdVec2 = specialGirl.specialEffectOffset;
-                var holdSpecialEffectPrefab = specialGirl.specialEffectPrefab;
-
-                if (!ModConfig.SwappedSpecialCharactersKeepWings)
-                {
-                    specialGirl.specialEffectOffset = target.specialEffectOffset;
-                    specialGirl.specialEffectPrefab = target.specialEffectPrefab;
-                }
+                specialGirl.specialEffectOffset = target.specialEffectOffset;
                 target.specialEffectOffset = holdVec2;
+
+                var holdSpecialEffectPrefab = specialGirl.specialEffectPrefab;
+                specialGirl.specialEffectPrefab = target.specialEffectPrefab;
                 target.specialEffectPrefab = holdSpecialEffectPrefab;
 
                 var holdSprite = specialGirl.cellphoneHead;
@@ -318,7 +350,7 @@ public class Plugin : BaseUnityPlugin
         {
             foreach (var specialGirl in specialGirls)
             {
-                names[specialGirl] = (specialGirl.girlName, specialGirl.girlNickName);
+                assignedNames[specialGirl] = (specialGirl.girlName, specialGirl.girlNickName);
             }
         }
 
@@ -328,7 +360,7 @@ public class Plugin : BaseUnityPlugin
         foreach (var girl in normalGirls)
         {
             var name = ModConfig.RandomizeNames ? PopRandom(random, namePool) : (girl.name, girl.girlNickName);
-            names[girl] = name;
+            assignedNames[girl] = name;
 
             if (ModConfig.RandomizeBaggage)
             {
@@ -341,9 +373,9 @@ public class Plugin : BaseUnityPlugin
                 baggageB.ailment,
                 baggageC.ailment
             };
-                ReplaceCutsceneGirls(baggageA.ailment.cutsceneDefinition.steps, [(baggageA.girl, girl, names[girl])]);
-                ReplaceCutsceneGirls(baggageB.ailment.cutsceneDefinition.steps, [(baggageB.girl, girl, names[girl])]);
-                ReplaceCutsceneGirls(baggageC.ailment.cutsceneDefinition.steps, [(baggageC.girl, girl, names[girl])]);
+                ReplaceCutsceneGirls(baggageA.ailment.cutsceneDefinition.steps, [(baggageA.girl, girl, assignedNames[girl])]);
+                ReplaceCutsceneGirls(baggageB.ailment.cutsceneDefinition.steps, [(baggageB.girl, girl, assignedNames[girl])]);
+                ReplaceCutsceneGirls(baggageC.ailment.cutsceneDefinition.steps, [(baggageC.girl, girl, assignedNames[girl])]);
 
                 handledCutscenes.Add(baggageA.ailment.cutsceneDefinition);
                 handledCutscenes.Add(baggageB.ailment.cutsceneDefinition);
@@ -372,8 +404,8 @@ public class Plugin : BaseUnityPlugin
             foreach (var cutscene in pair.relationshipCutsceneDefinitions)
             {
                 ReplaceCutsceneGirls(cutscene?.steps, [
-                    (pair.girlDefinitionOne, newGirlOne, names[newGirlOne]),
-                    (pair.girlDefinitionTwo, newGirlTwo, names[newGirlTwo])
+                    (pair.girlDefinitionOne, newGirlOne, assignedNames[newGirlOne]),
+                    (pair.girlDefinitionTwo, newGirlTwo, assignedNames[newGirlTwo])
                 ]);
 
                 handledCutscenes.Add(cutscene);
@@ -386,8 +418,8 @@ public class Plugin : BaseUnityPlugin
 
         //swap lola in tutorial pair
         var swapPool = normalGirls.ToList();
-        var lola = normalGirls.First(x => x.id == 1);
-        normalGirls.Remove(lola);
+        var lolaDef = ModInterface.GameData.GetGirl(Girls.LolaId);
+        normalGirls.Remove(lolaDef);
         var lolaSwap = PopRandom(random, swapPool);
 
         var tutorialPair = Game.Data.GirlPairs.Get(ModInterface.Data.GetRuntimeDataId(GameDataType.GirlPair, new RelativeId(-1, 26)));
@@ -398,8 +430,8 @@ public class Plugin : BaseUnityPlugin
         var replaceGroups = normalGirls.Select(x =>
         {
             var newGirl = PopRandom(random, swapPool);
-            return (x, newGirl, names[newGirl]);
-        }).Append((lola, lolaSwap, names[lolaSwap])).ToArray();
+            return (x, newGirl, assignedNames[newGirl]);
+        }).Append((lolaDef, lolaSwap, assignedNames[lolaSwap])).ToArray();
 
         foreach (var cutscene in Game.Data.Cutscenes.GetAll().Where(x => !handledCutscenes.Contains(x)))
         {
@@ -409,8 +441,8 @@ public class Plugin : BaseUnityPlugin
         //names get changed after all cutscenes so that the name data is still matches
         foreach (var girl in Game.Data.Girls.GetAll())
         {
-            girl.girlName = names[girl].name;
-            girl.girlNickName = names[girl].nickName;
+            girl.girlName = assignedNames[girl].name;
+            girl.girlNickName = assignedNames[girl].nickName;
         }
     }
 

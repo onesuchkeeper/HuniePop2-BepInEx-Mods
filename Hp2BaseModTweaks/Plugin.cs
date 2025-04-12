@@ -27,29 +27,6 @@ public class Plugin : BaseUnityPlugin
 
     private void Awake()
     {
-        // //test
-        // var modConfig = new ModConfig()
-        // {
-        //     ModImagePath = "images\\CreditsLogo.png",
-        //     CreditsEntries = new List<CreditsEntry>(){
-        //         new CreditsEntry(){
-        //             CreditButtonImagePath = "images\\onesuchkeeper_credits.png",
-        //             CreditButtonImageOverPath = "images\\onesuchkeeper_credits_over.png",
-        //             RedirectLink = "https://www.youtube.com/@onesuchkeeper8389"
-        //         },
-        //         new CreditsEntry(){
-        //             CreditButtonImagePath = "images\\ravenlord_credits.png",
-        //             CreditButtonImageOverPath = "images\\ravenlord_credits_over.png",
-        //             RedirectLink = "https://ravenlord359.tumblr.com/"
-        //         }
-        //     },
-        //     LogoImages = new List<string>(){
-        //         "images\\logo.png"
-        //     }
-        // };
-
-        // File.WriteAllText(Path.Combine(Paths.PluginPath, "Hp2BaseMod", _modConfig), JsonConvert.SerializeObject(modConfig, Formatting.Indented));
-
         foreach (var modFolder in Directory.GetDirectories(Paths.PluginPath))
         {
             var fullPath = Path.Combine(modFolder, _modConfig);
@@ -130,27 +107,18 @@ public class Plugin : BaseUnityPlugin
 
         ModInterface.Assets.RequestInternalAudio(Common.Sfx_PhoneAppButtonPressed);
 
-        ModInterface.PreDataMods += On_PreDataMods;
+        ModInterface.Events.PreDataMods += On_PreDataMods;
 
         new Harmony("Hp2BaseMod.Hp2BaseModTweaks").PatchAll();
     }
 
     private void On_PreDataMods()
     {
-        // var diff = Math.Abs(headSize.x - headSize.y);
-
-        // var padding = headSize.x > headSize.y
-        //     ? new RectInt(0, (int)(diff / 2), 0, (int)(diff))
-        //     : new RectInt((int)(diff / 2), 0, (int)(diff), 0);
-
-        // var scale = KeepRatio(headSize, _cellphoneMiniHeadSize);
-
         ModInterface.AddDataMod(new GirlDataMod(Girls.KyuId, Hp2BaseMod.Utility.InsertStyle.replace)
         {
             CellphoneMiniHead = new SpriteInfoPath()
             {
                 Path = "ui_title_icon_kyu",
-                //TexturePadding = new RectInt(0, 10, 0, 20)
             }
         });
 

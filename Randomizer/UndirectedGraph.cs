@@ -20,6 +20,11 @@ public class UndirectedGraph
 
     public void AddEdge(int a, int b)
     {
+        if (a > _nodeCount || a < 0 || b > _nodeCount || b < 0)
+        {
+            throw new ArgumentException($"Node index out of scope [0,{_nodeCount})");
+        }
+
         //always put the lower index first so we can rely on that when parsing
         //that way any duplicate connections will be identical
         _edges.Add(a > b ? (a, b) : (b, a));

@@ -11,7 +11,7 @@ public class Config
     public bool RandomizePairs = true;
     public bool RandomizeAffection = true;
     public bool IncludeSpecialCharacters = true;
-    public bool ForceSpecialCharacters = true;
+    public bool ForceSwapSpecialWithNormal = true;
     public bool SwappedSpecialCharactersKeepWings = true;
     public bool Disable = false;
 }

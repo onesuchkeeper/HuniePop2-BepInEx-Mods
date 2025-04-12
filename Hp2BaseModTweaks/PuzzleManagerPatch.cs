@@ -1,8 +1,8 @@
-using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using HarmonyLib;
 using Hp2BaseMod;
-using System.Linq;
 
 namespace Hp2BaseModTweaks;
 
@@ -26,32 +26,67 @@ internal static class PuzzleManager_OnRoundOver
         {
             ModInterface.Log.LogInfo($"Adding special characters to player file");
 
-            var moxieDef = Game.Data.Girls.Get(ModInterface.Data.GetRuntimeDataId(GameDataType.Girl, Girls.MoxieId));
-            var jewnDef = Game.Data.Girls.Get(ModInterface.Data.GetRuntimeDataId(GameDataType.Girl, Girls.JewnId));
-            var kyuDef = Game.Data.Girls.Get(ModInterface.Data.GetRuntimeDataId(GameDataType.Girl, Girls.KyuId));
+            var moxieDef = ModInterface.GameData.GetGirl(Girls.MoxieId);
+            var jewnDef = ModInterface.GameData.GetGirl(Girls.JewnId);
+            var kyuDef = ModInterface.GameData.GetGirl(Girls.KyuId);
 
             var moxieFile = GetPlayerFileGirl(Game.Persistence.playerFile, moxieDef);
             moxieFile.playerMet = true;
             moxieFile.UnlockOutfit(0);
             moxieFile.UnlockHairstyle(0);
+            UnlockRandomStyle(moxieDef, moxieFile);
 
             var jewnFile = GetPlayerFileGirl(Game.Persistence.playerFile, jewnDef);
             jewnFile.playerMet = true;
             jewnFile.UnlockOutfit(0);
             jewnFile.UnlockHairstyle(0);
+            UnlockRandomStyle(jewnDef, jewnFile);
 
             var kyuFile = GetPlayerFileGirl(Game.Persistence.playerFile, kyuDef);
             kyuFile.playerMet = true;
             kyuFile.UnlockOutfit(1);
             kyuFile.UnlockHairstyle(1);
+            UnlockRandomStyle(kyuDef, kyuFile);
+        }
+    }
 
-            ModInterface.Log.LogInfo($"Moxie met?: {moxieFile.playerMet}");
-            ModInterface.Log.LogInfo($"Jewn met?: {jewnFile.playerMet}");
-            ModInterface.Log.LogInfo($"Kyu met?: {kyuFile.playerMet}");
+    private static void UnlockRandomStyle(GirlDefinition def, PlayerFileGirl playerFileGirl)
+    {
+        var lockedOutfitIndexes = new List<int>();
+        for (var i = 0; i < def.outfits.Count; i++)
+        {
+            if (!playerFileGirl.unlockedOutfits.Contains(i))
+            {
+                lockedOutfitIndexes.Add(i);
+            }
+        }
 
-            var metGirls = Game.Persistence.playerFile.girls.Where(x => x.playerMet).OrderBy(x => x.girlDefinition.id).ToArray();
+        int unlockedOutfit = -1;
+        if (lockedOutfitIndexes.Any())
+        {
+            unlockedOutfit = lockedOutfitIndexes[UnityEngine.Random.Range(0, lockedOutfitIndexes.Count - 1)];
+            playerFileGirl.UnlockOutfit(unlockedOutfit);
+        }
 
-            ModInterface.Log.LogInfo($"Met girls count: {metGirls.Length}");
+        if (unlockedOutfit != -1 && unlockedOutfit < def.hairstyles.Count)
+        {
+            playerFileGirl.UnlockHairstyle(unlockedOutfit);
+        }
+        else
+        {
+            var lockedHairstyleIndexes = new List<int>();
+            for (var i = 0; i < def.hairstyles.Count; i++)
+            {
+                if (!playerFileGirl.unlockedHairstyles.Contains(i))
+                {
+                    lockedHairstyleIndexes.Add(i);
+                }
+            }
+
+            if (lockedOutfitIndexes.Any())
+            {
+                playerFileGirl.UnlockHairstyle(lockedHairstyleIndexes[UnityEngine.Random.Range(0, lockedHairstyleIndexes.Count - 1)]);
+            }
         }
     }
 

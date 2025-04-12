@@ -9,7 +9,6 @@ namespace Hp2BaseMod.Utility
 {
     internal static class Hp2UiSonUtility
     {
-        private static readonly string _defaultDataPath = @"C:\Git\onesuchkeeper\Hp2BaseMod\Hp2BaseMod\DefaultData.cs";
         private static readonly string _addQuotesFormat = '"' + "{0}" + '"';
         private static readonly char _questionMark = '?';
 
@@ -209,12 +208,12 @@ namespace Hp2BaseMod.Utility
 
         private static string ToCsv(IEnumerable<string> items, string formatString = "{0}") => string.Join(",", items.Select(x => string.Format(formatString, x ?? "null")));
 
-        internal static void MakeDefaultDataDotCs(GameData gameData)
+        internal static void MakeDefaultDataDotCs(GameData gameData, string filePath)
         {
             try
             {
                 ModInterface.Log.LogInfo("Creating file");
-                var file = File.CreateText(_defaultDataPath);
+                var file = File.CreateText(filePath);
 
                 ModInterface.Log.LogInfo("Header and usings");
                 file.WriteLine("// Hp2BaseMod 2022, by OneSuchKeeper");

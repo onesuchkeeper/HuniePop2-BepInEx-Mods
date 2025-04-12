@@ -1,10 +1,11 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using BepInEx;
 using HarmonyLib;
 using Hp2BaseMod;
 using Hp2BaseMod.GameDataInfo;
-using Hp2BaseMod.ModLoader;
 using Hp2BaseMod.Utility;
+using UnityEngine;
 
 namespace Hp2ExtraOptions;
 
@@ -68,29 +69,36 @@ public class Plugin : BaseUnityPlugin
         });
         ModInterface.AddCommand(new SetIconCommand());
 
-        ModInterface.RequestStyleChange += RandomizeStyles.On_RequestStyleChange;
-        ModInterface.PostDataMods += On_PostDataMods;
+        ModInterface.Events.RequestStyleChange += RandomizeStyles.On_RequestStyleChange;
+        ModInterface.Events.PostDataMods += On_PostDataMods;
+        ModInterface.Events.PostCodeSubmitted += On_PostCodeSubmitted;
 
-        // add toggle for slow drain on bonus round TODO
+        // add toggle for slow drain on bonus round? TODO
 
         new Harmony(MyPluginInfo.PLUGIN_GUID).PatchAll();
     }
 
+    private void On_PostCodeSubmitted()
+    {
+        Application.runInBackground = ModInterface.GameData.IsCodeUnlocked(Constants.RunInBackgroundCodeId);
+    }
+
     private void On_PostDataMods()
     {
-        if (!GameDefinitionProvider.IsCodeUnlocked(Constants.FairyWingsCodeId)) { return; }
+        Application.runInBackground = ModInterface.GameData.IsCodeUnlocked(Constants.RunInBackgroundCodeId);
 
-        var kyuRuntime = ModInterface.Data.GetRuntimeDataId(GameDataType.Girl, Girls.KyuId);
-        var girls = Game.Data.Girls.GetAll();
-        var kyu = girls.FirstOrDefault(x => x.id == kyuRuntime);
-        ModInterface.Log.LogWarning("Applying wings");
+        if (!ModInterface.GameData.IsCodeUnlocked(Constants.FairyWingsCodeId)) { return; }
+
+        var kyu = ModInterface.GameData.GetGirl(Girls.KyuId);
+
+        ModInterface.Log.LogInfo("Applying wings");
         if (kyu == null)
         {
-            ModInterface.Log.LogWarning("Unable to find Kyu, Pink Bitch wings not applied");
+            ModInterface.Log.LogWarning("Unable to find Kyu, \"PINK BITCH!\" wings not applied D:");
             return;
         }
 
-        foreach (var girl in girls)
+        foreach (var girl in Game.Data.Girls.GetAll())
         {
             girl.specialEffectPrefab = kyu.specialEffectPrefab;
             girl.specialEffectOffset = kyu.specialEffectOffset;

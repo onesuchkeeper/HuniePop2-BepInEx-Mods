@@ -4,7 +4,6 @@ using System.IO;
 using Hp2BaseMod.Commands;
 using Hp2BaseMod.GameDataInfo;
 using Hp2BaseMod.GameDataInfo.Interface;
-using Hp2BaseMod.ModLoader;
 using Hp2BaseMod.Save;
 using Newtonsoft.Json;
 using Sourceage.Element;
@@ -14,43 +13,6 @@ namespace Hp2BaseMod;
 
 public static class ModInterface
 {
-    #region events
-
-    public static event Action PreGameSave;
-    internal static void NotifyPreSave() => PreGameSave?.Invoke();
-
-    public static event Action PostGameSave;
-    internal static void NotifyPostSave() => PostGameSave?.Invoke();
-
-    public static event Action<SaveFile> PreLoadSaveFile;
-    internal static void NotifyPreLoadSaveFile(SaveFile file) => PreLoadSaveFile?.Invoke(file);
-
-    public static event Action PreDataMods;
-    public static event Action PostDataMods;
-
-    /// <summary>
-    /// Notifies when a girl's style will potentially change, allowing it to be modified.
-    /// </summary>
-    public static event EventHandler<RequestStyleChangeEventArgs> RequestStyleChange;
-    internal static RequestStyleChangeEventArgs NotifyRequestStyleChange(GirlDefinition girl, LocationDefinition loc, float percentage, GirlStyleInfo style)
-    {
-        var args = new RequestStyleChangeEventArgs(girl, loc, percentage, style);
-        RequestStyleChange?.Invoke(null, args);
-        return args;
-    }
-
-    /// <summary>
-    /// Triggers before SaveData is applied to the persistence, allowing for modifications
-    /// like the unlocking of styles etc.
-    /// </summary>
-    public static event Action<SaveData> PrePersistenceReset;
-    internal static void NotifyPrePersistenceReset(SaveData playerData) => PrePersistenceReset?.Invoke(playerData);
-
-    public static event Action PostPersistenceReset;
-    internal static void NotifyPostPersistenceReset() => PostPersistenceReset?.Invoke();
-
-    #endregion
-
     private static string _modSavePath = Path.Combine(Application.persistentDataPath, @"ModSaveData.json");
 
     #region GameDataMods
@@ -99,6 +61,9 @@ public static class ModInterface
 
     #endregion
 
+    /// <summary>
+    /// Commands registered to the mod interface
+    /// </summary>
     public static IReadOnlyDictionary<string, ICommand> Commands => _commands;
     private static Dictionary<string, ICommand> _commands = new Dictionary<string, ICommand>();
 
@@ -126,11 +91,21 @@ public static class ModInterface
     public static ModState State => _state;
     private static ModState _state = new ModState();
 
+    public static ModEvents Events => _events;
+    private static ModEvents _events = new ModEvents();
+
     /// <summary>
     /// Holds references to requested in-game assets
     /// </summary>
     public static AssetProvider Assets => _assetProvider;
     private static AssetProvider _assetProvider = new AssetProvider();
+
+    /// <summary>
+    /// Provides access to GameData by RelativeId, Do not access Game.Data or this
+    /// until Events.PostDataMods triggers
+    /// </summary>
+    public static GameDefinitionProvider GameData => _gameData;
+    private static GameDefinitionProvider _gameData;
 
     private static SetManager<int> _idPool;
     private static Dictionary<int, string> _sourceId_GUID;
@@ -186,9 +161,10 @@ public static class ModInterface
         {
             _dataModsApplied = true;
 
-            PreDataMods?.Invoke();
+            _events.NotifyPreDataMods();
+            _gameData = new GameDefinitionProvider(Game.Data);
             GameDataModder.Mod(Game.Data);
-            PostDataMods?.Invoke();
+            _events.NotifyPostDataMods();
         }
     }
 

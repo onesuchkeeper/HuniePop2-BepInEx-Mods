@@ -7,6 +7,9 @@ namespace Hp2BaseMod.Extension.StringExtension;
 
 public static partial class StringExtension
 {
+    /// <summary>
+    /// Replaces the first of several patterns that matches
+    /// </summary>
     public static string Replace(this string source, params IEnumerable<(string pattern, string value)> replaceGroups)
     {
         if (source == null) { return null; }

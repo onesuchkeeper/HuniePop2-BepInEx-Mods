@@ -11,6 +11,6 @@ public static class UiTitleCanvasPatch_LoadGame
     public static void Prefix(UiTitleCanvas __instance, int saveFileIndex, string loadSceneName = "MainScene")
     {
         var saveSata = (SaveData)_saveData.GetValue(Game.Persistence);
-        ModInterface.NotifyPreLoadSaveFile(saveSata.files[saveFileIndex]);
+        ModInterface.Events.NotifyPreLoadSaveFile(saveSata.files[saveFileIndex]);
     }
 }

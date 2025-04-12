@@ -1,10 +1,9 @@
 ﻿// Hp2BaseMod 2021, By OneSuchKeeper
 
-using Hp2BaseMod.GameDataInfo.Interface;
-using Hp2BaseMod.ModLoader;
-using Hp2BaseMod.Utility;
 using System;
 using System.Collections.Generic;
+using Hp2BaseMod.GameDataInfo.Interface;
+using Hp2BaseMod.Utility;
 
 namespace Hp2BaseMod.GameDataInfo
 {
@@ -51,7 +50,7 @@ namespace Hp2BaseMod.GameDataInfo
         /// Constructor from a definition instance.
         /// </summary>
         /// <param name="def">The definition.</param>
-        /// <param name="assetProvider">Asset provider containing the assest referenced by the definition.</param>
+        /// <param name="assetProvider">Asset provider containing the assets referenced by the definition.</param>
         public LogicActionInfo(LogicAction def, AssetProvider assetProvider)
         {
             if (def == null) { throw new ArgumentNullException(nameof(def)); }

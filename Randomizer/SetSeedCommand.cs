@@ -25,7 +25,7 @@ public class SetSeedCommand : ICommand
             Plugin.ModConfig.Seed = BitConverter.ToInt32(hashed, 0);
         }
 
-        result = $"Seed set to {Plugin.ModConfig.Seed}. The game must be restarted for it to take effect.";
+        result = $"Seed set to {Plugin.ModConfig.Seed}. The game must be saved then restarted for it to take effect.";
         return true;
     }
 }

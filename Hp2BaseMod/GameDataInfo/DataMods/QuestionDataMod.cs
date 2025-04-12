@@ -1,10 +1,8 @@
 ﻿// Hp2BaseMod 2021, By OneSuchKeeper
 
-using Hp2BaseMod.GameDataInfo.Interface;
-using Hp2BaseMod.ModLoader;
-using Hp2BaseMod.Utility;
-using System;
 using System.Collections.Generic;
+using Hp2BaseMod.GameDataInfo.Interface;
+using Hp2BaseMod.Utility;
 
 namespace Hp2BaseMod.GameDataInfo
 {

@@ -1,12 +1,10 @@
 ﻿// Hp2BaseMod 2021, By OneSuchKeeper
 
-using Hp2BaseMod.Extension.IEnumerableExtension;
-using Hp2BaseMod.GameDataInfo.Interface;
-using Hp2BaseMod.ModLoader;
-using Hp2BaseMod.Utility;
-using System;
 using System.Collections.Generic;
 using System.Linq;
+using Hp2BaseMod.Extension.IEnumerableExtension;
+using Hp2BaseMod.GameDataInfo.Interface;
+using Hp2BaseMod.Utility;
 using UnityEngine;
 
 namespace Hp2BaseMod.GameDataInfo
@@ -57,7 +55,7 @@ namespace Hp2BaseMod.GameDataInfo
         /// </summary>
         /// <param name="def">The definition.</param>
         /// <param name="def">A collection of all girl definitions.</param>
-        /// <param name="assetProvider">Asset provider containing the assest referenced by the definition.</param>
+        /// <param name="assetProvider">Asset provider containing the assets referenced by the definition.</param>
         internal LocationDataMod(LocationDefinition def, IEnumerable<GirlDefinition> girls, AssetProvider assetProvider)
             : base(new RelativeId(def), InsertStyle.replace, 0)
         {

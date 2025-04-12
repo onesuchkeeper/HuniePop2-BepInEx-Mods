@@ -44,10 +44,10 @@ public class Plugin : BaseUnityPlugin
         ModInterface.Log.LogInfo("Patching");
         using (ModInterface.Log.MakeIndent())
         {
-            new Harmony("Hp2BaseMod.Hp2RepeatThreesomeMod").PatchAll();
+            new Harmony(MyPluginInfo.PLUGIN_GUID).PatchAll();
         }
 
-        ModInterface.PreDataMods += On_PreDataMods;
+        ModInterface.Events.PreDataMods += On_PreDataMods;
     }
 
     private void On_PreDataMods()
@@ -103,7 +103,7 @@ public class Plugin : BaseUnityPlugin
         foreach (var girlId in ModInterface.Data.GetIds(GameDataType.Girl))
         {
             // polly has an alt
-            if (girlId.SourceId == -1 && girlId.LocalId == 12)
+            if (girlId == Girls.PollyId)
             {
                 ModInterface.Log.LogInfo($"Adding nude outfit for polly {girlId}");
 

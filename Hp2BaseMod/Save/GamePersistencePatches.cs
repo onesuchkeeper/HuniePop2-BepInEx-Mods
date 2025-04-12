@@ -1,11 +1,10 @@
 ﻿// Hp2BaseModLoader 2021, by OneSuchKeeper
 
-using HarmonyLib;
-using Hp2BaseMod.ModLoader;
-using Newtonsoft.Json;
 using System;
 using System.IO;
 using System.Reflection;
+using HarmonyLib;
+using Newtonsoft.Json;
 using UnityEngine;
 
 namespace Hp2BaseMod.Save
@@ -21,7 +20,7 @@ namespace Hp2BaseMod.Save
         [HarmonyPatch("Save")]
         private static bool SavePre(GamePersistence __instance, out SaveData __state)
         {
-            ModInterface.NotifyPreSave();
+            ModInterface.Events.NotifyPreSave();
 
             //create copy of save data
             var saveData = (SaveData)_saveDataAccess.GetValue(__instance);
@@ -56,7 +55,7 @@ namespace Hp2BaseMod.Save
                 _saveDataAccess.SetValue(__instance, __state);
             }
 
-            ModInterface.NotifyPostSave();
+            ModInterface.Events.NotifyPostSave();
         }
 
         [HarmonyPostfix]
@@ -88,7 +87,7 @@ namespace Hp2BaseMod.Save
             if ((bool)inited.GetValue(__instance))
             {
                 ModInterface.ApplyDataMods();
-                ModInterface.NotifyPrePersistenceReset(_saveDataAccess.GetValue(__instance) as SaveData);
+                ModInterface.Events.NotifyPrePersistenceReset(_saveDataAccess.GetValue(__instance) as SaveData);
             }
         }
 
@@ -98,7 +97,7 @@ namespace Hp2BaseMod.Save
         {
             if ((bool)inited.GetValue(__instance))
             {
-                ModInterface.NotifyPostPersistenceReset();
+                ModInterface.Events.NotifyPostPersistenceReset();
             }
         }
 

@@ -40,4 +40,9 @@ public static class UiCellphoneAppCodePatch
 
         return true;
     }
+
+    public static void Postfix()
+    {
+        ModInterface.Events.NotifyPostCodeSubmitted();
+    }
 }

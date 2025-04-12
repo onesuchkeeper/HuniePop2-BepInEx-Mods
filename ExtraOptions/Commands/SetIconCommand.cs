@@ -2,7 +2,6 @@ using System.Reflection;
 using HarmonyLib;
 using Hp2BaseMod;
 using Hp2BaseMod.Commands;
-using Hp2BaseMod.ModLoader;
 
 namespace Hp2ExtraOptions;
 

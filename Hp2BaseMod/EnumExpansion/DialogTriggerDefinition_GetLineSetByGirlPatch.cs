@@ -1,5 +1,5 @@
-﻿using HarmonyLib;
-using System;
+﻿using System;
+using HarmonyLib;
 
 namespace Hp2BaseMod.EnumExpansion
 {
@@ -33,7 +33,7 @@ namespace Hp2BaseMod.EnumExpansion
             }
             catch (Exception e)
             {
-                ModInterface.Log.LogError($"Getting line sets for girl {girlDef.id} - {girlDef.name} {e}");
+                ModInterface.Log.LogError($"Getting line sets for girl {girlDef.id} - {girlDef.name},", e);
             }
 
             return true;

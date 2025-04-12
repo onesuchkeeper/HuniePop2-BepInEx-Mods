@@ -8,7 +8,7 @@ using Hp2BaseMod.GameDataInfo.Interface;
 using UnityEngine;
 using UnityEngine.U2D;
 
-namespace Hp2BaseMod.ModLoader
+namespace Hp2BaseMod
 {
     /// <summary>
     /// Holding space for unity objects like audio files, prefabs and images from the game while setting up data mods

@@ -1,11 +1,9 @@
 ﻿// Hp2BaseMod 2021, By OneSuchKeeper
 
+using System.Collections.Generic;
 using Hp2BaseMod.Extension.IEnumerableExtension;
 using Hp2BaseMod.GameDataInfo.Interface;
-using Hp2BaseMod.ModLoader;
 using Hp2BaseMod.Utility;
-using System;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace Hp2BaseMod.GameDataInfo
@@ -52,7 +50,7 @@ namespace Hp2BaseMod.GameDataInfo
         /// Constructor from a definition instance.
         /// </summary>
         /// <param name="def">The definition.</param>
-        /// <param name="assetProvider">Asset provider containing the assest referenced by the definition.</param>
+        /// <param name="assetProvider">Asset provider containing the assets referenced by the definition.</param>
         internal PhotoDataMod(PhotoDefinition def, AssetProvider assetProvider)
             : base(new RelativeId(def), InsertStyle.replace, 0)
         {

@@ -6,7 +6,7 @@ namespace Hp2BaseMod;
 public class RequestStyleChangeEventArgs : EventArgs
 {
     /// <summary>
-    /// Percentace between 0 and 1
+    /// Percentage of style change to be applied between 0 and 1
     /// </summary>
     public float ApplyChance;
 
@@ -20,7 +20,6 @@ public class RequestStyleChangeEventArgs : EventArgs
     /// </summary>
     public GirlDefinition Def => _def;
     private GirlDefinition _def;
-
 
     /// <summary>
     /// The location traveled to

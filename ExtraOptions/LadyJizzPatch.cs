@@ -2,7 +2,6 @@
 
 using HarmonyLib;
 using Hp2BaseMod;
-using Hp2BaseMod.ModLoader;
 
 namespace Hp2ExtraOptions
 {
@@ -15,7 +14,7 @@ namespace Hp2ExtraOptions
         public static void Postfix(ref int __result)
         {
             if (__result == 1
-                && GameDefinitionProvider.IsCodeUnlocked(Constants.FemaleJizzToggleCodeID))
+                && ModInterface.GameData.IsCodeUnlocked(Constants.FemaleJizzToggleCodeID))
             {
                 __result = 2;
             }
@@ -31,7 +30,7 @@ namespace Hp2ExtraOptions
         public static void Prefix(UiWindowPhotos __instance)
         {
             if (!Game.Persistence.playerData.uncensored
-                || !GameDefinitionProvider.IsCodeUnlocked(Constants.FemaleJizzToggleCodeID))
+                || !ModInterface.GameData.IsCodeUnlocked(Constants.FemaleJizzToggleCodeID))
             {
                 return;
             }

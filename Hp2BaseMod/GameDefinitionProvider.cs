@@ -1,13 +1,12 @@
 ﻿// Hp2BaseMod 2021, By OneSuchKeeper
 
-using Hp2BaseMod.GameDataInfo;
 using System;
 using System.Linq;
 
-namespace Hp2BaseMod.ModLoader
+namespace Hp2BaseMod
 {
     /// <summary>
-    /// Wrapper of <see cref="GameData"/> to handle nullable ids in looking up game data
+    /// Wrapper of <see cref="GameData"/> to handle nullable and relative ids in looking up game data
     /// </summary>
     public class GameDefinitionProvider
     {
@@ -122,7 +121,7 @@ namespace Hp2BaseMod.ModLoader
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public static bool IsCodeUnlocked(RelativeId? id)
+        public bool IsCodeUnlocked(RelativeId? id)
         {
             if (!id.HasValue) { return false; }
 

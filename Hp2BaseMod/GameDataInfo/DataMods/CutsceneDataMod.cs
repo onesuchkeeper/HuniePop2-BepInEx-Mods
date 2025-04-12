@@ -1,12 +1,10 @@
 ﻿// Hp2BaseMod 2021, By OneSuchKeeper
 
-using Hp2BaseMod.Extension.IEnumerableExtension;
-using Hp2BaseMod.GameDataInfo.Interface;
-using Hp2BaseMod.ModLoader;
-using Hp2BaseMod.Utility;
-using System;
 using System.Collections.Generic;
 using System.Linq;
+using Hp2BaseMod.Extension.IEnumerableExtension;
+using Hp2BaseMod.GameDataInfo.Interface;
+using Hp2BaseMod.Utility;
 
 namespace Hp2BaseMod.GameDataInfo
 {
@@ -36,7 +34,7 @@ namespace Hp2BaseMod.GameDataInfo
         /// Constructor from a definition instance.
         /// </summary>
         /// <param name="def">The definition.</param>
-        /// <param name="assetProvider">Asset provider containing the assest referenced by the definition.</param>
+        /// <param name="assetProvider">Asset provider containing the assets referenced by the definition.</param>
         public CutsceneDataMod(CutsceneDefinition def, AssetProvider assetProvider)
             : base(new RelativeId(def), InsertStyle.replace, 0)
         {

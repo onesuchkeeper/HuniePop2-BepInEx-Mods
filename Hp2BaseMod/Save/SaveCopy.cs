@@ -2,7 +2,7 @@ using System.Linq;
 
 namespace Hp2BaseMod.Save;
 
-public static class SaveCopy_Ext
+public static class SaveCopy
 {
     public static SaveData Copy(this SaveData saveData) => saveData == null
         ? null

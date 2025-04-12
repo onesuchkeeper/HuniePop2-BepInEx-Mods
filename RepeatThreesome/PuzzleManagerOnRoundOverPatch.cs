@@ -1,27 +1,26 @@
 ﻿// Hp2RepeatThreesomeMod 2021, By onesuchkeeper
 
+using System.Reflection;
 using HarmonyLib;
 using Hp2BaseMod;
-using Hp2BaseMod.ModLoader;
-using System;
-using System.Reflection;
 
 namespace RepeatThreesome
 {
     [HarmonyPatch(typeof(PuzzleManager), "OnRoundOver")]
     class PuzzleManagerOnRoundOverPatch
     {
+        private static FieldInfo _puzzleGrid = AccessTools.Field(typeof(PuzzleManager), "_puzzleGrid");
+        private static FieldInfo _puzzleStatus = AccessTools.Field(typeof(PuzzleManager), "_puzzleStatus");
+        private static FieldInfo _roundOverCutscene = AccessTools.Field(typeof(PuzzleManager), "_roundOverCutscene");
+        private static FieldInfo _newRoundCutscene = AccessTools.Field(typeof(PuzzleManager), "_newRoundCutscene");
+
         public static bool Prefix(PuzzleManager __instance)
         {
-            var puzzleGridValue = AccessTools.Field(typeof(PuzzleManager), "_puzzleGrid").GetValue(__instance) as UiPuzzleGrid;
-            var puzzleStatusValue = AccessTools.Field(typeof(PuzzleManager), "_puzzleStatus").GetValue(__instance) as PuzzleStatus;
+            var puzzleGridValue = _puzzleGrid.GetValue(__instance) as UiPuzzleGrid;
+            var puzzleStatusValue = _puzzleStatus.GetValue(__instance) as PuzzleStatus;
 
-            var roundOverCutscene = AccessTools.Field(typeof(PuzzleManager), "_roundOverCutscene");
-            var newRoundCutscene = AccessTools.Field(typeof(PuzzleManager), "_newRoundCutscene");
-
-
-            roundOverCutscene.SetValue(__instance, __instance.cutsceneFailure);
-            newRoundCutscene.SetValue(__instance, null);
+            _roundOverCutscene.SetValue(__instance, __instance.cutsceneFailure);
+            _newRoundCutscene.SetValue(__instance, null);
             bool flag = true;
             switch (puzzleStatusValue.statusType)
             {
@@ -38,7 +37,7 @@ namespace RepeatThreesome
                         {
                             if (playerFileGirlPair.relationshipType == GirlPairRelationshipType.COMPATIBLE)
                             {
-                                roundOverCutscene.SetValue(__instance, __instance.cutsceneSuccessCompatible);
+                                _roundOverCutscene.SetValue(__instance, __instance.cutsceneSuccessCompatible);
                                 playerFileGirlPair.RelationshipLevelUp();
                             }
                             else if
@@ -56,19 +55,19 @@ namespace RepeatThreesome
                                 (
                                     (playerFileGirlPair.relationshipType == GirlPairRelationshipType.LOVERS)
                                     &&
-                                    GameDefinitionProvider.IsCodeUnlocked(Constants.LocalCodeId)
+                                    ModInterface.GameData.IsCodeUnlocked(Constants.LocalCodeId)
                                 )
                             )
                             {
                                 if (!puzzleStatusValue.bonusRound)
                                 {
-                                    roundOverCutscene.SetValue(__instance, __instance.cutsceneSuccessAttracted);
-                                    newRoundCutscene.SetValue(__instance, __instance.cutsceneNewroundBonus);
+                                    _roundOverCutscene.SetValue(__instance, __instance.cutsceneSuccessAttracted);
+                                    _newRoundCutscene.SetValue(__instance, __instance.cutsceneNewroundBonus);
                                     flag = false;
                                 }
                                 else
                                 {
-                                    roundOverCutscene.SetValue(__instance, __instance.cutsceneSuccessBonus);
+                                    _roundOverCutscene.SetValue(__instance, __instance.cutsceneSuccessBonus);
                                     playerFileGirlPair.RelationshipLevelUp();
                                     if (Game.Persistence.playerFile.completedGirlPairs.Count > 0)
                                     {
@@ -90,7 +89,7 @@ namespace RepeatThreesome
                             }
                             else
                             {
-                                roundOverCutscene.SetValue(__instance, __instance.cutsceneSuccess);
+                                _roundOverCutscene.SetValue(__instance, __instance.cutsceneSuccess);
                             }
 
                             if (!puzzleStatusValue.bonusRound)
@@ -132,21 +131,21 @@ namespace RepeatThreesome
                     }
                     else if (puzzleGridValue.roundState == PuzzleRoundState.SUCCESS)
                     {
-                        roundOverCutscene.SetValue(__instance, __instance.cutsceneSuccess);
+                        _roundOverCutscene.SetValue(__instance, __instance.cutsceneSuccess);
                     }
                     break;
                 case PuzzleStatusType.NONSTOP:
                     if (puzzleGridValue.roundState == PuzzleRoundState.SUCCESS)
                     {
-                        roundOverCutscene.SetValue(__instance, __instance.cutsceneSuccessNonstop);
-                        newRoundCutscene.SetValue(__instance, __instance.cutsceneNewroundNonstop);
+                        _roundOverCutscene.SetValue(__instance, __instance.cutsceneSuccessNonstop);
+                        _newRoundCutscene.SetValue(__instance, __instance.cutsceneNewroundNonstop);
                         flag = false;
                     }
                     else
                     {
                         if (puzzleStatusValue.roundIndex > 0)
                         {
-                            roundOverCutscene.SetValue(__instance, __instance.cutsceneSuccess);
+                            _roundOverCutscene.SetValue(__instance, __instance.cutsceneSuccess);
                         }
                         if (puzzleStatusValue.roundIndex > Game.Persistence.playerFile.nonstopDateCount)
                         {
@@ -167,7 +166,7 @@ namespace RepeatThreesome
                     {
                         if (puzzleStatusValue.bonusRound)
                         {
-                            roundOverCutscene.SetValue(__instance, __instance.cutsceneSuccessBonus);
+                            _roundOverCutscene.SetValue(__instance, __instance.cutsceneSuccessBonus);
                             if (Game.Persistence.playerFile.storyProgress <= 11)
                             {
                                 Game.Persistence.playerFile.storyProgress = 12;
@@ -183,14 +182,14 @@ namespace RepeatThreesome
                         }
                         else if (puzzleStatusValue.girlListCount <= 2)
                         {
-                            roundOverCutscene.SetValue(__instance, __instance.cutsceneSuccessBoss);
-                            newRoundCutscene.SetValue(__instance, __instance.cutsceneNewroundBossBonus);
+                            _roundOverCutscene.SetValue(__instance, __instance.cutsceneSuccessBoss);
+                            _newRoundCutscene.SetValue(__instance, __instance.cutsceneNewroundBossBonus);
                             flag = false;
                         }
                         else
                         {
-                            roundOverCutscene.SetValue(__instance, __instance.cutsceneSuccessBoss);
-                            newRoundCutscene.SetValue(__instance, __instance.cutsceneNewroundBoss);
+                            _roundOverCutscene.SetValue(__instance, __instance.cutsceneSuccessBoss);
+                            _newRoundCutscene.SetValue(__instance, __instance.cutsceneNewroundBoss);
                             flag = false;
                         }
                     }
@@ -203,7 +202,7 @@ namespace RepeatThreesome
             }
             puzzleStatusValue.gameOver = flag;
             new PuzzleManagerEvents(__instance).AddOnRoundOverCutsceneComplete();
-            Game.Session.Cutscenes.StartCutscene(roundOverCutscene.GetValue(__instance) as CutsceneDefinition, null);
+            Game.Session.Cutscenes.StartCutscene(_roundOverCutscene.GetValue(__instance) as CutsceneDefinition, null);
 
             return false;
         }
@@ -237,7 +236,7 @@ namespace RepeatThreesome
 
             _puzzleManager_OnRoundOverCutsceneComplete.Invoke(_puzzleManager, null);
 
-            if (GameDefinitionProvider.IsCodeUnlocked(Constants.NudeCodeId)
+            if (ModInterface.GameData.IsCodeUnlocked(Constants.NudeCodeId)
                 && (newRoundCutsceneValue == _puzzleManager.cutsceneNewroundBonus
                     || newRoundCutsceneValue == _puzzleManager.cutsceneNewroundBossBonus))
             {

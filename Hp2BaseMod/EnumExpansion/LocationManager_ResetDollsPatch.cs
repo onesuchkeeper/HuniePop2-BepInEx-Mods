@@ -1,9 +1,9 @@
-﻿using HarmonyLib;
-using Hp2BaseMod.GameDataInfo;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using HarmonyLib;
+using Hp2BaseMod.GameDataInfo;
 using UnityEngine;
 
 namespace Hp2BaseMod.EnumExpansion
@@ -19,6 +19,8 @@ namespace Hp2BaseMod.EnumExpansion
     {
         private static readonly FieldInfo _locationManager_currentGirlPair = AccessTools.Field(typeof(LocationManager), "_currentGirlPair");
         private static readonly FieldInfo _locationManager_currentSidesFlipped = AccessTools.Field(typeof(LocationManager), "_currentSidesFlipped");
+        private static readonly FieldInfo _locationManager_arrivalCutscene = AccessTools.Field(typeof(LocationManager), "_arrivalCutscene");
+        private static readonly FieldInfo _locationManager_currentLocation = AccessTools.Field(typeof(LocationManager), "_currentLocation");
 
         [HarmonyPrefix]
         [HarmonyPatch("OnDepartureComplete")]
@@ -165,9 +167,7 @@ namespace Hp2BaseMod.EnumExpansion
             Game.Session.gameCanvas.header.Refresh(true);
             Game.Session.gameCanvas.cellphone.Refresh(true);
 
-            var accessArrivalCutscene = AccessTools.Field(typeof(LocationManager), "_arrivalCutscene");
-
-            accessArrivalCutscene.SetValue(locationManager, null);
+            _locationManager_arrivalCutscene.SetValue(locationManager, null);
             if (currentLocation.locationType == LocationType.SIM)
             {
                 if (currentGirlPair != null && !currentGirlPair.specialPair)
@@ -188,11 +188,11 @@ namespace Hp2BaseMod.EnumExpansion
                         playerFileGirlPair.RelationshipLevelUp();
                         if (currentGirlPair.introductionPair)
                         {
-                            accessArrivalCutscene.SetValue(locationManager, locationManager.cutsceneMeetingIntro);
+                            _locationManager_arrivalCutscene.SetValue(locationManager, locationManager.cutsceneMeetingIntro);
                         }
                         else
                         {
-                            accessArrivalCutscene.SetValue(locationManager, locationManager.cutsceneMeeting);
+                            _locationManager_arrivalCutscene.SetValue(locationManager, locationManager.cutsceneMeeting);
                         }
                     }
                 }
@@ -202,12 +202,16 @@ namespace Hp2BaseMod.EnumExpansion
                 Game.Session.Logic.ProcessBundleList(currentLocation.arriveBundleList, false);
             }
 
-            transitions[currentTransitionType].Arrive(false, (currentGirlPair != null || !Game.Session.Puzzle.puzzleStatus.isEmpty) && accessArrivalCutscene.GetValue(locationManager) == null, gameSaved);
+            transitions[currentTransitionType].Arrive(
+                false,
+                (currentGirlPair != null || !Game.Session.Puzzle.puzzleStatus.isEmpty)
+                    && _locationManager_arrivalCutscene.GetValue(locationManager) == null,
+                gameSaved);
         }
 
         private static void ResetDolls(LocationManager locationManager)
         {
-            var currentLocation = AccessTools.Field(typeof(LocationManager), "_currentLocation").GetValue(locationManager) as LocationDefinition;
+            var currentLocation = _locationManager_currentLocation.GetValue(locationManager) as LocationDefinition;
 
             // hub
             if (currentLocation.locationType == LocationType.HUB)
@@ -218,7 +222,7 @@ namespace Hp2BaseMod.EnumExpansion
                 if (Game.Persistence.playerFile.storyProgress >= 7
                     && Game.Persistence.playerFile.GetFlagValue(Game.Session.Hub.firstLocationFlag) >= 0)
                 {
-                    var args = ModInterface.NotifyRequestStyleChange(Game.Session.Hub.hubGirlDefinition, currentLocation, 0.1f, hubGirlStyle);
+                    var args = ModInterface.Events.NotifyRequestStyleChange(Game.Session.Hub.hubGirlDefinition, currentLocation, 0.1f, hubGirlStyle);
 
                     if (UnityEngine.Random.Range(0f, 1f) <= args.ApplyChance)
                     {
@@ -388,8 +392,8 @@ namespace Hp2BaseMod.EnumExpansion
                     break;
             }
 
-            var leftArgs = ModInterface.NotifyRequestStyleChange(leftGirl, currentLocation, 0, leftStyle);
-            var rightArgs = ModInterface.NotifyRequestStyleChange(rightGirl, currentLocation, 0, rightStyle);
+            var leftArgs = ModInterface.Events.NotifyRequestStyleChange(leftGirl, currentLocation, 0, leftStyle);
+            var rightArgs = ModInterface.Events.NotifyRequestStyleChange(rightGirl, currentLocation, 0, rightStyle);
 
             if (UnityEngine.Random.Range(0f, 1f) <= leftArgs.ApplyChance)
             {

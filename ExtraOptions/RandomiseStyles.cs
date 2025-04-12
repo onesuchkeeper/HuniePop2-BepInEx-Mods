@@ -4,7 +4,6 @@ using System.Linq;
 using Hp2BaseMod;
 using Hp2BaseMod.Extension.IEnumerableExtension;
 using Hp2BaseMod.GameDataInfo;
-using Hp2BaseMod.ModLoader;
 
 namespace Hp2ExtraOptions;
 
@@ -12,15 +11,15 @@ public static class RandomizeStyles
 {
     public static void On_RequestStyleChange(object sender, RequestStyleChangeEventArgs args)
     {
-        var unpairedStyles = GameDefinitionProvider.IsCodeUnlocked(Constants.UnpairStylesCodeId);
+        var unpairedStyles = ModInterface.GameData.IsCodeUnlocked(Constants.UnpairStylesCodeId);
         var anyOutfit = false;
 
-        if (args.Loc.locationType == LocationType.HUB && GameDefinitionProvider.IsCodeUnlocked(Constants.HubStyleChangeRateUpCodeId))
+        if (args.Loc.locationType == LocationType.HUB && ModInterface.GameData.IsCodeUnlocked(Constants.HubStyleChangeRateUpCodeId))
         {
             args.ApplyChance = 1;
             anyOutfit = true;
         }
-        else if (args.Loc.locationType == LocationType.SIM && GameDefinitionProvider.IsCodeUnlocked(Constants.RandomStylesCodeId))
+        else if (args.Loc.locationType == LocationType.SIM && ModInterface.GameData.IsCodeUnlocked(Constants.RandomStylesCodeId))
         {
             args.ApplyChance = 1;
         }
@@ -79,7 +78,7 @@ public static class RandomizeStyles
 
             var outfitId = outfits.ElementAt(UnityEngine.Random.Range(0, outfits.Count() - 1));
 
-            //if unpaired and a paired hairstyle exists, use that, otherwise pick a random one
+            //if paired and a paired hairstyle exists, use that, otherwise pick a random one
             if (!(!unpaired && hairstyles.TryGetFirst(x => x == outfitId, out var hairStyleId)))
             {
                 hairStyleId = hairstyles.ElementAt(UnityEngine.Random.Range(0, hairstyles.Count() - 1));

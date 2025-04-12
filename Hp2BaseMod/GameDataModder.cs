@@ -1,22 +1,24 @@
 ﻿// Hp2BaseModdedLoader 2021, by OneSuchKeeper
 
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using BepInEx;
 using HarmonyLib;
 using Hp2BaseMod.GameDataInfo;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using UnityEngine;
 
-namespace Hp2BaseMod.ModLoader
+namespace Hp2BaseMod
 {
     internal static class GameDataModder
     {
-        private static readonly string _defaultDataDir = @"mods\DefaultData";
+        private static readonly string _defaultDataDir = Path.Combine(Paths.PluginPath, "Hp2BaseMod", "DefaultDataMods");
         private static readonly bool _isDevMode = false;
+        private static readonly string _defaultDataPath = @"C:\Git\onesuchkeeper\Hp2BaseMod\Hp2BaseMod\DefaultData.cs";
 
         public static void Mod(GameData gameData)
         {
@@ -126,7 +128,7 @@ namespace Hp2BaseMod.ModLoader
                     assetProvider.AddAsset("None", null);
                     var emptyTexture = TextureUtility.Empty();
                     assetProvider.AddAsset("EmptySprite", Sprite.Create(emptyTexture, new Rect(0, 0, emptyTexture.width, emptyTexture.height), Vector2.zero));
-                    var gameDataProvider = new GameDefinitionProvider(gameData);
+                    var gameDataProvider = ModInterface.GameData;
 
                     ModInterface.Log.LogInfo("loading internal assets");
                     ModInterface.Log.IncreaseIndent();
@@ -148,7 +150,7 @@ namespace Hp2BaseMod.ModLoader
                         {
                             ModInterface.Log.LogInfo("Generating DefaultData.cs");
                             ModInterface.Log.IncreaseIndent();
-                            Hp2UiSonUtility.MakeDefaultDataDotCs(gameData);
+                            Hp2UiSonUtility.MakeDefaultDataDotCs(gameData, _defaultDataPath);
                             ModInterface.Log.DecreaseIndent();
 
                             ModInterface.Log.LogInfo("Generating Dev Files");

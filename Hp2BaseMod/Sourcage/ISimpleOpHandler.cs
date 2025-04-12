@@ -1,7 +1,7 @@
 namespace Sourceage.Element.Interface
 {
     /// <summary>
-    /// Impliments unary, and comparable operatins for the type.
+    /// Implements unary, and comparable operatics for the type.
     /// </summary>
     /// <typeparam name="T"></typeparam>
     public interface ISimpleOpHandler<T>
@@ -13,7 +13,7 @@ namespace Sourceage.Element.Interface
         T Default();
 
         /// <summary>
-        /// Increaces the value by 1 unit.
+        /// Increases the value by 1 unit.
         /// </summary>
         /// <param name="value"></param>
         /// <returns>A new instance of the value 1 unit larger than the given value.</returns>
