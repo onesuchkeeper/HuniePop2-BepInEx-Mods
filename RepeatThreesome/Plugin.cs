@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using BepInEx;
-using BepInEx.Bootstrap;
-using BepInEx.Logging;
 using HarmonyLib;
 using Hp2BaseMod;
 using Hp2BaseMod.GameDataInfo;
@@ -24,7 +20,6 @@ public class Plugin : BaseUnityPlugin
         _modId = ModInterface.GetSourceId(MyPluginInfo.PLUGIN_GUID);
         Constants.Init(_modId);
 
-        // add codes
         ModInterface.AddDataMod(new CodeDataMod(Constants.LocalCodeId, InsertStyle.replace)
         {
             CodeHash = MD5Utility.Encrypt("OH THE PLACES YOU'LL GO"),
@@ -41,13 +36,9 @@ public class Plugin : BaseUnityPlugin
             OffMessage = "Nudity during bonus rounds off."
         });
 
-        ModInterface.Log.LogInfo("Patching");
-        using (ModInterface.Log.MakeIndent())
-        {
-            new Harmony(MyPluginInfo.PLUGIN_GUID).PatchAll();
-        }
-
         ModInterface.Events.PreDataMods += On_PreDataMods;
+        ModInterface.Events.PreRoundOverCutscene += ThreesomeHandler.PreRoundOverCutscene;
+        new Harmony(MyPluginInfo.PLUGIN_GUID).PatchAll();
     }
 
     private void On_PreDataMods()

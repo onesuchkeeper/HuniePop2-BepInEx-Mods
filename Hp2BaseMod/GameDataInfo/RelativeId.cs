@@ -62,7 +62,7 @@ public struct RelativeId
         return false;
     }
 
-    public override string ToString() => $"(Source: {SourceId}, Local: {LocalId})";
+    public override string ToString() => $"{SourceId}.{LocalId})";
 
     public class Converter : TypeConverter
     {
@@ -97,7 +97,7 @@ public struct RelativeId
             if (destinationType == typeof(string)
                 && value is RelativeId relativeId)
             {
-                return $"{relativeId.SourceId}.{relativeId.LocalId}";
+                return relativeId.ToString();
             }
 
             return base.ConvertTo(context, culture, value, destinationType);

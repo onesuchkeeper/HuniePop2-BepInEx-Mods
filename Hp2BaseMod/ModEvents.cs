@@ -64,5 +64,8 @@ namespace Hp2BaseMod
         /// </summary>
         public event Action PostCodeSubmitted;
         internal void NotifyPostCodeSubmitted() => PostCodeSubmitted?.Invoke();
+
+        public event Action PreRoundOverCutscene;
+        internal void NotifyPreRoundOverCutscene() => PreRoundOverCutscene?.Invoke();
     }
 }
