@@ -123,14 +123,7 @@ public class Plugin : BaseUnityPlugin
             return;
         }
 
-        // //test
-        // foreach (var girl in Game.Data.Girls.GetAll())
-        // {
-        //     var body = girl.parts[girl.partIndexBody];
-        //     ModInterface.Log.LogInfo($"{girl.name} Body position [{body.x}, {body.y}]");
-        // }
-
-        // return;
+        return;
 
         ModInterface.Log.LogInfo($"Randomizing, seed:{ModConfig.Seed}");
         var random = new Random(ModConfig.Seed);

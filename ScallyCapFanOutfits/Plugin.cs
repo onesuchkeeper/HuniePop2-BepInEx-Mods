@@ -23,13 +23,179 @@ public class Plugin : BaseUnityPlugin
         _styleId_1 = new RelativeId(_modId, 0);
 
         var outfitPartId_1 = new RelativeId(_modId, 0);
-        var hairstyleFrontPartId_1 = new RelativeId(_modId, 1);
-        var hairstyleBackPartId_1 = new RelativeId(_modId, 2);
+        var frontHairPartId_1 = new RelativeId(_modId, 1);
+        var backHairPartId_1 = new RelativeId(_modId, 2);
+        var outfitPartId_1_Mirror = new RelativeId(_modId, 3);
+
+        var zoeyExtraterrestrialOutfitPart = new GirlPartDataMod(outfitPartId_1, InsertStyle.replace)
+        {
+            PartType = GirlPartType.OUTFIT,
+            PartName = "extraterrestrialOutfitZoey",
+            X = 522 - 3,
+            Y = 900 - 215,
+            MirroredPartId = RelativeId.Default,
+            AltPartId = null,
+            SpriteInfo = new SpriteInfoPath()
+            {
+                IsExternal = true,
+                Path = Path.Combine(Paths.PluginPath, @"ScallyCapFanOutfits\images\zoey_outfit_extraterrestrial.png")
+            }
+        };
+
+        var zoeyExtraterrestrialFronthairPart = new GirlPartDataMod(frontHairPartId_1, InsertStyle.replace)
+        {
+            PartType = GirlPartType.FRONTHAIR,
+            PartName = "extraterrestrialFronthairZoey",
+            X = 522 + 26,
+            Y = 900 + 21,
+            MirroredPartId = RelativeId.Default,
+            AltPartId = null,
+            SpriteInfo = new SpriteInfoPath()
+            {
+                IsExternal = true,
+                Path = Path.Combine(Paths.PluginPath, @"ScallyCapFanOutfits\images\zoey_fronthair_extraterrestrial.png")
+            }
+        };
+
+        var zoeyExtraterrestrialBackhairPart = new GirlPartDataMod(backHairPartId_1, InsertStyle.replace)
+        {
+            PartType = GirlPartType.BACKHAIR,
+            PartName = "extraterrestrialBackhairZoey",
+            X = 522 + 65,
+            Y = 900 + 33,
+            MirroredPartId = RelativeId.Default,
+            AltPartId = null,
+            SpriteInfo = new SpriteInfoPath()
+            {
+                IsExternal = true,
+                Path = Path.Combine(Paths.PluginPath, @"ScallyCapFanOutfits\images\zoey_backhair_extraterrestrial.png")
+            }
+        };
+
+        var jessieBusinessCasualOutfitPart = new GirlPartDataMod(outfitPartId_1, InsertStyle.replace)
+        {
+            PartType = GirlPartType.OUTFIT,
+            PartName = "businessCasualOutfitJessie",
+            X = 457 - 3,
+            Y = 983 - 261,
+            MirroredPartId = RelativeId.Default,
+            AltPartId = null,
+            SpriteInfo = new SpriteInfoPath()
+            {
+                IsExternal = true,
+                Path = Path.Combine(Paths.PluginPath, @"ScallyCapFanOutfits\images\jessie_outfit_businesscasual.png")
+            }
+        };
+
+        var candaceHimeOutfitPart = new GirlPartDataMod(outfitPartId_1, InsertStyle.replace)
+        {
+            PartType = GirlPartType.OUTFIT,
+            PartName = "himeOutfitCandace",
+            X = 348 + 107,
+            Y = 972 - 184,
+            MirroredPartId = RelativeId.Default,
+            AltPartId = null,
+            SpriteInfo = new SpriteInfoPath()
+            {
+                IsExternal = true,
+                Path = Path.Combine(Paths.PluginPath, @"ScallyCapFanOutfits\images\candace_outfit_hime.png")
+            }
+        };
+
+        var candaceHimeFronthairPart = new GirlPartDataMod(frontHairPartId_1, InsertStyle.replace)
+        {
+            PartType = GirlPartType.FRONTHAIR,
+            PartName = "himeFronthairCandace",
+            X = 348 + 176,
+            Y = 972 + 35,
+            MirroredPartId = RelativeId.Default,
+            AltPartId = null,
+            SpriteInfo = new SpriteInfoPath()
+            {
+                IsExternal = true,
+                Path = Path.Combine(Paths.PluginPath, @"ScallyCapFanOutfits\images\candace_fronthair_hime.png")
+            }
+        };
+
+        var candaceHimeBackhairPart = new GirlPartDataMod(backHairPartId_1, InsertStyle.replace)
+        {
+            PartType = GirlPartType.BACKHAIR,
+            PartName = "himeBackhairCandace",
+            X = 348 + 150,
+            Y = 972 - 50,
+            MirroredPartId = RelativeId.Default,
+            AltPartId = null,
+            SpriteInfo = new SpriteInfoPath()
+            {
+                IsExternal = true,
+                Path = Path.Combine(Paths.PluginPath, @"ScallyCapFanOutfits\images\candace_backhair_hime.png")
+            }
+        };
+
+        var lillianSceneOutfitPartMirror = new GirlPartDataMod(outfitPartId_1_Mirror, InsertStyle.replace)
+        {
+            PartType = GirlPartType.OUTFIT,
+            PartName = "sceneQueenOutfitLillianMirror",
+            X = 435 - 17,
+            Y = 918 - 210,
+            MirroredPartId = outfitPartId_1,
+            AltPartId = null,
+            SpriteInfo = new SpriteInfoPath()
+            {
+                IsExternal = true,
+                Path = Path.Combine(Paths.PluginPath, @"ScallyCapFanOutfits\images\lillian_outfit_sceneQueen_mirror.png")
+            }
+        };
+
+        var lillianSceneOutfitPart = new GirlPartDataMod(outfitPartId_1, InsertStyle.replace)
+        {
+            PartType = GirlPartType.OUTFIT,
+            PartName = "sceneQueenOutfitLillian",
+            X = 435 - 17,
+            Y = 918 - 210,
+            MirroredPartId = outfitPartId_1_Mirror,
+            AltPartId = null,
+            SpriteInfo = new SpriteInfoPath()
+            {
+                IsExternal = true,
+                Path = Path.Combine(Paths.PluginPath, @"ScallyCapFanOutfits\images\lillian_outfit_sceneQueen.png")
+            }
+        };
+
+        var lillianSceneFronthairPart = new GirlPartDataMod(frontHairPartId_1, InsertStyle.replace)
+        {
+            PartType = GirlPartType.FRONTHAIR,
+            PartName = "sceneQueenFronthairLillian",
+            X = 435 + 111,
+            Y = 918 + 31,
+            MirroredPartId = RelativeId.Default,
+            AltPartId = null,
+            SpriteInfo = new SpriteInfoPath()
+            {
+                IsExternal = true,
+                Path = Path.Combine(Paths.PluginPath, @"ScallyCapFanOutfits\images\lillian_fronthair_sceneQueen.png")
+            }
+        };
+
+        var lillianSceneBackhairPart = new GirlPartDataMod(backHairPartId_1, InsertStyle.replace)
+        {
+            PartType = GirlPartType.BACKHAIR,
+            PartName = "sceneQueenBackhairLillian",
+            X = 435 + 71,
+            Y = 918 + 73,
+            MirroredPartId = RelativeId.Default,
+            AltPartId = null,
+            SpriteInfo = new SpriteInfoPath()
+            {
+                IsExternal = true,
+                Path = Path.Combine(Paths.PluginPath, @"ScallyCapFanOutfits\images\lillian_backhair_sceneQueen.png")
+            }
+        };
 
         var ashleyBikerPart = new GirlPartDataMod(outfitPartId_1, InsertStyle.replace)
         {
             PartType = GirlPartType.OUTFIT,
-            PartName = "ashleyOutfitAshley",
+            PartName = "bikerLacesOutfitAshley",
             X = 387,
             Y = 868,
             MirroredPartId = RelativeId.Default,
@@ -86,6 +252,126 @@ public class Plugin : BaseUnityPlugin
                     HideNipples = true,
                     TightlyPaired = false,
                     PairHairstyleId = null
+                }
+            }
+        });
+
+        ModInterface.AddDataMod(new GirlDataMod(Girls.LillianId, InsertStyle.append)
+        {
+            parts = new List<IGirlSubDataMod<GirlPartSubDefinition>>(){
+                 lillianSceneBackhairPart,
+                 lillianSceneFronthairPart,
+                 lillianSceneOutfitPart,
+                 lillianSceneOutfitPartMirror
+            },
+            outfits = new List<IGirlSubDataMod<ExpandedOutfitDefinition>>()
+            {
+                new OutfitDataMod(_styleId_1, InsertStyle.replace)
+                {
+                    Name = "Scene Queen",
+                    OutfitPartId = outfitPartId_1,
+                    IsNSFW = false,
+                    HideNipples = true,
+                    TightlyPaired = true,
+                    PairHairstyleId = _styleId_1
+                }
+            },
+            hairstyles = new List<IGirlSubDataMod<ExpandedHairstyleDefinition>>()
+            {
+                new HairstyleDataMod(_styleId_1, InsertStyle.replace)
+                {
+                    Name = "Scene Queen",
+                    BackHairPartId = backHairPartId_1,
+                    FrontHairPartId = frontHairPartId_1,
+                    IsNSFW = false,
+                    HideSpecials = false,
+                    TightlyPaired = true,
+                    PairOutfitId = _styleId_1
+                }
+            }
+        });
+
+        ModInterface.AddDataMod(new GirlDataMod(Girls.CandaceId, InsertStyle.append)
+        {
+            parts = new List<IGirlSubDataMod<GirlPartSubDefinition>>(){
+                 candaceHimeOutfitPart,
+                 candaceHimeBackhairPart,
+                 candaceHimeFronthairPart
+            },
+            outfits = new List<IGirlSubDataMod<ExpandedOutfitDefinition>>()
+            {
+                new OutfitDataMod(_styleId_1, InsertStyle.replace)
+                {
+                    Name = "Hime",
+                    OutfitPartId = outfitPartId_1,
+                    IsNSFW = false,
+                    HideNipples = true,
+                    TightlyPaired = true,
+                    PairHairstyleId = _styleId_1,
+                }
+            },
+            hairstyles = new List<IGirlSubDataMod<ExpandedHairstyleDefinition>>()
+            {
+                new HairstyleDataMod(_styleId_1, InsertStyle.replace)
+                {
+                    Name = "Hime",
+                    BackHairPartId = backHairPartId_1,
+                    FrontHairPartId = frontHairPartId_1,
+                    IsNSFW = false,
+                    HideSpecials = false,
+                    TightlyPaired = true,
+                    PairOutfitId = _styleId_1
+                }
+            }
+        });
+
+        ModInterface.AddDataMod(new GirlDataMod(Girls.JessieId, InsertStyle.append)
+        {
+            parts = new List<IGirlSubDataMod<GirlPartSubDefinition>>() { jessieBusinessCasualOutfitPart },
+            outfits = new List<IGirlSubDataMod<ExpandedOutfitDefinition>>()
+            {
+                new OutfitDataMod(_styleId_1, InsertStyle.replace)
+                {
+                    Name = "Bis. Comfortable",
+                    OutfitPartId = outfitPartId_1,
+                    IsNSFW = false,
+                    HideNipples = true,
+                    TightlyPaired = false,
+                    PairHairstyleId = null
+                }
+            }
+        });
+
+        ModInterface.AddDataMod(new GirlDataMod(Girls.ZoeyId, InsertStyle.append)
+        {
+            parts = new List<IGirlSubDataMod<GirlPartSubDefinition>>(){
+                 zoeyExtraterrestrialBackhairPart,
+                 zoeyExtraterrestrialFronthairPart,
+                 zoeyExtraterrestrialOutfitPart
+            },
+            outfits = new List<IGirlSubDataMod<ExpandedOutfitDefinition>>()
+            {
+                new OutfitDataMod(_styleId_1, InsertStyle.replace)
+                {
+                    Name = "Extraterrestrial",
+                    OutfitPartId = outfitPartId_1,
+                    IsNSFW = false,
+                    HideNipples = true,
+                    TightlyPaired = true,
+                    PairHairstyleId = _styleId_1,
+                }
+            },
+            hairstyles = new List<IGirlSubDataMod<ExpandedHairstyleDefinition>>()
+            {
+                new HairstyleDataMod(_styleId_1, InsertStyle.replace)
+                {
+                    Name = "Extraterrestrial",
+                    BackHairPartId = backHairPartId_1,
+                    FrontHairPartId = frontHairPartId_1,
+                    IsNSFW = false,
+                    HideSpecials = false,
+                    TightlyPaired = true,
+                    PairOutfitId = _styleId_1
                 }
             }
         });

@@ -40,16 +40,10 @@ namespace Hp2BaseModTweaks
 
         private static readonly Vector3 _itemSpacing = new Vector3(0, -33.3333f, 0);
 
-        public UiAppSelectListItem ListItemTemplate => _listItemTemplate;
         private UiAppSelectListItem _listItemTemplate;
-
-        public RectTransform ScrollRectTransform => _scrollRectTransform;
         private RectTransform _scrollRectTransform;
-
-        public RectTransform ItemContainerRectTransform => _itemContainerRectTransform;
+        private RectTransform _paddingRectTransform;
         private RectTransform _itemContainerRectTransform;
-
-        public List<UiAppSelectListItem> OwnedListItems => _ownedListItems;
         private List<UiAppSelectListItem> _ownedListItems = new List<UiAppSelectListItem>();
 
         public bool Initialized => _initialized;
@@ -81,13 +75,12 @@ namespace Hp2BaseModTweaks
             //padding
             var padding_GO = new GameObject($"{_decorated.name}Padding");
             padding_GO.transform.SetParent(scroll_GO.transform, true);
-            var itemContainerRectTransform = padding_GO.AddComponent<RectTransform>();
-            itemContainerRectTransform.pivot = new Vector2(0.5f, 1f);
-            itemContainerRectTransform.position -= new Vector3(0f, 800f);
+            _paddingRectTransform = padding_GO.AddComponent<RectTransform>();
+            _paddingRectTransform.pivot = new Vector2(0.5f, 1f);
 
             //container
             var itemContainer = _decorated.transform.Find("ListItemContainer");
-            itemContainer.transform.SetParent(padding_GO.transform);
+            itemContainer.transform.SetParent(_paddingRectTransform, true);
             _itemContainerRectTransform = itemContainer.GetComponent<RectTransform>();
             _itemContainerRectTransform.pivot = new Vector2(0.5f, 1f);
             _itemContainerRectTransform.anchorMin = new Vector2(0.5f, 1f);
@@ -97,7 +90,7 @@ namespace Hp2BaseModTweaks
             //settings
             scroll_ScrollRect.scrollSensitivity = 18;
             scroll_ScrollRect.horizontal = false;
-            scroll_ScrollRect.content = itemContainerRectTransform;
+            scroll_ScrollRect.content = _paddingRectTransform;
             scroll_ScrollRect.verticalNormalizedPosition = 1f;
             scroll_Mask.showMaskGraphic = false;
             scroll_ScrollRect.movementType = ScrollRect.MovementType.Elastic;
@@ -132,12 +125,11 @@ namespace Hp2BaseModTweaks
             if (diff > 0)
             {
                 // add missing
-                var parent = _decorated.transform.Find($"{_decorated.name}Scroll/{_decorated.name}Padding/ListItemContainer");
 
                 for (var i = diff; i > 0; i--)
                 {
                     var newItem = UnityEngine.Object.Instantiate(_listItemTemplate);
-                    newItem.rectTransform.SetParent(parent, true);
+                    newItem.rectTransform.SetParent(_itemContainerRectTransform, false);
 
                     newItem.ListItemSelectedEvent += On_ListItemSelected;
 
@@ -163,8 +155,6 @@ namespace Hp2BaseModTweaks
 
         public void SortItems()
         {
-            _scrollRectTransform.sizeDelta = _decorated.background.sizeDelta - new Vector2(24, 42);
-
             var purchaseItems = new List<UiAppSelectListItem>();
             var shownItems = new List<UiAppSelectListItem>();
             var hiddenItems = new List<UiAppSelectListItem>();
@@ -190,7 +180,8 @@ namespace Hp2BaseModTweaks
                 i++;
             }
 
-            _itemContainerRectTransform.sizeDelta = new Vector2(278, 20 + 33.3333f * visibleItemCount);
+            _paddingRectTransform.sizeDelta = new Vector2(278, 33.3333f * (visibleItemCount + 1));
+            ModInterface.Log.LogInfo(_paddingRectTransform.sizeDelta.ToString());
 
             // reposition in order
             i = 0;
@@ -214,6 +205,9 @@ namespace Hp2BaseModTweaks
                 _decorated.canvasGroup.alpha = 0f;
                 _decorated.canvasGroup.blocksRaycasts = false;
             }
+
+            _scrollRectTransform.sizeDelta = _decorated.background.sizeDelta - new Vector2(24, 42);
+            _paddingRectTransform.position -= new Vector3(0f, _scrollRectTransform.sizeDelta.y);
         }
 
         private void On_ListItemSelected(UiAppSelectListItem listItem) => _onListItemSelected.Invoke(_decorated, [listItem]);

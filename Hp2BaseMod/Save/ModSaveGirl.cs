@@ -1,8 +1,8 @@
-﻿using Hp2BaseMod.Extension.IEnumerableExtension;
-using Hp2BaseMod.Utility;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Hp2BaseMod.Extension.IEnumerableExtension;
+using Hp2BaseMod.Utility;
 
 namespace Hp2BaseMod.Save
 {
@@ -71,7 +71,7 @@ namespace Hp2BaseMod.Save
                 saveFileGirl.hairstyleIndex = -1;
             }
 
-            if (!ModInterface.Data.TryGetOutfitId(girlId, saveFileGirl.hairstyleIndex, out OutfitId))
+            if (!ModInterface.Data.TryGetOutfitId(girlId, saveFileGirl.outfitIndex, out OutfitId))
             {
                 OutfitId = RelativeId.Default;
                 saveFileGirl.outfitIndex = -1;

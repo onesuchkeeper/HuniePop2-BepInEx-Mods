@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using BepInEx;
@@ -6,6 +7,8 @@ using HarmonyLib;
 using Hp2BaseMod;
 using Hp2BaseMod.Extension.IEnumerableExtension;
 using Hp2BaseMod.GameDataInfo;
+using Hp2BaseMod.GameDataInfo.Interface;
+using Hp2BaseMod.Utility;
 using Hp2BaseModTweaks.CellphoneApps;
 using Newtonsoft.Json;
 using UnityEngine;
@@ -87,6 +90,91 @@ public class Plugin : BaseUnityPlugin
             }
         }
 
+        var modId = ModInterface.GetSourceId(MyPluginInfo.PLUGIN_GUID);
+
+        var kyuEyesGlowNeutralPartId = new RelativeId(modId, 0);
+        var kyuEyesGlowNeutralPart = new GirlPartDataMod(kyuEyesGlowNeutralPartId, InsertStyle.replace)
+        {
+            X = 590,
+            Y = 854,
+            PartType = GirlPartType.EYESGLOW,
+            SpriteInfo = new SpriteInfoPath()
+            {
+                IsExternal = true,
+                Path = Path.Combine(Paths.PluginPath, "Hp2BaseModTweaks", "images", "kyu_eyesglow_neutral.png")
+            }
+        };
+
+        var kyuEyesGlowAnnoyedPartId = new RelativeId(modId, 0);
+        var kyuEyesGlowAnnoyedPart = new GirlPartDataMod(kyuEyesGlowAnnoyedPartId, InsertStyle.replace)
+        {
+            X = 592,
+            Y = 852,
+            PartType = GirlPartType.EYESGLOW,
+            SpriteInfo = new SpriteInfoPath()
+            {
+                IsExternal = true,
+                Path = Path.Combine(Paths.PluginPath, "Hp2BaseModTweaks", "images", "kyu_eyesglow_annoyed.png")
+            }
+        };
+
+        var kyuEyesGlowHornyPartId = new RelativeId(modId, 0);
+        var kyuEyesGlowHornyPart = new GirlPartDataMod(kyuEyesGlowHornyPartId, InsertStyle.replace)
+        {
+            X = 590,
+            Y = 851,
+            PartType = GirlPartType.EYESGLOW,
+            SpriteInfo = new SpriteInfoPath()
+            {
+                IsExternal = true,
+                Path = Path.Combine(Paths.PluginPath, "Hp2BaseModTweaks", "images", "kyu_eyesglow_horny.png")
+            }
+        };
+
+        ModInterface.AddDataMod(new GirlDataMod(Girls.KyuId, InsertStyle.append)
+        {
+            parts = new List<IGirlSubDataMod<GirlPartSubDefinition>>(){
+                kyuEyesGlowNeutralPart,
+                kyuEyesGlowAnnoyedPart,
+                kyuEyesGlowHornyPart,
+            },
+            expressions = new List<IGirlSubDataMod<GirlExpressionSubDefinition>>() {
+                new GirlExpressionDataMod(GirlExpressions.Neutral, InsertStyle.replace){
+                    PartIdEyesGlow = kyuEyesGlowNeutralPartId
+                },
+                new GirlExpressionDataMod(GirlExpressions.Annoyed, InsertStyle.replace){
+                    PartIdEyesGlow = kyuEyesGlowAnnoyedPartId
+                },
+                new GirlExpressionDataMod(GirlExpressions.Horny, InsertStyle.replace){
+                    PartIdEyesGlow = kyuEyesGlowHornyPartId
+                },
+                new GirlExpressionDataMod(GirlExpressions.Disappointed, InsertStyle.replace){
+                    PartIdEyesGlow = kyuEyesGlowNeutralPartId
+                },
+                new GirlExpressionDataMod(GirlExpressions.Excited, InsertStyle.replace){
+                    PartIdEyesGlow = kyuEyesGlowNeutralPartId
+                },
+                new GirlExpressionDataMod(GirlExpressions.Confused, InsertStyle.replace){
+                    PartIdEyesGlow = kyuEyesGlowNeutralPartId
+                },
+                new GirlExpressionDataMod(GirlExpressions.Inquisitive, InsertStyle.replace){
+                    PartIdEyesGlow = kyuEyesGlowNeutralPartId
+                },
+                new GirlExpressionDataMod(GirlExpressions.Sarcastic, InsertStyle.replace){
+                    PartIdEyesGlow = kyuEyesGlowNeutralPartId
+                },
+                new GirlExpressionDataMod(GirlExpressions.Shy, InsertStyle.replace){
+                    PartIdEyesGlow = kyuEyesGlowNeutralPartId
+                },
+                new GirlExpressionDataMod(GirlExpressions.Exhausted, InsertStyle.replace){
+                    PartIdEyesGlow = kyuEyesGlowAnnoyedPartId
+                },
+                new GirlExpressionDataMod(GirlExpressions.Upset, InsertStyle.replace){
+                    PartIdEyesGlow = kyuEyesGlowAnnoyedPartId
+                },
+            }
+        });
+
         ModInterface.Ui.AddMainAppController(typeof(UiCellphoneAppFinder), (x) => new ExpandedUiCellphoneFinderApp(x as UiCellphoneAppFinder));
         ModInterface.Ui.AddMainAppController(typeof(UiCellphoneAppGirls), (x) => new ExpandedUiCellphoneGirlsApp(x as UiCellphoneAppGirls));
         ModInterface.Ui.AddMainAppController(typeof(UiCellphoneAppPairs), (x) => new ExpandedUiCellphonePairsApp(x as UiCellphoneAppPairs));
@@ -114,7 +202,7 @@ public class Plugin : BaseUnityPlugin
 
     private void On_PreDataMods()
     {
-        ModInterface.AddDataMod(new GirlDataMod(Girls.KyuId, Hp2BaseMod.Utility.InsertStyle.replace)
+        ModInterface.AddDataMod(new GirlDataMod(Girls.KyuId, InsertStyle.replace)
         {
             CellphoneMiniHead = new SpriteInfoPath()
             {
@@ -124,11 +212,11 @@ public class Plugin : BaseUnityPlugin
 
         if (Directory.Exists(_dacDir))
         {
-            var jewn = new GirlDataMod(Girls.JewnId, Hp2BaseMod.Utility.InsertStyle.replace);
+            var jewn = new GirlDataMod(Girls.JewnId, InsertStyle.replace);
             AddUiCellphoneSprites("Jewn", jewn, new Vector2(2636, 1990), new Vector2(3911, 4711));
             ModInterface.AddDataMod(jewn);
 
-            var moxie = new GirlDataMod(Girls.MoxieId, Hp2BaseMod.Utility.InsertStyle.replace);
+            var moxie = new GirlDataMod(Girls.MoxieId, InsertStyle.replace);
             AddUiCellphoneSprites("Moxie", moxie, new Vector2(2411, 2287), new Vector2(3900, 5068));
             ModInterface.AddDataMod(moxie);
         }
