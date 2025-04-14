@@ -44,6 +44,24 @@ public class Plugin : BaseUnityPlugin
 
     private void SwapNymphojinn(GirlDefinition nymphojinnDef, GirlDefinition otherGirlDef)
     {
+        //find the default glowing eyes to use for expressions that don't have glowing eyes
+        var defaultGlowEyesIndex = -1;
+        if (otherGirlDef.expressions.TryGetFirst(x => x.expressionType == GirlExpressionType.NEUTRAL, out var neutralExpression))
+        {
+            defaultGlowEyesIndex = neutralExpression.partIndexEyesGlow;
+        }
+        else
+        {
+            ModInterface.Log.LogWarning($"Unable to find neutral expression for girl {otherGirlDef.name}");
+        }
+
+        foreach (var expression in otherGirlDef.expressions)
+        {
+            expression.partIndexEyes = expression.partIndexEyesGlow == -1
+                ? defaultGlowEyesIndex
+                : expression.partIndexEyesGlow;
+        }
+
         foreach (var expression in otherGirlDef.expressions)
         {
             if (expression.partIndexEyesGlow != -1)
@@ -104,6 +122,15 @@ public class Plugin : BaseUnityPlugin
             ModInterface.Log.LogInfo($"Randomizer disabled");
             return;
         }
+
+        // //test
+        // foreach (var girl in Game.Data.Girls.GetAll())
+        // {
+        //     var body = girl.parts[girl.partIndexBody];
+        //     ModInterface.Log.LogInfo($"{girl.name} Body position [{body.x}, {body.y}]");
+        // }
+
+        // return;
 
         ModInterface.Log.LogInfo($"Randomizing, seed:{ModConfig.Seed}");
         var random = new Random(ModConfig.Seed);

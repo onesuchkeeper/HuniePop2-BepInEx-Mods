@@ -1,5 +1,5 @@
-﻿using Hp2BaseMod.Utility;
-using System;
+﻿using System;
+using Hp2BaseMod.Utility;
 
 namespace Hp2BaseMod.GameDataInfo
 {
@@ -13,7 +13,7 @@ namespace Hp2BaseMod.GameDataInfo
         {
             if (def == null)
             {
-                def = Default();
+                def = Default;
             }
 
             ValidatedSet.SetValue(ref def.OutfitId, OutfitId, InsertStyle.replace);
@@ -26,6 +26,6 @@ namespace Hp2BaseMod.GameDataInfo
             HairstyleId = getNewId(OutfitId);
         }
 
-        public static GirlStyleInfo Default() => new GirlStyleInfo() { OutfitId = RelativeId.Default, HairstyleId = RelativeId.Default };
+        public static GirlStyleInfo Default => new GirlStyleInfo() { OutfitId = RelativeId.Default, HairstyleId = RelativeId.Default };
     }
 }

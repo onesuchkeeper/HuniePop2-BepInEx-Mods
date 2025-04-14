@@ -90,28 +90,30 @@ public class Plugin : BaseUnityPlugin
             }
         });
 
-        ModInterface.Events.PreLoadSaveFile += On_PrePersistenceReset;
+        ModInterface.Events.PreLoadPlayerFile += On_PrePersistenceReset;
     }
 
-    private void On_PrePersistenceReset(SaveFile file)
+    private void On_PrePersistenceReset(PlayerFile file)
     {
         ModInterface.Log.LogInfo("Unlocking ScallyCapFan Outfits");
-
-        foreach (var saveFileGirl in file.girls)
+        using (ModInterface.Log.MakeIndent())
         {
-            var girlId = ModInterface.Data.GetDataId(GameDataType.Girl, saveFileGirl.girlId);
+            foreach (var fileGirl in file.girls)
+            {
+                var girlId = ModInterface.Data.GetDataId(GameDataType.Girl, fileGirl.girlDefinition.id);
 
-            saveFileGirl.unlockedOutfits = saveFileGirl.unlockedOutfits
-                .Concat(ModInterface.Data.GetAllOutfitIds(girlId).Where(x => x.SourceId == _modId)
-                    .Select(x => ModInterface.Data.GetOutfitIndex(girlId, x)))
-                .Distinct()
-                .ToList();
+                foreach (var outfitId in ModInterface.Data.GetAllOutfitIds(girlId).Where(x => x.SourceId == _modId))
+                {
+                    ModInterface.Log.LogInfo($"Unlocking outfit {outfitId} for girl {girlId}");
+                    fileGirl.UnlockOutfit(ModInterface.Data.GetOutfitIndex(girlId, outfitId));
+                }
 
-            saveFileGirl.unlockedHairstyles = saveFileGirl.unlockedHairstyles
-                .Concat(ModInterface.Data.GetAllHairstyleIds(girlId).Where(x => x.SourceId == _modId)
-                    .Select(x => ModInterface.Data.GetHairstyleIndex(girlId, x)))
-                .Distinct()
-                .ToList();
+                foreach (var hairstyleId in ModInterface.Data.GetAllHairstyleIds(girlId).Where(x => x.SourceId == _modId))
+                {
+                    ModInterface.Log.LogInfo($"Unlocking hairstyle {hairstyleId} for girl {girlId}");
+                    fileGirl.UnlockHairstyle(ModInterface.Data.GetHairstyleIndex(girlId, hairstyleId));
+                }
+            }
         }
     }
 }

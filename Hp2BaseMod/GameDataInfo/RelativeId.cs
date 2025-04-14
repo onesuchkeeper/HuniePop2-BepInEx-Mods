@@ -62,7 +62,7 @@ public struct RelativeId
         return false;
     }
 
-    public override string ToString() => $"{SourceId}.{LocalId})";
+    public override string ToString() => $"{SourceId}.{LocalId}";
 
     public class Converter : TypeConverter
     {

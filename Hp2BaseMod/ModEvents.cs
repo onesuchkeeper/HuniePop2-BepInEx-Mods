@@ -20,8 +20,8 @@ namespace Hp2BaseMod
         /// <summary>
         /// Notifies before the save file is loaded
         /// </summary>
-        public event Action<SaveFile> PreLoadSaveFile;
-        internal void NotifyPreLoadSaveFile(SaveFile file) => PreLoadSaveFile?.Invoke(file);
+        public event Action<PlayerFile> PreLoadPlayerFile;
+        internal void NotifyPreLoadSaveFile(PlayerFile file) => PreLoadPlayerFile?.Invoke(file);
 
         /// <summary>
         /// Notifies before data mods are implemented

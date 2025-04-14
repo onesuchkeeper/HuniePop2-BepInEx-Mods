@@ -19,7 +19,7 @@ namespace Hp2BaseMod
                 __result = StringUtils.Titleize(__instance.itemType.ToString()) + " • " + __instance.categoryDescription;
             }
 
-            return true;
+            return false;
         }
     }
 }

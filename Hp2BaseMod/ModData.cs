@@ -1,6 +1,6 @@
-﻿using Hp2BaseMod.GameDataInfo;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using Hp2BaseMod.GameDataInfo;
 
 namespace Hp2BaseMod
 {
@@ -371,15 +371,16 @@ namespace Hp2BaseMod
         public RelativeId GetLineId(RelativeId dialogTriggerId, RelativeId girlId, int lineIndex) => _dtIdToGirlIdToLineIdLookup[dialogTriggerId][girlId][lineIndex];
 
         public GirlStyleInfo GetLocationStyleInfo(RelativeId locationId, RelativeId girlId) => _locationIdToLocationStyleInfo[locationId][girlId];
-        public GirlStyleInfo TryGetLocationStyleInfo(RelativeId locationId, RelativeId girlId)
+        public bool TryGetLocationStyleInfo(RelativeId locationId, RelativeId girlId, out GirlStyleInfo girlStyleInfo)
         {
-            if (_locationIdToLocationStyleInfo.ContainsKey(locationId)
-                && _locationIdToLocationStyleInfo[locationId].ContainsKey(girlId))
+            if (_locationIdToLocationStyleInfo.TryGetValue(locationId, out var girlToStyle)
+                && girlToStyle.TryGetValue(girlId, out girlStyleInfo))
             {
-                return _locationIdToLocationStyleInfo[locationId][girlId];
+                return true;
             }
 
-            return null;
+            girlStyleInfo = null;
+            return false;
         }
 
         public PairStyleInfo GetPairStyleInfo(RelativeId pairId) => _pairIdToPairStyleInfo[pairId];

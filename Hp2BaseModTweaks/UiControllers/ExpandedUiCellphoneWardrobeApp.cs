@@ -1,9 +1,9 @@
-﻿using HarmonyLib;
-using Hp2BaseMod;
-using Hp2BaseMod.Ui;
-using System;
+﻿using System;
 using System.Linq;
 using System.Reflection;
+using HarmonyLib;
+using Hp2BaseMod;
+using Hp2BaseMod.Ui;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -34,8 +34,6 @@ namespace Hp2BaseModTweaks.CellphoneApps
             _girlsPageMax = _metGirls.Length > 1
                 ? (_metGirls.Length - 1) / _girlsPerPage
                 : 0;
-
-            ModInterface.Log.LogInfo($"Met girls count: {_metGirls.Length}, Girls page Max: {_girlsPageMax}");
 
             if (_girlsPageMax > 0)
             {

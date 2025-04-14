@@ -73,7 +73,10 @@ public class Plugin : BaseUnityPlugin
         ModInterface.Events.PostDataMods += On_PostDataMods;
         ModInterface.Events.PostCodeSubmitted += On_PostCodeSubmitted;
 
+        ModInterface.Events.PostPersistenceReset += () => Application.runInBackground = ModInterface.GameData.IsCodeUnlocked(Constants.RunInBackgroundCodeId);
+
         // add toggle for slow drain on bonus round? TODO
+        //puzzlemanager._status.bounsDrainTimestap
 
         new Harmony(MyPluginInfo.PLUGIN_GUID).PatchAll();
     }
@@ -85,8 +88,6 @@ public class Plugin : BaseUnityPlugin
 
     private void On_PostDataMods()
     {
-        Application.runInBackground = ModInterface.GameData.IsCodeUnlocked(Constants.RunInBackgroundCodeId);
-
         if (!ModInterface.GameData.IsCodeUnlocked(Constants.FairyWingsCodeId)) { return; }
 
         var kyu = ModInterface.GameData.GetGirl(Girls.KyuId);
