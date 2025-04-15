@@ -1,6 +1,7 @@
 ﻿// Hp2Sample 2022, By OneSuchKeeper
 
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace Hp2BaseModTweaks
 {

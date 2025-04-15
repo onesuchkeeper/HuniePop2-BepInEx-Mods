@@ -28,7 +28,6 @@ namespace Hp2BaseMod.Save
 
             if (saveData.unlockedCodes != null)
             {
-                ModInterface.Log.LogInfo("Stripping Modded Codes");
                 UnlockedCodes = new List<RelativeId>();
                 var defaultCodes = new List<int>();
 
@@ -49,7 +48,6 @@ namespace Hp2BaseMod.Save
 
             if (saveData.files != null)
             {
-                ModInterface.Log.LogInfo("Stripping Modded data from save files");
                 DefaultFiles = new List<ModSaveFile>();
                 AddedFiles = new List<ModSaveFile>();
 

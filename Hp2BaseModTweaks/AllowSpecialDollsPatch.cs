@@ -11,6 +11,8 @@ namespace Hp2BaseModTweaks
     [HarmonyPatch(typeof(UiDoll), "ChangeOutfit")]
     public static class AllowSpecialDollsPatch
     {
+        //the special effects always read the def;s offset field, which is annoying
+        //because we can't store two different fields in the case of Kyu for her wings
         private static readonly FieldInfo _specialEffect = AccessTools.Field(typeof(UiDoll), "_specialEffect");
         private static void Postfix(UiDoll __instance)
         {

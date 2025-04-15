@@ -332,7 +332,7 @@ public class Plugin : BaseUnityPlugin
             {
                 new OutfitDataMod(_styleId_1, InsertStyle.replace)
                 {
-                    Name = "Bis. Comfortable",
+                    Name = "Office Siren",
                     OutfitPartId = outfitPartId_1,
                     IsNSFW = false,
                     HideNipples = true,

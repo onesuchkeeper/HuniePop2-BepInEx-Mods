@@ -14,6 +14,8 @@ public static partial class StringExtension
     {
         if (source == null) { return null; }
 
+        if (string.IsNullOrWhiteSpace(source)) { return source; }
+
         var matchValuePairs = replaceGroups.SelectMany(group =>
             Regex.Matches(source, group.pattern)
             .OfType<Match>()

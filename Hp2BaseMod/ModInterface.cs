@@ -68,12 +68,6 @@ public static class ModInterface
     private static Dictionary<string, ICommand> _commands = new Dictionary<string, ICommand>();
 
     /// <summary>
-    /// The cellphone managers
-    /// </summary>
-    public static ModUi Ui => _cellphone;
-    private static readonly ModUi _cellphone = new ModUi();
-
-    /// <summary>
     /// The session's log
     /// </summary>
     public static ModLog Log => _log;

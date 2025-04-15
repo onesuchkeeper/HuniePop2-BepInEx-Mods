@@ -9,38 +9,38 @@ namespace RepeatThreesome
 {
     public static class ThreesomeHandler
     {
-        private static FieldInfo _puzzleGrid = AccessTools.Field(typeof(PuzzleManager), "_puzzleGrid");
-        private static FieldInfo _puzzleStatus = AccessTools.Field(typeof(PuzzleManager), "_puzzleStatus");
         private static FieldInfo _roundOverCutscene = AccessTools.Field(typeof(PuzzleManager), "_roundOverCutscene");
         private static FieldInfo _newRoundCutscene = AccessTools.Field(typeof(PuzzleManager), "_newRoundCutscene");
         private static FieldInfo _gameOver = AccessTools.Field(typeof(PuzzleStatus), "_gameOver");
-        private static MethodInfo _OnRoundOverCutsceneComplete = AccessTools.Method(typeof(PuzzleManager), "OnRoundOverCutsceneComplete");
 
         public static void PreRoundOverCutscene()
         {
             if (Game.Session.Puzzle.puzzleStatus.statusType == PuzzleStatusType.NORMAL)
             {
                 var currentGirlPair = Game.Session.Location.currentGirlPair;
+
                 var playerFileGirlPair = Game.Persistence.playerFile.GetPlayerFileGirlPair(currentGirlPair);
 
                 if (playerFileGirlPair != null
                     && Game.Session.Puzzle.puzzleGrid.roundState == PuzzleRoundState.SUCCESS
                     && playerFileGirlPair.relationshipType == GirlPairRelationshipType.LOVERS
                     && (Game.Session.Location.currentLocation == currentGirlPair.sexLocationDefinition
-                        || ModInterface.GameData.IsCodeUnlocked(Constants.LocalCodeId))
-                    && !Game.Session.Puzzle.puzzleStatus.bonusRound)
+                        || ModInterface.GameData.IsCodeUnlocked(Constants.LocalCodeId)))
                 {
-                    ModInterface.Log.LogInfo("Setting up Lovers Bonus Round");
-                    _roundOverCutscene.SetValue(Game.Session.Puzzle, Game.Session.Puzzle.cutsceneSuccessAttracted);
-                    _newRoundCutscene.SetValue(Game.Session.Puzzle, Game.Session.Puzzle.cutsceneNewroundBonus);
+                    if (Game.Session.Puzzle.puzzleStatus.bonusRound)
+                    {
+                        _roundOverCutscene.SetValue(Game.Session.Puzzle, Game.Session.Puzzle.cutsceneSuccessBonus);
+                    }
+                    else
+                    {
+                        ModInterface.Log.LogInfo("Setting up Lovers Bonus Round");
+                        _roundOverCutscene.SetValue(Game.Session.Puzzle, Game.Session.Puzzle.cutsceneSuccessAttracted);
+                        _newRoundCutscene.SetValue(Game.Session.Puzzle, Game.Session.Puzzle.cutsceneNewroundBonus);
 
-                    //gameOver property has been made to only be settable to true, for some reason...
-                    //so access the underlying field
-                    _gameOver.SetValue(Game.Session.Puzzle.puzzleStatus, false);
-                }
-                else
-                {
-                    _roundOverCutscene.SetValue(Game.Session.Puzzle, Game.Session.Puzzle.cutsceneSuccessBonus);
+                        //gameOver property has been made to only be settable to true, for some reason...
+                        //so access the underlying field
+                        _gameOver.SetValue(Game.Session.Puzzle.puzzleStatus, false);
+                    }
                 }
             }
 

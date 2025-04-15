@@ -175,14 +175,6 @@ public class Plugin : BaseUnityPlugin
             }
         });
 
-        ModInterface.Ui.AddMainAppController(typeof(UiCellphoneAppFinder), (x) => new ExpandedUiCellphoneFinderApp(x as UiCellphoneAppFinder));
-        ModInterface.Ui.AddMainAppController(typeof(UiCellphoneAppGirls), (x) => new ExpandedUiCellphoneGirlsApp(x as UiCellphoneAppGirls));
-        ModInterface.Ui.AddMainAppController(typeof(UiCellphoneAppPairs), (x) => new ExpandedUiCellphonePairsApp(x as UiCellphoneAppPairs));
-        ModInterface.Ui.AddMainAppController(typeof(UiCellphoneAppProfile), (x) => new ExpandedUiCellphoneProfileApp(x as UiCellphoneAppProfile));
-        ModInterface.Ui.AddMainAppController(typeof(UiCellphoneAppWardrobe), (x) => new ExpandedUiCellphoneWardrobeApp(x as UiCellphoneAppWardrobe));
-        ModInterface.Ui.AddTitleAppController(typeof(UiCellphoneAppCredits), (x) => new ExpandedUiCellphoneCreditsApp(x as UiCellphoneAppCredits));
-        ModInterface.Ui.AddUiWindowController(typeof(UiWindowPhotos), (x) => new ExpandedUiWindowPhotos(x as UiWindowPhotos));
-
         ModInterface.Assets.RequestInternalSprite([
             Common.Ui_PhotoAlbumSlot,
             Common.Ui_PhotoButtonLeft,

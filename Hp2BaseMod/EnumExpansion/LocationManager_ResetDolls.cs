@@ -23,7 +23,10 @@ namespace Hp2BaseMod.EnumExpansion
 
                 if (UnityEngine.Random.Range(0f, 1f) <= args.ApplyChance)
                 {
-                    ApplyStyleInfo(Game.Session.gameCanvas.dollRight, args.Style);
+                    ApplyStyleInfo(Game.Session.gameCanvas.dollRight,
+                        args.Style,
+                        Game.Session.Hub.hubGirlDefinition.defaultOutfitIndex,
+                        Game.Session.Hub.hubGirlDefinition.defaultHairstyleIndex);
                 }
             }
             else
@@ -40,33 +43,48 @@ namespace Hp2BaseMod.EnumExpansion
                 GirlStyleInfo leftStyle = null;
                 GirlStyleInfo rightStyle = null;
 
-                var isSexDate = playerFileGirlPair.relationshipType == GirlPairRelationshipType.ATTRACTED
-                    && Game.Persistence.playerFile.daytimeElapsed % 4 == (int)playerFileGirlPair.girlPairDefinition.sexDaytime;
-
-                if (currentLocation.locationType == LocationType.DATE
-                    && !isSexDate
-                    && !Game.Session.Puzzle.puzzleStatus.isEmpty
-                    && currentLocation != Game.Session.Puzzle.bossLocationDefinition)
+                if (playerFileGirlPair.relationshipType == GirlPairRelationshipType.UNKNOWN)
                 {
-                    var locationId = ModInterface.Data.GetDataId(GameDataType.Location, currentLocation.id);
+                    var pairId = ModInterface.Data.GetDataId(GameDataType.GirlPair, currentGirlPair.id);
+                    var pairStyleInfo = ModInterface.Data.GetPairStyleInfo(pairId);
 
-                    if (!Game.Session.Puzzle.puzzleStatus.girlStatusLeft.playerFileGirl.stylesOnDates)
+                    leftStyle = pairStyleInfo.MeetingGirlOne;
+                    rightStyle = pairStyleInfo.MeetingGirlTwo;
+                }
+                else if (currentLocation.locationType == LocationType.DATE)
+                {
+                    if (playerFileGirlPair.relationshipType == GirlPairRelationshipType.ATTRACTED
+                        && Game.Persistence.playerFile.daytimeElapsed % 4 == (int)playerFileGirlPair.girlPairDefinition.sexDaytime)
                     {
-                        var girlId = ModInterface.Data.GetDataId(GameDataType.Girl, leftGirlDef.id);
+                        var pairId = ModInterface.Data.GetDataId(GameDataType.GirlPair, currentGirlPair.id);
+                        var pairStyleInfo = ModInterface.Data.GetPairStyleInfo(pairId);
 
-                        if (ModInterface.Data.TryGetLocationStyleInfo(locationId, girlId, out var leftStyleOverride))
-                        {
-                            leftStyle = leftStyleOverride;
-                        }
+                        leftStyle = pairStyleInfo.SexGirlOne;
+                        rightStyle = pairStyleInfo.SexGirlTwo;
                     }
-
-                    if (!Game.Session.Puzzle.puzzleStatus.girlStatusRight.playerFileGirl.stylesOnDates)
+                    else if (!Game.Session.Puzzle.puzzleStatus.isEmpty
+                        && currentLocation != Game.Session.Puzzle.bossLocationDefinition)
                     {
-                        var girlId = ModInterface.Data.GetDataId(GameDataType.Girl, rightGirlDef.id);
+                        var locationId = ModInterface.Data.GetDataId(GameDataType.Location, currentLocation.id);
 
-                        if (ModInterface.Data.TryGetLocationStyleInfo(locationId, girlId, out var rightStyleOverride))
+                        if (!Game.Session.Puzzle.puzzleStatus.girlStatusLeft.playerFileGirl.stylesOnDates)
                         {
-                            rightStyle = rightStyleOverride;
+                            var girlId = ModInterface.Data.GetDataId(GameDataType.Girl, leftGirlDef.id);
+
+                            if (ModInterface.Data.TryGetLocationStyleInfo(locationId, girlId, out var leftStyleOverride))
+                            {
+                                leftStyle = leftStyleOverride;
+                            }
+                        }
+
+                        if (!Game.Session.Puzzle.puzzleStatus.girlStatusRight.playerFileGirl.stylesOnDates)
+                        {
+                            var girlId = ModInterface.Data.GetDataId(GameDataType.Girl, rightGirlDef.id);
+
+                            if (ModInterface.Data.TryGetLocationStyleInfo(locationId, girlId, out var rightStyleOverride))
+                            {
+                                rightStyle = rightStyleOverride;
+                            }
                         }
                     }
                 }
@@ -84,12 +102,12 @@ namespace Hp2BaseMod.EnumExpansion
                     rightStyle = rightArgs.Style;
                 }
 
-                ApplyStyleInfo(Game.Session.gameCanvas.dollLeft, leftStyle);
-                ApplyStyleInfo(Game.Session.gameCanvas.dollRight, rightStyle);
+                ApplyStyleInfo(Game.Session.gameCanvas.dollLeft, leftStyle, leftGirlDef.defaultOutfitIndex, leftGirlDef.defaultHairstyleIndex);
+                ApplyStyleInfo(Game.Session.gameCanvas.dollRight, rightStyle, rightGirlDef.defaultOutfitIndex, rightGirlDef.defaultHairstyleIndex);
             }
         }
 
-        private static void ApplyStyleInfo(UiDoll doll, GirlStyleInfo girlStyleInfo)
+        private static void ApplyStyleInfo(UiDoll doll, GirlStyleInfo girlStyleInfo, int defaultOutfitIndex, int defaultHairstyleIndex)
         {
             if (girlStyleInfo == null
                 || !ModInterface.Data.TryGetDataId(GameDataType.Girl, (doll.soulGirlDefinition ?? doll.girlDefinition).id, out var girlId))
@@ -97,16 +115,18 @@ namespace Hp2BaseMod.EnumExpansion
                 return;
             }
 
-            if (girlStyleInfo.OutfitId.HasValue
-                && ModInterface.Data.TryGetOutfitIndex(girlId, girlStyleInfo.OutfitId.Value, out var outfitIndex))
+            if (girlStyleInfo.OutfitId.HasValue)
             {
-                doll.ChangeOutfit(outfitIndex);
+                doll.ChangeOutfit(ModInterface.Data.TryGetOutfitIndex(girlId, girlStyleInfo.OutfitId.Value, out var index)
+                    ? index
+                    : defaultOutfitIndex);
             }
 
-            if (girlStyleInfo.HairstyleId.HasValue
-                && ModInterface.Data.TryGetHairstyleIndex(girlId, girlStyleInfo.HairstyleId.Value, out var hairstyleIndex))
+            if (girlStyleInfo.HairstyleId.HasValue)
             {
-                doll.ChangeHairstyle(hairstyleIndex);
+                doll.ChangeHairstyle(ModInterface.Data.TryGetHairstyleIndex(girlId, girlStyleInfo.HairstyleId.Value, out var index)
+                    ? index
+                    : defaultHairstyleIndex);
             }
         }
     }

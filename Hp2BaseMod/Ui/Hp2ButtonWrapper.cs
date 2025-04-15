@@ -1,7 +1,7 @@
-﻿using HarmonyLib;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
+using HarmonyLib;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -43,7 +43,7 @@ namespace Hp2BaseMod.Ui
 
         public void Destroy()
         {
-            _gameObject.transform.parent = null;
+            _gameObject.transform.SetParent(null);
             GameObject.Destroy(_gameObject);
         }
 

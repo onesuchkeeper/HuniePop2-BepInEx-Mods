@@ -1,12 +1,54 @@
-﻿using Hp2BaseMod;
-using Hp2BaseMod.Ui;
-using System;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using HarmonyLib;
+using Hp2BaseMod;
+using Hp2BaseMod.Ui;
 using UnityEngine;
 
 namespace Hp2BaseModTweaks.CellphoneApps
 {
-    internal class ExpandedUiCellphoneGirlsApp : IUiController
+    [HarmonyPatch(typeof(UiCellphoneAppGirls))]
+    public static class UiCellphoneGirlsAppPatch
+    {
+        private readonly static Dictionary<UiCellphoneAppGirls, ExpandedUiCellphoneGirlsApp> _extendedApps
+            = new Dictionary<UiCellphoneAppGirls, ExpandedUiCellphoneGirlsApp>();
+
+        public static Vector2 DefaultSlotContainerPos;
+
+        [HarmonyPatch("Start")]
+        [HarmonyPrefix]
+        public static void PreStart(UiCellphoneAppGirls __instance)
+        {
+            DefaultSlotContainerPos = __instance.girlSlotsContainer.anchoredPosition;
+        }
+
+        [HarmonyPatch("Start")]
+        [HarmonyPostfix]
+        public static void PostStart(UiCellphoneAppGirls __instance)
+        {
+            if (!_extendedApps.TryGetValue(__instance, out var extendedApp))
+            {
+                extendedApp = new ExpandedUiCellphoneGirlsApp(__instance);
+                _extendedApps[__instance] = extendedApp;
+            }
+
+            extendedApp.OnStart();
+        }
+
+        [HarmonyPatch("OnDestroy")]
+        [HarmonyPrefix]
+        public static void PreDestroy(UiCellphoneAppGirls __instance)
+        {
+            if (_extendedApps.TryGetValue(__instance, out var extendedApp))
+            {
+                extendedApp.OnDestroy();
+                _extendedApps.Remove(__instance);
+            }
+        }
+    }
+
+    internal class ExpandedUiCellphoneGirlsApp
     {
         private static readonly int _girlsPerPage = 12;
 
@@ -27,7 +69,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
 
             _pageMax = _playerFileGirls.Length > 1 ? (_playerFileGirls.Length - 1) / _girlsPerPage : 0;
 
-            // no need for extra ui
+            // extra ui
             if (_pageMax != 0)
             {
                 var cellphoneButtonPressedKlip = new AudioKlip()
@@ -46,7 +88,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
                 _previousPage.ButtonBehavior.ButtonPressedEvent += (e) =>
                 {
                     _currentPage--;
-                    PostRefresh();
+                    Refresh();
                 };
 
                 _nextPage = Hp2ButtonWrapper.MakeCellphoneButton("NextPage",
@@ -59,35 +101,40 @@ namespace Hp2BaseModTweaks.CellphoneApps
                 _nextPage.ButtonBehavior.ButtonPressedEvent += (e) =>
                 {
                     _currentPage++;
-                    PostRefresh();
+                    Refresh();
                 };
             }
 
-            PostRefresh();
+            Refresh();
         }
 
-        public void PreRefresh()
+        public void OnStart()
         {
-
+            Refresh();
         }
 
-        public void PostRefresh()
+        public void OnDestroy()
+        {
+            _previousPage?.Destroy();
+            _nextPage?.Destroy();
+        }
+
+        public void Refresh()
         {
             //girls
             var girlIndex = _currentPage * _girlsPerPage;
-            int renderedCount = 0;
+            var renderCount = 0;
 
             foreach (var slot in _girlsApp.girlSlots.Take(_girlsPerPage))
             {
                 if (girlIndex < _playerFileGirls.Length)
                 {
-                    slot.girlDefinition = _playerFileGirls[girlIndex].girlDefinition;
-                    //slot.rectTransform.anchoredPosition = new Vector2(renderedCount % 6 * 172f,
-                    //                                                  Mathf.FloorToInt(renderedCount / 6f) * -272f);
+                    slot.girlDefinition = _playerFileGirls[girlIndex++].girlDefinition;
+                    slot.rectTransform.anchoredPosition = new Vector2((float)(renderCount % 6) * 172f,
+                        Mathf.FloorToInt(renderCount / 6f) * -272f);
                     slot.Populate();
 
-                    renderedCount++;
-                    girlIndex++;
+                    renderCount++;
                 }
                 else
                 {
@@ -100,10 +147,9 @@ namespace Hp2BaseModTweaks.CellphoneApps
                 slot.Clear();
             }
 
-            //_girlsApp.girlSlotsContainer.anchoredPosition = new Vector2(528, -284);
-
-            //_girlsApp.girlSlotsContainer.anchoredPosition += new Vector2((float)Mathf.Min(renderedCount - 1, 5) * -86f,
-            //                                                             (float)Mathf.Max(Mathf.CeilToInt((float)renderedCount / 6f) - 1, 0) * 136f);
+            _girlsApp.girlSlotsContainer.anchoredPosition = UiCellphoneGirlsAppPatch.DefaultSlotContainerPos
+                + new Vector2(Mathf.Min(renderCount - 1, 5) * -86f,
+                    Mathf.Max(Mathf.CeilToInt(renderCount / 6f) - 1, 0) * 136f);
 
             if (_pageMax == 0)
             {

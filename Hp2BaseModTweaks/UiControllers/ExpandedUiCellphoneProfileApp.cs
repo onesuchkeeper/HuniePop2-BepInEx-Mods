@@ -1,19 +1,50 @@
-﻿using BepInEx;
-using HarmonyLib;
-using Hp2BaseMod;
-using Hp2BaseMod.Ui;
-using Hp2BaseMod.Utility;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using BepInEx;
+using HarmonyLib;
+using Hp2BaseMod;
+using Hp2BaseMod.Ui;
+using Hp2BaseMod.Utility;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace Hp2BaseModTweaks.CellphoneApps
 {
-    internal class ExpandedUiCellphoneProfileApp : IUiController
+    [HarmonyPatch(typeof(UiCellphoneAppProfile))]
+    public static class UiCellphoneAppProfilePatch
+    {
+        private readonly static Dictionary<UiCellphoneAppProfile, ExpandedUiCellphoneProfileApp> _extendedApps
+                            = new Dictionary<UiCellphoneAppProfile, ExpandedUiCellphoneProfileApp>();
+
+        [HarmonyPatch("Start")]
+        [HarmonyPostfix]
+        public static void PostStart(UiCellphoneAppProfile __instance)
+        {
+            if (!_extendedApps.TryGetValue(__instance, out var extendedApp))
+            {
+                extendedApp = new ExpandedUiCellphoneProfileApp(__instance);
+                _extendedApps[__instance] = extendedApp;
+            }
+
+            extendedApp.OnStart();
+        }
+
+        [HarmonyPatch("OnDestroy")]
+        [HarmonyPrefix]
+        public static void PreDestroy(UiCellphoneAppProfile __instance)
+        {
+            if (_extendedApps.TryGetValue(__instance, out var extendedApp))
+            {
+                extendedApp.OnDestroy();
+                _extendedApps.Remove(__instance);
+            }
+        }
+    }
+
+    internal class ExpandedUiCellphoneProfileApp
     {
         private static FieldInfo _uiCellphoneAppProfile_playerFileGirl = AccessTools.Field(typeof(UiCellphoneAppProfile), "_playerFileGirl");
         private static FieldInfo _uiAppFavAnswer_favQuestionDefinition = AccessTools.Field(typeof(UiAppFavAnswer), "_favQuestionDefinition");
@@ -67,7 +98,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
             _previousPage.ButtonBehavior.ButtonPressedEvent += (e) =>
             {
                 _currentPage--;
-                PostRefresh();
+                Refresh();
             };
 
             _nextPage = Hp2ButtonWrapper.MakeCellphoneButton("NextPage",
@@ -80,7 +111,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
             _nextPage.ButtonBehavior.ButtonPressedEvent += (e) =>
             {
                 _currentPage++;
-                PostRefresh();
+                Refresh();
             };
 
             // favorites, make scroll and add extra entries
@@ -166,15 +197,21 @@ namespace Hp2BaseModTweaks.CellphoneApps
             favoritesScroll_ScrollRect.viewport = favoritesScroll_RectTransform;
             favoritesScroll_ScrollRect.content = favoritesPanel_RectTransform;
 
-            PostRefresh();
+            Refresh();
         }
 
-        public void PreRefresh()
+        public void OnStart()
         {
-
+            Refresh();
         }
 
-        public void PostRefresh()
+        public void OnDestroy()
+        {
+            _previousPage?.Destroy();
+            _nextPage?.Destroy();
+        }
+
+        public void Refresh()
         {
             var profileGirl = Game.Data.Girls.Get(Game.Session.gameCanvas.cellphone.GetCellFlag("profile_girl_id"));
 

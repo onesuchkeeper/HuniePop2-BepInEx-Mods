@@ -1,12 +1,45 @@
-﻿using Hp2BaseMod;
-using Hp2BaseMod.Ui;
-using System;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using HarmonyLib;
+using Hp2BaseMod;
+using Hp2BaseMod.Ui;
 using UnityEngine;
 
 namespace Hp2BaseModTweaks.CellphoneApps
 {
-    internal class ExpandedUiCellphonePairsApp : IUiController
+    [HarmonyPatch(typeof(UiCellphoneAppPairs))]
+    public class UiCellphoneAppPairsPatch
+    {
+        private readonly static Dictionary<UiCellphoneAppPairs, ExpandedUiCellphonePairsApp> _extendedApps
+                    = new Dictionary<UiCellphoneAppPairs, ExpandedUiCellphonePairsApp>();
+
+        [HarmonyPatch("Start")]
+        [HarmonyPostfix]
+        public static void PostStart(UiCellphoneAppPairs __instance)
+        {
+            if (!_extendedApps.TryGetValue(__instance, out var extendedApp))
+            {
+                extendedApp = new ExpandedUiCellphonePairsApp(__instance);
+                _extendedApps[__instance] = extendedApp;
+            }
+
+            extendedApp.OnStart();
+        }
+
+        [HarmonyPatch("OnDestroy")]
+        [HarmonyPrefix]
+        public static void PreDestroy(UiCellphoneAppPairs __instance)
+        {
+            if (_extendedApps.TryGetValue(__instance, out var extendedApp))
+            {
+                extendedApp.OnDestroy();
+                _extendedApps.Remove(__instance);
+            }
+        }
+    }
+
+    internal class ExpandedUiCellphonePairsApp
     {
         private static readonly int _pairsPerPage = 24;
 
@@ -45,7 +78,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
                 _previousPage.ButtonBehavior.ButtonPressedEvent += (e) =>
                 {
                     _currentPage--;
-                    PostRefresh();
+                    Refresh();
                 };
 
                 _nextPage = Hp2ButtonWrapper.MakeCellphoneButton("NextPage",
@@ -58,19 +91,25 @@ namespace Hp2BaseModTweaks.CellphoneApps
                 _nextPage.ButtonBehavior.ButtonPressedEvent += (e) =>
                 {
                     _currentPage++;
-                    PostRefresh();
+                    Refresh();
                 };
             }
 
-            PostRefresh();
+            Refresh();
         }
 
-        public void PreRefresh()
+        public void OnStart()
         {
-
+            Refresh();
         }
 
-        public void PostRefresh()
+        public void OnDestroy()
+        {
+            _previousPage?.Destroy();
+            _nextPage?.Destroy();
+        }
+
+        public void Refresh()
         {
             // pairs
             var renderCount = 0;
@@ -81,14 +120,14 @@ namespace Hp2BaseModTweaks.CellphoneApps
             {
                 if (current < _metPairs.Length)
                 {
-                    entry.Populate(_metPairs[current]);
+                    entry.Populate(_metPairs[current++]);
                     entry.canvasGroup.alpha = 1f;
                     entry.canvasGroup.blocksRaycasts = true;
                     entry.button.Enable();
-                    //entry.rectTransform.anchoredPosition = new Vector2((float)(renderCount % 4) * 256f,
-                    //                                                  (float)Mathf.FloorToInt((float)renderCount / 4f) * -90f);
+                    entry.rectTransform.anchoredPosition = new Vector2(renderCount % 4 * 256f,
+                        Mathf.FloorToInt(renderCount / 4f) * -90f);
+
                     renderCount++;
-                    current++;
                 }
                 else
                 {
@@ -101,10 +140,8 @@ namespace Hp2BaseModTweaks.CellphoneApps
                 entry.Populate(null, null);
             }
 
-            //_pairsApp.pairSlotsContainer.anchoredPosition = new Vector2(528, -284);
-
-            //_pairsApp.pairSlotsContainer.anchoredPosition += new Vector2(Mathf.Min(renderCount - 1, 3) * -128f,
-            //                                                             Mathf.Max(Mathf.CeilToInt((float)renderCount / 4f) - 1, 0) * 45f);
+            _pairsApp.pairSlotsContainer.anchoredPosition = new Vector2(528 + (Mathf.Min(renderCount - 1, 3) * -128f),
+                -284 + (Mathf.Max(Mathf.CeilToInt(renderCount / 4f) - 1, 0) * 45f));
 
             if (_pageMax == 0)
             {

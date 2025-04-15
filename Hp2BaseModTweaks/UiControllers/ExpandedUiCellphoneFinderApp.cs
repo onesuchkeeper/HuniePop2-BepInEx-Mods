@@ -1,14 +1,46 @@
-﻿using HarmonyLib;
-using Hp2BaseMod;
-using Hp2BaseMod.Ui;
-using System;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using HarmonyLib;
+using Hp2BaseMod;
+using Hp2BaseMod.Ui;
 using UnityEngine;
 
 namespace Hp2BaseModTweaks.CellphoneApps
 {
-    internal class ExpandedUiCellphoneFinderApp : IUiController
+    [HarmonyPatch(typeof(UiCellphoneAppFinder))]
+    public static class UiCellphoneAppFinderPatches
+    {
+        private readonly static Dictionary<UiCellphoneAppFinder, ExpandedUiCellphoneFinderApp> _extendedApps
+                    = new Dictionary<UiCellphoneAppFinder, ExpandedUiCellphoneFinderApp>();
+
+        [HarmonyPatch("Start")]
+        [HarmonyPostfix]
+        public static void PostStart(UiCellphoneAppFinder __instance)
+        {
+            if (!_extendedApps.TryGetValue(__instance, out var extendedApp))
+            {
+                extendedApp = new ExpandedUiCellphoneFinderApp(__instance);
+                _extendedApps[__instance] = extendedApp;
+            }
+
+            extendedApp.OnStart();
+        }
+
+        [HarmonyPatch("OnDestroy")]
+        [HarmonyPrefix]
+        public static void PreDestroy(UiCellphoneAppFinder __instance)
+        {
+            if (_extendedApps.TryGetValue(__instance, out var extendedApp))
+            {
+                extendedApp.OnDestroy();
+                _extendedApps.Remove(__instance);
+            }
+        }
+    }
+
+    internal class ExpandedUiCellphoneFinderApp
     {
         private static readonly int _finderLocationsPerPage = 8;
         private static readonly FieldInfo _playerFileFinderSlotAccess = AccessTools.Field(typeof(UiAppFinderSlot), "_playerFileFinderSlot");
@@ -28,7 +60,6 @@ namespace Hp2BaseModTweaks.CellphoneApps
             _simLocations = Game.Data.Locations.GetAll().Where(x => x.locationType == LocationType.SIM).ToArray();
             _pageMax = _simLocations.Length > 1 ? (_simLocations.Length - 1) / _finderLocationsPerPage : 0;
 
-            // no need for extra ui
             if (_pageMax != 0)
             {
                 var cellphoneButtonPressedKlip = new AudioKlip()
@@ -47,7 +78,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
                 _previousPage.ButtonBehavior.ButtonPressedEvent += (e) =>
                 {
                     _currentPage--;
-                    PostRefresh();
+                    Refresh();
                 };
 
                 _nextPage = Hp2ButtonWrapper.MakeCellphoneButton("NextPage",
@@ -60,19 +91,25 @@ namespace Hp2BaseModTweaks.CellphoneApps
                 _nextPage.ButtonBehavior.ButtonPressedEvent += (e) =>
                 {
                     _currentPage++;
-                    PostRefresh();
+                    Refresh();
                 };
             }
 
-            PostRefresh();
+            Refresh();
         }
 
-        public void PreRefresh()
+        public void OnStart()
         {
-
+            Refresh();
         }
 
-        public void PostRefresh()
+        public void OnDestroy()
+        {
+            _previousPage?.Destroy();
+            _nextPage?.Destroy();
+        }
+
+        public void Refresh()
         {
             //location slots
             var locationIndex = _currentPage * _finderLocationsPerPage;

@@ -1,19 +1,61 @@
-﻿using HarmonyLib;
-using Hp2BaseMod;
-using Hp2BaseMod.Ui;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using DG.Tweening;
+using HarmonyLib;
+using Hp2BaseMod;
+using Hp2BaseMod.Ui;
 using UnityEngine;
 
 namespace Hp2BaseModTweaks.CellphoneApps
 {
-    public class ExpandedUiWindowPhotos : IUiController
+    [HarmonyPatch(typeof(UiWindowPhotos))]
+    public static class UiWindowPhotosPatch
     {
-        private static readonly FieldInfo _uiPhotoSlot_photoDefinition = AccessTools.Field(typeof(UiPhotoSlot), "_photoDefinition");
-        private static readonly FieldInfo _uiWindowPhotos_earnedPhotos = AccessTools.Field(typeof(UiWindowPhotos), "_earnedPhotos");
-        private static readonly int _photosPerPage = 29;
+        private readonly static Dictionary<UiWindowPhotos, ExpandedUiWindowPhotos> _extendedApps
+                            = new Dictionary<UiWindowPhotos, ExpandedUiWindowPhotos>();
+
+        [HarmonyPatch("Init")]
+        [HarmonyPostfix]
+        public static void PostStart(UiWindowPhotos __instance)
+        {
+            if (!_extendedApps.TryGetValue(__instance, out var extendedApp))
+            {
+                extendedApp = new ExpandedUiWindowPhotos(__instance);
+                _extendedApps[__instance] = extendedApp;
+            }
+
+            extendedApp.OnStart();
+        }
+
+        [HarmonyPatch("Refresh")]
+        [HarmonyPostfix]
+        public static void PostRefresh(UiWindowPhotos __instance)
+        {
+            if (_extendedApps.TryGetValue(__instance, out var extendedApp))
+            {
+                extendedApp.Refresh();
+            }
+        }
+
+        [HarmonyPatch("Show")]
+        [HarmonyPostfix]
+        public static void Show(UiWindowPhotos __instance, Sequence sequence)
+        {
+            if (_extendedApps.TryGetValue(__instance, out var extendedApp))
+            {
+                extendedApp.OnShow();
+            }
+        }
+    }
+
+    public class ExpandedUiWindowPhotos
+    {
+        private static readonly FieldInfo _photoDefinition = AccessTools.Field(typeof(UiPhotoSlot), "_photoDefinition");
+        private static readonly FieldInfo _earnedPhotos = AccessTools.Field(typeof(UiWindowPhotos), "_earnedPhotos");
+        private static readonly FieldInfo _singlePhoto = AccessTools.Field(typeof(UiWindowPhotos), "_singlePhoto");
+        private static readonly int _photosPerPage = 3;//29;
         private static Sprite _emptyPhotoSlot;
 
         private int _pageIndex;
@@ -28,7 +70,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
         {
             _photosWindow = photosWindow ?? throw new ArgumentNullException(nameof(photosWindow));
 
-            _photosArray = (_uiWindowPhotos_earnedPhotos.GetValue(photosWindow) as List<PhotoDefinition>).ToArray();
+            _photosArray = (_earnedPhotos.GetValue(photosWindow) as List<PhotoDefinition>).ToArray();
             _pageMax = _photosArray.Length > 1 ? (_photosArray.Length - 1) / _photosPerPage : 0;
             _emptyPhotoSlot = ModInterface.Assets.GetAsset<Sprite>(Common.Ui_PhotoAlbumSlot);
 
@@ -52,7 +94,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
                 _previousPage.ButtonBehavior.ButtonPressedEvent += (e) =>
                 {
                     _pageIndex--;
-                    PostRefresh();
+                    Refresh();
                 };
 
                 _nextPage = Hp2ButtonWrapper.MakeCellphoneButton("NextPage",
@@ -65,20 +107,43 @@ namespace Hp2BaseModTweaks.CellphoneApps
                 _nextPage.ButtonBehavior.ButtonPressedEvent += (e) =>
                 {
                     _pageIndex++;
-                    PostRefresh();
+                    Refresh();
                 };
             }
 
-            PostRefresh();
+            Refresh();
         }
 
-        public void PreRefresh()
+        public void OnStart()
         {
-            //noop
+            Refresh();
         }
 
-        public void PostRefresh()
+        public void OnShow()
         {
+            if ((bool)_singlePhoto.GetValue(_photosWindow))
+            {
+                _previousPage?.ButtonBehavior.Disable();
+                _previousPage?.CanvasRenderer.SetAlpha(0f);
+
+                _nextPage?.ButtonBehavior.Disable();
+                _nextPage?.CanvasRenderer.SetAlpha(0f);
+            }
+            else
+            {
+                _previousPage?.ButtonBehavior.Enable();
+                _nextPage?.ButtonBehavior.Enable();
+                Refresh();
+            }
+        }
+
+        public void Refresh()
+        {
+            if ((bool)_singlePhoto.GetValue(_photosWindow))
+            {
+                return;
+            }
+
             //photos
             var photoIndex = _pageIndex * _photosPerPage;
 
@@ -86,7 +151,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
             {
                 if (photoIndex < _photosArray.Length)
                 {
-                    _uiPhotoSlot_photoDefinition.SetValue(slot, _photosArray[photoIndex]);
+                    _photoDefinition.SetValue(slot, _photosArray[photoIndex]);
                     slot.buttonBehavior.Enable();
                     slot.Refresh(1);
                     photoIndex++;

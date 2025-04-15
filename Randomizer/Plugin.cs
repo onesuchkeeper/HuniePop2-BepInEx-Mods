@@ -14,7 +14,7 @@ namespace Hp2Randomizer;
 public class Plugin : BaseUnityPlugin
 {
     internal static Config ModConfig;
-    private static int ModId;
+    private static int _modId;
 
     /// <summary>
     /// Sets the swap handler for a particular Special Girl.
@@ -30,7 +30,7 @@ public class Plugin : BaseUnityPlugin
 
     private void Awake()
     {
-        ModId = ModInterface.GetSourceId(MyPluginInfo.PLUGIN_GUID);
+        _modId = ModInterface.GetSourceId(MyPluginInfo.PLUGIN_GUID);
 
         ModInterface.AddCommand(new SetSeedCommand());
 
@@ -40,6 +40,25 @@ public class Plugin : BaseUnityPlugin
 
         ModInterface.Events.PreGameSave += On_PreSave;
         ModInterface.Events.PostDataMods += On_PostDataMods;
+        ModInterface.Events.PreLoadPlayerFile += On_PrePersistenceReset;
+    }
+
+    private void On_PrePersistenceReset(PlayerFile file)
+    {
+        foreach (var fileGirl in file.girls)
+        {
+            if (fileGirl.outfitIndex >= fileGirl.girlDefinition.outfits.Count
+                || !fileGirl.unlockedOutfits.Contains(fileGirl.outfitIndex))
+            {
+                fileGirl.outfitIndex = fileGirl.girlDefinition.defaultOutfitIndex;
+            }
+
+            if (fileGirl.hairstyleIndex >= fileGirl.girlDefinition.hairstyles.Count
+                || !fileGirl.unlockedHairstyles.Contains(fileGirl.hairstyleIndex))
+            {
+                fileGirl.hairstyleIndex = fileGirl.girlDefinition.defaultHairstyleIndex;
+            }
+        }
     }
 
     private void SwapNymphojinn(GirlDefinition nymphojinnDef, GirlDefinition otherGirlDef)
@@ -100,12 +119,12 @@ public class Plugin : BaseUnityPlugin
 
     private void On_PreSave()
     {
-        ModInterface.SetSourceSave(ModId, JsonConvert.SerializeObject(ModConfig));
+        ModInterface.SetSourceSave(_modId, JsonConvert.SerializeObject(ModConfig));
     }
 
     private void On_PostDataMods()
     {
-        var saveString = ModInterface.GetSourceSave(ModId);
+        var saveString = ModInterface.GetSourceSave(_modId);
 
         if (saveString.IsNullOrWhiteSpace())
         {
@@ -122,8 +141,6 @@ public class Plugin : BaseUnityPlugin
             ModInterface.Log.LogInfo($"Randomizer disabled");
             return;
         }
-
-        return;
 
         ModInterface.Log.LogInfo($"Randomizing, seed:{ModConfig.Seed}");
         var random = new Random(ModConfig.Seed);
@@ -482,20 +499,17 @@ public class Plugin : BaseUnityPlugin
             return;
         }
 
+        var strReplaces = replaceGroups.Select(x => (x.oldGirl.girlName, x.newName.name))
+            .Concat(
+                replaceGroups.Where(x => !x.oldGirl.girlNickName.IsNullOrWhiteSpace())
+                    .Select(x => (x.oldGirl.girlNickName, x.newName.nickName.IsNullOrWhiteSpace()
+                        ? x.newName.name
+                        : x.newName.nickName))
+            );
+
         foreach (var step in steps)
         {
-            if (!step.stringValue.IsNullOrWhiteSpace())
-            {
-                step.stringValue.Replace(
-                    replaceGroups.Select(x => (x.oldGirl.girlName, x.newName.name))
-                        .Concat(
-                            replaceGroups.Where(x => !x.oldGirl.girlNickName.IsNullOrWhiteSpace())
-                                .Select(x => (x.oldGirl.girlNickName, x.newName.nickName.IsNullOrWhiteSpace()
-                                    ? x.newName.name
-                                    : x.newName.nickName))
-                        )
-                );
-            }
+            step.stringValue = step.stringValue.Replace(strReplaces);
 
             if (replaceGroups.TryGetFirst(x => step.girlDefinition == x.oldGirl, out var girlDef))
             {
@@ -541,6 +555,11 @@ public class Plugin : BaseUnityPlugin
                     }
                     break;
                 case CutsceneStepType.DIALOG_OPTIONS:
+                    foreach (var option in step.dialogOptions)
+                    {
+                        option.dialogOptionText = option.dialogOptionText.Replace(strReplaces);
+                        option.yuriDialogOptionText = option.yuriDialogOptionText.Replace(strReplaces);
+                    }
                     ReplaceCutsceneGirls(step.dialogOptions.SelectMany(x => x.steps), replaceGroups);
                     break;
                 case CutsceneStepType.SHOW_NOTIFICATION:

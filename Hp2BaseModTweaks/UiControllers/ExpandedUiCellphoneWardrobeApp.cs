@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using HarmonyLib;
@@ -9,11 +10,51 @@ using UnityEngine.UI;
 
 namespace Hp2BaseModTweaks.CellphoneApps
 {
-    internal class ExpandedUiCellphoneWardrobeApp : IUiController
+    [HarmonyPatch(typeof(UiCellphoneAppWardrobe))]
+    public static class UiCellphoneAppWardrobePatch
     {
-        private static readonly FieldInfo _uiCellphoneWardrobeApp_selectedFileIconSlot = AccessTools.Field(typeof(UiCellphoneAppWardrobe), "_selectedFileIconSlot");
+        private readonly static Dictionary<UiCellphoneAppWardrobe, ExpandedUiCellphoneWardrobeApp> _extendedApps
+                            = new Dictionary<UiCellphoneAppWardrobe, ExpandedUiCellphoneWardrobeApp>();
+
+        [HarmonyPatch("Start")]
+        [HarmonyPostfix]
+        public static void PostStart(UiCellphoneAppWardrobe __instance)
+        {
+            if (!_extendedApps.TryGetValue(__instance, out var extendedApp))
+            {
+                extendedApp = new ExpandedUiCellphoneWardrobeApp(__instance);
+                _extendedApps[__instance] = extendedApp;
+            }
+
+            extendedApp.OnStart();
+        }
+
+        [HarmonyPatch("OnDestroy")]
+        [HarmonyPrefix]
+        public static void PreDestroy(UiCellphoneAppWardrobe __instance)
+        {
+            if (_extendedApps.TryGetValue(__instance, out var extendedApp))
+            {
+                extendedApp.OnDestroy();
+                _extendedApps.Remove(__instance);
+            }
+        }
+
+        [HarmonyPatch("Refresh")]
+        [HarmonyPostfix]
+        public static void PostRefresh(UiCellphoneAppWardrobe __instance)
+        {
+            if (_extendedApps.TryGetValue(__instance, out var extendedApp))
+            {
+                extendedApp.Refresh();
+            }
+        }
+    }
+
+    internal class ExpandedUiCellphoneWardrobeApp
+    {
+        private static readonly FieldInfo _selectedFileIconSlot = AccessTools.Field(typeof(UiCellphoneAppWardrobe), "_selectedFileIconSlot");
         private static readonly int _girlsPerPage = 12;
-        public static readonly int _wardrobeStylesPerPage = 10;
 
         private int _girlsPage;
 
@@ -24,6 +65,8 @@ namespace Hp2BaseModTweaks.CellphoneApps
         private readonly int _girlsPageMax;
         private readonly PlayerFileGirl[] _metGirls;
         private readonly UiAppFileIconSlot _dummyFileIconSlot;
+
+        private UiAppFileIconSlot[] _subscribedSlots;
 
         public ExpandedUiCellphoneWardrobeApp(UiCellphoneAppWardrobe wardrobeApp)
         {
@@ -54,7 +97,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
                 _girlsLeft.ButtonBehavior.ButtonPressedEvent += (e) =>
                 {
                     _girlsPage--;
-                    PostRefresh();
+                    Refresh();
                 };
 
                 _girlsRight = Hp2ButtonWrapper.MakeCellphoneButton("GirlsRight",
@@ -67,7 +110,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
                 _girlsRight.ButtonBehavior.ButtonPressedEvent += (e) =>
                 {
                     _girlsPage++;
-                    PostRefresh();
+                    Refresh();
                 };
 
                 _dummyFileIconSlot = new UiAppFileIconSlot() { button = new ButtonBehavior() };
@@ -92,45 +135,40 @@ namespace Hp2BaseModTweaks.CellphoneApps
 
                 _girlsPage = index / _girlsPerPage;
             }
-
-            PreRefresh();
-            PostRefresh();
         }
 
-
-        public void PreRefresh()
+        public void OnStart()
         {
-            ModInterface.Log.LogInfo("Wardrobe pre refresh");
-            ModInterface.Log.LogInfo();
-
-            if (_uiCellphoneWardrobeApp_selectedFileIconSlot.GetValue(_wardrobeApp) is not GirlDefinition wardrobeGirlDef)
-            {
-                var wardrobeGirlId = Game.Persistence.playerFile.GetFlagValue("wardrobe_girl_id");
-                wardrobeGirlDef = Game.Data.Girls.Get(wardrobeGirlId);
-            }
-
-            ModInterface.Log.LogInfo($"Selecting wardrobe girl {wardrobeGirlDef.name}");
+            //only slots where the player has met the girldef are subscribed to
+            _subscribedSlots = _wardrobeApp.fileIconSlots.Where(x => Game.Persistence.playerFile.GetPlayerFileGirl(x.girlDefinition).playerMet).ToArray();
+            Refresh();
         }
 
-        public void PostRefresh()
+        public void OnDestroy()
         {
-            ModInterface.Log.LogInfo();
+            _girlsLeft?.Destroy();
+            _girlsRight?.Destroy();
+            UnityEngine.Object.Destroy(_dummyFileIconSlot);
+        }
+
+        public void Refresh()
+        {
             // head slots
             UiAppFileIconSlot selectedFileIconSlot = null;
             var iconIndex = _girlsPage * _girlsPerPage;
             int renderedCount = 0;
             var wardrobeGirlId = Game.Persistence.playerFile.GetFlagValue("wardrobe_girl_id");
 
-            foreach (var slot in _wardrobeApp.fileIconSlots.Take(_girlsPerPage))
+            foreach (var slot in _subscribedSlots.Take(_girlsPerPage))
             {
                 if (iconIndex < _metGirls.Length)
                 {
                     slot.button.Disable();
-                    slot.girlDefinition = _metGirls[iconIndex].girlDefinition;
+                    slot.girlDefinition = _metGirls[iconIndex++].girlDefinition;
                     slot.Populate(false);
                     slot.canvasGroup.blocksRaycasts = true;
                     slot.canvasGroup.alpha = 1f;
-                    //slot.rectTransform.anchoredPosition = new Vector2((float)(renderedCount % 3) * 120f, (float)Mathf.FloorToInt((float)renderedCount / 3f) * -120f);
+                    slot.rectTransform.anchoredPosition = new Vector2((renderedCount % 3) * 120f, Mathf.FloorToInt(renderedCount / 3f) * -120f);
 
                     if (slot.girlDefinition.id == wardrobeGirlId)
                     {
@@ -142,34 +180,32 @@ namespace Hp2BaseModTweaks.CellphoneApps
                     }
 
                     renderedCount++;
-                    iconIndex++;
                 }
                 else
                 {
-                    //slot.girlDefinition = null;
+                    slot.hideIfBlocked = true;
+                    slot.girlDefinition = null;
                     slot.Populate(true);
-                    slot.canvasGroup.blocksRaycasts = false;
-                    slot.canvasGroup.alpha = 0f;
                 }
             }
 
-            foreach (var slot in _wardrobeApp.fileIconSlots.Skip(_girlsPerPage))
+            foreach (var slot in _subscribedSlots.Skip(_girlsPerPage))
             {
+                slot.hideIfBlocked = true;
+                slot.girlDefinition = null;
                 slot.Populate(true);
-                slot.canvasGroup.blocksRaycasts = false;
-                slot.canvasGroup.alpha = 0f;
             }
 
-            // if the selected slot is on a different page, use the dummy slot.
+            // if the selected slot is on a different page, use the dummy slot
             var wardrobeGirlDef = Game.Data.Girls.Get(wardrobeGirlId);
             if (selectedFileIconSlot == null)
             {
                 _dummyFileIconSlot.girlDefinition = wardrobeGirlDef;
-                _uiCellphoneWardrobeApp_selectedFileIconSlot.SetValue(_wardrobeApp, _dummyFileIconSlot);
+                _selectedFileIconSlot.SetValue(_wardrobeApp, _dummyFileIconSlot);
             }
             else
             {
-                _uiCellphoneWardrobeApp_selectedFileIconSlot.SetValue(_wardrobeApp, selectedFileIconSlot);
+                _selectedFileIconSlot.SetValue(_wardrobeApp, selectedFileIconSlot);
             }
 
             //buttons

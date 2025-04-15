@@ -181,7 +181,6 @@ namespace Hp2BaseModTweaks
             }
 
             _paddingRectTransform.sizeDelta = new Vector2(278, 33.3333f * (visibleItemCount + 1));
-            ModInterface.Log.LogInfo(_paddingRectTransform.sizeDelta.ToString());
 
             // reposition in order
             i = 0;

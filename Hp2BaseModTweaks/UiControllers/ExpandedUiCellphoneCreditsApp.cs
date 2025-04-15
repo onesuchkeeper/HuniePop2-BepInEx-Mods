@@ -1,17 +1,49 @@
-﻿using BepInEx;
+﻿using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using BepInEx;
+using HarmonyLib;
 using Hp2BaseMod;
 using Hp2BaseMod.Extension.IEnumerableExtension;
 using Hp2BaseMod.Ui;
 using Hp2BaseMod.Utility;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace Hp2BaseModTweaks.CellphoneApps
 {
-    internal class ExpandedUiCellphoneCreditsApp : IUiController
+    [HarmonyPatch(typeof(UiCellphoneAppCredits))]
+    public class UiCellphoneAppCreditsPatch
+    {
+        private readonly static Dictionary<UiCellphoneAppCredits, ExpandedUiCellphoneCreditsApp> _extendedApps
+                    = new Dictionary<UiCellphoneAppCredits, ExpandedUiCellphoneCreditsApp>();
+
+        [HarmonyPatch("Start")]
+        [HarmonyPostfix]
+        public static void PostStart(UiCellphoneAppCredits __instance)
+        {
+            if (!_extendedApps.TryGetValue(__instance, out var extendedApp))
+            {
+                extendedApp = new ExpandedUiCellphoneCreditsApp(__instance);
+                _extendedApps[__instance] = extendedApp;
+            }
+
+            extendedApp.OnStart();
+        }
+
+        [HarmonyPatch("OnDestroy")]
+        [HarmonyPrefix]
+        public static void PreDestroy(UiCellphoneAppCredits __instance)
+        {
+            if (_extendedApps.TryGetValue(__instance, out var extendedApp))
+            {
+                extendedApp.OnDestroy();
+                _extendedApps.Remove(__instance);
+            }
+        }
+    }
+
+    internal class ExpandedUiCellphoneCreditsApp
     {
         private static readonly string _creditsBackgroundPath = Path.Combine(Paths.PluginPath, "Hp2BaseModTweaks\\images\\ui_app_credits_modded_background.png");
 
@@ -61,7 +93,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
             ModCycleLeft.ButtonBehavior.ButtonPressedEvent += (x) =>
             {
                 _creditsIndex--;
-                PostRefresh();
+                Refresh();
             };
 
             ModCycleRight = Hp2ButtonWrapper.MakeCellphoneButton("ModCycleRight",
@@ -73,7 +105,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
             ModCycleRight.ButtonBehavior.ButtonPressedEvent += (x) =>
             {
                 _creditsIndex++;
-                PostRefresh();
+                Refresh();
             };
 
             // contributors scroll
@@ -115,18 +147,29 @@ namespace Hp2BaseModTweaks.CellphoneApps
                 volume = 1f
             };
 
-            PostRefresh();
+            Refresh();
         }
 
-        public void PreRefresh()
+        public void OnStart()
         {
-            //noop
+            Refresh();
         }
 
-        public void PostRefresh()
+        public void OnDestroy()
         {
-            ModInterface.Log.LogInfo("Expanded Credits App Post Refresh");
+            ModCycleLeft?.Destroy();
+            ModCycleRight?.Destroy();
+            GameObject.Destroy(ModLogo);
+            GameObject.Destroy(ContributorsPanel);
+            foreach (var contributor in _contributors)
+            {
+                Object.Destroy(contributor.GameObject);
+            }
+            _contributors.Clear();
+        }
 
+        public void Refresh()
+        {
             if (_creditsIndex <= 0)
             {
                 _creditsIndex = 0;
@@ -154,11 +197,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
             }
             _contributors.Clear();
 
-            ModInterface.Log.LogInfo("Expanded Credits App Post Refresh");
-
             if (!Common.Mods.Any()) { return; }
-
-            ModInterface.Log.LogInfo($"Setting up credits for mod index {_creditsIndex}");
 
             var modConfig = Common.Mods[_creditsIndex];
 
@@ -171,7 +210,6 @@ namespace Hp2BaseModTweaks.CellphoneApps
             int i = 0;
             foreach (var contributorConfig in modConfig.CreditsEntries.OrEmptyIfNull())
             {
-                ModInterface.Log.LogInfo($"Adding contributor {i}");
                 var newContributorButton = Hp2ButtonWrapper.MakeCellphoneButton($"Contributor {i++}",
                     TextureUtility.SpriteFromPath(contributorConfig.CreditButtonImagePath),
                     TextureUtility.SpriteFromPath(contributorConfig.CreditButtonImageOverPath),
