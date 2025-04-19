@@ -107,7 +107,7 @@ public class Plugin : BaseUnityPlugin
             ModInterface.Log.LogInfo("Applying Patches");
             using (ModInterface.Log.MakeIndent())
             {
-                new Harmony("Hp2BaseMod").PatchAll();
+                new Harmony(MyPluginInfo.PLUGIN_GUID).PatchAll();
             }
         }
         catch (Exception e)
@@ -118,6 +118,7 @@ public class Plugin : BaseUnityPlugin
 
         ModInterface.AddCommand(new HelpCommand());
         ModInterface.AddCommand(new EchoCommand());
+        ModInterface.AddCommand(new ArtCommand());
 
         ModInterface.Log.LogInfo(Art.Random());
     }

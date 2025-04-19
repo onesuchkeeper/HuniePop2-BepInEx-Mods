@@ -47,6 +47,11 @@ namespace Hp2BaseMod.Ui
             GameObject.Destroy(_gameObject);
         }
 
+        public static Hp2ButtonWrapper MakeAlbumButton(string name, Sprite sprite, Sprite sprite_unfocused, AudioKlip pressedSfx)
+        {
+            return null;
+        }
+
         public static Hp2ButtonWrapper MakeCellphoneButton(string name, Sprite sprite, Sprite sprite_over, AudioKlip pressedSfx)
         {
             var gameObject = new GameObject(name);

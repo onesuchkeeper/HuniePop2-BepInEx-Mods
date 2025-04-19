@@ -9,7 +9,7 @@ using UnityEngine;
 namespace Hp2BaseMod.EnumExpansion
 {
     [HarmonyPatch(typeof(UiDoll))]
-    class UiDoll_ChangeOutfitPatch
+    class UiDoll_ChangeStyle
     {
         private static readonly FieldInfo _girlDefinition = AccessTools.Field(typeof(UiDoll), "_girlDefinition");
         private static readonly FieldInfo _currentOutfitIndex = AccessTools.Field(typeof(UiDoll), "_currentOutfitIndex");

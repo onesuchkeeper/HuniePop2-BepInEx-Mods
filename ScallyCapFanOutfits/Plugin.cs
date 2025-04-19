@@ -27,6 +27,21 @@ public class Plugin : BaseUnityPlugin
         var backHairPartId_1 = new RelativeId(_modId, 2);
         var outfitPartId_1_Mirror = new RelativeId(_modId, 3);
 
+        var lailaniKeyWestPart = new GirlPartDataMod(outfitPartId_1, InsertStyle.replace)
+        {
+            PartType = GirlPartType.OUTFIT,
+            PartName = "keyWestOutfitLailani",
+            X = 345 + 76,
+            Y = 931 - 249,
+            MirroredPartId = RelativeId.Default,
+            AltPartId = null,
+            SpriteInfo = new SpriteInfoPath()
+            {
+                IsExternal = true,
+                Path = Path.Combine(Paths.PluginPath, @"ScallyCapFanOutfits\images\lailani_outfit_keyWest.png")
+            }
+        };
+
         var zoeyExtraterrestrialOutfitPart = new GirlPartDataMod(outfitPartId_1, InsertStyle.replace)
         {
             PartType = GirlPartType.OUTFIT,
@@ -372,6 +387,23 @@ public class Plugin : BaseUnityPlugin
                     HideSpecials = false,
                     TightlyPaired = true,
                     PairOutfitId = _styleId_1
+                }
+            }
+        });
+
+        ModInterface.AddDataMod(new GirlDataMod(Girls.LailaniId, InsertStyle.append)
+        {
+            parts = new List<IGirlSubDataMod<GirlPartSubDefinition>>() { lailaniKeyWestPart },
+            outfits = new List<IGirlSubDataMod<ExpandedOutfitDefinition>>()
+            {
+                new OutfitDataMod(_styleId_1, InsertStyle.replace)
+                {
+                    Name = "Key West",
+                    OutfitPartId = outfitPartId_1,
+                    IsNSFW = false,
+                    HideNipples = true,
+                    TightlyPaired = false,
+                    PairHairstyleId = null
                 }
             }
         });

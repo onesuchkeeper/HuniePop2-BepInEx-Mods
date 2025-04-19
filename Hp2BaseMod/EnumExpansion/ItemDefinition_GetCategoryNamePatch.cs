@@ -14,12 +14,13 @@ namespace Hp2BaseMod
         public static bool Prefix(ItemDefinition __instance, ref string __result)
         {
             // prioritize category description over all else
-            if (!string.IsNullOrEmpty(__instance.categoryDescription))
+            if (!string.IsNullOrWhiteSpace(__instance.categoryDescription))
             {
                 __result = StringUtils.Titleize(__instance.itemType.ToString()) + " • " + __instance.categoryDescription;
+                return false;
             }
 
-            return false;
+            return true;
         }
     }
 }

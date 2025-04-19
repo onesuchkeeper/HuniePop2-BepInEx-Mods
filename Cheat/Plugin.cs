@@ -9,7 +9,7 @@ public class Plugin : BaseUnityPlugin
 {
     private void Awake()
     {
-        new Harmony("Hp2BaseMod.Cheat").PatchAll();
+        new Harmony(MyPluginInfo.PLUGIN_GUID).PatchAll();
     }
 }
 

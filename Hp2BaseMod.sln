@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RepeatThreesome", "RepeatTh
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScallyCapFanOutfits", "ScallyCapFanOutfits\ScallyCapFanOutfits.csproj", "{4CC8D54C-E8DE-4B53-B3B4-B51605DDB865}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SingleDate", "SingleDate\SingleDate.csproj", "{D7D8544E-7C16-4BAF-962B-10C2CE8583AB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -54,5 +56,9 @@ Global
 		{4CC8D54C-E8DE-4B53-B3B4-B51605DDB865}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4CC8D54C-E8DE-4B53-B3B4-B51605DDB865}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4CC8D54C-E8DE-4B53-B3B4-B51605DDB865}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D7D8544E-7C16-4BAF-962B-10C2CE8583AB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D7D8544E-7C16-4BAF-962B-10C2CE8583AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D7D8544E-7C16-4BAF-962B-10C2CE8583AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D7D8544E-7C16-4BAF-962B-10C2CE8583AB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

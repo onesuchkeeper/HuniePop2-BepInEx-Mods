@@ -1,5 +1,3 @@
-using System.Linq;
-
 namespace Hp2BaseMod.Commands;
 
 public class HelpCommand : ICommand

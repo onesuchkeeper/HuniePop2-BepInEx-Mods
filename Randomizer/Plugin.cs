@@ -45,6 +45,7 @@ public class Plugin : BaseUnityPlugin
 
     private void On_PrePersistenceReset(PlayerFile file)
     {
+        //if randomization has made a girl's saved outfit invalid, set it to the default
         foreach (var fileGirl in file.girls)
         {
             if (fileGirl.outfitIndex >= fileGirl.girlDefinition.outfits.Count
@@ -63,7 +64,7 @@ public class Plugin : BaseUnityPlugin
 
     private void SwapNymphojinn(GirlDefinition nymphojinnDef, GirlDefinition otherGirlDef)
     {
-        //find the default glowing eyes to use for expressions that don't have glowing eyes
+        //find the neutral glowing eyes to use for expressions that don't have glowing eyes
         var defaultGlowEyesIndex = -1;
         if (otherGirlDef.expressions.TryGetFirst(x => x.expressionType == GirlExpressionType.NEUTRAL, out var neutralExpression))
         {
@@ -99,6 +100,9 @@ public class Plugin : BaseUnityPlugin
         nymphojinnDef.defaultHairstyleIndex = 0;
         nymphojinnDef.defaultOutfitIndex = 0;
 
+        //girls already have nymphojinn wing positions for the boss,
+        //except kyu. The special effects are hard-coded to look at the
+        //def.SpecialEffectOffset which is unfortunate, maybe change kyu wings to not use that?
         if (ModConfig.SwappedSpecialCharactersKeepWings)
         {
             otherGirlDef.specialEffectPrefab = nymphojinnDef.specialEffectPrefab;

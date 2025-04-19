@@ -55,7 +55,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
         private static readonly FieldInfo _photoDefinition = AccessTools.Field(typeof(UiPhotoSlot), "_photoDefinition");
         private static readonly FieldInfo _earnedPhotos = AccessTools.Field(typeof(UiWindowPhotos), "_earnedPhotos");
         private static readonly FieldInfo _singlePhoto = AccessTools.Field(typeof(UiWindowPhotos), "_singlePhoto");
-        private static readonly int _photosPerPage = 3;//29;
+        private static readonly int _photosPerPage = 29;
         private static Sprite _emptyPhotoSlot;
 
         private int _pageIndex;

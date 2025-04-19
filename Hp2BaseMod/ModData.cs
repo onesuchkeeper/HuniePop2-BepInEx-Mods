@@ -383,8 +383,7 @@ namespace Hp2BaseMod
             return false;
         }
 
-        public PairStyleInfo GetPairStyleInfo(RelativeId pairId) => _pairIdToPairStyleInfo[pairId];
-        public PairStyleInfo GetPairStyleInfo(int pairRuntimeId) => _pairIdToPairStyleInfo[_runtimeIdToRelativeId[GameDataType.GirlPair][pairRuntimeId]];
+        public bool TryGetPairStyleInfo(RelativeId pairId, out PairStyleInfo pairStyleInfo) => _pairIdToPairStyleInfo.TryGetValue(pairId, out pairStyleInfo);
 
         public int GetGirlDialogTriggerIndex(RelativeId girlId) => _girlIdToDialogTriggerIndex[girlId];
 

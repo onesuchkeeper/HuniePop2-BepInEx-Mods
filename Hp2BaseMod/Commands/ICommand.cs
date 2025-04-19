@@ -13,7 +13,7 @@ public interface ICommand
     string Help { get; }
 
     /// <summary>
-    /// Accepts input parameters and returns the resulting message
+    /// Accepts input parameters, preforms the command and returns if command was successful and the resulting message
     /// </summary>
     /// <param name="inputs"></param>
     /// <returns></returns>

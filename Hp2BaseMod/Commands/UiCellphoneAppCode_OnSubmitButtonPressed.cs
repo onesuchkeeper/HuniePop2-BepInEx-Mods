@@ -6,7 +6,7 @@ using UnityEngine.UI;
 namespace Hp2BaseMod.Commands;
 
 [HarmonyPatch(typeof(UiCellphoneAppCode), "OnSubmitButtonPressed")]
-public static class UiCellphoneAppCodePatch
+public static class UiCellphoneAppCode_OnSubmitButtonPressed
 {
     private static MethodInfo ShowCodeResult = AccessTools.Method(typeof(UiCellphoneAppCode), "ShowCodeResult");
     private static FieldInfo _currentFieldText = AccessTools.Field(typeof(UiCellphoneAppCode), "_currentFieldText");

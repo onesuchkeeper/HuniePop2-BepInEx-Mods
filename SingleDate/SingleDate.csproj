@@ -3,8 +3,8 @@
   <PropertyGroup>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <AssemblyName>OSK.BepInEx.Hp2BaseMod</AssemblyName>
-    <Product>Hp2BaseMod</Product>
+    <AssemblyName>OSK.BepInEx.SingleDate</AssemblyName>
+    <Product>SingleDate</Product>
     <Version>1.0.0</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
@@ -13,18 +13,21 @@
       https://nuget.bepinex.dev/v3/index.json;
       https://nuget.samboy.dev/v3/index.json
     </RestoreAdditionalProjectSources>
-    <RootNamespace>Hp2BaseMod</RootNamespace>
+    <RootNamespace>SingleDate</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all" />
     <PackageReference Include="BepInEx.Core" Version="5.*" />
     <PackageReference Include="BepInEx.PluginInfoProps" Version="2.*" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
   
   <ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.2" PrivateAssets="all" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\Hp2BaseMod\Hp2BaseMod.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -52,17 +55,12 @@
     <Reference Include="UnityEngine.UIModule">
       <HintPath>..\lib\UnityEngine.UIModule.dll</HintPath>
     </Reference>
-    <Reference Include="Unity.TextMeshPro">
+        <Reference Include="Unity.TextMeshPro">
       <HintPath>..\lib\Unity.TextMeshPro.dll</HintPath>
     </Reference>
   </ItemGroup>
-
+  
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Exec Command="Copy &quot;$(OutDir)$(AssemblyName).dll&quot; &quot;C:\Program Files (x86)\Steam\steamapps\common\HuniePop 2 - Double Date\BepInEx\plugins\$(Product)&quot;" />
-    <Exec Command="Copy &quot;$(ProjectDir)mod.json&quot; &quot;C:\Program Files (x86)\Steam\steamapps\common\HuniePop 2 - Double Date\BepInEx\plugins\$(Product)&quot;" />
-    
-    <Exec Command="Copy &quot;$(OutDir)Newtonsoft.Json.dll&quot; &quot;C:\Program Files (x86)\Steam\steamapps\common\HuniePop 2 - Double Date\BepInEx\plugins\$(Product)&quot;" />
-    <Exec Command="Copy &quot;$(OutDir)Sourceage.Element.dll&quot; &quot;C:\Program Files (x86)\Steam\steamapps\common\HuniePop 2 - Double Date\BepInEx\plugins\$(Product)&quot;" />
   </Target>
-
 </Project>

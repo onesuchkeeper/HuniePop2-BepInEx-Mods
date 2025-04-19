@@ -189,7 +189,7 @@ public class Plugin : BaseUnityPlugin
 
         ModInterface.Events.PreDataMods += On_PreDataMods;
 
-        new Harmony("Hp2BaseMod.Hp2BaseModTweaks").PatchAll();
+        new Harmony(MyPluginInfo.PLUGIN_GUID).PatchAll();
     }
 
     private void On_PreDataMods()
