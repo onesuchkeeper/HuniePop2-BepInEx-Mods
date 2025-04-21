@@ -45,7 +45,7 @@ public static class UiAppFinderSlotPatch
         usedSlot.rectTransform.anchoredPosition = new Vector2(-_spacing, __instance.headSlotLeft.rectTransform.anchoredPosition.y);
 
         //I don't like having to destroy this, but setting the alpha to 0 keeps it around and visible
-        //it works on the hub slot but not here... I have no clue ¯\_(ツ)_/¯
+        //somewhere after this it must be re-populated or refreshed but atm I have no clue ¯\_(ツ)_/¯
         unusedSlot.rectTransform.SetParent(null);
         UnityEngine.Object.Destroy(unusedSlot.gameObject);
         // unusedSlot.Populate(null);

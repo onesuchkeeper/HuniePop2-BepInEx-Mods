@@ -83,7 +83,7 @@ internal static class PuzzleManager_OnRoundOver
                 }
             }
 
-            if (lockedOutfitIndexes.Any())
+            if (lockedHairstyleIndexes.Any())
             {
                 playerFileGirl.UnlockHairstyle(lockedHairstyleIndexes[UnityEngine.Random.Range(0, lockedHairstyleIndexes.Count - 1)]);
             }

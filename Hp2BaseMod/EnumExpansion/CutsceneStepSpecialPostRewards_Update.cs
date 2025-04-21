@@ -39,54 +39,15 @@ public static class Foo
             && !puzzleStatus.IsTutorial(false)
             && !(bool)_puzzleFailure.GetValue(__instance))
         {
-            var silent = HandlePuzzleGirlStatus(puzzleStatus.girlStatusLeft, __instance.styleUnlockDuration, __instance.styleUnlockMessage, false);
-            HandlePuzzleGirlStatus(puzzleStatus.girlStatusRight, __instance.styleUnlockDuration, __instance.styleUnlockMessage, silent);
+            var silent = HandleStyleUnlocks(puzzleStatus, puzzleStatus.girlStatusLeft, __instance.styleUnlockDuration, __instance.styleUnlockMessage, false);
+            HandleStyleUnlocks(puzzleStatus, puzzleStatus.girlStatusRight, __instance.styleUnlockDuration, __instance.styleUnlockMessage, silent);
         }
-
-        // //only do this for single dates, others use default
-        // var id = ModInterface.Data.GetDataId(GameDataType.GirlPair, Game.Persistence.playerFile.girlPairDefinition.id);
-        // if (id.SourceId != State.ModId)
-        // {
-        //     return true;
-        // }
-
-        // if (!(_postRewards.GetValue(__instance) is List<PuzzlePostReward> postRewards))
-        // {
-        //     ModInterface.Log.LogWarning("Failed to get CutsceneStepSpecialPostRewards postRewards");
-        //     return true;
-        // }
-
-        // if (postRewards.Count <= 0) { return true; }
-
-        // var puzzlePostReward = postRewards[0];
-        // postRewards.RemoveAt(0);
-
-        // var doll = Game.Session.gameCanvas.GetDoll(DollOrientationType.RIGHT);
-        // Game.Persistence.playerFile.AddFruitCount(puzzlePostReward.itemDefinition.affectionType, 1);
-
-        // UnityEngine.Object.Instantiate(__instance.energyTrailPrefab).Init(EnergyTrailFormat.START_AND_END, puzzlePostReward.energyDefinition,
-        //     puzzlePostReward.itemDefinition,
-        //     doll,
-        //     puzzlePostReward.splashText);
-
-        // Game.Manager.Audio.Play(AudioCategory.SOUND,
-        //     Game.Session.Gift.sfxFruitReward,
-        //     doll.pauseDefinition).audioSource.pitch = 1.2f;
-
-        // Game.Manager.Audio.Play(AudioCategory.SOUND,
-        //     Game.Session.Gift.sfxFruitPop,
-        //     doll.pauseDefinition).audioSource.pitch = UnityEngine.Random.Range(0.75f, 1.5f);
-
-        // _rewardtimestamp.SetValue(__instance, Game.Manager.Time.Lifetime(__instance.pauseDefinition));
-
-        // _rewardDelay.SetValue(__instance, postRewards.Count > 0 ? 0.2f : 2f);//was 0.32f
-
-        // return false;
     }
 
-    private static bool HandlePuzzleGirlStatus(PuzzleStatusGirl puzzleStatusGirl, float styleUnlockDuration, string styleUnlockMessage, bool silent)
+    private static bool HandleStyleUnlocks(PuzzleStatus puzzleStatus, PuzzleStatusGirl puzzleStatusGirl, float styleUnlockDuration, string styleUnlockMessage, bool silent)
     {
-        if (puzzleStatusGirl?.playerFileGirl?.stylesOnDates ?? true)
+        if (!Game.Persistence.playerFile.girls.Contains(puzzleStatusGirl.playerFileGirl)
+            || (puzzleStatusGirl?.playerFileGirl?.stylesOnDates ?? true))
         {
             return false;
         }

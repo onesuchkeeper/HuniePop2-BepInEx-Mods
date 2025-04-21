@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.IO;
+using BepInEx;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
 using UnityEngine;
@@ -13,18 +14,54 @@ namespace Hp2BaseMod.GameDataInfo
     /// </summary>
     public class SpriteInfoPath : IGameDefinitionInfo<Sprite>
     {
+        /// <summary>
+        /// Path to the sprite
+        /// </summary>
         public string Path;
 
+        /// <summary>
+        /// Path to save modified texture to as a png
+        /// </summary>
+        public string CachePath;
+
+        /// <summary>
+        /// If the path is to an file on disk. Is an internal resource otherwise
+        /// </summary>
         public bool IsExternal;
 
+        /// <summary>
+        /// The scale to scale the texture to
+        /// </summary>
         public Vector2? TextureScale;
+
+        /// <summary>
+        /// Padding of transparent pixels around the texture
+        /// </summary>
         public RectInt? TexturePadding;
+
+        /// <summary>
+        /// Mat to use when rendering the texture
+        /// </summary>
         public Material TextureRenderMat;
 
+        /// <summary>
+        /// Position this sprite takes in it's atlas texture
+        /// </summary>
         public Rect? AtlasRect;
 
+        /// <summary>
+        /// If the sprite is flipped vertically on the atlas texture
+        /// </summary>
         public bool AtlasFlipV;
+
+        /// <summary>
+        /// If the sprite is flipped horizontally on the atlas texture
+        /// </summary>
         public bool AtlasFlipH;
+
+        /// <summary>
+        /// If the sprite is transposed on the atlas texture
+        /// </summary>
         public bool AtlasTranspose;
 
         /// <summary>
@@ -58,8 +95,19 @@ namespace Hp2BaseMod.GameDataInfo
             else
             {
                 Texture2D texture2D = null;
+                var modifyTexture = TextureScale.HasValue || TexturePadding.HasValue || TextureRenderMat != null;
+                var cacheExists = !CachePath.IsNullOrWhiteSpace() && File.Exists(CachePath);
 
-                if (IsExternal)
+                if (cacheExists)
+                {
+                    if (!assetProvider.ExternalTextures.TryGetValue(Path, out texture2D))
+                    {
+                        texture2D = TextureUtility.LoadFromPath(CachePath);
+                        assetProvider.ExternalTextures[Path] = texture2D;
+                    }
+                    modifyTexture = false;
+                }
+                else if (IsExternal)
                 {
                     if (File.Exists(Path))
                     {
@@ -80,8 +128,6 @@ namespace Hp2BaseMod.GameDataInfo
                     def = (Sprite)assetProvider.GetAsset(Path);
                     texture2D = def.texture;
                 }
-
-                var modifyTexture = TextureScale.HasValue || TexturePadding.HasValue || TextureRenderMat != null;
 
                 if (modifyTexture)
                 {
@@ -178,37 +224,18 @@ namespace Hp2BaseMod.GameDataInfo
                     assetProvider.ExternalTextures[Path] = texture2D;
                 }
 
+                if (!cacheExists && !CachePath.IsNullOrWhiteSpace())
+                {
+                    File.WriteAllBytes(CachePath, texture2D.EncodeToPNG());
+                }
+
                 //if we modified the texture or have an atlasRect, make a new sprite
                 if (modifyTexture || IsExternal || AtlasRect != null)
                 {
                     ModInterface.Log.LogInfo($"Making New Sprite");
-                    def = Sprite.Create(texture2D, AtlasRect.HasValue ? AtlasRect.Value : new Rect(0, 0, texture2D.width, texture2D.height), Vector2.zero);
-
-                    // if (FlipH)
-                    // {
-                    //     for (var i = 0; i < def.uv.Length; i++)
-                    //     {
-                    //         ModInterface.Log.LogInfo($"Before: [{def.uv[i].x}, {def.uv[i].y}]");
-                    //         def.uv[i] = new Vector2(1 - def.uv[i].x, def.uv[i].y);
-                    //         ModInterface.Log.LogInfo($"After: [{def.uv[i].x}, {def.uv[i].y}]");
-                    //     }
-                    // }
-
-                    // if (FlipV)
-                    // {
-                    //     for (var i = 0; i < def.uv.Length; i++)
-                    //     {
-                    //         def.uv[i] = new Vector2(def.uv[i].x, 1 - def.uv[i].y);
-                    //     }
-                    // }
-
-                    // if (Transpose)
-                    // {
-                    //     for (var i = 0; i < def.uv.Length; i++)
-                    //     {
-                    //         def.uv[i] = new Vector2(def.uv[i].y, def.uv[i].x);
-                    //     }
-                    // }
+                    def = Sprite.Create(texture2D, AtlasRect.HasValue
+                        ? AtlasRect.Value
+                        : new Rect(0, 0, texture2D.width, texture2D.height), Vector2.zero);
                 }
             }
         }

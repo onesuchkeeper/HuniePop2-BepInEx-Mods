@@ -21,17 +21,17 @@ namespace Hp2BaseMod.GameDataInfo
 
         public RelativeId? AltCodeDefinitionID;
 
-        IGameDefinitionInfo<Sprite> BigPhotoCensored;
+        public IGameDefinitionInfo<Sprite> BigPhotoCensored;
 
-        IGameDefinitionInfo<Sprite> BigPhotoUncensored;
+        public IGameDefinitionInfo<Sprite> BigPhotoUncensored;
 
-        IGameDefinitionInfo<Sprite> BigPhotoWet;
+        public IGameDefinitionInfo<Sprite> BigPhotoWet;
 
-        IGameDefinitionInfo<Sprite> ThumbnailCensored;
+        public IGameDefinitionInfo<Sprite> ThumbnailCensored;
 
-        IGameDefinitionInfo<Sprite> ThumbnailUncensored;
+        public IGameDefinitionInfo<Sprite> ThumbnailUncensored;
 
-        IGameDefinitionInfo<Sprite> ThumbnailWet;
+        public IGameDefinitionInfo<Sprite> ThumbnailWet;
 
         /// <inheritdoc/>
         public PhotoDataMod() { }

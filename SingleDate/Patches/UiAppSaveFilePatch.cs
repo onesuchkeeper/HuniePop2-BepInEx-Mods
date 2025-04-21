@@ -12,6 +12,7 @@ public static class UiAppSaveFilePatch
     [HarmonyPostfix]
     public static void Refresh(UiAppSaveFile __instance)
     {
+        // the bitPair uses both girls in the pair, this replaces it with just girlTwo's name for single pairs
         var playerFile = (PlayerFile)_playerFile.GetValue(__instance);
 
         if (!playerFile.started

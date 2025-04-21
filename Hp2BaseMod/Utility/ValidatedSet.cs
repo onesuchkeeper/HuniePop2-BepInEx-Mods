@@ -190,6 +190,10 @@ namespace Hp2BaseMod.Utility
             {
                 id = runtimeId;
             }
+            else
+            {
+                ModInterface.Log.LogWarning($"Failed to find runtime for {Enum.GetName(typeof(GameDataType), gameDataType)} {relativeId}");
+            }
         }
     }
 }

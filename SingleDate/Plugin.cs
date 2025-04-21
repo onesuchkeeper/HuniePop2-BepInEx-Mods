@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using BepInEx;
 using HarmonyLib;
@@ -15,7 +16,7 @@ public class Plugin : BaseUnityPlugin
 {
     private void Awake()
     {
-        State.ModId = ModInterface.GetSourceId(MyPluginInfo.PLUGIN_GUID);
+        State.On_Plugin_Awake();
 
         var emptyPartId = new RelativeId(State.ModId, 0);
         var emptySpriteInfo = new SpriteInfoPath()
@@ -89,7 +90,34 @@ public class Plugin : BaseUnityPlugin
             }
         });
 
+        var lailaniPhotoInfo = new SpriteInfoPath()
+        {
+            IsExternal = true,
+            Path = Path.Combine(Paths.PluginPath, "SingleDate", "images", "photo_lailani_1.png")
+        };
+
+        var lailaniPhotoThumbInfo = new SpriteInfoPath()
+        {
+            IsExternal = true,
+            Path = Path.Combine(Paths.PluginPath, "SingleDate", "images", "photo_lailani_1_thumb.png")
+        };
+
+        ModInterface.AddDataMod(new PhotoDataMod(new RelativeId(State.ModId, 0), InsertStyle.replace)
+        {
+            HasAlts = false,
+
+            BigPhotoCensored = lailaniPhotoInfo,
+            BigPhotoUncensored = lailaniPhotoInfo,
+            BigPhotoWet = lailaniPhotoInfo,
+
+            ThumbnailCensored = lailaniPhotoThumbInfo,
+            ThumbnailUncensored = lailaniPhotoThumbInfo,
+            ThumbnailWet = lailaniPhotoThumbInfo,
+        });
+
         ModInterface.Events.PreDataMods += On_PreDataMods;
+        ModInterface.Events.PreGameSave += State.On_PreGameSave;
+        ModInterface.Events.PostPersistenceReset += State.On_PostPersistenceReset;
 
         new Harmony(MyPluginInfo.PLUGIN_GUID).PatchAll();
     }
@@ -141,6 +169,12 @@ public class Plugin : BaseUnityPlugin
             }
         });
 
+        ModInterface.AddDataMod(new CutsceneDataMod(new RelativeId(State.ModId, 3), InsertStyle.replace)
+        {
+            CleanUpType = CutsceneCleanUpType.NONE,
+            Steps = new List<IGameDefinitionInfo<CutsceneStepSubDefinition>>()
+        });
+
         //styles
         var defaultGirlStyle = new GirlStyleInfo()
         {
@@ -156,9 +190,6 @@ public class Plugin : BaseUnityPlugin
             SexGirlTwo = defaultGirlStyle,
         };
 
-        //favorite questions (I can't look these up because mods haven't processed yet...)
-        //I need some kind of meta step, I could technically do that here...
-        //just afterwards I go and correct everything?
         var questions = new List<IGameDefinitionInfo<GirlPairFavQuestionSubDefinition>>();
 
         for (int i = 1; i <= 20; i++)
@@ -175,36 +206,30 @@ public class Plugin : BaseUnityPlugin
         var pairCount = 0;
         foreach (var girlId in ModInterface.Data.GetIds(GameDataType.Girl).Where(x => x.SourceId != State.ModId))
         {
-            //I only want non-special girls, no kyu/moxie/jewn
-            //that may be what's throwing this off
-            //but I don't have a way to check if a girl is special until after 
-            //data mods have been applied
-            //test hacky fix
             if (girlId.SourceId == -1 && girlId.LocalId > 12)
             {
                 continue;
             }
-
-            //each girl needs her own 'nobody' to pair with,
-            //otherwise only one single date can be selected
 
             ModInterface.AddDataMod(new GirlPairDataMod(new RelativeId(State.ModId, pairCount), InsertStyle.replace)
             {
                 GirlDefinitionOneID = new RelativeId(State.ModId, 0),
                 GirlDefinitionTwoID = girlId,
                 SpecialPair = false,
-                PhotoDefinitionID = new RelativeId(-1, 1),
+                PhotoDefinitionID = (girlId.SourceId == -1 && girlId.LocalId == 6)
+                    ? new RelativeId(State.ModId, 0)
+                    : new RelativeId(-1, 1),
                 IntroductionPair = false,
                 IntroSidesFlipped = false,
                 HasMeetingStyleOne = false,
                 HasMeetingStyleTwo = false,
                 MeetingLocationDefinitionID = new RelativeId(-1, 1 + (pairCount % 8)),
                 SexDayTime = ClockDaytimeType.NIGHT,
-                SexLocationDefinitionID = new RelativeId(-1, 20),
+                SexLocationDefinitionID = new RelativeId(-1, 20),//royal suite
                 IntroRelationshipCutsceneDefinitionID = new RelativeId(State.ModId, 0),
                 AttractRelationshipCutsceneDefinitionID = new RelativeId(State.ModId, 1),
                 PreSexRelationshipCutsceneDefinitionID = new RelativeId(State.ModId, 2),
-                PostSexRelationshipCutsceneDefinitionID = new RelativeId(State.ModId, 1),
+                PostSexRelationshipCutsceneDefinitionID = new RelativeId(State.ModId, 3),
                 Styles = defaultPairStyle,
                 FavQuestions = questions
             });

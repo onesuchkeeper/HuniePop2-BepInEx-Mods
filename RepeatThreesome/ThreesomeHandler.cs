@@ -79,7 +79,12 @@ namespace RepeatThreesome
 
         private static bool ChangeToNudeOutfit(PlayerFileGirl girl, UiDoll doll, NotificationBoxBehavior notificationBox, bool silent)
         {
-            if (girl == null || doll == null) { return false; }
+            if (girl == null
+                || doll == null
+                || !Game.Persistence.playerFile.girls.Contains(girl))
+            {
+                return false;
+            }
 
             var outfitIndex = ModInterface.Data.GetOutfitIndex(ModInterface.Data.GetDataId(GameDataType.Girl, girl.girlDefinition.id), Constants.NudeOutfitId);
             doll.ChangeOutfit(outfitIndex);

@@ -1,11 +1,10 @@
-using System.Linq;
-using Hp2BaseMod;
 using UnityEngine;
 
+/// <summary>
+/// Holds unity engine objects to use as prefabs for alternate single date ui
+/// </summary>
 public static class UiPrefabs
 {
-    //DialogManager.dialogOptionsWindow
-
     public static UiWindow SingleDateBubbles => _singleBubbles;
     private static UiWindowActionBubbles _singleBubbles;
 

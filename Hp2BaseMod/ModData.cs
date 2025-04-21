@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Hp2BaseMod.GameDataInfo;
+using Hp2BaseMod.GameDataInfo.Interface;
 
 namespace Hp2BaseMod
 {
@@ -9,22 +10,24 @@ namespace Hp2BaseMod
     /// </summary>
     public class ModData
     {
+        private readonly Dictionary<RelativeId, List<IFunctionalAilmentDataMod>> _ailmentIdToFunctionalMods = new Dictionary<RelativeId, List<IFunctionalAilmentDataMod>>();
+
         /// <summary>
         /// Maps a pair's id to its style info
         /// </summary>
-        private readonly static Dictionary<RelativeId, PairStyleInfo> _pairIdToPairStyleInfo = new Dictionary<RelativeId, PairStyleInfo>();
+        private readonly Dictionary<RelativeId, PairStyleInfo> _pairIdToPairStyleInfo = new Dictionary<RelativeId, PairStyleInfo>();
 
         /// <summary>
         /// Maps a location's id to its style info
         /// </summary>
-        private readonly static Dictionary<RelativeId, Dictionary<RelativeId, GirlStyleInfo>> _locationIdToLocationStyleInfo = new Dictionary<RelativeId, Dictionary<RelativeId, GirlStyleInfo>>();
+        private readonly Dictionary<RelativeId, Dictionary<RelativeId, GirlStyleInfo>> _locationIdToLocationStyleInfo = new Dictionary<RelativeId, Dictionary<RelativeId, GirlStyleInfo>>();
 
         /// <summary>
         /// Maps a girl's id to its dialogTrigger index
         /// </summary>
-        private readonly static Dictionary<RelativeId, int> _girlIdToDialogTriggerIndex = new Dictionary<RelativeId, int>();
-        private readonly static Dictionary<RelativeId, Dictionary<RelativeId, Dictionary<RelativeId, int>>> _dtIdToGirlIdToLineIndexLookup = new Dictionary<RelativeId, Dictionary<RelativeId, Dictionary<RelativeId, int>>>();
-        private readonly static Dictionary<RelativeId, Dictionary<RelativeId, Dictionary<int, RelativeId>>> _dtIdToGirlIdToLineIdLookup = new Dictionary<RelativeId, Dictionary<RelativeId, Dictionary<int, RelativeId>>>();
+        private readonly Dictionary<RelativeId, int> _girlIdToDialogTriggerIndex = new Dictionary<RelativeId, int>();
+        private readonly Dictionary<RelativeId, Dictionary<RelativeId, Dictionary<RelativeId, int>>> _dtIdToGirlIdToLineIndexLookup = new Dictionary<RelativeId, Dictionary<RelativeId, Dictionary<RelativeId, int>>>();
+        private readonly Dictionary<RelativeId, Dictionary<RelativeId, Dictionary<int, RelativeId>>> _dtIdToGirlIdToLineIdLookup = new Dictionary<RelativeId, Dictionary<RelativeId, Dictionary<int, RelativeId>>>();
 
         /// <summary>
         /// Maps a girls id to a lookup from a <see cref="RelativeId"/> to an index of the girl's outfits
@@ -123,6 +126,27 @@ namespace Hp2BaseMod
             { GameDataType.Photo, 1000000},
             { GameDataType.Question, 1000000},
             { GameDataType.Token, 1000000}
+        };
+
+        /// <summary>
+        /// Maps the type of a definition to its corresponding <see cref="GameDataType"/>
+        /// </summary>
+        private readonly Dictionary<Type, GameDataType> _defTypeToGameDataType = new Dictionary<Type, GameDataType>()
+        {
+            {typeof(AbilityDefinition), GameDataType.Ability},
+            {typeof(AilmentDefinition),GameDataType.Ailment},
+            {typeof(CodeDefinition),GameDataType.Code},
+            {typeof(CutsceneDefinition),GameDataType.Cutscene},
+            {typeof(DialogTriggerDefinition),GameDataType.DialogTrigger},
+            {typeof(DlcDefinition),GameDataType.Dlc},
+            {typeof(EnergyDefinition),GameDataType.Energy},
+            {typeof(GirlDefinition),GameDataType.Girl},
+            {typeof(GirlPairDefinition),GameDataType.GirlPair},
+            {typeof(ItemDefinition),GameDataType.Item},
+            {typeof(LocationDefinition), GameDataType.Location},
+            {typeof(PhotoDefinition), GameDataType.Photo},
+            {typeof(QuestionDefinition), GameDataType.Question},
+            {typeof(TokenDefinition), GameDataType.Token}
         };
 
         /// <summary>
@@ -322,16 +346,35 @@ namespace Hp2BaseMod
             {
                 _dtIdToGirlIdToLineIndexLookup[dialogTriggerId][girlId].Add(lineId, index);
                 _dtIdToGirlIdToLineIdLookup[dialogTriggerId][girlId].Add(index, lineId);
-                //_log.LogLine($"Girl with id {girlId} had line with id {lineId} assigned to index {index} of dialog trigger with id {dialogTriggerId}");
                 return true;
             }
 
             return false;
         }
 
+        internal void RegisterFunctionalAilments(IEnumerable<IFunctionalAilmentDataMod> mods)
+        {
+            foreach (var mod in mods)
+            {
+                _ailmentIdToFunctionalMods[mod.Id].Add(mod);
+            }
+        }
+
         #endregion
 
         #region lookup
+
+        internal bool TryGetFunctionalAilment(RelativeId ailmentId, out IEnumerable<IFunctionalAilmentDataMod> mods)
+        {
+            if (_ailmentIdToFunctionalMods.TryGetValue(ailmentId, out var modsList))
+            {
+                mods = modsList;
+                return true;
+            }
+
+            mods = null;
+            return false;
+        }
 
         private bool TryLookupIndex(Dictionary<RelativeId, int> dict, RelativeId? id, out int index)
         {
@@ -406,7 +449,18 @@ namespace Hp2BaseMod
             return false;
         }
 
+        public RelativeId GetDataId(Definition definition)
+        {
+            if (!_defTypeToGameDataType.TryGetValue(definition.GetType(), out var gameDataType))
+            {
+                throw new ArgumentException("Unsupported definition type");
+            }
+
+            return GetDataId(gameDataType, definition.id);
+        }
+
         public RelativeId GetDataId(GameDataType dataModType, int runtimeId) => _runtimeIdToRelativeId[dataModType][runtimeId];
+
         public bool TryGetDataId(GameDataType dataModType, int runtimeId, out RelativeId id)
         {
             if (_runtimeIdToRelativeId[dataModType].TryGetValue(runtimeId, out id))

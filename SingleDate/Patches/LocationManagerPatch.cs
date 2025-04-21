@@ -1,6 +1,7 @@
 using System.Reflection;
 using HarmonyLib;
 using Hp2BaseMod;
+using Hp2BaseMod.Extension;
 using UnityEngine;
 
 namespace SingleDate;
@@ -29,17 +30,6 @@ public static class LocationManagerPatch
         }
     }
 
-    // [HarmonyPatch(nameof(LocationManager.Arrive))]
-    // [HarmonyPrefix]
-    // public static void PreArrive(LocationManager __instance,
-    //     LocationDefinition locationDef,
-    //     GirlPairDefinition girlPairDef,
-    //     ref bool sidesFlipped,
-    //     bool initialArrive = false)
-    // {
-    //     State.ArrivedPair = girlPairDef;
-    // }
-
     [HarmonyPatch(nameof(LocationManager.Arrive))]
     [HarmonyPostfix]
     public static void PostArrive(LocationManager __instance,
@@ -48,9 +38,11 @@ public static class LocationManagerPatch
     bool sidesFlipped,
     bool initialArrive = false)
     {
+        State.On_LocationManger_Arrive();
+
         if (__instance.currentLocation.locationType == LocationType.SPECIAL
             || __instance.currentLocation.locationType == LocationType.HUB
-            || !State.IsSingle(__instance.currentGirlPair))
+            || !State.IsSingleDate)
         {
             return;
         }
@@ -60,7 +52,7 @@ public static class LocationManagerPatch
             Game.Session.gameCanvas.dollRight.LoadGirl(__instance.currentGirlPair.girlDefinitionTwo);
         }
 
-        Game.Session.gameCanvas.dollLeft.UnloadGirl();
+        //Game.Session.gameCanvas.dollLeft.UnloadGirl();
         Game.Session.gameCanvas.dollLeft.dropZone.Disable();
 
         Game.Session.gameCanvas.header.rectTransform.anchoredPosition = new Vector2(Game.Session.gameCanvas.header.xValues.y,
@@ -74,7 +66,7 @@ public static class LocationManagerPatch
     [HarmonyPrefix]
     private static bool OnLocationSettled(LocationManager __instance)
     {
-        if (__instance.currentLocation.locationType != LocationType.SIM)
+        if (!__instance.AtLocationType(LocationType.SIM))
         {
             __instance.actionBubblesWindow = UiPrefabs.DefaultDateBubbles;
             return true;
@@ -87,7 +79,7 @@ public static class LocationManagerPatch
         }
         __instance.actionBubblesWindow = UiPrefabs.SingleDateBubbles;
 
-        var arrivalCutscene = (CutsceneDefinition)_arrivalCutscene.GetValue(__instance);
+        var arrivalCutscene = _arrivalCutscene.GetValue<CutsceneDefinition>(__instance);
 
         _isLocked.SetValue(__instance, false);
         Game.Session.Logic.ProcessBundleList(__instance.currentLocation.departBundleList, false);
@@ -104,6 +96,10 @@ public static class LocationManagerPatch
         }
 
         _arrivalCutscene.SetValue(__instance, null);
+
+        // The position of the dialogue options is based on which dolls are hidden
+        // and if a doll is hidden or not is based on it's actual anchor position...
+        Game.Session.gameCanvas.dollLeft.slideLayer.anchoredPosition = Game.Session.gameCanvas.dollLeft.GetPositionByType(DollPositionType.HIDDEN);
 
         return false;
     }

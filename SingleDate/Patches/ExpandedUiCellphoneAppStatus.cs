@@ -47,10 +47,19 @@ public class ExpandedUiCellphoneAppStatus
 
     public void Start()
     {
-        if (State.IsLocationPairSingle())
+        if (!State.IsSingleDate)
         {
-            _uiCellphoneAppPair.canvasGroupLeft.transform.SetParent(null);
-            _uiCellphoneAppPair.statusPortraitLeft.transform.SetParent(null);
+            return;
+        }
+
+        _uiCellphoneAppPair.sentimentRollerRight.transform.position = _uiCellphoneAppPair.passionRollerLeft.transform.position;
+
+        _uiCellphoneAppPair.canvasGroupLeft.transform.SetParent(null);
+        _uiCellphoneAppPair.statusPortraitLeft.transform.SetParent(null);
+
+        //hide stamina on dates
+        if (Game.Session.Location.AtLocationType(LocationType.DATE))
+        {
             _uiCellphoneAppPair.staminaMeterRight.transform.SetParent(null);
 
             var staminaRectTransform = _uiCellphoneAppPair.staminaMeterRight.GetComponent<RectTransform>();
@@ -58,8 +67,6 @@ public class ExpandedUiCellphoneAppStatus
                 _uiCellphoneAppPair.statusPortraitRight.transform.position.x - (staminaRectTransform.sizeDelta.x / 2),
                 _uiCellphoneAppPair.statusPortraitRight.transform.position.y,
                 _uiCellphoneAppPair.statusPortraitRight.transform.position.z);
-
-            _uiCellphoneAppPair.sentimentRollerRight.transform.position = _uiCellphoneAppPair.passionRollerLeft.transform.position;
         }
     }
 

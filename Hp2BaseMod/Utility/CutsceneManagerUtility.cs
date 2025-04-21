@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using DG.Tweening;
 using HarmonyLib;
+using Hp2BaseMod.Extension;
 using UnityEngine;
 
 namespace Hp2BaseMod.Utility;
@@ -222,7 +223,7 @@ public static class CutsceneManagerUtility
                 stepSequence.Insert(currentStep.boolValue ? 0.5f : 0f, Game.Session.Puzzle.puzzleGrid.dateGiftsContainer.canvasGroup.DOFade(currentStep.boolValue ? 1 : 0, 0f).SetEase(Ease.Linear));
                 break;
             case CutsceneStepType.BANNER_TEXT:
-                var bannerText = _bannerText.GetValue(_cutsceneManager) as BannerTextBehavior;
+                var bannerText = _bannerText.GetValue<BannerTextBehavior>(_cutsceneManager);
 
                 if (currentStep.boolValue)
                 {
@@ -297,7 +298,7 @@ public static class CutsceneManagerUtility
                             }
                             break;
                         case CutsceneStepSubCutsceneType.INNER:
-                            cutsceneDefinition = (CutsceneDefinition)_innerCutsceneDefinition.GetValue(_cutsceneManager);
+                            cutsceneDefinition = _innerCutsceneDefinition.GetValue<CutsceneDefinition>(_cutsceneManager);
                             break;
                     }
                     if (cutsceneDefinition != null && cutsceneDefinition.steps.Count > 0)
@@ -404,15 +405,7 @@ public static class CutsceneManagerUtility
                         _nextStep.Invoke(_cutsceneManager, [true]);
                         break;
                     case CutsceneStepType.SPECIAL_STEP:
-                        if (_specialStep.GetValue(_cutsceneManager) is CutsceneStepSpecial specialStep)
-                        {
-                            specialStep.StepCompleteEvent += OnSpecialStepComplete;
-                        }
-                        else
-                        {
-                            ModInterface.Log.LogWarning("Failed to get special step");
-                        }
-
+                        _specialStep.GetValue<CutsceneStepSpecial>(_cutsceneManager).StepCompleteEvent += OnSpecialStepComplete;
                         break;
                     case CutsceneStepType.DIALOG_LINE:
                     case CutsceneStepType.DIALOG_TRIGGER:
@@ -524,10 +517,7 @@ public static class CutsceneManagerUtility
             case CutsceneStepDollTargetType.RANDOM:
                 return true;
             case CutsceneStepDollTargetType.FOCUSED:
-                //I think the focused girl is randomized, and the data start/end cutscene is based on who's focused
-                //this will be fixed when I make the other girl not focusable in the puzzle, I hope
-                //and I can remove the return true
-                //return true;
+                //return true;//still not setting focus soon enough
                 if (!targetAlt)
                 {
                     uiDoll = Game.Session.gameCanvas.GetDoll(Game.Session.Puzzle.puzzleStatus.altGirlFocused);
@@ -594,8 +584,8 @@ public static class CutsceneManagerUtility
     private static void OnStepSequenceComplete()
     {
         //no unsub because it's used in a tween callback instead of an event
-        var currentStep = (CutsceneStepSubDefinition)_currentStep.GetValue(Game.Session.Cutscenes);
-        var bannerText = (BannerTextBehavior)_bannerText.GetValue(Game.Session.Cutscenes);
+        var currentStep = _currentStep.GetValue<CutsceneStepSubDefinition>(Game.Session.Cutscenes);
+        var bannerText = _bannerText.GetValue<BannerTextBehavior>(Game.Session.Cutscenes);
 
         switch (currentStep.stepType)
         {
@@ -624,9 +614,9 @@ public static class CutsceneManagerUtility
 
     private static void OnDialogOptionSelected()
     {
-        var currentStep = (CutsceneStepSubDefinition)_currentStep.GetValue(Game.Session.Cutscenes);
-        var branches = (List<List<CutsceneStepSubDefinition>>)_branches.GetValue(Game.Session.Cutscenes);
-        var branchStepIndices = (List<int>)_branchStepIndices.GetValue(Game.Session.Cutscenes);
+        var currentStep = _currentStep.GetValue<CutsceneStepSubDefinition>(Game.Session.Cutscenes);
+        var branches = _branches.GetValue<List<List<CutsceneStepSubDefinition>>>(Game.Session.Cutscenes);
+        var branchStepIndices = _branchStepIndices.GetValue<List<int>>(Game.Session.Cutscenes);
 
         Game.Session.Dialog.DialogOptionSelectedEvent -= OnDialogOptionSelected;
         CutsceneStepType stepType = currentStep.stepType;

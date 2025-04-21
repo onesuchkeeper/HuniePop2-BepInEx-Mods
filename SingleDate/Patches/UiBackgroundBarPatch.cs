@@ -1,5 +1,4 @@
 using HarmonyLib;
-using Hp2BaseMod;
 
 namespace SingleDate;
 
@@ -10,6 +9,7 @@ public static class UiBackgroundBarPatch
     [HarmonyPostfix]
     public static void Refresh(UiBackgroundBar __instance, LocationDefinition locationDef, int daytimeElapsed, GirlPairDefinition girlPairDef = null, bool sidesFlipped = false)
     {
+        // The label for the bar uses both girls in the pair, for single pair use only the girlTwo
         if (!State.IsSingle(girlPairDef))
         {
             return;

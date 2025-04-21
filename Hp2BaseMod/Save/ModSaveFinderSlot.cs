@@ -6,8 +6,8 @@ namespace Hp2BaseMod.Save
     [Serializable]
     public struct ModSaveFinderSlot
     {
-        RelativeId? GirlPairId;
-        bool SidesFlipped;
+        public RelativeId? GirlPairId;
+        public bool SidesFlipped;
 
         public void Strip(SaveFileFinderSlot save)
         {

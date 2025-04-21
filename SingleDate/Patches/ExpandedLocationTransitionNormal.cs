@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using HarmonyLib;
 using Hp2BaseMod;
+using Hp2BaseMod.Extension;
 using SingleDate;
 using UnityEngine;
 
@@ -11,24 +12,24 @@ public static class LocationTransitionNormalPatch
     [HarmonyPatch("ArriveStep")]
     [HarmonyPostfix]
     public static void ArriveStep(LocationTransitionNormal __instance)
-        => ExtendedLocationTransitionNormal.Get(__instance).ArriveStep();
+        => ExpandedLocationTransitionNormal.Get(__instance).ArriveStep();
 
     [HarmonyPatch("DepartStep")]
     [HarmonyPrefix]
     public static bool DepartStep(LocationTransitionNormal __instance)
-        => ExtendedLocationTransitionNormal.Get(__instance).DepartStep();
+        => ExpandedLocationTransitionNormal.Get(__instance).DepartStep();
 }
 
-public class ExtendedLocationTransitionNormal
+public class ExpandedLocationTransitionNormal
 {
-    private static Dictionary<LocationTransitionNormal, ExtendedLocationTransitionNormal> _extendedTransitions
-        = new Dictionary<LocationTransitionNormal, ExtendedLocationTransitionNormal>();
+    private static Dictionary<LocationTransitionNormal, ExpandedLocationTransitionNormal> _extendedTransitions
+        = new Dictionary<LocationTransitionNormal, ExpandedLocationTransitionNormal>();
 
-    public static ExtendedLocationTransitionNormal Get(LocationTransitionNormal locationTransitionNormal)
+    public static ExpandedLocationTransitionNormal Get(LocationTransitionNormal locationTransitionNormal)
     {
         if (!_extendedTransitions.TryGetValue(locationTransitionNormal, out var extended))
         {
-            extended = new ExtendedLocationTransitionNormal(locationTransitionNormal);
+            extended = new ExpandedLocationTransitionNormal(locationTransitionNormal);
             _extendedTransitions[locationTransitionNormal] = extended;
         }
 
@@ -40,22 +41,21 @@ public class ExtendedLocationTransitionNormal
 
     private readonly LocationTransitionNormal _core;
 
-    public ExtendedLocationTransitionNormal(LocationTransitionNormal core)
+    public ExpandedLocationTransitionNormal(LocationTransitionNormal core)
     {
         _core = core;
     }
 
     public void ArriveStep()
     {
-        var stepIndex = (int)_stepIndex.GetValue(_core);
-
-        if (stepIndex != 0)
+        if (_stepIndex.GetValue<int>(_core) != 0)
         {
             return;
         }
 
-        if (!State.IsLocationPairSingle())
+        if (!State.IsSingleDate)
         {
+
             Game.Session.Puzzle.puzzleGrid.transform.position = State.DefaultPuzzleGridPosition;
             return;
         }
@@ -68,12 +68,11 @@ public class ExtendedLocationTransitionNormal
 
     public bool DepartStep()
     {
-        var stepIndex = (int)_stepIndex.GetValue(_core);
+        var stepIndex = _stepIndex.GetValue<int>(_core);
 
         if (stepIndex != 0
             || !Game.Session.Location.AtLocationType([LocationType.SIM])
-            //the location's currentGirlPair is preserved while the player file current girl is changed, so use that
-            || !State.IsLocationPairSingle())
+            || !State.IsSingleDate)
         {
             return true;
         }

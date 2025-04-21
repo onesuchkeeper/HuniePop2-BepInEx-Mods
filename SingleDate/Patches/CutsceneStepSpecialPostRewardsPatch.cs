@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 using HarmonyLib;
-using Hp2BaseMod;
+using Hp2BaseMod.Extension;
 
 namespace SingleDate;
 
@@ -14,20 +14,14 @@ public static class CutsceneStepSpecialPostRewardsPatch
     [HarmonyPostfix]
     private static void Start(CutsceneStepSpecialPostRewards __instance)
     {
-        if (!State.IsLocationPairSingle())
+        if (!State.IsSingleDate)
         {
             return;
         }
 
-        if (!(_postRewards.GetValue(__instance) is List<PuzzlePostReward> postRewards))
-        {
-            ModInterface.Log.LogWarning($"Failed to get {nameof(CutsceneStepSpecialPostRewards)} _postRewards");
-            return;
-        }
-
-        //alt girl is girl on right
+        // alt girl is girl on right
         // for single dates put all rewards there
-        foreach (var reward in postRewards)
+        foreach (var reward in _postRewards.GetValue<List<PuzzlePostReward>>(__instance))
         {
             reward.altGirl = true;
         }

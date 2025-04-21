@@ -553,6 +553,13 @@ namespace Hp2BaseMod
                         ModInterface.Log.LogInfo("tokens");
                         SetData(tokenDataDict, tokenDataMods, gameDataProvider, assetProvider, GameDataType.Token);
                     }
+
+                    ModInterface.Log.LogInfo("registering functional mods");
+                    using (ModInterface.Log.MakeIndent())
+                    {
+                        ModInterface.Log.LogInfo("ailments");
+                        ModInterface.Data.RegisterFunctionalAilments(ailmentDataMods.OfType<IFunctionalAilmentDataMod>());
+                    }
                 }
             }
             catch (Exception e)

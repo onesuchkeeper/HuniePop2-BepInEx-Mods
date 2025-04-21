@@ -18,7 +18,14 @@ public static class PuzzleSetGetMatchRewards_Patch
 {
     public static void Prefix(PuzzleStatus __instance)
     {
-        //if (__instance.bonusRound) { return; }
-        __instance.AddResourceValue(PuzzleResourceType.AFFECTION, 100000, false);
+        if (__instance.bonusRound)
+        {
+            __instance.AddResourceValue(PuzzleResourceType.AFFECTION, 10, false);
+        }
+        else
+        {
+            __instance.AddResourceValue(PuzzleResourceType.MOVES, 1, false);
+            __instance.AddResourceValue(PuzzleResourceType.AFFECTION, 10000, false);
+        }
     }
 }

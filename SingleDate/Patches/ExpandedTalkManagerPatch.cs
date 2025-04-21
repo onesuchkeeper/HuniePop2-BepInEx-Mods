@@ -3,6 +3,7 @@ using System.Linq;
 using System.Reflection;
 using HarmonyLib;
 using Hp2BaseMod;
+using Hp2BaseMod.Extension;
 using UnityEngine;
 
 namespace SingleDate;
@@ -46,11 +47,11 @@ public class ExpandedTalkManager
 
     public bool TalkStep()
     {
-        var talkStepIndex = (int)_talkStepIndex.GetValue(_talkManager);
+        var talkStepIndex = _talkStepIndex.GetValue<int>(_talkManager);
 
         if (_talkManager.talkType != TalkWithType.FAVORITE_QUESTION
             || !(talkStepIndex == 0 || talkStepIndex == 2)
-            || !State.IsSingle(_girlPair.GetValue(_talkManager) as GirlPairDefinition))
+            || !State.IsSingle(_girlPair.GetValue<GirlPairDefinition>(_talkManager)))
         {
             return true;
         }
@@ -59,16 +60,16 @@ public class ExpandedTalkManager
         talkStepIndex++;
         _talkStepIndex.SetValue(_talkManager, talkStepIndex);
 
-        var filePair = (PlayerFileGirlPair)_fileGirlPair.GetValue(_talkManager);
+        var filePair = _fileGirlPair.GetValue<PlayerFileGirlPair>(_talkManager);
 
         switch (talkStepIndex)
         {
             case 1:
                 //3 random questions
-                var questionPool = (List<QuestionDefinition>)_questionPool.GetValue(_talkManager);
+                var questionPool = _questionPool.GetValue<List<QuestionDefinition>>(_talkManager);
                 questionPool.Clear();
 
-                var pair = (GirlPairDefinition)_girlPair.GetValue(_talkManager);
+                var pair = _girlPair.GetValue<GirlPairDefinition>(_talkManager);
                 var favQuestionIndexes = ListUtils.GetIndexList(pair.favQuestions);
                 favQuestionIndexes.RemoveAll(filePair.recentFavQuestions.Contains);
                 ListUtils.ShuffleList(favQuestionIndexes);
