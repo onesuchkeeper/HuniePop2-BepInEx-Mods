@@ -13,39 +13,36 @@ using UnityEngine.UI;
 namespace Hp2BaseModTweaks.CellphoneApps
 {
     [HarmonyPatch(typeof(UiCellphoneAppCredits))]
-    public class UiCellphoneAppCreditsPatch
+    internal class UiCellphoneAppCreditsPatch
     {
-        private readonly static Dictionary<UiCellphoneAppCredits, ExpandedUiCellphoneCreditsApp> _extendedApps
-                    = new Dictionary<UiCellphoneAppCredits, ExpandedUiCellphoneCreditsApp>();
-
         [HarmonyPatch("Start")]
         [HarmonyPostfix]
         public static void PostStart(UiCellphoneAppCredits __instance)
-        {
-            if (!_extendedApps.TryGetValue(__instance, out var extendedApp))
-            {
-                extendedApp = new ExpandedUiCellphoneCreditsApp(__instance);
-                _extendedApps[__instance] = extendedApp;
-            }
-
-            extendedApp.OnStart();
-        }
+            => ExpandedUiCellphoneCreditsApp.Get(__instance).Start();
 
         [HarmonyPatch("OnDestroy")]
         [HarmonyPrefix]
-        public static void PreDestroy(UiCellphoneAppCredits __instance)
-        {
-            if (_extendedApps.TryGetValue(__instance, out var extendedApp))
-            {
-                extendedApp.OnDestroy();
-                _extendedApps.Remove(__instance);
-            }
-        }
+        public static void OnDestroy(UiCellphoneAppCredits __instance)
+            => ExpandedUiCellphoneCreditsApp.Get(__instance).OnDestroy();
     }
 
     internal class ExpandedUiCellphoneCreditsApp
     {
-        private static readonly string _creditsBackgroundPath = Path.Combine(Paths.PluginPath, "Hp2BaseModTweaks\\images\\ui_app_credits_modded_background.png");
+        private readonly static Dictionary<UiCellphoneAppCredits, ExpandedUiCellphoneCreditsApp> _expansions
+                    = new Dictionary<UiCellphoneAppCredits, ExpandedUiCellphoneCreditsApp>();
+
+        public static ExpandedUiCellphoneCreditsApp Get(UiCellphoneAppCredits uiCellphoneAppCredits)
+        {
+            if (!_expansions.TryGetValue(uiCellphoneAppCredits, out var expansion))
+            {
+                expansion = new ExpandedUiCellphoneCreditsApp(uiCellphoneAppCredits);
+                _expansions[uiCellphoneAppCredits] = expansion;
+            }
+
+            return expansion;
+        }
+
+        private static readonly string _creditsBackgroundPath = Path.Combine(Plugin.ImagesDir, "ui_app_credits_modded_background.png");
 
         public Hp2ButtonWrapper ModCycleLeft;
         public Hp2ButtonWrapper ModCycleRight;
@@ -58,8 +55,11 @@ namespace Hp2BaseModTweaks.CellphoneApps
 
         private List<Hp2ButtonWrapper> _contributors = new List<Hp2ButtonWrapper>();
 
+        private UiCellphoneAppCredits _creditsApp;
         public ExpandedUiCellphoneCreditsApp(UiCellphoneAppCredits creditsApp)
         {
+            _creditsApp = creditsApp;
+
             if (File.Exists(_creditsBackgroundPath))
             {
                 var backgroundImage = creditsApp.transform.Find("Background").GetComponent<Image>();
@@ -150,7 +150,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
             Refresh();
         }
 
-        public void OnStart()
+        public void Start()
         {
             Refresh();
         }
@@ -166,6 +166,8 @@ namespace Hp2BaseModTweaks.CellphoneApps
                 Object.Destroy(contributor.GameObject);
             }
             _contributors.Clear();
+
+            _expansions.Remove(_creditsApp);
         }
 
         public void Refresh()
@@ -180,9 +182,10 @@ namespace Hp2BaseModTweaks.CellphoneApps
                 ModCycleLeft.ButtonBehavior.Enable();
             }
 
-            if (_creditsIndex >= Common.Mods.Count - 1)
+            var maxModIndex = ModConfig._modConfigs.Count - 1;
+            if (_creditsIndex >= maxModIndex)
             {
-                _creditsIndex = Common.Mods.Count - 1;
+                _creditsIndex = maxModIndex;
                 ModCycleRight.ButtonBehavior.Disable();
             }
             else
@@ -197,9 +200,9 @@ namespace Hp2BaseModTweaks.CellphoneApps
             }
             _contributors.Clear();
 
-            if (!Common.Mods.Any()) { return; }
+            if (!ModConfig._modConfigs.Any()) { return; }
 
-            var modConfig = Common.Mods[_creditsIndex];
+            var modConfig = ModConfig._modConfigs[_creditsIndex];
 
             ModLogo.sprite = TextureUtility.SpriteFromPath(modConfig.ModImagePath);
             ModLogo.SetNativeSize();

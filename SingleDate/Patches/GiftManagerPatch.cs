@@ -13,7 +13,7 @@ public static class GiftManagerPatch
     {
         var id = ModInterface.Data.GetDataId(GameDataType.Item, itemDef.id);
 
-        if (id != State.ItemSensitivitySmoothie
+        if (id != ItemSensitivitySmoothie.SmoothieId
             || !Game.Session.Location.AtLocationType(LocationType.SIM))
         {
             return true;

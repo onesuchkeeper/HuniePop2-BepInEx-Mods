@@ -27,6 +27,7 @@
   </ItemGroup>
   
   <ItemGroup>
+    <ProjectReference Include="..\Hp2BaseModTweaks\Hp2BaseModTweaks.csproj" />
     <ProjectReference Include="..\Hp2BaseMod\Hp2BaseMod.csproj" />
   </ItemGroup>
 
@@ -59,6 +60,5 @@
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Exec Command="Copy &quot;$(OutDir)$(AssemblyName).dll&quot; &quot;C:\Program Files (x86)\Steam\steamapps\common\HuniePop 2 - Double Date\BepInEx\plugins\$(Product)&quot;" />
-    <Exec Command="Copy &quot;$(ProjectDir)mod.json&quot; &quot;C:\Program Files (x86)\Steam\steamapps\common\HuniePop 2 - Double Date\BepInEx\plugins\$(Product)&quot;" />
   </Target>
 </Project>

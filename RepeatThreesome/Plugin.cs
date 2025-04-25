@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using BepInEx;
 using HarmonyLib;
@@ -6,17 +7,41 @@ using Hp2BaseMod;
 using Hp2BaseMod.GameDataInfo;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
+using Hp2BaseModTweaks;
 
 namespace RepeatThreesome;
 
 [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
 [BepInDependency("OSK.BepInEx.Hp2BaseMod", "1.0.0")]
-public class Plugin : BaseUnityPlugin
+internal class Plugin : BaseUnityPlugin
 {
+
+    private static string _pluginDir = Path.Combine(Paths.PluginPath, "RepeatThreesome");
+    private static string _imagesDir = Path.Combine(_pluginDir, "images");
+
     private int _modId;
 
     private void Awake()
     {
+        try
+        {
+            ModConfig.AddModConfig(new ModConfig()
+            {
+                ModImagePath = Path.Combine(_imagesDir, "CreditsLogo.png"),
+                CreditsEntries = new List<CreditsEntry>(){
+                    new CreditsEntry(){
+                        CreditButtonImagePath = Path.Combine(_imagesDir, "onesuchkeeper_credits.png"),
+                        CreditButtonImageOverPath = Path.Combine(_imagesDir, "onesuchkeeper_credits_over.png"),
+                        RedirectLink = "https://www.youtube.com/@onesuchkeeper8389"
+                    }
+                }
+            });
+        }
+        catch (Exception e)
+        {
+            ModInterface.Log.LogWarning("Failed to add Credits");
+        }
+
         _modId = ModInterface.GetSourceId(MyPluginInfo.PLUGIN_GUID);
         Constants.Init(_modId);
 

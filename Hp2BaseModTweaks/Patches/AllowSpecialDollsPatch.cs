@@ -9,9 +9,9 @@ namespace Hp2BaseModTweaks
     /// It didn't like me adding a prefix to load girl for whatever reason, but change outfit works just as well I guess...
     /// </summary>
     [HarmonyPatch(typeof(UiDoll), "ChangeOutfit")]
-    public static class AllowSpecialDollsPatch
+    internal static class AllowSpecialDollsPatch
     {
-        //the special effects always read the def;s offset field, which is annoying
+        //the special effects always read the def's offset field, which is annoying
         //because we can't store two different fields in the case of Kyu for her wings
         private static readonly FieldInfo _specialEffect = AccessTools.Field(typeof(UiDoll), "_specialEffect");
         private static void Postfix(UiDoll __instance)

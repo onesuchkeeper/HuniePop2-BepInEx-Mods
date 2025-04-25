@@ -5,26 +5,20 @@ using Hp2BaseMod;
 using Hp2BaseMod.Extension.IEnumerableExtension;
 using Hp2BaseMod.GameDataInfo;
 
-namespace Hp2ExtraOptions;
+namespace Hp2BaseModTweaks;
 
 public static class RandomizeStyles
 {
     public static void On_RequestStyleChange(object sender, RequestStyleChangeEventArgs args)
     {
-        var unpairedStyles = ModInterface.GameData.IsCodeUnlocked(Constants.UnpairStylesCodeId);
-        var anyOutfit = false;
+        var girlSave = Plugin.Save.GetCurrentFile().GetGirl(ModInterface.Data.GetDataId(GameDataType.Girl, args.Def.id));
 
-        if (args.Loc.locationType == LocationType.HUB && ModInterface.GameData.IsCodeUnlocked(Constants.HubStyleChangeRateUpCodeId))
-        {
-            args.ApplyChance = 1;
-            anyOutfit = true;
-        }
-        else if (args.Loc.locationType == LocationType.SIM && ModInterface.GameData.IsCodeUnlocked(Constants.RandomStylesCodeId))
+        if (girlSave.RandomizeStyles)
         {
             args.ApplyChance = 1;
         }
 
-        RandomizeStyle(args.Def, unpairedStyles, out args.Style, anyOutfit);
+        RandomizeStyle(args.Def, girlSave.UnpairRandomStyles, out args.Style, args.Loc.locationType == LocationType.HUB);
     }
 
     private static void RandomizeStyle(GirlDefinition girl, bool unpaired, out GirlStyleInfo style, bool anyOutfit = false)

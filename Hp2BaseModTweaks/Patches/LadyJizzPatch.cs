@@ -3,7 +3,7 @@
 using HarmonyLib;
 using Hp2BaseMod;
 
-namespace Hp2ExtraOptions
+namespace Hp2BaseModTweaks
 {
     /// <summary>
     /// If female jizz is on, toggles female UiWindow layout to male
@@ -14,7 +14,7 @@ namespace Hp2ExtraOptions
         public static void Postfix(ref int __result)
         {
             if (__result == 1
-                && ModInterface.GameData.IsCodeUnlocked(Constants.FemaleJizzToggleCodeID))
+                && ModInterface.GameData.IsCodeUnlocked(Common.FemaleJizzToggleCodeID))
             {
                 __result = 2;
             }
@@ -30,7 +30,7 @@ namespace Hp2ExtraOptions
         public static void Prefix(UiWindowPhotos __instance)
         {
             if (!Game.Persistence.playerData.uncensored
-                || !ModInterface.GameData.IsCodeUnlocked(Constants.FemaleJizzToggleCodeID))
+                || !ModInterface.GameData.IsCodeUnlocked(Common.FemaleJizzToggleCodeID))
             {
                 return;
             }

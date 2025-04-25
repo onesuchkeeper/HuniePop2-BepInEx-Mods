@@ -14,7 +14,7 @@ using UnityEngine.UI;
 namespace Hp2BaseModTweaks.CellphoneApps
 {
     [HarmonyPatch(typeof(UiCellphoneAppProfile))]
-    public static class UiCellphoneAppProfilePatch
+    internal static class UiCellphoneAppProfilePatch
     {
         [HarmonyPatch("Start")]
         [HarmonyPostfix]
@@ -54,12 +54,17 @@ namespace Hp2BaseModTweaks.CellphoneApps
 
         private int _currentPage = 0;
 
+        private QuestionDefinition[] _questions;
         private readonly UiCellphoneAppProfile _profileApp;
-        private readonly QuestionDefinition[] _questions;
 
         public ExpandedUiCellphoneProfileApp(UiCellphoneAppProfile profileApp)
         {
             _profileApp = profileApp ?? throw new ArgumentNullException(nameof(profileApp));
+        }
+
+        public void Start()
+        {
+            _profileApp.girlHeadIcon.preserveAspect = true;
 
             _questions = Game.Data.Questions.GetAll().ToArray();
 
@@ -69,9 +74,9 @@ namespace Hp2BaseModTweaks.CellphoneApps
                 volume = 1f
             };
 
-            var activeContainer = profileApp.transform.Find("ActiveContainer");
+            var activeContainer = _profileApp.transform.Find("ActiveContainer");
 
-            var backgroundImage = profileApp.transform.Find("Background").GetComponent<Image>();
+            var backgroundImage = _profileApp.transform.Find("Background").GetComponent<Image>();
             backgroundImage.sprite = TextureUtility.SpriteFromPath(_profileBackgroundPath);
             backgroundImage.SetNativeSize();
 
@@ -193,11 +198,6 @@ namespace Hp2BaseModTweaks.CellphoneApps
             favoritesScroll_ScrollRect.viewport = favoritesScroll_RectTransform;
             favoritesScroll_ScrollRect.content = favoritesPanel_RectTransform;
 
-            Refresh();
-        }
-
-        public void Start()
-        {
             Refresh();
         }
 

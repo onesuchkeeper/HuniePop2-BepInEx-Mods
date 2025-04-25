@@ -6,78 +6,77 @@ using HarmonyLib;
 using Hp2BaseMod;
 using Hp2BaseMod.Ui;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace Hp2BaseModTweaks.CellphoneApps
 {
     [HarmonyPatch(typeof(UiCellphoneAppWardrobe))]
-    public static class UiCellphoneAppWardrobePatch
+    internal static class UiCellphoneAppWardrobePatch
     {
-        private readonly static Dictionary<UiCellphoneAppWardrobe, ExpandedUiCellphoneWardrobeApp> _extendedApps
-                            = new Dictionary<UiCellphoneAppWardrobe, ExpandedUiCellphoneWardrobeApp>();
-
         [HarmonyPatch("Start")]
         [HarmonyPostfix]
-        public static void PostStart(UiCellphoneAppWardrobe __instance)
-        {
-            if (!_extendedApps.TryGetValue(__instance, out var extendedApp))
-            {
-                extendedApp = new ExpandedUiCellphoneWardrobeApp(__instance);
-                _extendedApps[__instance] = extendedApp;
-            }
-
-            extendedApp.OnStart();
-        }
+        public static void Start(UiCellphoneAppWardrobe __instance)
+            => ExpandedUiCellphoneWardrobeApp.Get(__instance).Start();
 
         [HarmonyPatch("OnDestroy")]
         [HarmonyPrefix]
-        public static void PreDestroy(UiCellphoneAppWardrobe __instance)
-        {
-            if (_extendedApps.TryGetValue(__instance, out var extendedApp))
-            {
-                extendedApp.OnDestroy();
-                _extendedApps.Remove(__instance);
-            }
-        }
+        public static void OnDestroy(UiCellphoneAppWardrobe __instance)
+            => ExpandedUiCellphoneWardrobeApp.Get(__instance).OnDestroy();
 
         [HarmonyPatch("Refresh")]
         [HarmonyPostfix]
-        public static void PostRefresh(UiCellphoneAppWardrobe __instance)
-        {
-            if (_extendedApps.TryGetValue(__instance, out var extendedApp))
-            {
-                extendedApp.Refresh();
-            }
-        }
+        public static void Refresh(UiCellphoneAppWardrobe __instance)
+            => ExpandedUiCellphoneWardrobeApp.Get(__instance).Refresh();
     }
 
     internal class ExpandedUiCellphoneWardrobeApp
     {
+        private readonly static Dictionary<UiCellphoneAppWardrobe, ExpandedUiCellphoneWardrobeApp> _expansions
+            = new Dictionary<UiCellphoneAppWardrobe, ExpandedUiCellphoneWardrobeApp>();
+
+        public static ExpandedUiCellphoneWardrobeApp Get(UiCellphoneAppWardrobe uiCellphoneAppWardrobe)
+        {
+            if (!_expansions.TryGetValue(uiCellphoneAppWardrobe, out var expansion))
+            {
+                expansion = new ExpandedUiCellphoneWardrobeApp(uiCellphoneAppWardrobe);
+                _expansions[uiCellphoneAppWardrobe] = expansion;
+            }
+
+            return expansion;
+        }
+
         private static readonly FieldInfo _selectedFileIconSlot = AccessTools.Field(typeof(UiCellphoneAppWardrobe), "_selectedFileIconSlot");
         private static readonly int _girlsPerPage = 12;
 
         private int _girlsPage;
 
-        private readonly Hp2ButtonWrapper _girlsLeft;
-        private readonly Hp2ButtonWrapper _girlsRight;
+        private UiAppCheckBox _randomizeStylesCheckBox;
+        private UiAppCheckBox _unpairRandomizeStylesCheckBox;
 
-        private readonly UiCellphoneAppWardrobe _wardrobeApp;
-        private readonly int _girlsPageMax;
-        private readonly PlayerFileGirl[] _metGirls;
-        private readonly UiAppFileIconSlot _dummyFileIconSlot;
+        private Hp2ButtonWrapper _girlsLeft;
+        private Hp2ButtonWrapper _girlsRight;
 
+        private int _girlsPageMax;
+        private PlayerFileGirl[] _metGirls;
+        private UiAppFileIconSlot _dummyFileIconSlot;
         private UiAppFileIconSlot[] _subscribedSlots;
+        private bool _started;
+        private UiCellphoneAppWardrobe _wardrobeApp;
+        private TweaksSaveGirl _girlSave;
 
         public ExpandedUiCellphoneWardrobeApp(UiCellphoneAppWardrobe wardrobeApp)
         {
             _wardrobeApp = wardrobeApp ?? throw new ArgumentNullException(nameof(wardrobeApp));
+        }
 
+        public void Start()
+        {
             _metGirls = Game.Persistence.playerFile.girls.Where(x => x.playerMet).OrderBy(x => x.girlDefinition.id).ToArray();
 
             _girlsPageMax = _metGirls.Length > 1
                 ? (_metGirls.Length - 1) / _girlsPerPage
                 : 0;
 
+            //left right buttons
             if (_girlsPageMax > 0)
             {
                 // Buttons
@@ -135,10 +134,25 @@ namespace Hp2BaseModTweaks.CellphoneApps
 
                 _girlsPage = index / _girlsPerPage;
             }
-        }
 
-        public void OnStart()
-        {
+            //Randomize Styles
+            _randomizeStylesCheckBox = GameObject.Instantiate(_wardrobeApp.wearOnDatesCheckBox);
+            _randomizeStylesCheckBox.CheckBoxChangedEvent += On_RandomizeStylesCheckBox_CheckBoxChangedEvent;
+            _randomizeStylesCheckBox.valueLabel.text = "Randomize Styles";
+            _randomizeStylesCheckBox.transform.SetParent(_wardrobeApp.wearOnDatesCheckBox.transform.parent);
+            _randomizeStylesCheckBox.transform.position = _wardrobeApp.wearOnDatesCheckBox.transform.position + new Vector3(400, 0, 0);
+            _randomizeStylesCheckBox.Toggle(true);
+
+            // Unpair Random Styles
+            _unpairRandomizeStylesCheckBox = GameObject.Instantiate(_wardrobeApp.wearOnDatesCheckBox);
+            _unpairRandomizeStylesCheckBox.CheckBoxChangedEvent += On_UnpairRandomizeStylesCheckBox_CheckBoxChangedEvent;
+            _unpairRandomizeStylesCheckBox.valueLabel.text = "Unpair Random Styles";
+            _unpairRandomizeStylesCheckBox.transform.SetParent(_wardrobeApp.wearOnDatesCheckBox.transform.parent);
+            _unpairRandomizeStylesCheckBox.transform.position = _wardrobeApp.wearOnDatesCheckBox.transform.position + new Vector3(680, 0, 0);
+            _unpairRandomizeStylesCheckBox.Toggle(true);
+
+            _started = true;
+
             //only slots where the player has met the girldef are subscribed to
             _subscribedSlots = _wardrobeApp.fileIconSlots.Where(x => Game.Persistence.playerFile.GetPlayerFileGirl(x.girlDefinition).playerMet).ToArray();
             Refresh();
@@ -149,10 +163,17 @@ namespace Hp2BaseModTweaks.CellphoneApps
             _girlsLeft?.Destroy();
             _girlsRight?.Destroy();
             UnityEngine.Object.Destroy(_dummyFileIconSlot);
+
+            _randomizeStylesCheckBox.CheckBoxChangedEvent -= On_RandomizeStylesCheckBox_CheckBoxChangedEvent;
+            _unpairRandomizeStylesCheckBox.CheckBoxChangedEvent -= On_UnpairRandomizeStylesCheckBox_CheckBoxChangedEvent;
+
+            _expansions.Remove(_wardrobeApp);
         }
 
         public void Refresh()
         {
+            if (!_started) { return; }
+
             // head slots
             UiAppFileIconSlot selectedFileIconSlot = null;
             var iconIndex = _girlsPage * _girlsPerPage;
@@ -231,6 +252,22 @@ namespace Hp2BaseModTweaks.CellphoneApps
                     _girlsRight.ButtonBehavior.Enable();
                 }
             }
+
+            //toggles
+            var girlId = ModInterface.Data.GetDataId(GameDataType.Girl, wardrobeGirlId);
+            _girlSave = Plugin.Save.GetCurrentFile().GetGirl(girlId);
+            _randomizeStylesCheckBox.Populate(_girlSave.RandomizeStyles);
+            _unpairRandomizeStylesCheckBox.Populate(_girlSave.UnpairRandomStyles);
+        }
+
+        private void On_RandomizeStylesCheckBox_CheckBoxChangedEvent(UiAppCheckBox checkBox)
+        {
+            _girlSave.RandomizeStyles = checkBox.isChecked;
+        }
+
+        private void On_UnpairRandomizeStylesCheckBox_CheckBoxChangedEvent(UiAppCheckBox checkBox)
+        {
+            _girlSave.UnpairRandomStyles = checkBox.isChecked;
         }
     }
 }

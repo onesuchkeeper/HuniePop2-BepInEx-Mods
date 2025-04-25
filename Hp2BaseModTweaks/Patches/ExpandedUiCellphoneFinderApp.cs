@@ -10,53 +10,53 @@ using UnityEngine;
 namespace Hp2BaseModTweaks.CellphoneApps
 {
     [HarmonyPatch(typeof(UiCellphoneAppFinder))]
-    public static class UiCellphoneAppFinderPatches
+    internal static class UiCellphoneAppFinderPatch
     {
-        private readonly static Dictionary<UiCellphoneAppFinder, ExpandedUiCellphoneFinderApp> _extendedApps
-                    = new Dictionary<UiCellphoneAppFinder, ExpandedUiCellphoneFinderApp>();
-
         [HarmonyPatch("Start")]
         [HarmonyPostfix]
         public static void PostStart(UiCellphoneAppFinder __instance)
-        {
-            if (!_extendedApps.TryGetValue(__instance, out var extendedApp))
-            {
-                extendedApp = new ExpandedUiCellphoneFinderApp(__instance);
-                _extendedApps[__instance] = extendedApp;
-            }
-
-            extendedApp.OnStart();
-        }
+            => ExpandedUiCellphoneFinderApp.Get(__instance).OnStart();
 
         [HarmonyPatch("OnDestroy")]
         [HarmonyPrefix]
-        public static void PreDestroy(UiCellphoneAppFinder __instance)
-        {
-            if (_extendedApps.TryGetValue(__instance, out var extendedApp))
-            {
-                extendedApp.OnDestroy();
-                _extendedApps.Remove(__instance);
-            }
-        }
+        public static void OnDestroy(UiCellphoneAppFinder __instance)
+            => ExpandedUiCellphoneFinderApp.Get(__instance).OnDestroy();
     }
 
     internal class ExpandedUiCellphoneFinderApp
     {
+        private readonly static Dictionary<UiCellphoneAppFinder, ExpandedUiCellphoneFinderApp> _expansions
+                    = new Dictionary<UiCellphoneAppFinder, ExpandedUiCellphoneFinderApp>();
+
+        public static ExpandedUiCellphoneFinderApp Get(UiCellphoneAppFinder uiCellphoneAppFinder)
+        {
+            if (!_expansions.TryGetValue(uiCellphoneAppFinder, out var expansion))
+            {
+                expansion = new ExpandedUiCellphoneFinderApp(uiCellphoneAppFinder);
+                _expansions[uiCellphoneAppFinder] = expansion;
+            }
+
+            return expansion;
+        }
+
         private static readonly int _finderLocationsPerPage = 8;
         private static readonly FieldInfo _playerFileFinderSlotAccess = AccessTools.Field(typeof(UiAppFinderSlot), "_playerFileFinderSlot");
         private Hp2ButtonWrapper _previousPage;
         private Hp2ButtonWrapper _nextPage;
 
         private int _currentPage = 0;
-        private readonly int _pageMax;
-        private readonly LocationDefinition[] _simLocations;
+        private int _pageMax;
+        private LocationDefinition[] _simLocations;
 
         private readonly UiCellphoneAppFinder _finderApp;
 
         public ExpandedUiCellphoneFinderApp(UiCellphoneAppFinder finderApp)
         {
             _finderApp = finderApp ?? throw new ArgumentNullException(nameof(finderApp));
+        }
 
+        public void OnStart()
+        {
             _simLocations = Game.Data.Locations.GetAll().Where(x => x.locationType == LocationType.SIM).ToArray();
             _pageMax = _simLocations.Length > 1 ? (_simLocations.Length - 1) / _finderLocationsPerPage : 0;
 
@@ -73,7 +73,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
                     ModInterface.Assets.GetAsset<Sprite>(Common.Ui_AppSettingArrowLeftOver),
                     cellphoneButtonPressedKlip);
 
-                _previousPage.GameObject.transform.SetParent(finderApp.transform, false);
+                _previousPage.GameObject.transform.SetParent(_finderApp.transform, false);
                 _previousPage.RectTransform.anchoredPosition = new Vector2(30, -30);
                 _previousPage.ButtonBehavior.ButtonPressedEvent += (e) =>
                 {
@@ -86,7 +86,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
                     ModInterface.Assets.GetAsset<Sprite>(Common.Ui_AppSettingArrowRightOver),
                     cellphoneButtonPressedKlip);
 
-                _nextPage.GameObject.transform.SetParent(finderApp.transform, false);
+                _nextPage.GameObject.transform.SetParent(_finderApp.transform, false);
                 _nextPage.RectTransform.anchoredPosition = new Vector2(1024, -30);
                 _nextPage.ButtonBehavior.ButtonPressedEvent += (e) =>
                 {
@@ -98,15 +98,11 @@ namespace Hp2BaseModTweaks.CellphoneApps
             Refresh();
         }
 
-        public void OnStart()
-        {
-            Refresh();
-        }
-
         public void OnDestroy()
         {
             _previousPage?.Destroy();
             _nextPage?.Destroy();
+            _expansions.Remove(_finderApp);
         }
 
         public void Refresh()

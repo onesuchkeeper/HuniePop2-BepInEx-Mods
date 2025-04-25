@@ -4,7 +4,7 @@ using HarmonyLib;
 namespace Hp2BaseModTweaks;
 
 [HarmonyPatch(typeof(UiAppPairSlot), "Start")]
-public static class UiAppPairSlotPatch_Start
+internal static class UiAppPairSlotPatch_Start
 {
     public static void Postfix(UiAppPairSlot __instance)
     {

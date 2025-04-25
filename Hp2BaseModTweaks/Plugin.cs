@@ -5,7 +5,6 @@ using System.Linq;
 using BepInEx;
 using HarmonyLib;
 using Hp2BaseMod;
-using Hp2BaseMod.Extension.IEnumerableExtension;
 using Hp2BaseMod.GameDataInfo;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
@@ -16,84 +15,121 @@ namespace Hp2BaseModTweaks;
 
 [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
 [BepInDependency("OSK.BepInEx.Hp2BaseMod", "1.0.0")]
-public class Plugin : BaseUnityPlugin
+internal class Plugin : BaseUnityPlugin
 {
-    public static readonly string RootDir = Path.Combine(Paths.PluginPath, "Hp2BaseModTweaks");
-    public static readonly string ImagesDir = Path.Combine(RootDir, "images");
+    internal static readonly string RootDir = Path.Combine(Paths.PluginPath, "Hp2BaseModTweaks");
+    internal static readonly string ImagesDir = Path.Combine(RootDir, "images");
+
     private static readonly int _extraHeadPadding = 10;
-    private static readonly string _modConfig = "mod.json";
     private static readonly string _dacDir = Path.Combine(Paths.PluginPath, "..", "..", "Digital Art Collection");
 
     private static readonly Vector2 _cellphoneHeadSize = new Vector2(138, 126);
     private static readonly Vector2 _cellphoneMiniHeadSize = new Vector2(80, 80);
-    private static readonly Vector2 _kyuCellphoneMiniHeadSize = new Vector2(92, 60);
     private static readonly Vector2 _cellphonePortraitSize = new Vector2(214, 270);
+
+    internal static TweaksSaveData Save => _save;
+    private static TweaksSaveData _save;
+
+    private int _modId = ModInterface.GetSourceId(MyPluginInfo.PLUGIN_GUID);
 
     private void Awake()
     {
-        foreach (var modFolder in Directory.GetDirectories(Paths.PluginPath))
+        ModConfig.AddModConfig(new ModConfig()
         {
-            var fullPath = Path.Combine(modFolder, _modConfig);
-            if (File.Exists(fullPath))
-            {
-                var isValid = true;
-                var config = JsonConvert.DeserializeObject<ModConfig>(File.ReadAllText(fullPath));
-                if (config == null)
-                {
-                    ModInterface.Log.LogError($"Failed to deserialize {fullPath}");
-                    isValid = false;
-                }
-                else
-                {
-                    config.ModImagePath = Path.Combine(modFolder, config.ModImagePath);
-                    if (!File.Exists(config.ModImagePath))
-                    {
-                        ModInterface.Log.LogError($"Cannot find {config.ModImagePath}");
-                        isValid = false;
-                    }
-
-                    foreach (var entry in config.CreditsEntries.OrEmptyIfNull())
-                    {
-                        entry.CreditButtonImagePath = Path.Combine(modFolder, entry.CreditButtonImagePath);
-                        if (!File.Exists(entry.CreditButtonImagePath))
-                        {
-                            ModInterface.Log.LogError($"Cannot find {entry.CreditButtonImagePath}");
-                            isValid = false;
-                        }
-
-                        entry.CreditButtonImageOverPath = Path.Combine(modFolder, entry.CreditButtonImageOverPath);
-                        if (!File.Exists(entry.CreditButtonImageOverPath))
-                        {
-                            ModInterface.Log.LogError($"Cannot find {entry.CreditButtonImageOverPath}");
-                            isValid = false;
-                        }
-                    }
-
-                    foreach (var entry in config.LogoImages.OrEmptyIfNull())
-                    {
-                        var logoPath = Path.Combine(modFolder, entry);
-                        if (File.Exists(logoPath))
-                        {
-                            Common.LogoPaths.Add(logoPath);
-                        }
-                        else
-                        {
-                            ModInterface.Log.LogError($"Unable to find {logoPath}");
-                        }
-                    }
-                }
-
-                if (isValid)
-                {
-                    ModInterface.Log.LogInfo($"{fullPath} Registered");
-                    Common.Mods.Add(config);
+            ModImagePath = Path.Combine(ImagesDir, "CreditsLogo.png"),
+            LogoImages = new List<string>() {
+                Path.Combine(ImagesDir, "logo.png")
+            },
+            CreditsEntries = new List<CreditsEntry>() {
+                new CreditsEntry() {
+                    CreditButtonImageOverPath = Path.Combine(ImagesDir, "onesuchkeeper_credits.png"),
+                    CreditButtonImagePath = Path.Combine(ImagesDir, "onesuchkeeper_credits_over.png"),
+                    RedirectLink = "https://www.youtube.com/@onesuchkeeper8389"
                 }
             }
+        });
+
+        Common.FemaleJizzToggleCodeID = new RelativeId(_modId, 0);
+        Common.SlowAffectionDrainToggleCodeID = new RelativeId(_modId, 1);
+        Common.RunInBackgroundCodeId = new RelativeId(_modId, 2);
+        Common.FairyWingsCodeId = new RelativeId(_modId, 3);
+
+        ModInterface.AddDataMod(new CodeDataMod(Common.FemaleJizzToggleCodeID, InsertStyle.replace)
+        {
+            CodeHash = MD5Utility.Encrypt("JIZZ FOR ALL"),
+            CodeType = CodeType.TOGGLE,
+            OnMessage = "Female 'wet' photos enabled.",
+            OffMessage = "Female 'wet' photos disabled."
+        });
+
+        ModInterface.AddDataMod(new CodeDataMod(Common.RunInBackgroundCodeId, InsertStyle.replace)
+        {
+            CodeHash = MD5Utility.Encrypt("STAY FOCUSED"),
+            CodeType = CodeType.TOGGLE,
+            OnMessage = "The game will continue running while unfocused.",
+            OffMessage = "The game will pause when unfocused."
+        });
+
+        ModInterface.AddDataMod(new CodeDataMod(Common.FairyWingsCodeId, InsertStyle.replace)
+        {
+            CodeHash = MD5Utility.Encrypt("PINK BITCH!"),
+            CodeType = CodeType.TOGGLE,
+            OnMessage = "Awh yeah! She's unstoppable! [The game must be restarted in order to take effect]",
+            OffMessage = "Lack of hunies rivets us firmly to the ground, ones wings are clipped."
+        });
+        ModInterface.AddCommand(new SetIconCommand());
+
+        ModInterface.Events.RequestStyleChange += RandomizeStyles.On_RequestStyleChange;
+        ModInterface.Events.PostDataMods += On_PostDataMods;
+        ModInterface.Events.PostCodeSubmitted += On_PostCodeSubmitted;
+
+        ModInterface.Events.PostPersistenceReset += () => Application.runInBackground = ModInterface.GameData.IsCodeUnlocked(Common.RunInBackgroundCodeId);
+
+        // add toggle for slow drain on bonus round? TODO
+        //puzzlemanager._status.bounsDrainTimestap
+
+        ModInterface.Assets.RequestInternalSprite([
+            Common.Ui_PhotoAlbumSlot,
+            Common.Ui_PhotoButtonLeft,
+            Common.Ui_PhotoButtonRight,
+            Common.Ui_AppSettingArrowLeft,
+            Common.Ui_AppSettingArrowLeftOver,
+            Common.Ui_AppSettingArrowRight,
+            Common.Ui_AppSettingArrowRightOver
+        ]);
+
+        ModInterface.Assets.RequestInternalAudio(Common.Sfx_PhoneAppButtonPressed);
+
+        ModInterface.Events.PreDataMods += On_PreDataMods;
+        ModInterface.Events.PreGameSave += On_PreGameSave;
+        ModInterface.Events.PostPersistenceReset += On_PostPersistenceReset;
+
+        ModInterface.AddCommand(new SetIconCommand());
+
+        new Harmony(MyPluginInfo.PLUGIN_GUID).PatchAll();
+    }
+
+    private void On_PreGameSave()
+    {
+        ModInterface.SetSourceSave(_modId, JsonConvert.SerializeObject(_save));
+    }
+
+    private void On_PostPersistenceReset()
+    {
+        var saveStr = ModInterface.GetSourceSave(_modId);
+
+        if (!string.IsNullOrWhiteSpace(saveStr))
+        {
+            _save = JsonConvert.DeserializeObject<TweaksSaveData>(saveStr);
         }
 
-        var modId = ModInterface.GetSourceId(MyPluginInfo.PLUGIN_GUID);
+        _save ??= new TweaksSaveData();
+        _save.Clean();
+    }
 
-        var kyuEyesGlowNeutralPartId = new RelativeId(modId, 0);
+    private void On_PreDataMods()
+    {
+        var kyuEyesGlowNeutralPartId = new RelativeId(_modId, 0);
         var kyuEyesGlowNeutralPart = new GirlPartDataMod(kyuEyesGlowNeutralPartId, InsertStyle.replace)
         {
             X = 590,
@@ -106,7 +142,7 @@ public class Plugin : BaseUnityPlugin
             }
         };
 
-        var kyuEyesGlowAnnoyedPartId = new RelativeId(modId, 0);
+        var kyuEyesGlowAnnoyedPartId = new RelativeId(_modId, 0);
         var kyuEyesGlowAnnoyedPart = new GirlPartDataMod(kyuEyesGlowAnnoyedPartId, InsertStyle.replace)
         {
             X = 592,
@@ -119,7 +155,7 @@ public class Plugin : BaseUnityPlugin
             }
         };
 
-        var kyuEyesGlowHornyPartId = new RelativeId(modId, 0);
+        var kyuEyesGlowHornyPartId = new RelativeId(_modId, 0);
         var kyuEyesGlowHornyPart = new GirlPartDataMod(kyuEyesGlowHornyPartId, InsertStyle.replace)
         {
             X = 590,
@@ -176,25 +212,6 @@ public class Plugin : BaseUnityPlugin
             }
         });
 
-        ModInterface.Assets.RequestInternalSprite([
-            Common.Ui_PhotoAlbumSlot,
-            Common.Ui_PhotoButtonLeft,
-            Common.Ui_PhotoButtonRight,
-            Common.Ui_AppSettingArrowLeft,
-            Common.Ui_AppSettingArrowLeftOver,
-            Common.Ui_AppSettingArrowRight,
-            Common.Ui_AppSettingArrowRightOver
-        ]);
-
-        ModInterface.Assets.RequestInternalAudio(Common.Sfx_PhoneAppButtonPressed);
-
-        ModInterface.Events.PreDataMods += On_PreDataMods;
-
-        new Harmony(MyPluginInfo.PLUGIN_GUID).PatchAll();
-    }
-
-    private void On_PreDataMods()
-    {
         ModInterface.AddDataMod(new GirlDataMod(Girls.KyuId, InsertStyle.replace)
         {
             CellphoneMiniHead = new SpriteInfoPath()
@@ -220,6 +237,31 @@ public class Plugin : BaseUnityPlugin
             {
                 expression.partIndexEyesGlow = expression.partIndexEyes;
             }
+        }
+    }
+
+    private void On_PostCodeSubmitted()
+    {
+        Application.runInBackground = ModInterface.GameData.IsCodeUnlocked(Common.RunInBackgroundCodeId);
+    }
+
+    private void On_PostDataMods()
+    {
+        if (!ModInterface.GameData.IsCodeUnlocked(Common.FairyWingsCodeId)) { return; }
+
+        var kyu = ModInterface.GameData.GetGirl(Girls.KyuId);
+
+        ModInterface.Log.LogInfo("Applying wings");
+        if (kyu == null)
+        {
+            ModInterface.Log.LogWarning("Unable to find Kyu, \"PINK BITCH!\" wings not applied D:");
+            return;
+        }
+
+        foreach (var girl in Game.Data.Girls.GetAll())
+        {
+            girl.specialEffectPrefab = kyu.specialEffectPrefab;
+            girl.specialEffectOffset = kyu.specialEffectOffset;
         }
     }
 

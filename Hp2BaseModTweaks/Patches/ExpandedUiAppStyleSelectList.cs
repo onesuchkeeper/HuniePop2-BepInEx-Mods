@@ -1,26 +1,48 @@
 // Hp2BaseModTweaks 2022, By OneSuchKeeper
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using HarmonyLib;
-using Hp2BaseMod;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace Hp2BaseModTweaks
 {
-    internal class UiAppStyleSelectList_Extension
+    [HarmonyPatch(typeof(UiAppStyleSelectList))]
+    internal static class UiAppStyleSelectListPatch
     {
-        private static Dictionary<UiAppStyleSelectList, UiAppStyleSelectList_Extension> _extensions
-            = new Dictionary<UiAppStyleSelectList, UiAppStyleSelectList_Extension>();
+        [HarmonyPatch("Awake")]
+        [HarmonyPostfix]
+        public static void Awake(UiAppStyleSelectList __instance)
+            => ExpandedUiAppStyleSelectList.Get(__instance).Awake();
 
-        public static UiAppStyleSelectList_Extension GetExtension(UiAppStyleSelectList __instance)
+        [HarmonyPatch("OnDestroy")]
+        [HarmonyPrefix]
+        public static void OnDestroy(UiAppStyleSelectList __instance)
+            => ExpandedUiAppStyleSelectList.Get(__instance).OnDestroy();
+
+        [HarmonyPatch("Refresh")]
+        [HarmonyPrefix]
+        public static void PreRefresh(UiAppStyleSelectList __instance)
+            => ExpandedUiAppStyleSelectList.Get(__instance).PreRefresh();
+
+        [HarmonyPatch("Refresh")]
+        [HarmonyPostfix]
+        public static void PostRefresh(UiAppStyleSelectList __instance)
+            => ExpandedUiAppStyleSelectList.Get(__instance).PostRefresh();
+    }
+
+    internal class ExpandedUiAppStyleSelectList
+    {
+        private static Dictionary<UiAppStyleSelectList, ExpandedUiAppStyleSelectList> _extensions
+            = new Dictionary<UiAppStyleSelectList, ExpandedUiAppStyleSelectList>();
+
+        public static ExpandedUiAppStyleSelectList Get(UiAppStyleSelectList __instance)
         {
             if (!_extensions.TryGetValue(__instance, out var extension))
             {
-                extension = new UiAppStyleSelectList_Extension(__instance);
+                extension = new ExpandedUiAppStyleSelectList(__instance);
                 _extensions[__instance] = extension;
             }
 
@@ -28,13 +50,8 @@ namespace Hp2BaseModTweaks
         }
 
         private static readonly FieldInfo item_hidden = AccessTools.Field(typeof(UiAppSelectListItem), "_hidden");
-        private static readonly FieldInfo item_unlocked = AccessTools.Field(typeof(UiAppSelectListItem), "_unlocked");
-        private static readonly FieldInfo _purchaseListItem = AccessTools.Field(typeof(UiAppStyleSelectList), "_purchaseListItem");
-        private static readonly FieldInfo _selectedListItem = AccessTools.Field(typeof(UiAppStyleSelectList), "_selectedListItem");
         private static readonly FieldInfo _origPos = AccessTools.Field(typeof(UiAppStyleSelectList), "_origPos");
         private static readonly FieldInfo _origBgSize = AccessTools.Field(typeof(UiAppStyleSelectList), "_origBgSize");
-        private static readonly MethodInfo Start = AccessTools.Method(typeof(UiAppStyleSelectList), "Start");
-        private static readonly MethodInfo OnDestroy = AccessTools.Method(typeof(UiAppStyleSelectList), "OnDestroy");
         private static readonly FieldInfo _playerFileGirl = AccessTools.Field(typeof(UiAppStyleSelectList), "_playerFileGirl");
         private static readonly MethodInfo _onListItemSelected = AccessTools.Method(typeof(UiAppStyleSelectList), "OnListItemSelected");
 
@@ -50,12 +67,12 @@ namespace Hp2BaseModTweaks
         private bool _initialized;
 
         private UiAppStyleSelectList _decorated;
-        private UiAppStyleSelectList_Extension(UiAppStyleSelectList decorated)
+        private ExpandedUiAppStyleSelectList(UiAppStyleSelectList decorated)
         {
             _decorated = decorated;
         }
 
-        public void Init()
+        public void Awake()
         {
             if (_initialized) { return; }
 
@@ -103,7 +120,7 @@ namespace Hp2BaseModTweaks
             _initialized = true;
         }
 
-        public void Destroy()
+        public void OnDestroy()
         {
             UnityEngine.Object.Destroy(_listItemTemplate);
 
@@ -114,6 +131,27 @@ namespace Hp2BaseModTweaks
             }
 
             _extensions.Remove(_decorated);
+        }
+
+        public void PreRefresh()
+        {
+            if (Initialized)
+            {
+                var def = GetGirl()?.girlDefinition;
+                if (def == null) { return; }
+
+                SetItemCount(_decorated.alternative
+                    ? def.outfits.Count
+                    : def.hairstyles.Count);
+            }
+        }
+
+        public void PostRefresh()
+        {
+            if (Initialized)
+            {
+                SortItems();
+            }
         }
 
         public PlayerFileGirl GetGirl() => _playerFileGirl.GetValue(_decorated) as PlayerFileGirl;
@@ -210,52 +248,5 @@ namespace Hp2BaseModTweaks
         }
 
         private void On_ListItemSelected(UiAppSelectListItem listItem) => _onListItemSelected.Invoke(_decorated, [listItem]);
-    }
-
-    [HarmonyPatch(typeof(UiAppStyleSelectList), "Awake")]
-    internal static class UiAppStyleSelectList_Awake
-    {
-        public static void Postfix(UiAppStyleSelectList __instance)
-        {
-            UiAppStyleSelectList_Extension.GetExtension(__instance).Init();
-        }
-    }
-
-    [HarmonyPatch(typeof(UiAppStyleSelectList), "OnDestroy")]
-    internal static class UiAppStyleSelectList_OnDestroy
-    {
-        public static void Prefix(UiAppStyleSelectList __instance)
-        {
-            UiAppStyleSelectList_Extension.GetExtension(__instance).Destroy();
-        }
-    }
-
-    [HarmonyPatch(typeof(UiAppStyleSelectList), "Refresh")]
-    internal static class UiAppStyleSelectList_Refresh
-    {
-        public static void Prefix(UiAppStyleSelectList __instance)
-        {
-            var extension = UiAppStyleSelectList_Extension.GetExtension(__instance);
-
-            if (extension.Initialized)
-            {
-                var def = extension.GetGirl()?.girlDefinition;
-                if (def == null) { return; }
-
-                extension.SetItemCount(__instance.alternative
-                    ? def.outfits.Count
-                    : def.hairstyles.Count);
-            }
-        }
-
-        public static void Postfix(UiAppStyleSelectList __instance)
-        {
-            var extension = UiAppStyleSelectList_Extension.GetExtension(__instance);
-
-            if (extension.Initialized)
-            {
-                extension.SortItems();
-            }
-        }
     }
 }

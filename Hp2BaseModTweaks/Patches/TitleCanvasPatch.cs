@@ -1,5 +1,8 @@
 ﻿// Hp2BaseModTweaks 2022, By OneSuchKeeper
 
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Reflection;
 using DG.Tweening;
 using HarmonyLib;
@@ -11,15 +14,22 @@ using UnityEngine.UI;
 namespace Hp2BaseModTweaks
 {
     [HarmonyPatch(typeof(UiTitleCanvas), "OnInitialAnimationComplete")]
-    public static class TitleCanvasPatch
+    internal static class TitleCanvasPatch
     {
         private static readonly FieldInfo _coverArt = AccessTools.Field(typeof(UiTitleCanvas), "coverArt");
 
         public static void Prefix(UiTitleCanvas __instance)
         {
-            if (Common.LogoPaths.Count > 0)
+            var logoPaths = ModConfig._modConfigs
+                .Where(x => x?.LogoImages != null)
+                .SelectMany(x => x.LogoImages)
+                .Where(File.Exists)
+                .ToArray();
+
+            if (logoPaths.Length > 0)
             {
-                var path = Common.LogoPaths[Random.Range(0, Common.LogoPaths.Count)];
+                //random.range for ints in this version of unity is min-inclusive, max-exclusive
+                var path = logoPaths[Random.Range(0, logoPaths.Length)];
 
                 if (!(_coverArt.GetValue(__instance) is UiCoverArt coverArt))
                 {

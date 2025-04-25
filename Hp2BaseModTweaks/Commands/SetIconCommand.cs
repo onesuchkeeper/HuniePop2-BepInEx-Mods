@@ -4,7 +4,7 @@ using Hp2BaseMod;
 using Hp2BaseMod.Commands;
 using Hp2BaseMod.Extension;
 
-namespace Hp2ExtraOptions;
+namespace Hp2BaseModTweaks;
 
 public class SetIconCommand : ICommand
 {

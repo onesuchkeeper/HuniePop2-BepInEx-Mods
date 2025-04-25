@@ -11,47 +11,40 @@ using UnityEngine;
 namespace Hp2BaseModTweaks.CellphoneApps
 {
     [HarmonyPatch(typeof(UiWindowPhotos))]
-    public static class UiWindowPhotosPatch
+    internal static class UiWindowPhotosPatch
     {
-        private readonly static Dictionary<UiWindowPhotos, ExpandedUiWindowPhotos> _extendedApps
-                            = new Dictionary<UiWindowPhotos, ExpandedUiWindowPhotos>();
-
         [HarmonyPatch("Init")]
         [HarmonyPostfix]
-        public static void PostStart(UiWindowPhotos __instance)
-        {
-            if (!_extendedApps.TryGetValue(__instance, out var extendedApp))
-            {
-                extendedApp = new ExpandedUiWindowPhotos(__instance);
-                _extendedApps[__instance] = extendedApp;
-            }
-
-            extendedApp.OnStart();
-        }
+        public static void Init(UiWindowPhotos __instance)
+            => ExpandedUiWindowPhotos.Get(__instance).Init();
 
         [HarmonyPatch("Refresh")]
         [HarmonyPostfix]
         public static void PostRefresh(UiWindowPhotos __instance)
-        {
-            if (_extendedApps.TryGetValue(__instance, out var extendedApp))
-            {
-                extendedApp.Refresh();
-            }
-        }
+            => ExpandedUiWindowPhotos.Get(__instance).Refresh();
 
         [HarmonyPatch("Show")]
         [HarmonyPostfix]
         public static void Show(UiWindowPhotos __instance, Sequence sequence)
-        {
-            if (_extendedApps.TryGetValue(__instance, out var extendedApp))
-            {
-                extendedApp.OnShow();
-            }
-        }
+            => ExpandedUiWindowPhotos.Get(__instance).Show();
     }
 
-    public class ExpandedUiWindowPhotos
+    internal class ExpandedUiWindowPhotos
     {
+        private readonly static Dictionary<UiWindowPhotos, ExpandedUiWindowPhotos> _expansions
+            = new Dictionary<UiWindowPhotos, ExpandedUiWindowPhotos>();
+
+        public static ExpandedUiWindowPhotos Get(UiWindowPhotos uiWindowPhotos)
+        {
+            if (!_expansions.TryGetValue(uiWindowPhotos, out var expansion))
+            {
+                expansion = new ExpandedUiWindowPhotos(uiWindowPhotos);
+                _expansions[uiWindowPhotos] = expansion;
+            }
+
+            return expansion;
+        }
+
         private static readonly FieldInfo _photoDefinition = AccessTools.Field(typeof(UiPhotoSlot), "_photoDefinition");
         private static readonly FieldInfo _earnedPhotos = AccessTools.Field(typeof(UiWindowPhotos), "_earnedPhotos");
         private static readonly FieldInfo _singlePhoto = AccessTools.Field(typeof(UiWindowPhotos), "_singlePhoto");
@@ -114,12 +107,12 @@ namespace Hp2BaseModTweaks.CellphoneApps
             Refresh();
         }
 
-        public void OnStart()
+        public void Init()
         {
             Refresh();
         }
 
-        public void OnShow()
+        public void Show()
         {
             if ((bool)_singlePhoto.GetValue(_photosWindow))
             {
