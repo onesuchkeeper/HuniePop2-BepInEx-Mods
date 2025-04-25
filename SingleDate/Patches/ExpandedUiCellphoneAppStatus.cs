@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using HarmonyLib;
+using Hp2BaseMod;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace SingleDate;
 
@@ -51,6 +53,14 @@ public class ExpandedUiCellphoneAppStatus
         {
             return;
         }
+
+        var charm_go = new GameObject();
+        var charm_rectTransform = charm_go.AddComponent<RectTransform>();
+        charm_rectTransform.sizeDelta = new Vector2(280, 280);
+        var charm_image = charm_go.AddComponent<Image>();
+        charm_image.sprite = UiPrefabs.GetCharmSprite(ModInterface.Data.GetDataId(GameDataType.Girl, Game.Session.Puzzle.puzzleStatus.girlStatusRight.girlDefinition.id));
+        charm_rectTransform.SetParent(_uiCellphoneAppPair.transform);
+        charm_rectTransform.position = _uiCellphoneAppPair.statusPortraitLeft.transform.position + new Vector3(37.5f, 0, 0);
 
         _uiCellphoneAppPair.sentimentRollerRight.transform.position = _uiCellphoneAppPair.passionRollerLeft.transform.position;
 

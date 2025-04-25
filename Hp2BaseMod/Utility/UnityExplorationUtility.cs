@@ -9,7 +9,7 @@ namespace Hp2BaseMod.Utility
     // For dev work, easy log calls to print info about unity structures to the log
     public static class UnityExplorationUtility
     {
-        public static void LogHierarchy(Transform target)
+        public static void LogChildren(Transform target)
         {
             for (int i = 0; i < target.childCount; i++)
             {
@@ -18,15 +18,15 @@ namespace Hp2BaseMod.Utility
                 {
                     ModInterface.Log.LogInfo(child.name);
                     ModInterface.Log.IncreaseIndent();
-                    LogHierarchy(child);
+                    LogChildren(child);
                     ModInterface.Log.DecreaseIndent();
                 }
             }
         }
 
-        public static void LogHierarchy(GameObject target) => LogHierarchy(target, new List<Component>() { });
+        public static void LogComponents(GameObject target) => LogComponents(target, new List<Component>() { });
 
-        private static void LogHierarchy(GameObject target, List<Component> excluded)
+        private static void LogComponents(GameObject target, List<Component> excluded)
         {
             var components = target.GetComponents<Component>();
 
@@ -44,7 +44,7 @@ namespace Hp2BaseMod.Utility
                     if (!excluded.Contains(component))
                     {
                         excluded.Add(component);
-                        LogHierarchy(component.gameObject, excluded.ToList());
+                        LogComponents(component.gameObject, excluded.ToList());
                     }
                     else
                     {

@@ -22,7 +22,7 @@ public static class UiWindowActionBubblesPatch
 
             if (actionBubble.actionBubbleType == ActionBubbleType.TALK)
             {
-                Game.Session.Talk.ShowStaminaHint(-2, 2);
+                Game.Session.Talk.ShowStaminaHint(2, 2);
             }
 
             Game.Manager.Audio.Play(AudioCategory.SOUND, __instance.sfxBubbleOver, null).audioSource.pitch = Random.Range(1f, 2f);

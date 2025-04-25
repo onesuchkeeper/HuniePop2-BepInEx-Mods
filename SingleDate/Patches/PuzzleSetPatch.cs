@@ -31,13 +31,11 @@ public static class PuzzleSetPatch
             return;
         }
 
-        var girlId = ModInterface.Data.GetDataId(Game.Session.Puzzle.puzzleStatus.girlStatusRight.girlDefinition);
-
         //hp1's broken tokens take a percentage of the current affection, multiply by (number of tokens), then divide by (number of tokens - 1), with min value of 1
         //so I'll just ignore the mult and divide entirely. The -1 looks like it may be a mistake? Like they were confusing it with max index? seems odd
         var allotment = -Mathf.Max(1,
             Mathf.FloorToInt(_affection.GetValue<int>(Game.Session.Puzzle.puzzleStatus)
-                * State.GetBrokenMult(girlId)));
+                * State.GetBrokenMult()));
 
         foreach (var reward in brokenRewards)
         {

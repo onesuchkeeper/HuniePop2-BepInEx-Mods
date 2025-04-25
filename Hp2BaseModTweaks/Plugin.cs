@@ -9,7 +9,6 @@ using Hp2BaseMod.Extension.IEnumerableExtension;
 using Hp2BaseMod.GameDataInfo;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
-using Hp2BaseModTweaks.CellphoneApps;
 using Newtonsoft.Json;
 using UnityEngine;
 
@@ -19,7 +18,8 @@ namespace Hp2BaseModTweaks;
 [BepInDependency("OSK.BepInEx.Hp2BaseMod", "1.0.0")]
 public class Plugin : BaseUnityPlugin
 {
-    private static readonly string _pluginFolder = "Hp2BaseModTweaks";
+    public static readonly string RootDir = Path.Combine(Paths.PluginPath, "Hp2BaseModTweaks");
+    public static readonly string ImagesDir = Path.Combine(RootDir, "images");
     private static readonly int _extraHeadPadding = 10;
     private static readonly string _modConfig = "mod.json";
     private static readonly string _dacDir = Path.Combine(Paths.PluginPath, "..", "..", "Digital Art Collection");
@@ -102,7 +102,7 @@ public class Plugin : BaseUnityPlugin
             SpriteInfo = new SpriteInfoPath()
             {
                 IsExternal = true,
-                Path = Path.Combine(Paths.PluginPath, _pluginFolder, "images", "kyu_eyesglow_neutral.png")
+                Path = Path.Combine(ImagesDir, "kyu_eyesglow_neutral.png")
             }
         };
 
@@ -115,7 +115,7 @@ public class Plugin : BaseUnityPlugin
             SpriteInfo = new SpriteInfoPath()
             {
                 IsExternal = true,
-                Path = Path.Combine(Paths.PluginPath, _pluginFolder, "images", "kyu_eyesglow_annoyed.png")
+                Path = Path.Combine(ImagesDir, "kyu_eyesglow_annoyed.png")
             }
         };
 
@@ -128,7 +128,7 @@ public class Plugin : BaseUnityPlugin
             SpriteInfo = new SpriteInfoPath()
             {
                 IsExternal = true,
-                Path = Path.Combine(Paths.PluginPath, _pluginFolder, "images", "kyu_eyesglow_horny.png")
+                Path = Path.Combine(ImagesDir, "kyu_eyesglow_horny.png")
             }
         };
 
@@ -237,7 +237,7 @@ public class Plugin : BaseUnityPlugin
             var scale = KeepRatio(headSize, _cellphoneHeadSize);
             mod.CellphoneHead = new SpriteInfoPath()
             {
-                CachePath = Path.Combine(Paths.PluginPath, _pluginFolder, "images", $"{name}_cellphoneHead.png"),
+                CachePath = Path.Combine(ImagesDir, $"{name}_cellphoneHead.png"),
                 IsExternal = true,
                 Path = texturePath,
                 TextureScale = scale,
@@ -250,7 +250,7 @@ public class Plugin : BaseUnityPlugin
             scale = KeepRatio(headSize, _cellphoneMiniHeadSize);
             mod.CellphoneMiniHead = new SpriteInfoPath()
             {
-                CachePath = Path.Combine(Paths.PluginPath, _pluginFolder, "images", $"{name}_cellphoneHeadMini.png"),
+                CachePath = Path.Combine(ImagesDir, $"{name}_cellphoneHeadMini.png"),
                 IsExternal = true,
                 Path = texturePath,
                 TextureScale = scale,
@@ -266,7 +266,7 @@ public class Plugin : BaseUnityPlugin
         {
             mod.CellphonePortrait = new SpriteInfoPath()
             {
-                CachePath = Path.Combine(Paths.PluginPath, _pluginFolder, "images", $"{name}_cellphonePortrait.png"),
+                CachePath = Path.Combine(ImagesDir, $"{name}_cellphonePortrait.png"),
                 IsExternal = true,
                 Path = texturePath,
                 TextureScale = KeepRatio(portraitSize, _cellphonePortraitSize)

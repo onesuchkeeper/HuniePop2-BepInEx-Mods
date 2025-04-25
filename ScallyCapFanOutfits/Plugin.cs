@@ -19,6 +19,7 @@ public class Plugin : BaseUnityPlugin
         Styles.AddLailaniStyles();
         Styles.AddCandaceStyles();
         Styles.AddLillianStyles();
+        Styles.AddKyuStyles();
 
         ModInterface.Events.PreLoadPlayerFile += On_PrePersistenceReset;
     }

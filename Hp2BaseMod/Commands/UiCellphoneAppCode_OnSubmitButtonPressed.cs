@@ -29,7 +29,7 @@ public static class UiCellphoneAppCode_OnSubmitButtonPressed
             ModInterface.Log.LogInfo($"Submitted code: {input}, handled as command input");
             var inputSplit = input.Substring(1, input.Length - 1).Split(' ');
 
-            var success = ModInterface.TryExecute(inputSplit.First(), inputSplit.Skip(1).ToArray(), out var result);
+            var success = ModInterface.TryExecuteCommand(inputSplit.First(), inputSplit.Skip(1).ToArray(), out var result);
 
             ModInterface.Log.LogInfo($"Command {(success ? "succeeded" : "failed")}: {result}");
 

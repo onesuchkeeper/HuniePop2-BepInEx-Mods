@@ -22,7 +22,7 @@ namespace Hp2BaseMod.Utility
         public static Texture2D Empty() => new Texture2D(0, 0, TextureFormat.ARGB32, false);
 
         public static Sprite TextureToSprite(Texture2D texture, Vector2 pivot) => Sprite.Create(texture,
-                                                                                  new Rect(0, 0, texture.width, texture.height),
-                                                                                  pivot);
+            new Rect(0, 0, texture.width, texture.height),
+            pivot);
     }
 }

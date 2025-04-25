@@ -64,6 +64,25 @@ public struct RelativeId
 
     public override string ToString() => $"{SourceId}.{LocalId}";
 
+    public static bool TryParse(string str, out RelativeId relativeId)
+    {
+        if (!string.IsNullOrWhiteSpace(str))
+        {
+            var split = str.Split('.');
+
+            if (split.Length == 2
+                && int.TryParse(split[0], out var sourceId)
+                && int.TryParse(split[1], out var localId))
+            {
+                relativeId = new RelativeId(sourceId, localId);
+                return true;
+            }
+        }
+
+        relativeId = Default;
+        return false;
+    }
+
     public class Converter : TypeConverter
     {
         public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType)
@@ -77,17 +96,9 @@ public struct RelativeId
         }
         public override object ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, object value)
         {
-
-            if (value is string str)
+            if (value is string str && RelativeId.TryParse(str, out var relativeId))
             {
-                var split = str.Split('.');
-
-                if (split.Length == 2
-                    && int.TryParse(split[0], out var sourceId)
-                    && int.TryParse(split[1], out var localId))
-                {
-                    return new RelativeId(sourceId, localId);
-                }
+                return relativeId;
             }
 
             return base.ConvertFrom(context, culture, value);

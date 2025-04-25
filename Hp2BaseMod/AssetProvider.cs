@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using Hp2BaseMod.Extension.IEnumerableExtension;
 using Hp2BaseMod.GameDataInfo.Interface;
+using Hp2BaseMod.Utility;
 using UnityEngine;
 using UnityEngine.U2D;
 
@@ -15,19 +16,34 @@ namespace Hp2BaseMod
     /// </summary>
     public class AssetProvider
     {
-        public Dictionary<string, Texture2D> ExternalTextures = new Dictionary<string, Texture2D>();
-        public Dictionary<string, SpriteAtlas> ExternalAtlases = new Dictionary<string, SpriteAtlas>();
+        public Sprite EmptySprite => _emptySprite;
+        private readonly Sprite _emptySprite = Sprite.Create(TextureUtility.Empty(), new Rect(0, 0, 0, 0), Vector2.zero);
 
-        private Dictionary<string, UnityEngine.Object> Assets = new Dictionary<string, Object>();
-        private HashSet<string> _internalSpriteRequests = new HashSet<string>();
-        private HashSet<string> _internalAudioRequests = new HashSet<string>();
+        public IReadOnlyDictionary<string, Texture2D> ExternalTextures => _externalTextures;
+        private readonly Dictionary<string, Texture2D> _externalTextures = new Dictionary<string, Texture2D>();
+
+        public readonly Dictionary<string, SpriteAtlas> ExternalAtlases = new Dictionary<string, SpriteAtlas>();
+
+        private readonly Dictionary<string, UnityEngine.Object> Assets;
+
+        private readonly HashSet<string> _internalSpriteRequests = new HashSet<string>();
+        private readonly HashSet<string> _internalAudioRequests = new HashSet<string>();
+
+        public AssetProvider()
+        {
+            Assets = new Dictionary<string, Object>()
+            {
+                {nameof(EmptySprite), _emptySprite}
+            };
+        }
 
         #region Internal Asset Requests
 
         public void RequestInternalSprite(string path) => _internalSpriteRequests.Add(path);
-        public void RequestInternalSprite(IEnumerable<string> paths) => paths.ForEach(x => _internalSpriteRequests.Add(x));
+        public void RequestInternalSprite(params IEnumerable<string> paths) => paths.ForEach(x => _internalSpriteRequests.Add(x));
+
         public void RequestInternalAudio(string path) => _internalAudioRequests.Add(path);
-        public void RequestInternalAudio(IEnumerable<string> paths) => paths.ForEach(x => _internalAudioRequests.Add(x));
+        public void RequestInternalAudio(params IEnumerable<string> paths) => paths.ForEach(x => _internalAudioRequests.Add(x));
 
         internal void RequestInternals<D>(IGameDataMod<D> mod)
         {
@@ -76,8 +92,6 @@ namespace Hp2BaseMod
             }
         }
 
-        #endregion
-
         internal void AddAsset(string identifier, UnityEngine.Object asset)
         {
             if (identifier == null) { return; }
@@ -86,6 +100,10 @@ namespace Hp2BaseMod
                 Assets.Add(identifier, asset);
             }
         }
+
+        internal void AddExternalTexture(string identifier, Texture2D sprite) => _externalTextures[identifier] = sprite;
+
+        #endregion
 
         public T GetAsset<T>(string identifier) => (T)GetAsset(identifier);
 

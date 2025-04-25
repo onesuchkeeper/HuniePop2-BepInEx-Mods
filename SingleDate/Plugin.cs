@@ -14,106 +14,18 @@ namespace SingleDate;
 [BepInDependency("OSK.BepInEx.Hp2BaseMod", "1.0.0")]
 public class Plugin : BaseUnityPlugin
 {
+    public static readonly string RootDir = Path.Combine(Paths.PluginPath, "SingleDate");
+    public static readonly string ImagesDir = Path.Combine(RootDir, "images");
+
     private void Awake()
     {
         State.On_Plugin_Awake();
 
-        var emptyPartId = new RelativeId(State.ModId, 0);
-        var emptySpriteInfo = new SpriteInfoPath()
-        {
-            Path = "EmptySprite",
-            IsExternal = false
-        };
+        GirlNobody.AddDataMods();
+        ItemSensitivitySmoothie.AddDataMods();
+        PhotoLailani.AddDataMods();
 
-        ModInterface.AddDataMod(new GirlDataMod(new RelativeId(State.ModId, 0), InsertStyle.replace)
-        {
-            GirlName = "Nobody",
-            SpecialCharacter = true,
-
-            parts = new List<IGirlSubDataMod<GirlPartSubDefinition>>()
-            {
-                new GirlPartDataMod(emptyPartId, InsertStyle.replace) {
-                    X = 0,
-                    Y = 0,
-                    PartType = GirlPartType.BODY,
-                    PartName = "Body",
-                    SpriteInfo = emptySpriteInfo
-                }
-            },
-
-            PartIdBody = emptyPartId,
-            PartIdBlink = emptyPartId,
-            PartIdBlushHeavy = emptyPartId,
-            PartIdBlushLight = emptyPartId,
-            PartIdMouthNeutral = emptyPartId,
-            PartIdNipples = emptyPartId,
-            HasAltStyles = false,
-
-            CellphoneHead = emptySpriteInfo,
-            CellphoneHeadAlt = emptySpriteInfo,
-            CellphoneMiniHead = emptySpriteInfo,
-            CellphoneMiniHeadAlt = emptySpriteInfo,
-            CellphonePortrait = emptySpriteInfo,
-            CellphonePortraitAlt = emptySpriteInfo,
-
-            DefaultExpressionIndex = 0,
-            DefaultHairstyleId = emptyPartId,
-            DefaultOutfitId = emptyPartId,
-
-            expressions = new List<IGirlSubDataMod<GirlExpressionSubDefinition>>(){
-                new GirlExpressionDataMod(emptyPartId, InsertStyle.replace)
-                {
-                    ExpressionType = GirlExpressionType.NEUTRAL,
-                    PartIdEyebrows = RelativeId.Default,
-                    PartIdEyes = RelativeId.Default,
-                    PartIdEyesGlow = RelativeId.Default,
-                    PartIdMouthClosed = RelativeId.Default,
-                    PartIdMouthOpen = RelativeId.Default
-                }
-            },
-
-            hairstyles = new List<IGirlSubDataMod<ExpandedHairstyleDefinition>>(){
-                new HairstyleDataMod(emptyPartId, InsertStyle.replace){
-                    Name = string.Empty,
-                    FrontHairPartId = RelativeId.Default,
-                    BackHairPartId = RelativeId.Default
-                }
-            },
-
-            outfits = new List<IGirlSubDataMod<ExpandedOutfitDefinition>>()
-            {
-                new OutfitDataMod(emptyPartId, InsertStyle.replace)
-                {
-                    Name = string.Empty,
-                    OutfitPartId = RelativeId.Default
-                }
-            }
-        });
-
-        var lailaniPhotoInfo = new SpriteInfoPath()
-        {
-            IsExternal = true,
-            Path = Path.Combine(Paths.PluginPath, "SingleDate", "images", "photo_lailani_1.png")
-        };
-
-        var lailaniPhotoThumbInfo = new SpriteInfoPath()
-        {
-            IsExternal = true,
-            Path = Path.Combine(Paths.PluginPath, "SingleDate", "images", "photo_lailani_1_thumb.png")
-        };
-
-        ModInterface.AddDataMod(new PhotoDataMod(new RelativeId(State.ModId, 0), InsertStyle.replace)
-        {
-            HasAlts = false,
-
-            BigPhotoCensored = lailaniPhotoInfo,
-            BigPhotoUncensored = lailaniPhotoInfo,
-            BigPhotoWet = lailaniPhotoInfo,
-
-            ThumbnailCensored = lailaniPhotoThumbInfo,
-            ThumbnailUncensored = lailaniPhotoThumbInfo,
-            ThumbnailWet = lailaniPhotoThumbInfo,
-        });
+        UiPrefabs.InitExternals();
 
         ModInterface.Events.PreDataMods += On_PreDataMods;
         ModInterface.Events.PreGameSave += State.On_PreGameSave;
@@ -126,7 +38,7 @@ public class Plugin : BaseUnityPlugin
     {
         ModInterface.Events.PreDataMods -= On_PreDataMods;
 
-        //meeting cutscene
+        //meeting cutscenes
         ModInterface.AddDataMod(new CutsceneDataMod(new RelativeId(State.ModId, 0), InsertStyle.replace)
         {
             CleanUpType = CutsceneCleanUpType.NONE,

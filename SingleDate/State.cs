@@ -16,34 +16,38 @@ public static class State
     public static int ModId => _modId;
     private static int _modId;
 
-    public static SaveFile Save => _save;
-    private static SaveFile _save;
+    public static SaveFile Save
+    {
+        get
+        {
+            while (_save.SaveFiles.Count - 1 < Game.Persistence.loadedFileIndex)
+            {
+                _save.SaveFiles.Add(new SaveFile());
+            }
+
+            return _save.SaveFiles[Game.Persistence.loadedFileIndex];
+        }
+    }
+    private static SaveData _save;
+
+    public static bool ShowSingleUpsetHint => _save.ShowSingleUpsetHint;
 
     public static bool IsSingleDate => _isSingleDate;
     private static bool _isSingleDate;
 
     public static bool IsSingle(GirlPairDefinition def)
     {
-        if (def == null)
+        if (def == null || def.girlDefinitionOne == null)
         {
             return false;
         }
 
-        var id = ModInterface.Data.GetDataId(GameDataType.GirlPair, def.id);
-
-        return id.SourceId == ModId;
+        return ModInterface.Data.GetDataId(GameDataType.Girl, def.girlDefinitionOne.id) == GirlNobody.Id;
     }
 
-    public static float GetBrokenMult(RelativeId girlId)
-    {
-        if (!Save.SensitivityLevel.TryGetValue(girlId, out var sensitivityLevel))
-        {
-            sensitivityLevel = 0;
-            Save.SensitivityLevel[girlId] = sensitivityLevel;
-        }
+    public static float GetBrokenMult() => _baseBrokenMult - (GetSensitivityLevel() * _deltaBrokenMult);
 
-        return _baseBrokenMult - (sensitivityLevel * _deltaBrokenMult);
-    }
+    public static int GetSensitivityLevel() => Save.SensitivityExp / 6;
 
     public static void On_UiPuzzleGrid_Start(UiPuzzleGrid uiPuzzleGrid)
     {
@@ -71,10 +75,10 @@ public static class State
 
         if (!saveStr.IsNullOrWhiteSpace())
         {
-            _save = JsonConvert.DeserializeObject<SaveFile>(saveStr);
+            _save = JsonConvert.DeserializeObject<SaveData>(saveStr);
         }
 
-        _save ??= new SaveFile();
+        _save ??= new SaveData();
         _save.Clean();
     }
 }

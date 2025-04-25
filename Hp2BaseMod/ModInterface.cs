@@ -117,7 +117,7 @@ public static class ModInterface
             _modSaveData = JsonConvert.DeserializeObject<ModSaveData>(File.ReadAllText(_modSavePath));
             if (_modSaveData == null)
             {
-                Log.LogError("Failed to load mod save data");
+                Log.LogWarning("Failed to load mod save data");
                 _modSaveData = new ModSaveData();
             }
         }
@@ -127,6 +127,7 @@ public static class ModInterface
         }
 
         _idPool = new SetManager<int>(new IntOpHandler(), _modSaveData.SourceGUID_Id.Values);
+        _idPool.AddItem(-1);
 
         _sourceId_GUID = new Dictionary<int, string>();
         foreach (var guid_id in _modSaveData.SourceGUID_Id)
@@ -162,8 +163,15 @@ public static class ModInterface
         }
     }
 
+    /// <summary>
+    /// Gets the internal id for the provided sourceGUID. 
+    /// sourceGUIDs are not case-sensitive.
+    /// If an id for the provided sourceGUID does not exist one will be assigned.
+    /// </summary>
     public static int GetSourceId(string sourceGUID)
     {
+        sourceGUID = sourceGUID.ToUpper();
+
         if (_modSaveData.SourceGUID_Id.TryGetValue(sourceGUID, out var sourceId))
         {
             return sourceId;
@@ -176,6 +184,26 @@ public static class ModInterface
         return sourceId;
     }
 
+    /// <summary>
+    /// Attempts to get the internal id for the provided sourceGUID. Returns false if no internal id has been assigned. 
+    /// </summary>
+    public static bool TryGetSourceId(string sourceGUID, out int id)
+    {
+        sourceGUID = sourceGUID.ToUpper();
+
+        if (_modSaveData.SourceGUID_Id.TryGetValue(sourceGUID, out var sourceId))
+        {
+            id = sourceId;
+            return true;
+        }
+
+        id = -1;
+        return false;
+    }
+
+    /// <summary>
+    /// Returns the sourceGUID for the internal id. Returns null if no internal id has been assigned.
+    /// </summary>
     public static string GetSourceGUID(int sourceId)
     {
         if (_sourceId_GUID.TryGetValue(sourceId, out var guid))
@@ -187,17 +215,23 @@ public static class ModInterface
         return null;
     }
 
+    /// <summary>
+    /// Sets the source's save string. This string will be added to the save file and available on load.
+    /// </summary>
     public static void SetSourceSave(int sourceId, string data)
     {
         _modSaveData.SourceSaves ??= new Dictionary<int, string>();
         _modSaveData.SourceSaves[sourceId] = data;
     }
 
+    /// <summary>
+    /// Returns the source's save string or null if one has not been set
+    /// </summary>
     public static string GetSourceSave(int sourceId) => (_modSaveData.SourceSaves?.TryGetValue(sourceId, out var saveString) ?? false)
         ? saveString :
         null;
 
-    public static bool TryExecute(string commandName, string[] parameters, out string result)
+    public static bool TryExecuteCommand(string commandName, string[] parameters, out string result)
     {
         if (_commands.TryGetValue(commandName, out var command))
         {
