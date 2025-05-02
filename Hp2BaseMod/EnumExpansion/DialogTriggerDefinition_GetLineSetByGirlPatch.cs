@@ -12,9 +12,9 @@ namespace Hp2BaseMod.EnumExpansion
         {
             try
             {
-                var dialogTriggerIndex = ModInterface.Data.GetGirlDialogTriggerIndex(ModInterface.Data.GetDataId(GameDataType.Girl, girlDef.id));
+                var girlExpansion = ExpandedGirlDefinition.Get(girlDef);
 
-                var set = __instance.dialogLineSets[dialogTriggerIndex];
+                var set = __instance.dialogLineSets[girlExpansion.DialogTriggerIndex];
 
                 if (set.dialogLines.Count > 0)
                 {

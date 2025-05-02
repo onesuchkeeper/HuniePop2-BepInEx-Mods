@@ -23,37 +23,6 @@ namespace Hp2BaseMod
         private readonly Dictionary<RelativeId, Dictionary<RelativeId, GirlStyleInfo>> _locationIdToLocationStyleInfo = new Dictionary<RelativeId, Dictionary<RelativeId, GirlStyleInfo>>();
 
         /// <summary>
-        /// Maps a girl's id to its dialogTrigger index
-        /// </summary>
-        private readonly Dictionary<RelativeId, int> _girlIdToDialogTriggerIndex = new Dictionary<RelativeId, int>();
-        private readonly Dictionary<RelativeId, Dictionary<RelativeId, Dictionary<RelativeId, int>>> _dtIdToGirlIdToLineIndexLookup = new Dictionary<RelativeId, Dictionary<RelativeId, Dictionary<RelativeId, int>>>();
-        private readonly Dictionary<RelativeId, Dictionary<RelativeId, Dictionary<int, RelativeId>>> _dtIdToGirlIdToLineIdLookup = new Dictionary<RelativeId, Dictionary<RelativeId, Dictionary<int, RelativeId>>>();
-
-        /// <summary>
-        /// Maps a girls id to a lookup from a <see cref="RelativeId"/> to an index of the girl's outfits
-        /// </summary>
-        private readonly Dictionary<RelativeId, Dictionary<RelativeId, int>> _girlIdToOutfitIndexLookup = new Dictionary<RelativeId, Dictionary<RelativeId, int>>();
-        private readonly Dictionary<RelativeId, Dictionary<int, RelativeId>> _girlIdToOutfitIdLookup = new Dictionary<RelativeId, Dictionary<int, RelativeId>>();
-
-        /// <summary>
-        /// Maps a girls id to a lookup from a <see cref="RelativeId"/> to an index of the girl's hairstyles
-        /// </summary>
-        private readonly Dictionary<RelativeId, Dictionary<RelativeId, int>> _girlIdToHairstyleIndexLookup = new Dictionary<RelativeId, Dictionary<RelativeId, int>>();
-        private readonly Dictionary<RelativeId, Dictionary<int, RelativeId>> _girlIdToHairstyleIdLookup = new Dictionary<RelativeId, Dictionary<int, RelativeId>>();
-
-        /// <summary>
-        /// Maps a girls id to a lookup from a <see cref="RelativeId"/> to an index of the girl's parts
-        /// </summary>
-        private readonly Dictionary<RelativeId, Dictionary<RelativeId, int>> _girlIdToPartIndexLookup = new Dictionary<RelativeId, Dictionary<RelativeId, int>>();
-        private readonly Dictionary<RelativeId, Dictionary<int, RelativeId>> _girlIdToPartIdLookup = new Dictionary<RelativeId, Dictionary<int, RelativeId>>();
-
-        /// <summary>
-        /// Maps a girls id to a lookup from a <see cref="RelativeId"/> to an index of the girl's expressions
-        /// </summary>
-        private readonly Dictionary<RelativeId, Dictionary<RelativeId, int>> _girlIdToExpressionIndexLookup = new Dictionary<RelativeId, Dictionary<RelativeId, int>>();
-        private readonly Dictionary<RelativeId, Dictionary<int, RelativeId>> _girlIdToExpressionIdLookup = new Dictionary<RelativeId, Dictionary<int, RelativeId>>();
-
-        /// <summary>
         /// Map fruit id and index
         /// </summary>
         private readonly Dictionary<RelativeId, int> _fruitIdToIndex = new Dictionary<RelativeId, int>();
@@ -248,110 +217,6 @@ namespace Hp2BaseMod
             return false;
         }
 
-        internal bool TryRegisterGirlDialogTrigger(RelativeId girlId, int index)
-        {
-            if (!_girlIdToDialogTriggerIndex.ContainsKey(girlId))
-            {
-                _girlIdToDialogTriggerIndex.Add(girlId, index);
-                return true;
-            }
-            return false;
-        }
-
-        internal bool TryRegisterOutfit(RelativeId girlId, int index, RelativeId outfitId)
-        {
-            if (!_girlIdToOutfitIndexLookup.ContainsKey(girlId))
-            {
-                _girlIdToOutfitIndexLookup.Add(girlId, new Dictionary<RelativeId, int>() { { RelativeId.Default, -1 } });
-                _girlIdToOutfitIdLookup.Add(girlId, new Dictionary<int, RelativeId>() { { -1, RelativeId.Default } });
-            }
-
-            if (!_girlIdToOutfitIndexLookup[girlId].ContainsKey(outfitId))
-            {
-                _girlIdToOutfitIndexLookup[girlId].Add(outfitId, index);
-                _girlIdToOutfitIdLookup[girlId].Add(index, outfitId);
-                return true;
-            }
-
-            return false;
-        }
-
-        internal bool TryRegisterHairstyle(RelativeId girlId, int index, RelativeId hairstyleId)
-        {
-            if (!_girlIdToHairstyleIndexLookup.ContainsKey(girlId))
-            {
-                _girlIdToHairstyleIndexLookup.Add(girlId, new Dictionary<RelativeId, int>() { { RelativeId.Default, -1 } });
-                _girlIdToHairstyleIdLookup.Add(girlId, new Dictionary<int, RelativeId>() { { -1, RelativeId.Default } });
-            }
-
-            if (!_girlIdToHairstyleIndexLookup[girlId].ContainsKey(hairstyleId))
-            {
-                _girlIdToHairstyleIndexLookup[girlId].Add(hairstyleId, index);
-                _girlIdToHairstyleIdLookup[girlId].Add(index, hairstyleId);
-                return true;
-            }
-
-            return false;
-        }
-
-        internal bool TryRegisterPart(RelativeId girlId, int index, RelativeId partId)
-        {
-            if (!_girlIdToPartIndexLookup.ContainsKey(girlId))
-            {
-                _girlIdToPartIndexLookup.Add(girlId, new Dictionary<RelativeId, int>() { { RelativeId.Default, -1 } });
-                _girlIdToPartIdLookup.Add(girlId, new Dictionary<int, RelativeId>() { { -1, RelativeId.Default } });
-            }
-
-            if (!_girlIdToPartIndexLookup[girlId].ContainsKey(partId))
-            {
-                _girlIdToPartIndexLookup[girlId].Add(partId, index);
-                _girlIdToPartIdLookup[girlId].Add(index, partId);
-                return true;
-            }
-            return false;
-        }
-
-        internal bool TryRegisterExpression(RelativeId girlId, int index, RelativeId expressionId)
-        {
-            if (!_girlIdToExpressionIndexLookup.ContainsKey(girlId))
-            {
-                _girlIdToExpressionIndexLookup.Add(girlId, new Dictionary<RelativeId, int>() { { RelativeId.Default, -1 } });
-                _girlIdToExpressionIdLookup.Add(girlId, new Dictionary<int, RelativeId>() { { -1, RelativeId.Default } });
-            }
-
-            if (!_girlIdToExpressionIndexLookup[girlId].ContainsKey(expressionId))
-            {
-                _girlIdToExpressionIndexLookup[girlId].Add(expressionId, index);
-                _girlIdToExpressionIdLookup[girlId].Add(index, expressionId);
-                return true;
-            }
-            return false;
-        }
-
-        internal bool TryRegisterLine(RelativeId dialogTriggerId, RelativeId girlId, int index, RelativeId lineId)
-        {
-            if (!_dtIdToGirlIdToLineIndexLookup.ContainsKey(dialogTriggerId))
-            {
-                _dtIdToGirlIdToLineIndexLookup.Add(dialogTriggerId, new Dictionary<RelativeId, Dictionary<RelativeId, int>>());
-                _dtIdToGirlIdToLineIdLookup.Add(dialogTriggerId, new Dictionary<RelativeId, Dictionary<int, RelativeId>>());
-            }
-
-            if (!_dtIdToGirlIdToLineIndexLookup[dialogTriggerId].ContainsKey(girlId))
-            {
-                _dtIdToGirlIdToLineIndexLookup[dialogTriggerId].Add(girlId, new Dictionary<RelativeId, int>());
-                _dtIdToGirlIdToLineIdLookup[dialogTriggerId].Add(girlId, new Dictionary<int, RelativeId>());
-            }
-
-            if (!_dtIdToGirlIdToLineIndexLookup[dialogTriggerId][girlId].ContainsKey(lineId))
-            {
-                _dtIdToGirlIdToLineIndexLookup[dialogTriggerId][girlId].Add(lineId, index);
-                _dtIdToGirlIdToLineIdLookup[dialogTriggerId][girlId].Add(index, lineId);
-                return true;
-            }
-
-            return false;
-        }
-
         internal void RegisterFunctionalAilments(IEnumerable<IFunctionalAilmentDataMod> mods)
         {
             foreach (var mod in mods)
@@ -410,9 +275,6 @@ namespace Hp2BaseMod
 
         public IEnumerable<RelativeId> GetIds(GameDataType type) => _dataIds[type];
 
-        public int GetLineIndex(RelativeId dialogTriggerId, RelativeId girlId, RelativeId lineId) => _dtIdToGirlIdToLineIndexLookup[dialogTriggerId][girlId][lineId];
-        public RelativeId GetLineId(RelativeId dialogTriggerId, RelativeId girlId, int lineIndex) => _dtIdToGirlIdToLineIdLookup[dialogTriggerId][girlId][lineIndex];
-
         public GirlStyleInfo GetLocationStyleInfo(RelativeId locationId, RelativeId girlId) => _locationIdToLocationStyleInfo[locationId][girlId];
         public bool TryGetLocationStyleInfo(RelativeId locationId, RelativeId girlId, out GirlStyleInfo girlStyleInfo)
         {
@@ -427,8 +289,6 @@ namespace Hp2BaseMod
         }
 
         public bool TryGetPairStyleInfo(RelativeId pairId, out PairStyleInfo pairStyleInfo) => _pairIdToPairStyleInfo.TryGetValue(pairId, out pairStyleInfo);
-
-        public int GetGirlDialogTriggerIndex(RelativeId girlId) => _girlIdToDialogTriggerIndex[girlId];
 
         public int GetRuntimeDataId(GameDataType dataModType, RelativeId id) => _relativeIdToRuntimeId[dataModType][id];
 
@@ -470,127 +330,6 @@ namespace Hp2BaseMod
 
             id = RelativeId.Default;
             return false;
-        }
-
-        public int? GetOutfitIndex(RelativeId? girlId, RelativeId? id) => girlId.HasValue ? GetOutfitIndex(girlId.Value, id) : null;
-        public int? GetOutfitIndex(RelativeId girlId, RelativeId? id) => id.HasValue ? (int?)GetOutfitIndex(girlId, id.Value) : null;
-        public int GetOutfitIndex(RelativeId girlId, RelativeId id) => _girlIdToOutfitIndexLookup[girlId][id];
-        public bool TryGetOutfitIndex(RelativeId girlId, RelativeId id, out int index)
-        {
-            if (_girlIdToOutfitIndexLookup.TryGetValue(girlId, out var idLookup)
-                && idLookup.TryGetValue(id, out index))
-            {
-                return true;
-            }
-
-            index = -1;
-            return false;
-        }
-
-        public IEnumerable<RelativeId> GetAllOutfitIds(RelativeId girlId) => _girlIdToOutfitIdLookup[girlId].Values;
-        public RelativeId GetOutfitId(RelativeId girlId, int index) => _girlIdToOutfitIdLookup[girlId][index];
-        public bool TryGetOutfitId(RelativeId girlId, int index, out RelativeId id)
-        {
-            if (_girlIdToOutfitIdLookup.TryGetValue(girlId, out var outfitIdLookup)
-                && outfitIdLookup.TryGetValue(index, out id))
-            {
-                return true;
-            }
-
-            id = RelativeId.Default;
-            return false;
-        }
-
-        public int? GetHairstyleIndex(RelativeId? girlId, RelativeId? id) => girlId.HasValue ? GetHairstyleIndex(girlId.Value, id) : null;
-        public int? GetHairstyleIndex(RelativeId girlId, RelativeId? id) => id.HasValue ? (int?)GetHairstyleIndex(girlId, id.Value) : null;
-        public int GetHairstyleIndex(RelativeId girlId, RelativeId id) => _girlIdToHairstyleIndexLookup[girlId][id];
-
-        public IEnumerable<RelativeId> GetAllHairstyleIds(RelativeId girlId) => _girlIdToHairstyleIdLookup[girlId].Values;
-        public RelativeId GetHairstyleId(RelativeId girlId, int index) => _girlIdToHairstyleIdLookup[girlId][index];
-        public bool TryGetHairstyleId(RelativeId girlId, int index, out RelativeId id)
-        {
-            if (_girlIdToHairstyleIdLookup.TryGetValue(girlId, out var hairstyleIdLookup)
-                && hairstyleIdLookup.TryGetValue(index, out id))
-            {
-                return true;
-            }
-
-            id = RelativeId.Default;
-            return false;
-        }
-
-        public bool TryGetHairstyleIndex(RelativeId girlId, RelativeId id, out int index)
-        {
-            if (_girlIdToHairstyleIndexLookup.TryGetValue(girlId, out var idLookup)
-                && idLookup.TryGetValue(id, out index))
-            {
-                return true;
-            }
-
-            index = -1;
-            return false;
-        }
-
-        public int? GetPartIndex(RelativeId girlId, RelativeId? id) => id.HasValue ? (int?)GetPartIndex(girlId, id.Value) : null;
-        public int GetPartIndex(RelativeId girlId, RelativeId id) => _girlIdToPartIndexLookup[girlId][id];
-        public RelativeId GetPartId(RelativeId girlId, int index) => _girlIdToPartIdLookup[girlId][index];
-
-        public int? GetExpressionIndex(RelativeId girlId, RelativeId? id) => id.HasValue ? (int?)GetExpressionIndex(girlId, id.Value) : null;
-        public int GetExpressionIndex(RelativeId girlId, RelativeId id) => _girlIdToExpressionIndexLookup[girlId][id];
-        public RelativeId GetExpressionId(RelativeId girlId, int index) => _girlIdToExpressionIdLookup[girlId][index];
-
-        #endregion
-
-        #region Cheatsy
-
-        public void SwapGirlStyles(RelativeId girlA, RelativeId girlB)
-        {
-            //_girlIdToDialogTriggerIndex;
-            //_girlIdToExpressionIdLookup;
-            //_girlIdToExpressionIndexLookup;
-
-            var hold = _girlIdToHairstyleIdLookup[girlA];
-            _girlIdToHairstyleIdLookup[girlA] = _girlIdToHairstyleIdLookup[girlB];
-            _girlIdToHairstyleIdLookup[girlB] = hold;
-
-            var hold2 = _girlIdToHairstyleIndexLookup[girlA];
-            _girlIdToHairstyleIndexLookup[girlA] = _girlIdToHairstyleIndexLookup[girlB];
-            _girlIdToHairstyleIndexLookup[girlB] = hold2;
-
-            hold = _girlIdToOutfitIdLookup[girlA];
-            _girlIdToOutfitIdLookup[girlA] = _girlIdToOutfitIdLookup[girlB];
-            _girlIdToOutfitIdLookup[girlB] = hold;
-
-            hold2 = _girlIdToOutfitIndexLookup[girlA];
-            _girlIdToOutfitIndexLookup[girlA] = _girlIdToOutfitIndexLookup[girlB];
-            _girlIdToOutfitIndexLookup[girlB] = hold2;
-
-            foreach (var locStyleInfo in _locationIdToLocationStyleInfo.Values)
-            {
-                if (!locStyleInfo.TryGetValue(girlA, out var a))
-                {
-                    a = new GirlStyleInfo();
-                }
-
-                if (!locStyleInfo.TryGetValue(girlB, out var b))
-                {
-                    b = new GirlStyleInfo();
-                }
-
-                locStyleInfo[girlA] = b;
-                locStyleInfo[girlB] = a;
-            }
-
-            // lets not do pairs, the pairs are randomized anyways
-            // foreach (var pairStyleInfo in _pairIdToPairStyleInfo.Values)
-            // {
-
-            // }
-
-            //_girlIdToPartIdLookup;
-            //_girlIdToPartIndexLookup;
-            //_dtIdToGirlIdToLineIdLookup;
-            //_dtIdToGirlIdToLineIndexLookup;
         }
 
         #endregion

@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 
 namespace Hp2BaseMod.Save;

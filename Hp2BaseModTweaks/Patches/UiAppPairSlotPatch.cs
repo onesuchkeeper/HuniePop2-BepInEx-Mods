@@ -1,4 +1,3 @@
-using System;
 using HarmonyLib;
 
 namespace Hp2BaseModTweaks;

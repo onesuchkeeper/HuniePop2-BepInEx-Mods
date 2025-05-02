@@ -1,12 +1,13 @@
 using System.Collections.Generic;
 using System.IO;
-using BepInEx;
 using Hp2BaseMod;
 using Hp2BaseMod.GameDataInfo;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
 
-public static partial class Styles
+namespace ScallyCapFanOutfits;
+
+internal static partial class Styles
 {
     private static readonly int _kyuBodyX = 420;
     private static readonly int _kyuBodyY = 968;
@@ -27,21 +28,21 @@ public static partial class Styles
                     SpriteInfo = new SpriteInfoPath()
                     {
                         IsExternal = true,
-                        Path = Path.Combine(Paths.PluginPath, @"ScallyCapFanOutfits\images\kyu_outfit_pamu.png")
+                        Path = Path.Combine(Plugin.ImageDir, @"kyu_outfit_pamu.png")
                     }
                 },
                 new GirlPartDataMod(Ids.BackhairPart1, InsertStyle.replace)
                 {
                     PartType = GirlPartType.BACKHAIR,
                     PartName = "pamuBackhairKyu",
-                    X = _kyuBodyX - 57,
-                    Y = _kyuBodyY + 79,
+                    X = _kyuBodyX - 58,
+                    Y = _kyuBodyY + 98,
                     MirroredPartId = RelativeId.Default,
                     AltPartId = null,
                     SpriteInfo = new SpriteInfoPath()
                     {
                         IsExternal = true,
-                        Path = Path.Combine(Paths.PluginPath, @"ScallyCapFanOutfits\images\kyu_backhair_pamu.png")
+                        Path = Path.Combine(Plugin.ImageDir, @"kyu_backhair_pamu.png")
                     }
                 },
                 new GirlPartDataMod(Ids.FronthairPart1, InsertStyle.replace)
@@ -55,7 +56,7 @@ public static partial class Styles
                     SpriteInfo = new SpriteInfoPath()
                     {
                         IsExternal = true,
-                        Path = Path.Combine(Paths.PluginPath, @"ScallyCapFanOutfits\images\kyu_fronthair_pamu.png")
+                        Path = Path.Combine(Plugin.ImageDir, @"kyu_fronthair_pamu.png")
                     }
                 }
             },

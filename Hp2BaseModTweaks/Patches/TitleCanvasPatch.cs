@@ -1,6 +1,5 @@
 ﻿// Hp2BaseModTweaks 2022, By OneSuchKeeper
 
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;

@@ -1,7 +1,5 @@
 ﻿// Hp2BaseMod 2022, By OneSuchKeeper
 
-using System.Collections.Generic;
-
 namespace Hp2BaseMod.GameDataInfo.Interface
 {
     public interface IGameDataMod<T>
@@ -18,15 +16,9 @@ namespace Hp2BaseMod.GameDataInfo.Interface
         void SetData(T def, GameDefinitionProvider gameData, AssetProvider assetProvider);
 
         /// <summary>
-        /// Returns an <see cref="IEnumerable{string}"/> of paths to internal sprite assets used in the definition.
+        /// Allows the mod an opportunity to request internal assets from the assetProvider 
+        /// which will be available during <see cref="SetData"/> via <see cref="AssetProvider.GetInternalAsset"/>
         /// </summary>
-        /// <returns></returns>
-        IEnumerable<string> GetInternalSpriteRequests();
-
-        /// <summary>
-        /// Returns an <see cref="IEnumerable{string}"/> of paths to internal audio assets used in the definition.
-        /// </summary>
-        /// <returns></returns>
-        IEnumerable<string> GetInternalAudioRequests();
+        void RequestInternals(AssetProvider assetProvider);
     }
 }

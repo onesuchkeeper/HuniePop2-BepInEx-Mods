@@ -1,7 +1,5 @@
 ﻿// Hp2BaseMod 2021, By OneSuchKeeper
 
-using System.Collections.Generic;
-using Hp2BaseMod.Extension.IEnumerableExtension;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
 using UnityEngine;
@@ -110,17 +108,13 @@ namespace Hp2BaseMod.GameDataInfo
         }
 
         /// <inheritdoc/>
-        public IEnumerable<string> GetInternalSpriteRequests() => IEnumerableExtension.OrEmptyIfNull(SfxMatchInfo?.GetInternalSpriteRequests())
-            .ConcatNN(TokenSpriteInfo?.GetInternalSpriteRequests())
-            .ConcatNN(OverSpriteInfo?.GetInternalSpriteRequests())
-            .ConcatNN(AltTokenSpriteInfo?.GetInternalSpriteRequests())
-            .ConcatNN(AltOverSpriteInfo?.GetInternalSpriteRequests());
-
-        /// <inheritdoc/>
-        public IEnumerable<string> GetInternalAudioRequests() => IEnumerableExtension.OrEmptyIfNull(SfxMatchInfo?.GetInternalAudioRequests())
-            .ConcatNN(TokenSpriteInfo?.GetInternalAudioRequests())
-            .ConcatNN(OverSpriteInfo?.GetInternalAudioRequests())
-            .ConcatNN(AltTokenSpriteInfo?.GetInternalAudioRequests())
-            .ConcatNN(AltOverSpriteInfo?.GetInternalAudioRequests());
+        public void RequestInternals(AssetProvider assetProvider)
+        {
+            SfxMatchInfo?.RequestInternals(assetProvider);
+            TokenSpriteInfo?.RequestInternals(assetProvider);
+            OverSpriteInfo?.RequestInternals(assetProvider);
+            AltTokenSpriteInfo?.RequestInternals(assetProvider);
+            AltOverSpriteInfo?.RequestInternals(assetProvider);
+        }
     }
 }

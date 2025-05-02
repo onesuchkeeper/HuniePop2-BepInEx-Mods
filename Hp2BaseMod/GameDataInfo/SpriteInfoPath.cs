@@ -132,7 +132,7 @@ namespace Hp2BaseMod.GameDataInfo
             }
             else
             {
-                def = (Sprite)ModInterface.Assets.GetAsset(Path);
+                def = ModInterface.Assets.GetInternalAsset<Sprite>(Path);
                 texture2D = def.texture;
             }
 
@@ -249,14 +249,11 @@ namespace Hp2BaseMod.GameDataInfo
         }
 
         /// <inheritdoc/>
-        public IEnumerable<string> GetInternalAudioRequests() => null;
-
-        /// <inheritdoc/>
-        public IEnumerable<string> GetInternalSpriteRequests()
+        public void RequestInternals(AssetProvider assetProvider)
         {
             if (!IsExternal)
             {
-                yield return Path;
+                assetProvider.RequestInternal(typeof(Sprite), Path);
             }
         }
     }

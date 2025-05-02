@@ -1,9 +1,7 @@
-﻿using BepInEx.Logging;
-using Hp2BaseMod.GameDataInfo;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
+using BepInEx.Logging;
 
 namespace Hp2BaseMod
 {

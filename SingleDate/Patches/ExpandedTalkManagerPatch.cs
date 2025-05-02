@@ -2,21 +2,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using HarmonyLib;
-using Hp2BaseMod;
 using Hp2BaseMod.Extension;
-using UnityEngine;
 
 namespace SingleDate;
 
 [HarmonyPatch(typeof(TalkManager))]
-public static class TalkManagerPatch
+internal static class TalkManagerPatch
 {
     [HarmonyPatch("TalkStep")]
     [HarmonyPrefix]
     public static bool TalkStep(TalkManager __instance) => ExpandedTalkManager.Get(__instance).TalkStep();
 }
 
-public class ExpandedTalkManager
+internal class ExpandedTalkManager
 {
     private static Dictionary<TalkManager, ExpandedTalkManager> _expansions
         = new Dictionary<TalkManager, ExpandedTalkManager>();

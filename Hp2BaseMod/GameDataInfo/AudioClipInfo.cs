@@ -1,9 +1,7 @@
 ﻿// Hp2BaseMod 2021, By OneSuchKeeper
 
 using System;
-using System.Collections.Generic;
 using System.IO;
-using BepInEx;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
 using UnityEngine;
@@ -28,7 +26,7 @@ namespace Hp2BaseMod.GameDataInfo
         /// Constructor from a definition instance.
         /// </summary>
         /// <param name="def">The definition.</param>
-        /// <param name="assetProvider">Asset provider containing the assest referenced by the definition.</param>
+        /// <param name="assetProvider">Asset provider containing the assets referenced by the definition.</param>
         public AudioClipInfo(AudioClip def, AssetProvider assetProvider)
         {
             if (def == null) { throw new ArgumentNullException(nameof(def)); }
@@ -67,20 +65,17 @@ namespace Hp2BaseMod.GameDataInfo
                 }
                 else
                 {
-                    def = (AudioClip)assetProvider.GetAsset(Path);
+                    def = assetProvider.GetInternalAsset<AudioClip>(Path);
                 }
             }
         }
 
         /// <inheritdoc/>
-        public IEnumerable<string> GetInternalSpriteRequests() => null;
-
-        /// <inheritdoc/>
-        public IEnumerable<string> GetInternalAudioRequests()
+        public void RequestInternals(AssetProvider assetProvider)
         {
             if (!IsExternal)
             {
-                yield return Path;
+                assetProvider.RequestInternal(typeof(Sprite), Path);
             }
         }
     }

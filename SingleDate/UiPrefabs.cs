@@ -11,7 +11,7 @@ namespace SingleDate;
 /// <summary>
 /// Holds unity engine objects to use as prefabs for alternate single date ui
 /// </summary>
-public static class UiPrefabs
+internal static class UiPrefabs
 {
     private static readonly string _charmsDir = Path.Combine(Paths.PluginPath, "..", "..", "Digital Art Collection", "Charms");
 

@@ -33,14 +33,6 @@ public struct RelativeId
     public static RelativeId Default => new RelativeId(-1, -1);
     public static RelativeId Zero => new RelativeId(-1, 0);
 
-    public override int GetHashCode()
-    {
-        int hashCode = -21478398;
-        hashCode = hashCode * -1521134295 + SourceId.GetHashCode();
-        hashCode = hashCode * -1521134295 + LocalId.GetHashCode();
-        return hashCode;
-    }
-
     public static bool operator !=(RelativeId x, RelativeId y)
     {
         return !(x == y);
@@ -50,6 +42,14 @@ public struct RelativeId
     {
         return x.SourceId == y.SourceId
                && x.LocalId == y.LocalId;
+    }
+
+    public override int GetHashCode()
+    {
+        int hashCode = -21478398;
+        hashCode = hashCode * -1521134295 + SourceId.GetHashCode();
+        hashCode = hashCode * -1521134295 + LocalId.GetHashCode();
+        return hashCode;
     }
 
     public override bool Equals(object obj)

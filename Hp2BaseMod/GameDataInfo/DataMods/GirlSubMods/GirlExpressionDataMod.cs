@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using Hp2BaseMod.GameDataInfo.Interface;
+﻿using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
 
 namespace Hp2BaseMod.GameDataInfo
@@ -52,19 +51,23 @@ namespace Hp2BaseMod.GameDataInfo
         /// <inheritdoc/>
         public void SetData(ref GirlExpressionSubDefinition def, GameDefinitionProvider gameData, AssetProvider assetProvider, InsertStyle insertStyle, RelativeId girlId)
         {
+            var girlExpansion = ExpandedGirlDefinition.Get(girlId);
+
             ValidatedSet.SetValue(ref def.expressionType, ExpressionType);
             ValidatedSet.SetValue(ref def.eyesClosed, EyesClosed);
             ValidatedSet.SetValue(ref def.mouthOpen, MouthOpen);
 
-            ValidatedSet.SetValue(ref def.partIndexEyebrows, ModInterface.Data.GetPartIndex(girlId, PartIdEyebrows));
-            ValidatedSet.SetValue(ref def.partIndexEyes, ModInterface.Data.GetPartIndex(girlId, PartIdEyes));
-            ValidatedSet.SetValue(ref def.partIndexEyesGlow, ModInterface.Data.GetPartIndex(girlId, PartIdEyesGlow));
-            ValidatedSet.SetValue(ref def.partIndexMouthClosed, ModInterface.Data.GetPartIndex(girlId, PartIdMouthClosed));
-            ValidatedSet.SetValue(ref def.partIndexMouthOpen, ModInterface.Data.GetPartIndex(girlId, PartIdMouthOpen));
+            ValidatedSet.SetValue(ref def.partIndexEyebrows, girlExpansion.PartIdToIndex, PartIdEyebrows);
+            ValidatedSet.SetValue(ref def.partIndexEyes, girlExpansion.PartIdToIndex, PartIdEyes);
+            ValidatedSet.SetValue(ref def.partIndexEyesGlow, girlExpansion.PartIdToIndex, PartIdEyesGlow);
+            ValidatedSet.SetValue(ref def.partIndexMouthClosed, girlExpansion.PartIdToIndex, PartIdMouthClosed);
+            ValidatedSet.SetValue(ref def.partIndexMouthOpen, girlExpansion.PartIdToIndex, PartIdMouthOpen);
         }
 
-        public IEnumerable<string> GetInternalSpriteRequests() => null;
-
-        public IEnumerable<string> GetInternalAudioRequests() => null;
+        /// <inheritdoc/>
+        public void RequestInternals(AssetProvider assetProvider)
+        {
+            //noop
+        }
     }
 }

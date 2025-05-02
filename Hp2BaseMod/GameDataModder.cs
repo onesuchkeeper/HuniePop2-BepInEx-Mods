@@ -31,6 +31,9 @@ namespace Hp2BaseMod
             //6) apply mods
             try
             {
+                var assetProvider = ModInterface.Assets;
+                var gameDataProvider = ModInterface.GameData;
+
                 ModInterface.Log.LogTitle("Modifying GameData");
                 using (ModInterface.Log.MakeIndent())
                 {
@@ -50,22 +53,52 @@ namespace Hp2BaseMod
                     var questionDataDict = GetDataDict<QuestionDefinition>(gameData, typeof(QuestionData), "_questionData");
                     var tokenDataDict = GetDataDict<TokenDefinition>(gameData, typeof(TokenData), "_tokenData");
 
+                    //replace outfits/hairstyles with expansions
+                    foreach (var girl in girlDataDict)
+                    {
+                        var i = 0;
+                        girl.Value.outfits = girl.Value.outfits.Select(x => (GirlOutfitSubDefinition)new ExpandedOutfitDefinition(x, i++)).ToList();
+                        i = 0;
+                        girl.Value.hairstyles = girl.Value.hairstyles.Select(x => (GirlHairstyleSubDefinition)new ExpandedHairstyleDefinition(x, i++)).ToList();
+                    }
+
                     // register default sub data
                     ModInterface.Log.LogInfo("registering default sub data");
                     using (ModInterface.Log.MakeIndent())
                     {
+                        ModInterface.Log.LogInfo("dialog triggers");
                         foreach (var dt in dialogTriggerDataDict.Values)
                         {
+                            var expansion = ExpandedDialogTriggerDefinition.Get(dt);
                             var id = new RelativeId(-1, dt.id);
 
                             // lines are looked up by trigger id and girl id.
                             var girlIndex = 0;
                             foreach (var lineSet in dt.dialogLineSets)
                             {
+                                var girlId = new RelativeId(-1, girlIndex);
                                 var lineIndex = 0;
                                 foreach (var line in lineSet.dialogLines)
                                 {
-                                    ModInterface.Data.TryRegisterLine(id, new RelativeId(-1, girlIndex), lineIndex, new RelativeId(-1, lineIndex));
+                                    var lineId = new RelativeId(-1, lineIndex);
+
+                                    if (!expansion.GirlIdToLineIdToLineIndex.TryGetValue(girlId, out var lineIndexLookup))
+                                    {
+                                        lineIndexLookup = new Dictionary<RelativeId, int>()
+                                        {
+                                            {RelativeId.Default, -1}
+                                        };
+                                        expansion.GirlIdToLineIdToLineIndex.Add(girlId, lineIndexLookup);
+                                    }
+
+                                    if (!expansion.GirlIdToLineIndexToLineId.TryGetValue(girlId, out var lineIdLookup))
+                                    {
+                                        lineIdLookup = new Dictionary<int, RelativeId>();
+                                        expansion.GirlIdToLineIndexToLineId.Add(girlId, lineIdLookup);
+                                    }
+
+                                    lineIndexLookup[lineId] = lineIndex;
+                                    lineIdLookup[lineIndex] = lineId;
 
                                     lineIndex++;
                                 }
@@ -73,26 +106,21 @@ namespace Hp2BaseMod
                                 girlIndex++;
                             }
                         }
+
+                        ModInterface.Log.LogInfo("girls");
                         foreach (var girl in girlDataDict.Values)
                         {
+                            var expansion = ExpandedGirlDefinition.Get(girl);
                             var id = new RelativeId(-1, girl.id);
-                            ModInterface.Data.TryRegisterGirlDialogTrigger(id, girl.id);
 
-                            for (var i = 0; i < girl.parts.Count; i++)
-                            {
-                                ModInterface.Data.TryRegisterPart(id, i, new RelativeId(-1, i));
-                            }
+                            expansion.DialogTriggerIndex = girl.id;
 
-                            for (var i = 0; i < girl.hairstyles.Count; i++)
-                            {
-                                ModInterface.Data.TryRegisterHairstyle(id, i, new RelativeId(-1, i));
-                            }
-
-                            for (var i = 0; i < girl.outfits.Count; i++)
-                            {
-                                ModInterface.Data.TryRegisterOutfit(id, i, new RelativeId(-1, i));
-                            }
+                            MapRelativeIdRange(expansion.PartIdToIndex, expansion.PartIndexToId, girl.parts.Count);
+                            MapRelativeIdRange(expansion.HairstyleIdToIndex, expansion.HairstyleIndexToId, girl.hairstyles.Count);
+                            MapRelativeIdRange(expansion.OutfitIdToIndex, expansion.OutfitIndexToId, girl.outfits.Count);
                         }
+
+                        ModInterface.Log.LogInfo("pairs");
                         foreach (var def in girlPairDataDict.Values)
                         {
                             var id = new RelativeId(-1, def.id);
@@ -104,6 +132,8 @@ namespace Hp2BaseMod
                                 SexGirlTwo = new GirlStyleInfo() { HairstyleId = new RelativeId(-1, (int)def.sexStyleTypeTwo), OutfitId = new RelativeId(-1, (int)def.sexStyleTypeTwo) }
                             });
                         }
+
+                        ModInterface.Log.LogInfo("locations");
                         foreach (var def in locationDataDict.Values)
                         {
                             var id = new RelativeId(-1, def.id);
@@ -122,13 +152,6 @@ namespace Hp2BaseMod
                             ModInterface.Data.RegisterLocationStyles(id, girlStyles);
                         }
                     }
-
-                    // asset provider
-                    var assetProvider = ModInterface.Assets;
-                    assetProvider.AddAsset("None", null);
-                    var emptyTexture = TextureUtility.Empty();
-                    assetProvider.AddAsset("EmptySprite", Sprite.Create(emptyTexture, new Rect(0, 0, emptyTexture.width, emptyTexture.height), Vector2.zero));
-                    var gameDataProvider = ModInterface.GameData;
 
                     ModInterface.Log.LogInfo("loading internal assets");
                     ModInterface.Log.IncreaseIndent();
@@ -266,107 +289,180 @@ namespace Hp2BaseMod
                     PreProcess(questionDataDict, questionDataMods, GameDataType.Question, assetProvider);
                     PreProcess(tokenDataDict, tokenDataMods, GameDataType.Token, assetProvider);
 
-                    // for these sub mods we can create empties and load them, because they don't reference one another
+                    // for these sub mods we can create empties and load them at the same time because they don't reference one another
                     ModInterface.Log.LogInfo("creating and registering data for new ids for sub mods");
                     using (ModInterface.Log.MakeIndent())
                     {
                         ModInterface.Log.LogInfo("dialog trigger indexes");
-                        int nextIndex = 16;//by default has one default (0), 12 for the normal girls, 1 for kyu, 2 for nymphojinn. 1+12+1+2=16
+                        int nextIndex = 16;//by default each has one default (0), 12 for the normal girls, 1 for kyu, 2 for nymphojinn. 1+12+1+2=16
                         foreach (var girlId in girlDataMods.Select(x => x.Id).Distinct())
                         {
-                            if (ModInterface.Data.TryRegisterGirlDialogTrigger(girlId, nextIndex))
+                            var girlExpansion = ExpandedGirlDefinition.Get(girlId);
+
+                            if (girlExpansion.DialogTriggerIndex == -1)
                             {
+                                girlExpansion.DialogTriggerIndex = nextIndex;
+
                                 foreach (var dialogTrigger in dialogTriggerDataDict.Values)
                                 {
                                     dialogTrigger.dialogLineSets.Add(new DialogTriggerLineSet());
                                 }
                                 nextIndex++;
                             }
+
+                            // if (ModInterface.Data.TryRegisterGirlDialogTrigger(girlId, nextIndex))
+                            // {
+                            //     foreach (var dialogTrigger in dialogTriggerDataDict.Values)
+                            //     {
+                            //         dialogTrigger.dialogLineSets.Add(new DialogTriggerLineSet());
+                            //     }
+                            //     nextIndex++;
+                            // }
                         }
 
                         ModInterface.Log.LogInfo("girl parts");
                         foreach (var girlIdToPartModsById in partModsByIdByGirl)
                         {
                             var girlDef = girlDataDict[ModInterface.Data.GetRuntimeDataId(GameDataType.Girl, girlIdToPartModsById.Key)];
+                            var expansion = ExpandedGirlDefinition.Get(girlDef);
 
-                            nextIndex = girlDef.parts.Count;
-                            foreach (var partId in girlIdToPartModsById.Value.Select(x => x.Key).Distinct())
-                            {
-                                if (ModInterface.Data.TryRegisterPart(girlIdToPartModsById.Key, nextIndex, partId))
-                                {
-                                    girlDef.parts.Add(new GirlPartSubDefinition());
-                                    nextIndex++;
-                                }
-                            }
+                            RegisterUnregisteredIds(expansion.PartIdToIndex,
+                                expansion.PartIndexToId,
+                                girlDef.parts.Count,
+                                girlIdToPartModsById.Value.Select(x => x.Key).Distinct(),
+                                () => girlDef.parts.Add(new GirlPartSubDefinition()));
+
+                            // nextIndex = girlDef.parts.Count;
+                            // foreach (var partId in girlIdToPartModsById.Value.Select(x => x.Key).Distinct())
+                            // {
+                            //     if (ModInterface.Data.TryRegisterPart(girlIdToPartModsById.Key, nextIndex, partId))
+                            //     {
+                            //         girlDef.parts.Add(new GirlPartSubDefinition());
+                            //         nextIndex++;
+                            //     }
+                            // }
                         }
 
                         ModInterface.Log.LogInfo("girl expressions");
                         foreach (var girlIdToExpressionModsById in expressionModsByIdByGirl)
                         {
                             var girlDef = girlDataDict[ModInterface.Data.GetRuntimeDataId(GameDataType.Girl, girlIdToExpressionModsById.Key)];
+                            var expansion = ExpandedGirlDefinition.Get(girlDef);
 
-                            nextIndex = girlDef.expressions.Count;
-                            foreach (var partId in girlIdToExpressionModsById.Value.Select(x => x.Key).Distinct())
-                            {
-                                if (ModInterface.Data.TryRegisterExpression(girlIdToExpressionModsById.Key, nextIndex, partId))
-                                {
-                                    girlDef.expressions.Add(new GirlExpressionSubDefinition());
-                                    nextIndex++;
-                                }
-                            }
+                            RegisterUnregisteredIds(expansion.ExpressionIdToIndex,
+                                expansion.ExpressionIndexToId,
+                                girlDef.expressions.Count,
+                                girlIdToExpressionModsById.Value.Select(x => x.Key).Distinct(),
+                                () => girlDef.expressions.Add(new GirlExpressionSubDefinition()));
+
+                            // nextIndex = girlDef.expressions.Count;
+                            // foreach (var partId in girlIdToExpressionModsById.Value.Select(x => x.Key).Distinct())
+                            // {
+                            //     if (ModInterface.Data.TryRegisterExpression(girlIdToExpressionModsById.Key, nextIndex, partId))
+                            //     {
+                            //         girlDef.expressions.Add(new GirlExpressionSubDefinition());
+                            //         nextIndex++;
+                            //     }
+                            // }
                         }
 
                         ModInterface.Log.LogInfo("girl outfits");
                         foreach (var girlIdToOutfitModsById in outfitModsByIdByGirl)
                         {
                             var girlDef = girlDataDict[ModInterface.Data.GetRuntimeDataId(GameDataType.Girl, girlIdToOutfitModsById.Key)];
+                            var expansion = ExpandedGirlDefinition.Get(girlDef);
 
-                            nextIndex = girlDef.outfits.Count;
-                            foreach (var outfitId in girlIdToOutfitModsById.Value.Select(x => x.Key).Distinct())
-                            {
-                                if (ModInterface.Data.TryRegisterOutfit(girlIdToOutfitModsById.Key, nextIndex, outfitId))
-                                {
-                                    girlDef.outfits.Add(new ExpandedOutfitDefinition());
-                                    nextIndex++;
-                                }
-                            }
+                            RegisterUnregisteredIds(expansion.OutfitIdToIndex,
+                                expansion.OutfitIndexToId,
+                                girlDef.outfits.Count,
+                                girlIdToOutfitModsById.Value.Select(x => x.Key).Distinct(),
+                                () => girlDef.outfits.Add(new ExpandedOutfitDefinition()));
+
+                            // nextIndex = girlDef.outfits.Count;
+                            // foreach (var outfitId in girlIdToOutfitModsById.Value.Select(x => x.Key).Distinct())
+                            // {
+                            //     if (ModInterface.Data.TryRegisterOutfit(girlIdToOutfitModsById.Key, nextIndex, outfitId))
+                            //     {
+                            //         girlDef.outfits.Add(new ExpandedOutfitDefinition());
+                            //         nextIndex++;
+                            //     }
+                            // }
                         }
 
                         ModInterface.Log.LogInfo("girl hairstyles");
                         foreach (var girlIdToHairstyleModsById in hairstyleModsByIdByGirl)
                         {
                             var girlDef = girlDataDict[ModInterface.Data.GetRuntimeDataId(GameDataType.Girl, girlIdToHairstyleModsById.Key)];
+                            var expansion = ExpandedGirlDefinition.Get(girlDef);
 
-                            nextIndex = girlDef.hairstyles.Count;
-                            foreach (var hairstyleId in girlIdToHairstyleModsById.Value.Select(x => x.Key).Distinct())
-                            {
-                                if (ModInterface.Data.TryRegisterHairstyle(girlIdToHairstyleModsById.Key, nextIndex, hairstyleId))
-                                {
-                                    girlDef.hairstyles.Add(new ExpandedHairstyleDefinition());
-                                    nextIndex++;
-                                }
-                            }
+                            RegisterUnregisteredIds(expansion.HairstyleIdToIndex,
+                                expansion.HairstyleIndexToId,
+                                girlDef.hairstyles.Count,
+                                girlIdToHairstyleModsById.Value.Select(x => x.Key).Distinct(),
+                                () => girlDef.hairstyles.Add(new ExpandedHairstyleDefinition()));
+
+                            // nextIndex = girlDef.hairstyles.Count;
+                            // foreach (var hairstyleId in girlIdToHairstyleModsById.Value.Select(x => x.Key).Distinct())
+                            // {
+                            //     if (ModInterface.Data.TryRegisterHairstyle(girlIdToHairstyleModsById.Key, nextIndex, hairstyleId))
+                            //     {
+                            //         girlDef.hairstyles.Add(new ExpandedHairstyleDefinition());
+                            //         nextIndex++;
+                            //     }
+                            // }
                         }
 
                         ModInterface.Log.LogInfo("girl lines");
-                        foreach (var girlIdToDialogLineModsByIdByDialogTrigger in dialogLineModsByIdByDialogTriggerByGirlId)
+                        foreach (var girlId_DialogLineModsByIdByDialogTrigger in dialogLineModsByIdByDialogTriggerByGirlId)
                         {
-                            var index = ModInterface.Data.GetGirlDialogTriggerIndex(girlIdToDialogLineModsByIdByDialogTrigger.Key);
+                            var girlExpansion = ExpandedGirlDefinition.Get(girlId_DialogLineModsByIdByDialogTrigger.Key);
 
-                            foreach (var dialogTriggerIdToDialogLineModsById in girlIdToDialogLineModsByIdByDialogTrigger.Value)
+                            foreach (var dialogTriggerId_DialogLineModsById in girlId_DialogLineModsByIdByDialogTrigger.Value)
                             {
-                                var dialogTriggerSet = dialogTriggerDataDict[ModInterface.Data.GetRuntimeDataId(GameDataType.DialogTrigger, dialogTriggerIdToDialogLineModsById.Key)].dialogLineSets[index];
+                                var dialogTrigger = gameDataProvider.GetDialogTrigger(dialogTriggerId_DialogLineModsById.Key);
+                                var dialogTriggerSet = dialogTrigger.dialogLineSets[girlExpansion.DialogTriggerIndex];
+                                var expansion = ExpandedDialogTriggerDefinition.Get(dialogTriggerId_DialogLineModsById.Key);
 
-                                nextIndex = dialogTriggerSet.dialogLines.Count;
+                                RegisterUnregisteredIds(expansion.GirlIdToLineIdToLineIndex[girlId_DialogLineModsByIdByDialogTrigger.Key],
+                                    expansion.GirlIdToLineIndexToLineId[girlId_DialogLineModsByIdByDialogTrigger.Key],
+                                    dialogTriggerSet.dialogLines.Count,
+                                    dialogTriggerId_DialogLineModsById.Value.Select(x => x.Key),
+                                    () => dialogTriggerSet.dialogLines.Add(new DialogLine()));
 
-                                foreach (var idToDialogLineMods in dialogTriggerIdToDialogLineModsById.Value)
-                                {
-                                    if (ModInterface.Data.TryRegisterLine(dialogTriggerIdToDialogLineModsById.Key, girlIdToDialogLineModsByIdByDialogTrigger.Key, nextIndex, idToDialogLineMods.Key))
-                                    {
-                                        dialogTriggerSet.dialogLines.Add(new DialogLine());
-                                        nextIndex++;
-                                    }
-                                }
+                                //nextIndex = dialogTriggerSet.dialogLines.Count;
+
+                                // foreach (var idToDialogLineMods in dialogTriggerId_DialogLineModsById.Value)
+                                // {
+                                //     if (ModInterface.Data.TryRegisterLine(dialogTriggerId_DialogLineModsById.Key, girlId_DialogLineModsByIdByDialogTrigger.Key, nextIndex, idToDialogLineMods.Key))
+                                //     {
+                                //         dialogTriggerSet.dialogLines.Add(new DialogLine());
+                                //         nextIndex++;
+                                //     }
+                                // }
+
+                                // internal bool TryRegisterLine(RelativeId dialogTriggerId, RelativeId girlId, int index, RelativeId lineId)
+                                // {
+                                //     if (!_dtIdToGirlIdToLineIndexLookup.ContainsKey(dialogTriggerId))
+                                //     {
+                                //         _dtIdToGirlIdToLineIndexLookup.Add(dialogTriggerId, new Dictionary<RelativeId, Dictionary<RelativeId, int>>());
+                                //         _dtIdToGirlIdToLineIdLookup.Add(dialogTriggerId, new Dictionary<RelativeId, Dictionary<int, RelativeId>>());
+                                //     }
+
+                                //     if (!_dtIdToGirlIdToLineIndexLookup[dialogTriggerId].ContainsKey(girlId))
+                                //     {
+                                //         _dtIdToGirlIdToLineIndexLookup[dialogTriggerId].Add(girlId, new Dictionary<RelativeId, int>());
+                                //         _dtIdToGirlIdToLineIdLookup[dialogTriggerId].Add(girlId, new Dictionary<int, RelativeId>());
+                                //     }
+
+                                //     if (!_dtIdToGirlIdToLineIndexLookup[dialogTriggerId][girlId].ContainsKey(lineId))
+                                //     {
+                                //         _dtIdToGirlIdToLineIndexLookup[dialogTriggerId][girlId].Add(lineId, index);
+                                //         _dtIdToGirlIdToLineIdLookup[dialogTriggerId][girlId].Add(index, lineId);
+                                //         return true;
+                                //     }
+
+                                //     return false;
+                                // }
                             }
                         }
 
@@ -381,119 +477,171 @@ namespace Hp2BaseMod
 
                     //Requesting internal data
                     ModInterface.Log.LogInfo("cataloging internal assets");
-                    assetProvider.FulfilInternalAssetRequests();
+                    using (ModInterface.Log.MakeIndent())
+                    {
+                        assetProvider.FulfilInternalAssetRequests();
+                    }
 
                     //setup defs
                     ModInterface.Log.LogInfo("applying mod data to game data");
                     using (ModInterface.Log.MakeIndent())
                     {
                         ModInterface.Log.LogInfo("abilities");
-                        SetData(abilityDataDict, abilityDataMods, gameDataProvider, assetProvider, GameDataType.Ability);
-
-                        ModInterface.Log.LogInfo("ailments");
-                        SetData(ailmentDataDict, ailmentDataMods, gameDataProvider, assetProvider, GameDataType.Ailment);
-
-                        ModInterface.Log.LogInfo("codes");
-                        SetData(codeDataDict, codeDataMods, gameDataProvider, assetProvider, GameDataType.Code);
-
-                        ModInterface.Log.LogInfo("cutscenes");
-                        SetData(cutsceneDataDict, cutsceneDataMods, gameDataProvider, assetProvider, GameDataType.Cutscene);
-
-                        ModInterface.Log.LogInfo("dialog triggers");
-                        SetData(dialogTriggerDataDict, dialogTriggerDataMods, gameDataProvider, assetProvider, GameDataType.DialogTrigger);
-
-                        ModInterface.Log.LogInfo("dlcs");
-                        SetData(dlcDataDict, dlcDataMods, gameDataProvider, assetProvider, GameDataType.Dlc);
-
-                        ModInterface.Log.LogInfo("energy");
-                        SetData(energyDataDict, energyDataMods, gameDataProvider, assetProvider, GameDataType.Energy);
-
-                        ModInterface.Log.LogInfo("girls");
-                        SetData(girlDataDict, girlDataMods, gameDataProvider, assetProvider, GameDataType.Girl);
                         using (ModInterface.Log.MakeIndent())
                         {
+                            SetData(abilityDataDict, abilityDataMods, gameDataProvider, assetProvider, GameDataType.Ability);
+                        }
+
+                        ModInterface.Log.LogInfo("ailments");
+                        using (ModInterface.Log.MakeIndent())
+                        {
+                            SetData(ailmentDataDict, ailmentDataMods, gameDataProvider, assetProvider, GameDataType.Ailment);
+                        }
+
+                        ModInterface.Log.LogInfo("codes");
+                        using (ModInterface.Log.MakeIndent())
+                        {
+                            SetData(codeDataDict, codeDataMods, gameDataProvider, assetProvider, GameDataType.Code);
+                        }
+
+                        ModInterface.Log.LogInfo("cutscenes");
+                        using (ModInterface.Log.MakeIndent())
+                        {
+                            SetData(cutsceneDataDict, cutsceneDataMods, gameDataProvider, assetProvider, GameDataType.Cutscene);
+                        }
+
+                        ModInterface.Log.LogInfo("dialog triggers");
+                        using (ModInterface.Log.MakeIndent())
+                        {
+                            SetData(dialogTriggerDataDict, dialogTriggerDataMods, gameDataProvider, assetProvider, GameDataType.DialogTrigger);
+                        }
+
+                        ModInterface.Log.LogInfo("dlcs");
+                        using (ModInterface.Log.MakeIndent())
+                        {
+                            SetData(dlcDataDict, dlcDataMods, gameDataProvider, assetProvider, GameDataType.Dlc);
+                        }
+
+                        ModInterface.Log.LogInfo("energy");
+                        using (ModInterface.Log.MakeIndent())
+                        {
+                            SetData(energyDataDict, energyDataMods, gameDataProvider, assetProvider, GameDataType.Energy);
+                        }
+
+                        ModInterface.Log.LogInfo("girls");
+                        using (ModInterface.Log.MakeIndent())
+                        {
+                            SetData(girlDataDict, girlDataMods, gameDataProvider, assetProvider, GameDataType.Girl);
+
                             ModInterface.Log.LogInfo("parts");
-                            foreach (var girlIdToModsByPartId in partModsByIdByGirl)
+                            using (ModInterface.Log.MakeIndent())
                             {
-                                var girl = girlDataDict[ModInterface.Data.GetRuntimeDataId(GameDataType.Girl, girlIdToModsByPartId.Key)];
-
-                                foreach (var partIdToMods in girlIdToModsByPartId.Value)
+                                foreach (var girlId_ModsByPartId in partModsByIdByGirl)
                                 {
-                                    var part = girl.parts[ModInterface.Data.GetPartIndex(girlIdToModsByPartId.Key, partIdToMods.Key)];
+                                    var girl = girlDataDict[ModInterface.Data.GetRuntimeDataId(GameDataType.Girl, girlId_ModsByPartId.Key)];
+                                    var expansion = ExpandedGirlDefinition.Get(girlId_ModsByPartId.Key);
 
-                                    foreach (var mod in partIdToMods.Value.OrderBy(x => x.LoadPriority))
+                                    foreach (var partId_Mods in girlId_ModsByPartId.Value)
                                     {
-                                        mod.SetData(ref part, gameDataProvider, assetProvider, InsertStyle.replace, girlIdToModsByPartId.Key);
+                                        var part = expansion.GetPart(girl, partId_Mods.Key);
+
+                                        foreach (var mod in partId_Mods.Value.OrderBy(x => x.LoadPriority))
+                                        {
+                                            mod.SetData(ref part, gameDataProvider, assetProvider, InsertStyle.replace, girlId_ModsByPartId.Key);
+                                        }
                                     }
                                 }
                             }
 
                             ModInterface.Log.LogInfo("expressions");
-                            foreach (var girlIdToModsByExpressionId in expressionModsByIdByGirl)
+                            using (ModInterface.Log.MakeIndent())
                             {
-                                var girl = girlDataDict[ModInterface.Data.GetRuntimeDataId(GameDataType.Girl, girlIdToModsByExpressionId.Key)];
-
-                                foreach (var expressionIdToMods in girlIdToModsByExpressionId.Value)
+                                foreach (var girlId_ModsByExpressionId in expressionModsByIdByGirl)
                                 {
-                                    var expression = girl.expressions[ModInterface.Data.GetPartIndex(girlIdToModsByExpressionId.Key, expressionIdToMods.Key)];
+                                    var girl = girlDataDict[ModInterface.Data.GetRuntimeDataId(GameDataType.Girl, girlId_ModsByExpressionId.Key)];
+                                    var expansion = ExpandedGirlDefinition.Get(girlId_ModsByExpressionId.Key);
 
-                                    foreach (var mod in expressionIdToMods.Value.OrderBy(x => x.LoadPriority))
+                                    foreach (var expressionId_Mods in girlId_ModsByExpressionId.Value)
                                     {
-                                        mod.SetData(ref expression, gameDataProvider, assetProvider, InsertStyle.replace, girlIdToModsByExpressionId.Key);
+                                        var expression = expansion.GetExpression(girl, expressionId_Mods.Key);
+
+                                        foreach (var mod in expressionId_Mods.Value.OrderBy(x => x.LoadPriority))
+                                        {
+                                            mod.SetData(ref expression, gameDataProvider, assetProvider, InsertStyle.replace, girlId_ModsByExpressionId.Key);
+                                        }
                                     }
                                 }
                             }
 
                             ModInterface.Log.LogInfo("outfits");
-                            foreach (var girlIdToModsByOutfitId in outfitModsByIdByGirl)
+                            using (ModInterface.Log.MakeIndent())
                             {
-                                var girl = girlDataDict[ModInterface.Data.GetRuntimeDataId(GameDataType.Girl, girlIdToModsByOutfitId.Key)];
-
-                                foreach (var outfitIdToMods in girlIdToModsByOutfitId.Value)
+                                foreach (var girlId_ModsByOutfitId in outfitModsByIdByGirl)
                                 {
-                                    var outfit = girl.outfits[ModInterface.Data.GetOutfitIndex(girlIdToModsByOutfitId.Key, outfitIdToMods.Key)];
-                                    var expandedOutfit = outfit is ExpandedOutfitDefinition definition ? definition : new ExpandedOutfitDefinition(outfit);
+                                    var girl = girlDataDict[ModInterface.Data.GetRuntimeDataId(GameDataType.Girl, girlId_ModsByOutfitId.Key)];
+                                    var expansion = ExpandedGirlDefinition.Get(girlId_ModsByOutfitId.Key);
 
-                                    foreach (var mod in outfitIdToMods.Value.OrderBy(x => x.LoadPriority))
+                                    foreach (var outfitId_Mods in girlId_ModsByOutfitId.Value)
                                     {
-                                        mod.SetData(ref expandedOutfit, gameDataProvider, assetProvider, InsertStyle.replace, girlIdToModsByOutfitId.Key);
+                                        var outfit = expansion.GetOutfit(girl, outfitId_Mods.Key);
+                                        if (!(outfit is ExpandedOutfitDefinition expandedOutfit))
+                                        {
+                                            throw new Exception();
+                                        }
+
+                                        foreach (var mod in outfitId_Mods.Value.OrderBy(x => x.LoadPriority))
+                                        {
+                                            mod.SetData(ref expandedOutfit, gameDataProvider, assetProvider, InsertStyle.replace, girlId_ModsByOutfitId.Key);
+                                        }
                                     }
                                 }
                             }
 
                             ModInterface.Log.LogInfo("hairstyles");
-                            foreach (var girlIdToModsByHairstyleId in hairstyleModsByIdByGirl)
+                            using (ModInterface.Log.MakeIndent())
                             {
-                                var girl = girlDataDict[ModInterface.Data.GetRuntimeDataId(GameDataType.Girl, girlIdToModsByHairstyleId.Key)];
-
-                                foreach (var hairstyleIdToMods in girlIdToModsByHairstyleId.Value)
+                                foreach (var girlId_ModsByHairstyleId in hairstyleModsByIdByGirl)
                                 {
-                                    var hairstyle = girl.hairstyles[ModInterface.Data.GetHairstyleIndex(girlIdToModsByHairstyleId.Key, hairstyleIdToMods.Key)];
-                                    var expandedHairstye = hairstyle is ExpandedHairstyleDefinition definition ? definition : new ExpandedHairstyleDefinition(hairstyle);
+                                    var girl = girlDataDict[ModInterface.Data.GetRuntimeDataId(GameDataType.Girl, girlId_ModsByHairstyleId.Key)];
+                                    var expansion = ExpandedGirlDefinition.Get(girlId_ModsByHairstyleId.Key);
 
-                                    foreach (var mod in hairstyleIdToMods.Value.OrderBy(x => x.LoadPriority))
+                                    foreach (var hairstyleId_Mods in girlId_ModsByHairstyleId.Value)
                                     {
-                                        mod.SetData(ref expandedHairstye, gameDataProvider, assetProvider, InsertStyle.replace, girlIdToModsByHairstyleId.Key);
+                                        var hairstyle = expansion.GetHairstyle(girl, hairstyleId_Mods.Key);
+
+                                        if (!(hairstyle is ExpandedHairstyleDefinition expandedHairstye))
+                                        {
+                                            throw new Exception();
+                                        }
+
+                                        foreach (var mod in hairstyleId_Mods.Value.OrderBy(x => x.LoadPriority))
+                                        {
+                                            mod.SetData(ref expandedHairstye, gameDataProvider, assetProvider, InsertStyle.replace, girlId_ModsByHairstyleId.Key);
+                                        }
                                     }
                                 }
                             }
 
                             ModInterface.Log.LogInfo("lines");
-                            foreach (var girlIdToModsByIdByDialogTrigger in dialogLineModsByIdByDialogTriggerByGirlId)
+                            using (ModInterface.Log.MakeIndent())
                             {
-                                var girl = girlDataDict[ModInterface.Data.GetRuntimeDataId(GameDataType.Girl, girlIdToModsByIdByDialogTrigger.Key)];
-
-                                foreach (var dialogTriggerIdToModsById in girlIdToModsByIdByDialogTrigger.Value)
+                                foreach (var girl_ToModsByIdByDialogTrigger in dialogLineModsByIdByDialogTriggerByGirlId)
                                 {
-                                    var dialogTrigger = dialogTriggerDataDict[ModInterface.Data.GetRuntimeDataId(GameDataType.DialogTrigger, dialogTriggerIdToModsById.Key)];
+                                    var girl = girlDataDict[ModInterface.Data.GetRuntimeDataId(GameDataType.Girl, girl_ToModsByIdByDialogTrigger.Key)];
 
-                                    foreach (var lineIdToMods in dialogTriggerIdToModsById.Value)
+                                    foreach (var dialogTriggerIdToModsById in girl_ToModsByIdByDialogTrigger.Value)
                                     {
-                                        var line = dialogTrigger.GetLineSetByGirl(girl).dialogLines[ModInterface.Data.GetLineIndex(dialogTriggerIdToModsById.Key, girlIdToModsByIdByDialogTrigger.Key, lineIdToMods.Key)];
+                                        var dialogTrigger = dialogTriggerDataDict[ModInterface.Data.GetRuntimeDataId(GameDataType.DialogTrigger, dialogTriggerIdToModsById.Key)];
+                                        var expansion = ExpandedDialogTriggerDefinition.Get(dialogTriggerIdToModsById.Key);
 
-                                        foreach (var mod in lineIdToMods.Value.OrderBy(x => x.LoadPriority))
+                                        foreach (var lineId_Mods in dialogTriggerIdToModsById.Value)
                                         {
-                                            mod.SetData(ref line, gameDataProvider, assetProvider, InsertStyle.replace, girlIdToModsByIdByDialogTrigger.Key);
+                                            var line = expansion.GetLine(dialogTrigger, girl_ToModsByIdByDialogTrigger.Key, lineId_Mods.Key); ;
+
+                                            foreach (var mod in lineId_Mods.Value.OrderBy(x => x.LoadPriority))
+                                            {
+                                                mod.SetData(ref line, gameDataProvider, assetProvider, InsertStyle.replace, girl_ToModsByIdByDialogTrigger.Key);
+                                            }
                                         }
                                     }
                                 }
@@ -501,23 +649,32 @@ namespace Hp2BaseMod
                         }
 
                         ModInterface.Log.LogInfo("girl pairs");
-                        SetData(girlPairDataDict, girlPairDataMods, gameDataProvider, assetProvider, GameDataType.GirlPair);
                         using (ModInterface.Log.MakeIndent())
                         {
+                            SetData(girlPairDataDict, girlPairDataMods, gameDataProvider, assetProvider, GameDataType.GirlPair);
+
                             ModInterface.Log.LogInfo("styles");
-                            foreach (var pairMod in girlPairDataMods)
+                            using (ModInterface.Log.MakeIndent())
                             {
-                                ModInterface.Data.RegisterPairStyle(pairMod.Id, pairMod.GetStyles());
+                                foreach (var pairMod in girlPairDataMods)
+                                {
+                                    ModInterface.Data.RegisterPairStyle(pairMod.Id, pairMod.GetStyles());
+                                }
                             }
                         }
 
                         ModInterface.Log.LogInfo("items");
-                        SetData(itemDataDict, itemDataMods, gameDataProvider, assetProvider, GameDataType.Item);
-
-                        ModInterface.Log.LogInfo("locations");
-                        SetData(locationDataDict, locationDataMods, gameDataProvider, assetProvider, GameDataType.Location);
                         using (ModInterface.Log.MakeIndent())
                         {
+                            SetData(itemDataDict, itemDataMods, gameDataProvider, assetProvider, GameDataType.Item);
+                        }
+
+
+                        ModInterface.Log.LogInfo("locations");
+                        using (ModInterface.Log.MakeIndent())
+                        {
+                            SetData(locationDataDict, locationDataMods, gameDataProvider, assetProvider, GameDataType.Location);
+
                             ModInterface.Log.LogInfo("styles");
                             foreach (var locationMod in locationDataMods)
                             {
@@ -545,13 +702,22 @@ namespace Hp2BaseMod
                         }
 
                         ModInterface.Log.LogInfo("photos");
-                        SetData(photoDataDict, photoDataMods, gameDataProvider, assetProvider, GameDataType.Photo);
+                        using (ModInterface.Log.MakeIndent())
+                        {
+                            SetData(photoDataDict, photoDataMods, gameDataProvider, assetProvider, GameDataType.Photo);
+                        }
 
                         ModInterface.Log.LogInfo("questions");
-                        SetData(questionDataDict, questionDataMods, gameDataProvider, assetProvider, GameDataType.Question);
+                        using (ModInterface.Log.MakeIndent())
+                        {
+                            SetData(questionDataDict, questionDataMods, gameDataProvider, assetProvider, GameDataType.Question);
+                        }
 
                         ModInterface.Log.LogInfo("tokens");
-                        SetData(tokenDataDict, tokenDataMods, gameDataProvider, assetProvider, GameDataType.Token);
+                        using (ModInterface.Log.MakeIndent())
+                        {
+                            SetData(tokenDataDict, tokenDataMods, gameDataProvider, assetProvider, GameDataType.Token);
+                        }
                     }
 
                     ModInterface.Log.LogInfo("registering functional mods");
@@ -653,7 +819,7 @@ namespace Hp2BaseMod
                     dict.Add(runtimeId, newDef);
                 }
 
-                assetProvider.RequestInternals(mod);
+                mod.RequestInternals(assetProvider);
             }
         }
 
@@ -686,6 +852,29 @@ namespace Hp2BaseMod
                 {
                     mod.SetData(data[entry.Key], gameDataProvider, prefabProvider);
                 }
+            }
+        }
+
+        private static void MapRelativeIdRange(IDictionary<RelativeId, int> idToIndex, IDictionary<int, RelativeId> indexToId, int count)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                idToIndex[new RelativeId(-1, i)] = i;
+                indexToId[i] = new RelativeId(-1, i);
+            }
+        }
+
+        private static void RegisterUnregisteredIds(IDictionary<RelativeId, int> idToIndex,
+            IDictionary<int, RelativeId> indexToId,
+            int startingIndex,
+            IEnumerable<RelativeId> ids,
+            Action onRegistered)
+        {
+            foreach (var partId in ids.Where(x => !idToIndex.ContainsKey(x)))
+            {
+                idToIndex[partId] = startingIndex;
+                indexToId[startingIndex++] = partId;
+                onRegistered.Invoke();
             }
         }
     }

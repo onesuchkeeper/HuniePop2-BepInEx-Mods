@@ -54,20 +54,22 @@ namespace Hp2BaseModTweaks.CellphoneApps
             _pairsApp = pairsApp ?? throw new ArgumentNullException(nameof(pairsApp));
             _metPairs = Game.Persistence.playerFile.metGirlPairs.ToArray();
 
-            _pageMax = _metPairs.Length > 1 ? (_metPairs.Length - 1) / _pairsPerPage : 0;
+            _pageMax = _metPairs.Length > 1
+                ? (_metPairs.Length - 1) / _pairsPerPage
+                : 0;
 
             // no need for extra ui
             if (_pageMax != 0)
             {
                 var cellphoneButtonPressedKlip = new AudioKlip()
                 {
-                    clip = ModInterface.Assets.GetAsset<AudioClip>(Common.Sfx_PhoneAppButtonPressed),
+                    clip = ModInterface.Assets.GetInternalAsset<AudioClip>(Common.Sfx_PhoneAppButtonPressed),
                     volume = 1f
                 };
 
                 _previousPage = Hp2ButtonWrapper.MakeCellphoneButton("PreviousPage",
-                    ModInterface.Assets.GetAsset<Sprite>(Common.Ui_AppSettingArrowLeft),
-                    ModInterface.Assets.GetAsset<Sprite>(Common.Ui_AppSettingArrowLeftOver),
+                    ModInterface.Assets.GetInternalAsset<Sprite>(Common.Ui_AppSettingArrowLeft),
+                    ModInterface.Assets.GetInternalAsset<Sprite>(Common.Ui_AppSettingArrowLeftOver),
                     cellphoneButtonPressedKlip);
 
                 _previousPage.GameObject.transform.SetParent(pairsApp.transform, false);
@@ -79,8 +81,8 @@ namespace Hp2BaseModTweaks.CellphoneApps
                 };
 
                 _nextPage = Hp2ButtonWrapper.MakeCellphoneButton("NextPage",
-                    ModInterface.Assets.GetAsset<Sprite>(Common.Ui_AppSettingArrowRight),
-                    ModInterface.Assets.GetAsset<Sprite>(Common.Ui_AppSettingArrowRightOver),
+                    ModInterface.Assets.GetInternalAsset<Sprite>(Common.Ui_AppSettingArrowRight),
+                    ModInterface.Assets.GetInternalAsset<Sprite>(Common.Ui_AppSettingArrowRightOver),
                     cellphoneButtonPressedKlip);
 
                 _nextPage.GameObject.transform.SetParent(pairsApp.transform, false);

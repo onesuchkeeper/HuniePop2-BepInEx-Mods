@@ -53,17 +53,17 @@ public static class CutsceneManagerUtility
         {
             case CutsceneStepType.BRANCH:
                 {
-                    for (int i = 0; i < currentStep.branches.Count; i++)
+                    foreach (var branch in currentStep.branches)
                     {
-                        if (Game.Session.Logic.IsConditionListMet(currentStep.branches[i].conditions))
+                        if (Game.Session.Logic.IsConditionListMet(branch.conditions))
                         {
-                            if (currentStep.branches[i].cutsceneDefinition != null)
+                            if (branch.cutsceneDefinition != null)
                             {
-                                branches.Add(currentStep.branches[i].cutsceneDefinition.steps);
+                                branches.Add(branch.cutsceneDefinition.steps);
                             }
                             else
                             {
-                                branches.Add(currentStep.branches[i].steps);
+                                branches.Add(branch.steps);
                             }
                             branchStepIndices.Add(-1);
                             break;
@@ -116,11 +116,11 @@ public static class CutsceneManagerUtility
             case CutsceneStepType.DIALOG_OPTIONS:
                 {
                     List<string> list = new List<string>();
-                    for (int j = 0; j < currentStep.dialogOptions.Count; j++)
+                    foreach (var option in currentStep.dialogOptions)
                     {
-                        list.Add((currentStep.dialogOptions[j].yuri && Game.Persistence.playerFile.settingGender == SettingGender.FEMALE)
-                            ? currentStep.dialogOptions[j].yuriDialogOptionText
-                            : currentStep.dialogOptions[j].dialogOptionText);
+                        list.Add((option.yuri && Game.Persistence.playerFile.settingGender == SettingGender.FEMALE)
+                                                    ? option.yuriDialogOptionText
+                                                    : option.dialogOptionText);
                     }
                     Game.Session.Dialog.ShowDialogOptions(list, currentStep.boolValue, true);
                     break;
@@ -187,7 +187,7 @@ public static class CutsceneManagerUtility
                 break;
             case CutsceneStepType.REWIND:
                 {
-                    for (int k = UnityEngine.Mathf.Abs(currentStep.intValue) + 1; k > 0; k--)
+                    for (int k = Mathf.Abs(currentStep.intValue) + 1; k > 0; k--)
                     {
                         if (branches.Count <= 1 && branchStepIndices[_cutsceneManager.currentBranchIndex] < 0)
                         {
@@ -517,7 +517,6 @@ public static class CutsceneManagerUtility
             case CutsceneStepDollTargetType.RANDOM:
                 return true;
             case CutsceneStepDollTargetType.FOCUSED:
-                //return true;//still not setting focus soon enough
                 if (!targetAlt)
                 {
                     uiDoll = Game.Session.gameCanvas.GetDoll(Game.Session.Puzzle.puzzleStatus.altGirlFocused);

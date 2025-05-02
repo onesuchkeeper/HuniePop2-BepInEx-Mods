@@ -30,7 +30,7 @@ internal class Plugin : BaseUnityPlugin
     internal static TweaksSaveData Save => _save;
     private static TweaksSaveData _save;
 
-    private int _modId = ModInterface.GetSourceId(MyPluginInfo.PLUGIN_GUID);
+    public static readonly int ModId = ModInterface.GetSourceId(MyPluginInfo.PLUGIN_GUID);
 
     private void Awake()
     {
@@ -42,17 +42,18 @@ internal class Plugin : BaseUnityPlugin
             },
             CreditsEntries = new List<CreditsEntry>() {
                 new CreditsEntry() {
-                    CreditButtonImageOverPath = Path.Combine(ImagesDir, "onesuchkeeper_credits.png"),
-                    CreditButtonImagePath = Path.Combine(ImagesDir, "onesuchkeeper_credits_over.png"),
+                    CreditButtonImagePath = Path.Combine(ImagesDir, "onesuchkeeper_credits.png"),
+                    CreditButtonImageOverPath = Path.Combine(ImagesDir, "onesuchkeeper_credits_over.png"),
                     RedirectLink = "https://www.youtube.com/@onesuchkeeper8389"
                 }
             }
         });
 
-        Common.FemaleJizzToggleCodeID = new RelativeId(_modId, 0);
-        Common.SlowAffectionDrainToggleCodeID = new RelativeId(_modId, 1);
-        Common.RunInBackgroundCodeId = new RelativeId(_modId, 2);
-        Common.FairyWingsCodeId = new RelativeId(_modId, 3);
+        Common.FemaleJizzToggleCodeID = new RelativeId(ModId, 0);
+        Common.SlowAffectionDrainToggleCodeID = new RelativeId(ModId, 1);
+        Common.RunInBackgroundCodeId = new RelativeId(ModId, 2);
+        Common.FairyWingsCodeId = new RelativeId(ModId, 3);
+        Common.KyuHoleCodeId = new RelativeId(ModId, 4);
 
         ModInterface.AddDataMod(new CodeDataMod(Common.FemaleJizzToggleCodeID, InsertStyle.replace)
         {
@@ -70,6 +71,14 @@ internal class Plugin : BaseUnityPlugin
             OffMessage = "The game will pause when unfocused."
         });
 
+        ModInterface.AddDataMod(new CodeDataMod(Common.KyuHoleCodeId, InsertStyle.replace)
+        {
+            CodeHash = MD5Utility.Encrypt("POR QUE NO LOS TRES"),
+            CodeType = CodeType.TOGGLE,
+            OnMessage = "All three Kyu photos will be available when unlocked.",
+            OffMessage = "Only the selected Kyu photo will be available when unlocked."
+        });
+
         ModInterface.AddDataMod(new CodeDataMod(Common.FairyWingsCodeId, InsertStyle.replace)
         {
             CodeHash = MD5Utility.Encrypt("PINK BITCH!"),
@@ -77,6 +86,22 @@ internal class Plugin : BaseUnityPlugin
             OnMessage = "Awh yeah! She's unstoppable! [The game must be restarted in order to take effect]",
             OffMessage = "Lack of hunies rivets us firmly to the ground, ones wings are clipped."
         });
+
+        ModInterface.AddDataMod(new ItemDataMod(new RelativeId(ModId, 0), Hp2BaseMod.Utility.InsertStyle.replace)
+        {
+            ItemName = "More Girls In The Wardrobe!",
+            ItemDescription = "Kyu and the Nymphojinn are now in the wardrobe! Each time the Nymphojinn are defeated, each will have a style unlocked!",
+            CategoryDescription = "Otherworldly Attire",
+            ItemType = ItemType.MISC,
+            ItemSpriteInfo = new SpriteInfoPath()
+            {
+                IsExternal = false,
+                Path = "item_shell_auger"
+            },
+        });
+
+        ModInterface.AddDataMod(new PostGameCutsceneMod());
+
         ModInterface.AddCommand(new SetIconCommand());
 
         ModInterface.Events.RequestStyleChange += RandomizeStyles.On_RequestStyleChange;
@@ -88,17 +113,8 @@ internal class Plugin : BaseUnityPlugin
         // add toggle for slow drain on bonus round? TODO
         //puzzlemanager._status.bounsDrainTimestap
 
-        ModInterface.Assets.RequestInternalSprite([
-            Common.Ui_PhotoAlbumSlot,
-            Common.Ui_PhotoButtonLeft,
-            Common.Ui_PhotoButtonRight,
-            Common.Ui_AppSettingArrowLeft,
-            Common.Ui_AppSettingArrowLeftOver,
-            Common.Ui_AppSettingArrowRight,
-            Common.Ui_AppSettingArrowRightOver
-        ]);
-
-        ModInterface.Assets.RequestInternalAudio(Common.Sfx_PhoneAppButtonPressed);
+        ModInterface.Assets.RequestInternal(typeof(Sprite), Common.AllSprites());
+        ModInterface.Assets.RequestInternal(typeof(AudioClip), Common.Sfx_PhoneAppButtonPressed);
 
         ModInterface.Events.PreDataMods += On_PreDataMods;
         ModInterface.Events.PreGameSave += On_PreGameSave;
@@ -111,12 +127,12 @@ internal class Plugin : BaseUnityPlugin
 
     private void On_PreGameSave()
     {
-        ModInterface.SetSourceSave(_modId, JsonConvert.SerializeObject(_save));
+        ModInterface.SetSourceSave(ModId, JsonConvert.SerializeObject(_save));
     }
 
     private void On_PostPersistenceReset()
     {
-        var saveStr = ModInterface.GetSourceSave(_modId);
+        var saveStr = ModInterface.GetSourceSave(ModId);
 
         if (!string.IsNullOrWhiteSpace(saveStr))
         {
@@ -129,7 +145,7 @@ internal class Plugin : BaseUnityPlugin
 
     private void On_PreDataMods()
     {
-        var kyuEyesGlowNeutralPartId = new RelativeId(_modId, 0);
+        var kyuEyesGlowNeutralPartId = new RelativeId(ModId, 0);
         var kyuEyesGlowNeutralPart = new GirlPartDataMod(kyuEyesGlowNeutralPartId, InsertStyle.replace)
         {
             X = 590,
@@ -142,7 +158,7 @@ internal class Plugin : BaseUnityPlugin
             }
         };
 
-        var kyuEyesGlowAnnoyedPartId = new RelativeId(_modId, 0);
+        var kyuEyesGlowAnnoyedPartId = new RelativeId(ModId, 0);
         var kyuEyesGlowAnnoyedPart = new GirlPartDataMod(kyuEyesGlowAnnoyedPartId, InsertStyle.replace)
         {
             X = 592,
@@ -155,7 +171,7 @@ internal class Plugin : BaseUnityPlugin
             }
         };
 
-        var kyuEyesGlowHornyPartId = new RelativeId(_modId, 0);
+        var kyuEyesGlowHornyPartId = new RelativeId(ModId, 0);
         var kyuEyesGlowHornyPart = new GirlPartDataMod(kyuEyesGlowHornyPartId, InsertStyle.replace)
         {
             X = 590,

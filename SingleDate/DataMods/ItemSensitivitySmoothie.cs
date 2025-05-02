@@ -5,7 +5,7 @@ using Hp2BaseMod.Utility;
 
 namespace SingleDate;
 
-public static class ItemSensitivitySmoothie
+internal static class ItemSensitivitySmoothie
 {
     public static RelativeId SmoothieId => _smoothieId;
     private static RelativeId _smoothieId;
@@ -34,7 +34,8 @@ public static class ItemSensitivitySmoothie
             ItemDescription = "+1 [[broken]@Sensitivity] EXP.",
             TooltipColorIndex = 0,
             StoreCost = 0,
-            CategoryDescription = "Sensitivity"
+            CategoryDescription = "Sensitivity",
+            EnergyDefinitionID = new RelativeId(-1, 6)
         });
 
         ModInterface.AddDataMod(new ItemDataMod(_expId, InsertStyle.replace)

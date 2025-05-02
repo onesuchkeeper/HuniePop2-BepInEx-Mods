@@ -1,6 +1,8 @@
 using Hp2BaseMod;
 
-public static class Ids
+namespace ScallyCapFanOutfits;
+
+internal static class Ids
 {
     public static RelativeId Style1 => _style1;
     private static RelativeId _style1;

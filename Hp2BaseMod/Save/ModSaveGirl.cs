@@ -32,7 +32,7 @@ namespace Hp2BaseMod.Save
 
         public void Strip(SaveFileGirl saveFileGirl)
         {
-            var girlId = ModInterface.Data.GetDataId(GameDataType.Girl, saveFileGirl.girlId);
+            var girlExpanded = ExpandedGirlDefinition.Get(saveFileGirl.girlId);
 
             PlayerMet = saveFileGirl.playerMet;
             RelationshipPoints = saveFileGirl.relationshipPoints;
@@ -61,7 +61,7 @@ namespace Hp2BaseMod.Save
                 saveFileGirl.activeBaggageIndex = saveFileGirl.learnedBaggage.First();
             }
 
-            if (!ModInterface.Data.TryGetHairstyleId(girlId, saveFileGirl.hairstyleIndex, out HairstyleId))
+            if (!girlExpanded.HairstyleIndexToId.TryGetValue(saveFileGirl.hairstyleIndex, out HairstyleId))
             {
                 HairstyleId = RelativeId.Default;
                 saveFileGirl.hairstyleIndex = -1;
@@ -71,7 +71,7 @@ namespace Hp2BaseMod.Save
                 saveFileGirl.hairstyleIndex = -1;
             }
 
-            if (!ModInterface.Data.TryGetOutfitId(girlId, saveFileGirl.outfitIndex, out OutfitId))
+            if (!girlExpanded.OutfitIndexToId.TryGetValue(saveFileGirl.outfitIndex, out OutfitId))
             {
                 OutfitId = RelativeId.Default;
                 saveFileGirl.outfitIndex = -1;
@@ -115,20 +115,20 @@ namespace Hp2BaseMod.Save
 
             // Outfits
             UnlockedOutfits = new List<RelativeId>();
-            foreach (var outfit in saveFileGirl.unlockedOutfits)
+            foreach (var outfitIndex in saveFileGirl.unlockedOutfits)
             {
-                if (ModInterface.Data.TryGetOutfitId(girlId, outfit, out var id))
+                if (girlExpanded.OutfitIndexToId.TryGetValue(outfitIndex, out var id))
                 {
                     UnlockedOutfits.Add(id);
                 }
             }
             saveFileGirl.unlockedOutfits = UnlockedOutfits.Where(x => x.SourceId == -1).Select(x => x.LocalId).ToList();
 
-            // Outfits
+            // Hairstyle
             UnlockedHairstyles = new List<RelativeId>();
             foreach (var hairstyle in saveFileGirl.unlockedHairstyles)
             {
-                if (ModInterface.Data.TryGetHairstyleId(girlId, hairstyle, out var id))
+                if (girlExpanded.HairstyleIndexToId.TryGetValue(hairstyle, out var id))
                 {
                     UnlockedHairstyles.Add(id);
                 }
@@ -201,14 +201,14 @@ namespace Hp2BaseMod.Save
 
         private void Inject(SaveFileGirl save)
         {
-            var girlId = ModInterface.Data.GetDataId(GameDataType.Girl, save.girlId);
+            var girlExpanded = ExpandedGirlDefinition.Get(save.girlId);
 
-            if (ModInterface.Data.TryGetHairstyleIndex(girlId, HairstyleId, out var hairstyleIndex))
+            if (girlExpanded.HairstyleIdToIndex.TryGetValue(HairstyleId, out var hairstyleIndex))
             {
                 save.hairstyleIndex = hairstyleIndex;
             }
 
-            if (ModInterface.Data.TryGetOutfitIndex(girlId, OutfitId, out var outfitIndex))
+            if (girlExpanded.OutfitIdToIndex.TryGetValue(OutfitId, out var outfitIndex))
             {
                 save.outfitIndex = outfitIndex;
             }
@@ -221,7 +221,7 @@ namespace Hp2BaseMod.Save
 
             foreach (var unlockedOutfit in UnlockedOutfits.OrEmptyIfNull())
             {
-                if (ModInterface.Data.TryGetOutfitIndex(girlId, unlockedOutfit, out var index))
+                if (girlExpanded.OutfitIdToIndex.TryGetValue(unlockedOutfit, out var index))
                 {
                     save.unlockedOutfits.Add(index);
                 }
@@ -234,7 +234,7 @@ namespace Hp2BaseMod.Save
 
             foreach (var unlockedHairstyle in UnlockedHairstyles.OrEmptyIfNull())
             {
-                if (ModInterface.Data.TryGetHairstyleIndex(girlId, unlockedHairstyle, out var index))
+                if (girlExpanded.HairstyleIdToIndex.TryGetValue(unlockedHairstyle, out var index))
                 {
                     save.unlockedHairstyles.Add(index);
                 }

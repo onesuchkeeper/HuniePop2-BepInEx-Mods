@@ -4,7 +4,7 @@ using HarmonyLib;
 namespace SingleDate;
 
 [HarmonyPatch(typeof(UiAppSaveFile))]
-public static class UiAppSaveFilePatch
+internal static class UiAppSaveFilePatch
 {
     private static readonly FieldInfo _playerFile = AccessTools.Field(typeof(UiAppSaveFile), "_playerFile");
 

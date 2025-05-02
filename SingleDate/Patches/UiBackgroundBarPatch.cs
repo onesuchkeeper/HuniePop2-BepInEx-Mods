@@ -3,7 +3,7 @@ using HarmonyLib;
 namespace SingleDate;
 
 [HarmonyPatch(typeof(UiBackgroundBar))]
-public static class UiBackgroundBarPatch
+internal static class UiBackgroundBarPatch
 {
     [HarmonyPatch(nameof(UiBackgroundBar.Refresh))]
     [HarmonyPostfix]

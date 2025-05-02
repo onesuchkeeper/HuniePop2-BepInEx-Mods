@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
 
@@ -15,6 +14,8 @@ namespace Hp2BaseMod.GameDataInfo
         public RelativeId? OutfitPartId;
 
         public bool? IsNSFW;
+        public bool? IsCodeUnlocked;
+        public bool? IsPurchased;
 
         public bool? HideNipples;
 
@@ -41,6 +42,8 @@ namespace Hp2BaseMod.GameDataInfo
         {
             PairHairstyleId = Id;
             IsNSFW = false;
+            IsPurchased = Game.Session.Hub.unlockStylesBuy.Contains(index);
+            IsCodeUnlocked = Game.Session.Hub.unlockStylesBuy.Contains(index);
 
             var outfitDef = girlDef.outfits[index];
 
@@ -62,17 +65,21 @@ namespace Hp2BaseMod.GameDataInfo
                 def = Activator.CreateInstance<ExpandedOutfitDefinition>();
             }
 
+            var girlExpansion = ExpandedGirlDefinition.Get(girlId);
+
             ValidatedSet.SetValue(ref def.outfitName, Name, insertStyle);
             ValidatedSet.SetValue(ref def.IsNSFW, IsNSFW);
+            ValidatedSet.SetValue(ref def.IsCodeUnlocked, IsCodeUnlocked);
+            ValidatedSet.SetValue(ref def.IsPurchased, IsPurchased);
             ValidatedSet.SetValue(ref def.hideNipples, HideNipples);
-            ValidatedSet.SetValue(ref def.pairHairstyleIndex, ModInterface.Data.GetHairstyleIndex(girlId, PairHairstyleId));
-            ValidatedSet.SetValue(ref def.partIndexOutfit, ModInterface.Data.GetPartIndex(girlId, OutfitPartId));
+            ValidatedSet.SetValue(ref def.pairHairstyleIndex, girlExpansion.HairstyleIdToIndex, PairHairstyleId);
+            ValidatedSet.SetValue(ref def.partIndexOutfit, girlExpansion.PartIdToIndex, OutfitPartId);
         }
 
         /// <inheritdoc/>
-        public IEnumerable<string> GetInternalSpriteRequests() => null;
-
-        /// <inheritdoc/>
-        public IEnumerable<string> GetInternalAudioRequests() => null;
+        public void RequestInternals(AssetProvider assetProvider)
+        {
+            //noop
+        }
     }
 }

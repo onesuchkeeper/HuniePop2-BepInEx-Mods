@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
 
@@ -14,6 +13,8 @@ namespace Hp2BaseMod.GameDataInfo
         public RelativeId? BackHairPartId;
 
         public bool? IsNSFW;
+        public bool? IsCodeUnlocked;
+        public bool? IsPurchased;
 
         public bool? HideSpecials;
 
@@ -40,6 +41,8 @@ namespace Hp2BaseMod.GameDataInfo
         {
             PairOutfitId = Id;
             IsNSFW = false;
+            IsPurchased = Game.Session.Hub.unlockStylesBuy.Contains(index);
+            IsCodeUnlocked = Game.Session.Hub.unlockStylesBuy.Contains(index);
 
             var hairstyleDef = girlDef.hairstyles[index];
 
@@ -62,20 +65,22 @@ namespace Hp2BaseMod.GameDataInfo
                 def = Activator.CreateInstance<ExpandedHairstyleDefinition>();
             }
 
-            var girl = gameData.GetGirl(girlId);
+            var girlExpansion = ExpandedGirlDefinition.Get(girlId);
 
             ValidatedSet.SetValue(ref def.hairstyleName, Name, insertStyle);
             ValidatedSet.SetValue(ref def.IsNSFW, IsNSFW);
+            ValidatedSet.SetValue(ref def.IsCodeUnlocked, IsCodeUnlocked);
+            ValidatedSet.SetValue(ref def.IsPurchased, IsPurchased);
             ValidatedSet.SetValue(ref def.hideSpecials, HideSpecials);
-            ValidatedSet.SetValue(ref def.pairOutfitIndex, ModInterface.Data.GetHairstyleIndex(girlId, PairOutfitId));
-            ValidatedSet.SetValue(ref def.partIndexBackhair, ModInterface.Data.GetPartIndex(girlId, BackHairPartId));
-            ValidatedSet.SetValue(ref def.partIndexFronthair, ModInterface.Data.GetPartIndex(girlId, FrontHairPartId));
+            ValidatedSet.SetValue(ref def.pairOutfitIndex, girlExpansion.OutfitIdToIndex, PairOutfitId);
+            ValidatedSet.SetValue(ref def.partIndexBackhair, girlExpansion.PartIdToIndex, BackHairPartId);
+            ValidatedSet.SetValue(ref def.partIndexFronthair, girlExpansion.PartIdToIndex, FrontHairPartId);
         }
 
         /// <inheritdoc/>
-        public IEnumerable<string> GetInternalSpriteRequests() => null;
-
-        /// <inheritdoc/>
-        public IEnumerable<string> GetInternalAudioRequests() => null;
+        public void RequestInternals(AssetProvider assetProvider)
+        {
+            //noop
+        }
     }
 }

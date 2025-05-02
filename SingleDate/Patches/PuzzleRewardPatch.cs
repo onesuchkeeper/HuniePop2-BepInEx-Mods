@@ -3,7 +3,7 @@ using HarmonyLib;
 namespace SingleDate;
 
 [HarmonyPatch(typeof(PuzzleReward))]
-public static class PuzzleRewardPatch
+internal static class PuzzleRewardPatch
 {
     [HarmonyPatch(nameof(PuzzleReward.GetLabelText))]
     [HarmonyPostfix]

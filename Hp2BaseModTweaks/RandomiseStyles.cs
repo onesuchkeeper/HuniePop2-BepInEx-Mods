@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Hp2BaseMod;
@@ -9,85 +8,78 @@ namespace Hp2BaseModTweaks;
 
 public static class RandomizeStyles
 {
-    public static void On_RequestStyleChange(object sender, RequestStyleChangeEventArgs args)
+    public static void On_RequestStyleChange(RequestStyleChangeEventArgs args)
     {
         var girlSave = Plugin.Save.GetCurrentFile().GetGirl(ModInterface.Data.GetDataId(GameDataType.Girl, args.Def.id));
 
-        if (girlSave.RandomizeStyles)
+        if (girlSave.RandomizeStyles
+            && (args.Loc.locationType != LocationType.DATE || (Game.Persistence.playerFile.GetPlayerFileGirl(args.Def)?.stylesOnDates ?? false)))
         {
             args.ApplyChance = 1;
         }
 
-        RandomizeStyle(args.Def, girlSave.UnpairRandomStyles, out args.Style, args.Loc.locationType == LocationType.HUB);
+        RandomizeStyle(args.Def, girlSave.UnpairRandomStyles, args.Loc.locationType == LocationType.HUB, out args.Style);
     }
 
-    private static void RandomizeStyle(GirlDefinition girl, bool unpaired, out GirlStyleInfo style, bool anyOutfit = false)
+    private static void RandomizeStyle(GirlDefinition girl, bool unpaired, bool anyOutfit, out GirlStyleInfo style)
     {
-        try
+        var playerFileGirl = Game.Persistence.playerFile.GetPlayerFileGirl(girl);
+        var girlExpansion = girl.Expansion();
+
+        IEnumerable<RelativeId> outfits = null;
+        IEnumerable<RelativeId> hairstyles = null;
+
+        if (playerFileGirl == null || anyOutfit)
         {
-            var girlId = ModInterface.Data.GetDataId(GameDataType.Girl, girl.id);
-            var playerFileGirl = Game.Persistence.playerFile.GetPlayerFileGirl(girl);
+            outfits = girlExpansion.OutfitIdToIndex.Keys;
+            hairstyles = girlExpansion.HairstyleIdToIndex.Keys;
+        }
+        else
+        {
+            var outfitPool = new HashSet<RelativeId>();
+            outfits = outfitPool;
+            var hairstylePool = new HashSet<RelativeId>();
+            hairstyles = hairstylePool;
 
-            IEnumerable<RelativeId> outfits = null;
-            IEnumerable<RelativeId> hairstyles = null;
-
-            if (playerFileGirl == null || anyOutfit)
+            foreach (var index in playerFileGirl.unlockedOutfits)
             {
-                outfits = ModInterface.Data.GetAllOutfitIds(girlId);
-                hairstyles = ModInterface.Data.GetAllHairstyleIds(girlId);
-            }
-            else
-            {
-                var outfitPool = new HashSet<RelativeId>();
-                outfits = outfitPool;
-                var hairstylePool = new HashSet<RelativeId>();
-                hairstyles = hairstylePool;
-
-                foreach (var index in playerFileGirl.unlockedOutfits)
+                if (girlExpansion.OutfitIndexToId.TryGetValue(index, out var id))
                 {
-                    if (ModInterface.Data.TryGetOutfitId(girlId, index, out var id))
-                    {
-                        outfitPool.Add(id);
-                    }
-                }
-
-                foreach (var index in playerFileGirl.unlockedHairstyles)
-                {
-                    if (ModInterface.Data.TryGetHairstyleId(girlId, index, out var id))
-                    {
-                        hairstylePool.Add(id);
-                    }
+                    outfitPool.Add(id);
                 }
             }
 
-            if (!outfits.Any())
+            foreach (var index in playerFileGirl.unlockedHairstyles)
             {
-                outfits = [RelativeId.Default];
+                if (girlExpansion.HairstyleIndexToId.TryGetValue(index, out var id))
+                {
+                    hairstylePool.Add(id);
+                }
             }
-
-            if (!hairstyles.Any())
-            {
-                hairstyles = [RelativeId.Default];
-            }
-
-            var outfitId = outfits.ElementAt(UnityEngine.Random.Range(0, outfits.Count() - 1));
-
-            //if paired and a paired hairstyle exists, use that, otherwise pick a random one
-            if (!(!unpaired && hairstyles.TryGetFirst(x => x == outfitId, out var hairStyleId)))
-            {
-                hairStyleId = hairstyles.ElementAt(UnityEngine.Random.Range(0, hairstyles.Count() - 1));
-            }
-
-            style = new GirlStyleInfo()
-            {
-                OutfitId = outfitId,
-                HairstyleId = hairStyleId
-            };
         }
-        catch (Exception e)
+
+        if (!outfits.Any())
         {
-            ModInterface.Log.LogError($"RandomizeStyle", e);
-            style = null;
+            outfits = [RelativeId.Default];
         }
+
+        if (!hairstyles.Any())
+        {
+            hairstyles = [RelativeId.Default];
+        }
+
+        var outfitId = outfits.ElementAt(UnityEngine.Random.Range(0, outfits.Count() - 1));
+
+        //if paired and a paired hairstyle exists, use that, otherwise pick a random one
+        if (!(!unpaired && hairstyles.TryGetFirst(x => x == outfitId, out var hairStyleId)))
+        {
+            hairStyleId = hairstyles.ElementAt(UnityEngine.Random.Range(0, hairstyles.Count() - 1));
+        }
+
+        style = new GirlStyleInfo()
+        {
+            OutfitId = outfitId,
+            HairstyleId = hairStyleId
+        };
     }
 }

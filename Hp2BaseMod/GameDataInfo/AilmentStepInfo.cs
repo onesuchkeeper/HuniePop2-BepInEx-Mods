@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Hp2BaseMod.Extension.IEnumerableExtension;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
 
@@ -101,18 +100,14 @@ namespace Hp2BaseMod.GameDataInfo
             ValidatedSet.SetListValue(ref def.giftConditions, GiftConditionInfos, insertStyle, gameDataProvider, assetProvider);
         }
 
-        public IEnumerable<string> GetInternalAudioRequests() => GiftConditionInfos.OrEmptyIfNull()
-            .SelectManyNN(x => x.GetInternalAudioRequests())
-            .ConcatNN(GirlConditionInfos?.SelectManyNN(x => x.GetInternalAudioRequests()))
-            .ConcatNN(MoveConditionInfos?.SelectManyNN(x => x.GetInternalAudioRequests()))
-            .ConcatNN(MatchConditionInfos?.SelectManyNN(x => x.GetInternalAudioRequests()))
-            .ConcatNN(MatchModifierInfo?.GetInternalAudioRequests());
-
-        public IEnumerable<string> GetInternalSpriteRequests() => GiftConditionInfos.OrEmptyIfNull()
-            .SelectManyNN(x => x.GetInternalSpriteRequests())
-            .ConcatNN(GirlConditionInfos?.SelectManyNN(x => x.GetInternalSpriteRequests()))
-            .ConcatNN(MoveConditionInfos?.SelectManyNN(x => x.GetInternalSpriteRequests()))
-            .ConcatNN(MatchConditionInfos?.SelectManyNN(x => x.GetInternalSpriteRequests()))
-            .ConcatNN(MatchModifierInfo?.GetInternalSpriteRequests());
+        /// <inheritdoc/>
+        public void RequestInternals(AssetProvider assetProvider)
+        {
+            GiftConditionInfos?.ForEach(x => x?.RequestInternals(assetProvider));
+            GirlConditionInfos?.ForEach(x => x?.RequestInternals(assetProvider));
+            MoveConditionInfos?.ForEach(x => x?.RequestInternals(assetProvider));
+            MatchConditionInfos?.ForEach(x => x?.RequestInternals(assetProvider));
+            MatchModifierInfo?.RequestInternals(assetProvider);
+        }
     }
 }

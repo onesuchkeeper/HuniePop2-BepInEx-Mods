@@ -1,7 +1,5 @@
 ﻿// Hp2BaseMod 2021, By OneSuchKeeper
 
-using System.Collections.Generic;
-using Hp2BaseMod.Extension.IEnumerableExtension;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
 using UnityEngine;
@@ -98,19 +96,14 @@ namespace Hp2BaseMod.GameDataInfo
         }
 
         /// <inheritdoc/>
-        public IEnumerable<string> GetInternalSpriteRequests() => IEnumerableExtension.OrEmptyIfNull(BigPhotoCensored?.GetInternalSpriteRequests())
-            .ConcatNN(BigPhotoUncensored?.GetInternalSpriteRequests())
-            .ConcatNN(BigPhotoWet?.GetInternalSpriteRequests())
-            .ConcatNN(ThumbnailCensored?.GetInternalSpriteRequests())
-            .ConcatNN(ThumbnailUncensored?.GetInternalSpriteRequests())
-            .ConcatNN(ThumbnailWet?.GetInternalSpriteRequests());
-
-        /// <inheritdoc/>
-        public IEnumerable<string> GetInternalAudioRequests() => IEnumerableExtension.OrEmptyIfNull(BigPhotoCensored?.GetInternalAudioRequests())
-            .ConcatNN(BigPhotoUncensored?.GetInternalAudioRequests())
-            .ConcatNN(BigPhotoWet?.GetInternalAudioRequests())
-            .ConcatNN(ThumbnailCensored?.GetInternalAudioRequests())
-            .ConcatNN(ThumbnailUncensored?.GetInternalAudioRequests())
-            .ConcatNN(ThumbnailWet?.GetInternalAudioRequests());
+        public void RequestInternals(AssetProvider assetProvider)
+        {
+            BigPhotoCensored?.RequestInternals(assetProvider);
+            BigPhotoUncensored?.RequestInternals(assetProvider);
+            BigPhotoWet?.RequestInternals(assetProvider);
+            ThumbnailCensored?.RequestInternals(assetProvider);
+            ThumbnailUncensored?.RequestInternals(assetProvider);
+            ThumbnailWet?.RequestInternals(assetProvider);
+        }
     }
 }

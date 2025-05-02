@@ -101,9 +101,9 @@ namespace Hp2BaseMod.GameDataInfo
         }
 
         /// <inheritdoc/>
-        public IEnumerable<string> GetInternalSpriteRequests() => null;
-
-        /// <inheritdoc/>
-        public IEnumerable<string> GetInternalAudioRequests() => BackgroundMusic?.GetInternalSpriteRequests();
+        public void RequestInternals(AssetProvider assetProvider)
+        {
+            BackgroundMusic?.RequestInternals(assetProvider);
+        }
     }
 }

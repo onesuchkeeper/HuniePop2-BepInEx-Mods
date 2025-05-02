@@ -81,7 +81,8 @@ namespace Hp2BaseMod.GameDataInfo
 
         public string SpecialEffectName;
 
-        public IGameDefinitionInfo<Vector2> SpecialEffectOffset;
+        public IGameDefinitionInfo<Vector2> HeadPosition;
+        public IGameDefinitionInfo<Vector2> BackPosition;
 
         public bool? HasAltStyles;
 
@@ -172,7 +173,7 @@ namespace Hp2BaseMod.GameDataInfo
         /// Constructor from an unmodified definition instance.
         /// </summary>
         /// <param name="def">The definition.</param>
-        /// <param name="assetProvider">Asset provider containing the assest referenced by the definition.</param>
+        /// <param name="assetProvider">Asset provider containing the assets referenced by the definition.</param>
         internal GirlDataMod(GirlDefinition def, AssetProvider assetProvider, IEnumerable<DialogTriggerDefinition> dts)
             : base(new RelativeId(def), InsertStyle.replace, 0)
         {
@@ -254,7 +255,19 @@ namespace Hp2BaseMod.GameDataInfo
             if (def.cellphoneMiniHeadAlt) { CellphoneMiniHeadAlt = new SpriteInfoPath(def.cellphoneMiniHeadAlt, assetProvider); }
             if (def.breathEmitterPos != null) { BreathEmitterPos = new VectorInfo(def.breathEmitterPos); }
             if (def.upsetEmitterPos != null) { UpsetEmitterPos = new VectorInfo(def.upsetEmitterPos); }
-            if (def.specialEffectOffset != null) { SpecialEffectOffset = new VectorInfo(def.specialEffectOffset); }
+
+            if (def.specialEffectOffset != null)
+            {
+                //Kyu's specialEffectOffset is for her back not her head
+                if (def.id == Girls.KyuId.LocalId)
+                {
+                    BackPosition = new VectorInfo(def.specialEffectOffset);
+                }
+                else
+                {
+                    HeadPosition = new VectorInfo(def.specialEffectOffset);
+                }
+            }
 
             int i;
             if (def.parts != null)
@@ -307,6 +320,8 @@ namespace Hp2BaseMod.GameDataInfo
         /// <inheritdoc/>
         public void SetData(GirlDefinition def, GameDefinitionProvider gameDataProvider, AssetProvider assetProvider)
         {
+            var expansion = def.Expansion();
+
             ValidatedSet.SetValue(ref def.girlAge, GirlAge);
             ValidatedSet.SetValue(ref def.specialCharacter, SpecialCharacter);
             ValidatedSet.SetValue(ref def.bossCharacter, BossCharacter);
@@ -317,16 +332,19 @@ namespace Hp2BaseMod.GameDataInfo
             ValidatedSet.SetValue(ref def.shoesType, ShoesType);
             ValidatedSet.SetValue(ref def.uniqueType, UniqueType);
             ValidatedSet.SetValue(ref def.hasAltStyles, HasAltStyles);
-            ValidatedSet.SetValue(ref def.partIndexBody, ModInterface.Data.GetPartIndex(Id, PartIdBody));
-            ValidatedSet.SetValue(ref def.partIndexNipples, ModInterface.Data.GetPartIndex(Id, PartIdNipples));
-            ValidatedSet.SetValue(ref def.partIndexBlushLight, ModInterface.Data.GetPartIndex(Id, PartIdBlushLight));
-            ValidatedSet.SetValue(ref def.partIndexBlushHeavy, ModInterface.Data.GetPartIndex(Id, PartIdBlushHeavy));
-            ValidatedSet.SetValue(ref def.partIndexBlink, ModInterface.Data.GetPartIndex(Id, PartIdBlink));
-            ValidatedSet.SetValue(ref def.partIndexMouthNeutral, ModInterface.Data.GetPartIndex(Id, PartIdMouthNeutral));
+
+            ValidatedSet.SetValue(ref def.partIndexBody, expansion.PartIdToIndex, PartIdBody);
+            ValidatedSet.SetValue(ref def.partIndexNipples, expansion.PartIdToIndex, PartIdNipples);
+            ValidatedSet.SetValue(ref def.partIndexBlushLight, expansion.PartIdToIndex, PartIdBlushLight);
+            ValidatedSet.SetValue(ref def.partIndexBlushHeavy, expansion.PartIdToIndex, PartIdBlushHeavy);
+            ValidatedSet.SetValue(ref def.partIndexBlink, expansion.PartIdToIndex, PartIdBlink);
+            ValidatedSet.SetValue(ref def.partIndexMouthNeutral, expansion.PartIdToIndex, PartIdMouthNeutral);
+
             ValidatedSet.SetValue(ref def.defaultExpressionIndex, DefaultExpressionIndex);
             ValidatedSet.SetValue(ref def.failureExpressionIndex, FailureExpressionIndex);
-            ValidatedSet.SetValue(ref def.defaultHairstyleIndex, ModInterface.Data.GetHairstyleIndex(Id, DefaultHairstyleId));
-            ValidatedSet.SetValue(ref def.defaultOutfitIndex, ModInterface.Data.GetOutfitIndex(Id, DefaultOutfitId));
+
+            ValidatedSet.SetValue(ref def.defaultHairstyleIndex, expansion.HairstyleIdToIndex, DefaultHairstyleId);
+            ValidatedSet.SetValue(ref def.defaultOutfitIndex, expansion.OutfitIdToIndex, DefaultOutfitId);
 
             ValidatedSet.SetValue(ref def.altStylesCodeDefinition, gameDataProvider.GetCode(AltStylesCodeDefinitionID), InsertStyle);
             ValidatedSet.SetValue(ref def.unlockStyleCodeDefinition, gameDataProvider.GetCode(UnlockStyleCodeDefinitionID), InsertStyle);
@@ -340,7 +358,7 @@ namespace Hp2BaseMod.GameDataInfo
             ValidatedSet.SetValue(ref def.altStylesFlagName, AltStylesFlagName, InsertStyle);
 
             var partIdsPhonemes = new[]
-{
+            {
                 Phonemes_aeil,
                 Phonemes_neutral,
                 Phonemes_oquw,
@@ -348,7 +366,8 @@ namespace Hp2BaseMod.GameDataInfo
                 Phonemes_other
             };
 
-            ValidatedSet.SetListValue(ref def.partIndexesPhonemes, partIdsPhonemes?.Select(x => ModInterface.Data.GetPartIndex(Id, x)), InsertStyle);
+            ValidatedSet.SetListValue(ref def.partIndexesPhonemes, partIdsPhonemes?
+                .Select(x => x.HasValue ? (int?)expansion.PartIdToIndex[x.Value] : null), InsertStyle);
 
             var partIdsPhonemesTeeth = new[]
             {
@@ -359,7 +378,8 @@ namespace Hp2BaseMod.GameDataInfo
                 PhonemesTeeth_other
             };
 
-            ValidatedSet.SetListValue(ref def.partIndexesPhonemesTeeth, partIdsPhonemesTeeth.Select(x => ModInterface.Data.GetPartIndex(Id, x)), InsertStyle);
+            ValidatedSet.SetListValue(ref def.partIndexesPhonemesTeeth, partIdsPhonemesTeeth
+                .Select(x => x.HasValue ? (int?)expansion.PartIdToIndex[x.Value] : null), InsertStyle);
 
             ValidatedSet.SetListValue(ref def.badFoodTypes, BadFoodTypes, InsertStyle);
             ValidatedSet.SetValue(ref def.shoesAdj, ShoesAdj, InsertStyle);
@@ -374,56 +394,48 @@ namespace Hp2BaseMod.GameDataInfo
 
             ValidatedSet.SetValue(ref def.breathEmitterPos, BreathEmitterPos, InsertStyle, gameDataProvider, assetProvider);
             ValidatedSet.SetValue(ref def.upsetEmitterPos, UpsetEmitterPos, InsertStyle, gameDataProvider, assetProvider);
-            ValidatedSet.SetValue(ref def.specialEffectOffset, SpecialEffectOffset, InsertStyle, gameDataProvider, assetProvider);
 
-            ValidatedSet.SetValue(ref def.specialEffectPrefab, (UiDollSpecialEffect)assetProvider.GetAsset(SpecialEffectName), InsertStyle);
+            ValidatedSet.SetValue(ref def.specialEffectOffset, HeadPosition, InsertStyle, gameDataProvider, assetProvider);
 
-            ValidatedSet.SetListValue(ref def.girlPairDefs, GirlPairDefIDs?.Select(x => gameDataProvider.GetGirlPair(x)), InsertStyle);
-            ValidatedSet.SetListValue(ref def.baggageItemDefs, BaggageItemDefIDs?.Select(x => gameDataProvider.GetItem(x)), InsertStyle);
-            ValidatedSet.SetListValue(ref def.uniqueItemDefs, UniqueItemDefIDs?.Select(x => gameDataProvider.GetItem(x)), InsertStyle);
-            ValidatedSet.SetListValue(ref def.shoesItemDefs, ShoesItemDefIDs?.Select(x => gameDataProvider.GetItem(x)), InsertStyle);
+            ValidatedSet.SetValue(ref def.specialEffectPrefab, assetProvider.GetInternalAsset<UiDollSpecialEffect>(SpecialEffectName), InsertStyle);
+
+            ValidatedSet.SetListValue(ref def.girlPairDefs, GirlPairDefIDs?.Select(gameDataProvider.GetGirlPair), InsertStyle);
+            ValidatedSet.SetListValue(ref def.baggageItemDefs, BaggageItemDefIDs?.Select(gameDataProvider.GetItem), InsertStyle);
+            ValidatedSet.SetListValue(ref def.uniqueItemDefs, UniqueItemDefIDs?.Select(gameDataProvider.GetItem), InsertStyle);
+            ValidatedSet.SetListValue(ref def.shoesItemDefs, ShoesItemDefIDs?.Select(gameDataProvider.GetItem), InsertStyle);
+
+            ValidatedSet.SetValue(ref expansion.HeadPosition, HeadPosition, InsertStyle, gameDataProvider, assetProvider);
+            ValidatedSet.SetValue(ref expansion.BackPosition, BackPosition, InsertStyle, gameDataProvider, assetProvider);
         }
 
         public IEnumerable<IGirlSubDataMod<GirlExpressionSubDefinition>> GetExpressions() => expressions;
         public IEnumerable<IGirlSubDataMod<ExpandedOutfitDefinition>> GetOutfits() => outfits;
         public IEnumerable<IGirlSubDataMod<ExpandedHairstyleDefinition>> GetHairstyles() => hairstyles;
         public IEnumerable<IGirlSubDataMod<GirlPartSubDefinition>> GetPartMods() => parts;
-        public IEnumerable<Tuple<RelativeId, IEnumerable<IGirlSubDataMod<DialogLine>>>> GetLinesByDialogTriggerId() => (IEnumerable<Tuple<RelativeId, IEnumerable<IGirlSubDataMod<DialogLine>>>>)linesByDialogTriggerId;
+
+        public IEnumerable<Tuple<RelativeId, IEnumerable<IGirlSubDataMod<DialogLine>>>> GetLinesByDialogTriggerId()
+            => (IEnumerable<Tuple<RelativeId, IEnumerable<IGirlSubDataMod<DialogLine>>>>)linesByDialogTriggerId;
 
         /// <inheritdoc/>
-        public IEnumerable<string> GetInternalSpriteRequests() => parts.OrEmptyIfNull()
-            .SelectManyNN(x => x.GetInternalSpriteRequests())
-            .ConcatNN(expressions?.SelectManyNN(x => x.GetInternalSpriteRequests()))
-            .ConcatNN(hairstyles?.SelectManyNN(x => x.GetInternalSpriteRequests()))
-            .ConcatNN(outfits?.SelectManyNN(x => x.GetInternalSpriteRequests()))
-            .ConcatNN(linesByDialogTriggerId?
-                .SelectManyNN(x => x.Item2?.SelectManyNN(x => x.GetInternalSpriteRequests())))
-            .ConcatNN(SpecialEffectOffset?.GetInternalSpriteRequests())
-            .ConcatNN(CellphonePortrait?.GetInternalSpriteRequests())
-            .ConcatNN(CellphonePortraitAlt?.GetInternalSpriteRequests())
-            .ConcatNN(CellphoneHead?.GetInternalSpriteRequests())
-            .ConcatNN(CellphoneHeadAlt?.GetInternalSpriteRequests())
-            .ConcatNN(CellphoneMiniHead?.GetInternalSpriteRequests())
-            .ConcatNN(CellphoneMiniHeadAlt?.GetInternalSpriteRequests())
-            .ConcatNN(BreathEmitterPos?.GetInternalSpriteRequests())
-            .ConcatNN(UpsetEmitterPos?.GetInternalSpriteRequests());
+        public void RequestInternals(AssetProvider assetProvider)
+        {
+            parts?.ForEach(x => x?.RequestInternals(assetProvider));
+            expressions?.ForEach(x => x?.RequestInternals(assetProvider));
+            hairstyles?.ForEach(x => x?.RequestInternals(assetProvider));
+            outfits?.ForEach(x => x?.RequestInternals(assetProvider));
 
-        /// <inheritdoc/>
-        public IEnumerable<string> GetInternalAudioRequests() => parts.OrEmptyIfNull()
-            .SelectManyNN(x => x.GetInternalAudioRequests())
-            .ConcatNN(expressions?.SelectManyNN(x => x.GetInternalAudioRequests()))
-            .ConcatNN(hairstyles?.SelectManyNN(x => x.GetInternalAudioRequests()))
-            .ConcatNN(outfits?.SelectManyNN(x => x.GetInternalAudioRequests()))
-            .ConcatNN(linesByDialogTriggerId?
-                .SelectManyNN(x => x.Item2?.SelectManyNN(x => x.GetInternalAudioRequests())))
-            .ConcatNN(SpecialEffectOffset?.GetInternalAudioRequests())
-            .ConcatNN(CellphonePortrait?.GetInternalAudioRequests())
-            .ConcatNN(CellphonePortraitAlt?.GetInternalAudioRequests())
-            .ConcatNN(CellphoneHead?.GetInternalAudioRequests())
-            .ConcatNN(CellphoneHeadAlt?.GetInternalAudioRequests())
-            .ConcatNN(CellphoneMiniHead?.GetInternalAudioRequests())
-            .ConcatNN(CellphoneMiniHeadAlt?.GetInternalAudioRequests())
-            .ConcatNN(BreathEmitterPos?.GetInternalAudioRequests())
-            .ConcatNN(UpsetEmitterPos?.GetInternalAudioRequests());
+            HeadPosition?.RequestInternals(assetProvider);
+            BackPosition?.RequestInternals(assetProvider);
+            CellphonePortrait?.RequestInternals(assetProvider);
+            CellphonePortraitAlt?.RequestInternals(assetProvider);
+            CellphoneHead?.RequestInternals(assetProvider);
+            CellphoneHeadAlt?.RequestInternals(assetProvider);
+            CellphoneMiniHead?.RequestInternals(assetProvider);
+            CellphoneMiniHeadAlt?.RequestInternals(assetProvider);
+            BreathEmitterPos?.RequestInternals(assetProvider);
+            UpsetEmitterPos?.RequestInternals(assetProvider);
+
+            linesByDialogTriggerId?.SelectManyNN(x => x.Item2).ForEach(x => x.RequestInternals(assetProvider));
+        }
     }
 }

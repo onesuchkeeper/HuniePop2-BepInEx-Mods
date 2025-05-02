@@ -9,7 +9,7 @@ using UnityEngine.UI;
 namespace SingleDate;
 
 [HarmonyPatch(typeof(UiCellphoneAppPair))]
-public static class UiCellphoneAppPairPatch
+internal static class UiCellphoneAppPairPatch
 {
     private static readonly Vector3 _sensitivityOffset = new Vector3(0, 96, 0);
 
@@ -75,7 +75,7 @@ public static class UiCellphoneAppPairPatch
     }
 }
 
-public class ExpandedUiCellphoneAppPair
+internal class ExpandedUiCellphoneAppPair
 {
     private static Dictionary<UiCellphoneAppPair, ExpandedUiCellphoneAppPair> _expansions
         = new Dictionary<UiCellphoneAppPair, ExpandedUiCellphoneAppPair>();

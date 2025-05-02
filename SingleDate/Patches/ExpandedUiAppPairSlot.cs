@@ -9,7 +9,7 @@ using UnityEngine.UI;
 namespace SingleDate;
 
 [HarmonyPatch(typeof(UiAppPairSlot))]
-public static class UiAppPairSlotPatch
+internal static class UiAppPairSlotPatch
 {
     [HarmonyPatch(nameof(UiAppPairSlot.Refresh))]
     [HarmonyPostfix]
@@ -27,7 +27,7 @@ public static class UiAppPairSlotPatch
         => ExpandedUiAppPairSlot.Get(__instance).OnDestroy();
 }
 
-public class ExpandedUiAppPairSlot
+internal class ExpandedUiAppPairSlot
 {
     private static Dictionary<UiAppPairSlot, ExpandedUiAppPairSlot> _expansions
         = new Dictionary<UiAppPairSlot, ExpandedUiAppPairSlot>();
@@ -59,15 +59,15 @@ public class ExpandedUiAppPairSlot
     private Image _background;
     private bool _started;
 
-    protected UiAppPairSlot _core;
+    protected UiAppPairSlot _uiAppPairSlot;
     private ExpandedUiAppPairSlot(UiAppPairSlot core)
     {
-        _core = core;
+        _uiAppPairSlot = core;
     }
 
     public void OnDestroy()
     {
-        _expansions.Remove(_core);
+        _expansions.Remove(_uiAppPairSlot);
     }
 
     public void Refresh()
@@ -76,7 +76,7 @@ public class ExpandedUiAppPairSlot
         //so we do this pseudo-start thing here
         if (!_started)
         {
-            _overSpriteTransition = _overTransitions.GetValue<List<ButtonStateTransition>>(_core.button)
+            _overSpriteTransition = _overTransitions.GetValue<List<ButtonStateTransition>>(_uiAppPairSlot.button)
                 .FirstOrDefault(x => x.transitionDef.sprite != null);
 
             _defaultOverDef = _overSpriteTransition?.transitionDef;
@@ -97,14 +97,14 @@ public class ExpandedUiAppPairSlot
                 };
             }
 
-            _defaultProfileLinked = _core.profileLinked;
-            _background = _core.transform.Find("Background").GetComponent<Image>();
+            _defaultProfileLinked = _uiAppPairSlot.profileLinked;
+            _background = _uiAppPairSlot.transform.Find("Background").GetComponent<Image>();
             _defaultBackgroundSprite = _background.sprite;
 
             _started = true;
         }
 
-        if (!State.IsSingle(_playerFileGirlPair.GetValue<PlayerFileGirlPair>(_core)?.girlPairDefinition))
+        if (!State.IsSingle(_playerFileGirlPair.GetValue<PlayerFileGirlPair>(_uiAppPairSlot)?.girlPairDefinition))
         {
             if (_overSpriteTransition?.transitionDef != _defaultOverDef)
             {
@@ -113,8 +113,8 @@ public class ExpandedUiAppPairSlot
             }
 
             _background.sprite = _defaultBackgroundSprite;
-            _core.girlHeadTwo.transform.localPosition = new Vector3(-16f, 0f, 0f);
-            _core.profileLinked = _defaultProfileLinked;
+            _uiAppPairSlot.girlHeadTwo.transform.localPosition = new Vector3(-16f, 0f, 0f);
+            _uiAppPairSlot.profileLinked = _defaultProfileLinked;
 
             return;
         }
@@ -126,20 +126,29 @@ public class ExpandedUiAppPairSlot
         }
 
         _background.sprite = UiPrefabs.SingleUiAppPairSlotBg;
-        _core.girlHeadTwo.transform.localPosition = new Vector3(-48f, 0f, 0f);
-        _core.profileLinked = false;
+        _uiAppPairSlot.girlHeadTwo.transform.localPosition = new Vector3(-48f, 0f, 0f);
+        _uiAppPairSlot.profileLinked = false;
     }
 
     public void ShowTooltip()
     {
-        var playerFileGirlPair = _playerFileGirlPair.GetValue<PlayerFileGirlPair>(_core);
+        var playerFileGirlPair = _playerFileGirlPair.GetValue<PlayerFileGirlPair>(_uiAppPairSlot);
 
         if (!State.IsSingle(playerFileGirlPair?.girlPairDefinition))
         {
             return;
         }
 
-        _tooltip.GetValue<UiTooltipSimple>(_core)?
-                    .Populate($"{playerFileGirlPair.girlPairDefinition.girlDefinitionTwo.girlName}:\n{playerFileGirlPair.relationshipType}", 0, 1f, 1920f);
+        var text = $"{playerFileGirlPair.girlPairDefinition.girlDefinitionTwo.girlName}:\n{playerFileGirlPair.relationshipType}";
+
+        if (playerFileGirlPair.relationshipType == GirlPairRelationshipType.ATTRACTED
+            || playerFileGirlPair.relationshipType == GirlPairRelationshipType.COMPATIBLE)
+        {
+            var girlSave = State.SaveFile.GetGirl(playerFileGirlPair.girlPairDefinition.girlDefinitionTwo.id);
+            text += $" {girlSave.RelationshipLevel}/{State.MaxSingleGirlRelationshipLevel}";
+        }
+
+        _tooltip.GetValue<UiTooltipSimple>(_uiAppPairSlot)?
+            .Populate(text, 0, 1f, 1920f);
     }
 }

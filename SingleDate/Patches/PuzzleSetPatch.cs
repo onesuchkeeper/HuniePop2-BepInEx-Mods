@@ -1,16 +1,14 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using HarmonyLib;
-using Hp2BaseMod;
 using Hp2BaseMod.Extension;
 using UnityEngine;
 
 namespace SingleDate;
 
 [HarmonyPatch(typeof(PuzzleSet))]
-public static class PuzzleSetPatch
+internal static class PuzzleSetPatch
 {
     private static readonly FieldInfo _affection = AccessTools.Field(typeof(PuzzleStatus), "_affection");
 

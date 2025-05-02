@@ -5,7 +5,7 @@ using HarmonyLib;
 namespace SingleDate;
 
 [HarmonyPatch(typeof(UiPuzzleAilmentSlot))]
-public static class UiPuzzleAilmentSlotPatch
+internal static class UiPuzzleAilmentSlotPatch
 {
     [HarmonyPatch("Start")]
     [HarmonyPostfix]
@@ -18,7 +18,7 @@ public static class UiPuzzleAilmentSlotPatch
         => ExpandedUiPuzzleAilmentSlot.Get(__instance).OnDestroy();
 }
 
-public class ExpandedUiPuzzleAilmentSlot
+internal class ExpandedUiPuzzleAilmentSlot
 {
     private static Dictionary<UiPuzzleAilmentSlot, ExpandedUiPuzzleAilmentSlot> _expansions
         = new Dictionary<UiPuzzleAilmentSlot, ExpandedUiPuzzleAilmentSlot>();

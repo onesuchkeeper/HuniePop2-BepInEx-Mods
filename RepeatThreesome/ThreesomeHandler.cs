@@ -1,9 +1,10 @@
 ﻿// Hp2RepeatThreesomeMod 2021, By onesuchkeeper
 
-using System;
 using System.Reflection;
 using HarmonyLib;
 using Hp2BaseMod;
+using Hp2BaseMod.Extension;
+using Hp2BaseMod.Utility;
 
 namespace RepeatThreesome
 {
@@ -49,53 +50,72 @@ namespace RepeatThreesome
 
         private static void On_CutsceneCompleteEvent()
         {
+            ModInterface.Log.LogInfo($"A");
+
+
             Game.Session.Cutscenes.CutsceneCompleteEvent -= On_CutsceneCompleteEvent;
+            var newRoundCutscene = _newRoundCutscene.GetValue<CutsceneDefinition>(Game.Session.Puzzle);
+            var roundOverCutscene = _roundOverCutscene.GetValue<CutsceneDefinition>(Game.Session.Puzzle);
 
-            var newRoundCutscene = _newRoundCutscene.GetValue(Game.Session.Puzzle) as CutsceneDefinition;
-
-            if (!Game.Session.Puzzle.puzzleStatus.gameOver
-                && ModInterface.GameData.IsCodeUnlocked(Constants.NudeCodeId)
-                && (newRoundCutscene == Game.Session.Puzzle.cutsceneNewroundBonus
-                    || newRoundCutscene == Game.Session.Puzzle.cutsceneNewroundBossBonus))
+            ModInterface.Log.LogInfo($"gameOver:{Game.Session.Puzzle.puzzleStatus.gameOver},nudeCode:{ModInterface.GameData.IsCodeUnlocked(Constants.NudeCodeId)},bonuscutscene:{roundOverCutscene == Game.Session.Puzzle.cutsceneSuccessBonus},isBonusround:{Game.Session.Puzzle.puzzleStatus.bonusRound}");
+            if (newRoundCutscene == Game.Session.Puzzle.cutsceneNewroundBossBonus)
             {
+                ModInterface.Log.LogInfo($"B");
+                Game.Session.Cutscenes.CutsceneStartedEvent += On_BossBonusStart;
+            }
+            else if (!Game.Session.Puzzle.puzzleStatus.gameOver
+                && ModInterface.GameData.IsCodeUnlocked(Constants.NudeCodeId)
+                && Game.Session.Puzzle.puzzleStatus.statusType == PuzzleStatusType.NORMAL)
+            {
+                ModInterface.Log.LogInfo($"C");
                 var silent = ChangeToNudeOutfit(Game.Session.Puzzle.puzzleStatus.girlStatusLeft.playerFileGirl,
-                                    Game.Session.gameCanvas.dollLeft,
-                                    Game.Session.gameCanvas.dollLeft.notificationBox,
-                                    false);
+                    Game.Session.gameCanvas.dollLeft,
+                    false);
 
-                if (Game.Session.Puzzle.puzzleStatus.IsTutorial(false))
-                {
-                    ModInterface.Log.LogInfo("Ignoring nude outfit change for Kyu in tutorial");
-                }
-                else
+                //ignore kyu during tutorial
+                if (!Game.Session.Puzzle.puzzleStatus.IsTutorial(false))
                 {
                     ChangeToNudeOutfit(Game.Session.Puzzle.puzzleStatus.girlStatusRight.playerFileGirl,
                         Game.Session.gameCanvas.dollRight,
-                        Game.Session.gameCanvas.dollRight.notificationBox,
                         silent);
                 }
             }
         }
 
-        private static bool ChangeToNudeOutfit(PlayerFileGirl girl, UiDoll doll, NotificationBoxBehavior notificationBox, bool silent)
+        private static void On_BossBonusStart()
+        {
+            Game.Session.Cutscenes.CutsceneStartedEvent -= On_BossBonusStart;
+
+            var silent = ChangeToNudeOutfit(Game.Session.Puzzle.puzzleStatus.girlStatusLeft.playerFileGirl,
+                Game.Session.gameCanvas.dollLeft,
+                false);
+
+            ChangeToNudeOutfit(Game.Session.Puzzle.puzzleStatus.girlStatusRight.playerFileGirl,
+                Game.Session.gameCanvas.dollRight,
+                silent);
+        }
+
+        private static bool ChangeToNudeOutfit(PlayerFileGirl girl, UiDoll doll, bool silentUnlock)
         {
             if (girl == null
                 || doll == null
-                || !Game.Persistence.playerFile.girls.Contains(girl))
+                || doll.girlDefinition == null)
             {
                 return false;
             }
 
-            var outfitIndex = ModInterface.Data.GetOutfitIndex(ModInterface.Data.GetDataId(GameDataType.Girl, girl.girlDefinition.id), Constants.NudeOutfitId);
-            doll.ChangeOutfit(outfitIndex);
+            var expansion = ExpandedGirlDefinition.Get(girl.girlDefinition);
 
-            if (girl.UnlockOutfit(outfitIndex))
+            if (!expansion.OutfitIdToIndex.TryGetValue(Constants.NudeOutfitId, out var nudeOutfitIndex))
             {
-                notificationBox.Show("\"Nude\" Outfit Unlocked!", 4f, silent);
-                return true;
+                ModInterface.Log.LogInfo($"Failed to find nude outfit for Girl {girl.girlDefinition.girlName}.");
+                return false;
             }
 
-            return false;
+            ModInterface.Log.LogInfo($"Changing girl to nude outfit");
+            doll.ChangeOutfit(nudeOutfitIndex);
+
+            return StyleUnlockUtility.UnlockStyle(girl, -1, nudeOutfitIndex, silentUnlock);
         }
     }
 }

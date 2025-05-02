@@ -2,7 +2,6 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using Hp2BaseMod.Extension.IEnumerableExtension;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
 using UnityEngine;
@@ -100,19 +99,13 @@ namespace Hp2BaseMod.GameDataInfo
         public IEnumerable<(RelativeId, GirlStyleInfo)> GetStyles() => GirlStyles;
 
         /// <inheritdoc/>
-        public IEnumerable<string> GetInternalSpriteRequests() => Backgrounds.OrEmptyIfNull()
-            .SelectManyNN(x => x.GetInternalSpriteRequests())
-            .ConcatNN(BgMusic?.GetInternalSpriteRequests())
-            .ConcatNN(FinderLocationIcon?.GetInternalSpriteRequests())
-            .ConcatNN(ArriveBundleList?.SelectManyNN(x => x.GetInternalSpriteRequests()))
-            .ConcatNN(DepartBundleList?.SelectManyNN(x => x.GetInternalSpriteRequests()));
-
-        /// <inheritdoc/>
-        public IEnumerable<string> GetInternalAudioRequests() => Backgrounds.OrEmptyIfNull()
-            .SelectManyNN(x => x.GetInternalAudioRequests())
-            .ConcatNN(BgMusic?.GetInternalAudioRequests())
-            .ConcatNN(FinderLocationIcon?.GetInternalAudioRequests())
-            .ConcatNN(ArriveBundleList?.SelectManyNN(x => x.GetInternalAudioRequests()))
-            .ConcatNN(DepartBundleList?.SelectManyNN(x => x.GetInternalAudioRequests()));
+        public void RequestInternals(AssetProvider assetProvider)
+        {
+            Backgrounds?.ForEach(x => x.RequestInternals(assetProvider));
+            ArriveBundleList?.ForEach(x => x.RequestInternals(assetProvider));
+            DepartBundleList?.ForEach(x => x.RequestInternals(assetProvider));
+            BgMusic?.RequestInternals(assetProvider);
+            FinderLocationIcon?.RequestInternals(assetProvider);
+        }
     }
 }

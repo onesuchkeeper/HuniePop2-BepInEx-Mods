@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using Hp2BaseMod.GameDataInfo.Interface;
+﻿using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
 using UnityEngine;
 
@@ -27,8 +26,10 @@ namespace Hp2BaseMod.GameDataInfo
             Data = null;
         }
 
-        public IEnumerable<string> GetInternalAudioRequests() => null;
-
-        public IEnumerable<string> GetInternalSpriteRequests() => null;
+        /// <inheritdoc/>
+        public void RequestInternals(AssetProvider assetProvider)
+        {
+            //noop
+        }
     }
 }

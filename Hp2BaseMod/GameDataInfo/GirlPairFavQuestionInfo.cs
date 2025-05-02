@@ -51,8 +51,10 @@ namespace Hp2BaseMod.GameDataInfo
             ValidatedSet.SetValue(ref def.questionDefinition, gameDataProvider.GetQuestion(QuestionDefinitionID), insertStyle);
         }
 
-        public IEnumerable<string> GetInternalSpriteRequests() => null;
-
-        public IEnumerable<string> GetInternalAudioRequests() => null;
+        /// <inheritdoc/>
+        public void RequestInternals(AssetProvider assetProvider)
+        {
+            //noop
+        }
     }
 }

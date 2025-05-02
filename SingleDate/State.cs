@@ -1,4 +1,3 @@
-using BepInEx;
 using Hp2BaseMod;
 using Newtonsoft.Json;
 using UnityEngine;
@@ -16,21 +15,26 @@ public static class State
     public static int ModId => _modId;
     private static int _modId;
 
-    public static SaveFile Save
+    public static SingleSaveFile SaveFile
     {
         get
         {
             while (_save.SaveFiles.Count - 1 < Game.Persistence.loadedFileIndex)
             {
-                _save.SaveFiles.Add(new SaveFile());
+                var saveFile = new SingleSaveFile();
+                saveFile.Clean();
+                _save.SaveFiles.Add(saveFile);
             }
 
             return _save.SaveFiles[Game.Persistence.loadedFileIndex];
         }
     }
-    private static SaveData _save;
+    private static SingleSaveData _save;
 
-    public static bool ShowSingleUpsetHint => _save.ShowSingleUpsetHint;
+    public static bool SingleUpsetHint => _save.SingleUpsetHint;
+    public static int MaxSingleGirlRelationshipLevel => _save.MaxSingleGirlRelationshipLevel;
+    public static bool SingleDateBaggage => _save.SingleDateBaggage;
+    public static bool RequireLoversBeforeThreesome => _save.RequireLoversBeforeThreesome;
 
     public static bool IsSingleDate => _isSingleDate;
     private static bool _isSingleDate;
@@ -47,7 +51,7 @@ public static class State
 
     public static float GetBrokenMult() => _baseBrokenMult - (GetSensitivityLevel() * _deltaBrokenMult);
 
-    public static int GetSensitivityLevel() => Save.SensitivityExp / 6;
+    public static int GetSensitivityLevel() => SaveFile.SensitivityExp / 6;
 
     public static void On_UiPuzzleGrid_Start(UiPuzzleGrid uiPuzzleGrid)
     {
@@ -66,19 +70,20 @@ public static class State
 
     public static void On_PreGameSave()
     {
-        ModInterface.SetSourceSave(State.ModId, JsonConvert.SerializeObject(State.Save));
+        ModInterface.SetSourceSave(State.ModId, JsonConvert.SerializeObject(_save));
     }
 
     public static void On_PostPersistenceReset()
     {
         var saveStr = ModInterface.GetSourceSave(State.ModId);
 
-        if (!saveStr.IsNullOrWhiteSpace())
+        if (!string.IsNullOrWhiteSpace(saveStr))
         {
-            _save = JsonConvert.DeserializeObject<SaveData>(saveStr);
+            _save = JsonConvert.DeserializeObject<SingleSaveData>(saveStr);
         }
 
-        _save ??= new SaveData();
+        _save ??= new SingleSaveData();
+
         _save.Clean();
     }
 }

@@ -38,11 +38,11 @@ namespace Hp2BaseMod
         /// <summary>
         /// Notifies when a girl's style will potentially change<br/>
         /// </summary>
-        public event EventHandler<RequestStyleChangeEventArgs> RequestStyleChange;
+        public event Action<RequestStyleChangeEventArgs> RequestStyleChange;
         internal RequestStyleChangeEventArgs NotifyRequestStyleChange(GirlDefinition girl, LocationDefinition loc, float percentage, GirlStyleInfo style)
         {
             var args = new RequestStyleChangeEventArgs(girl, loc, percentage, style);
-            RequestStyleChange?.Invoke(null, args);
+            RequestStyleChange?.Invoke(args);
             return args;
         }
 
@@ -67,5 +67,8 @@ namespace Hp2BaseMod
 
         public event Action PreRoundOverCutscene;
         internal void NotifyPreRoundOverCutscene() => PreRoundOverCutscene?.Invoke();
+
+        public event Action<FinderSlotPopulateEventArgs> FinderSlotsPopulate;
+        internal void NotifyPreFinderSlotPopulatePairs(FinderSlotPopulateEventArgs args) => FinderSlotsPopulate?.Invoke(args);
     }
 }

@@ -20,7 +20,7 @@ public static class PuzzleSetGetMatchRewards_Patch
     {
         if (__instance.bonusRound)
         {
-            __instance.AddResourceValue(PuzzleResourceType.AFFECTION, 10, false);
+            __instance.AddResourceValue(PuzzleResourceType.AFFECTION, 10000, false);
         }
         else
         {

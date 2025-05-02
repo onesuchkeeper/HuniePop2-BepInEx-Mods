@@ -2,7 +2,6 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using Hp2BaseMod.Extension.IEnumerableExtension;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
 using UnityEngine;
@@ -91,7 +90,7 @@ namespace Hp2BaseMod.GameDataInfo
             ValidatedSet.SetValue(ref def.bossSurgeExpression, BossSurgeExpression);
             ValidatedSet.SetValue(ref def.bossSurgeEyesClosed, BossSurgeEyesClosed);
 
-            ValidatedSet.SetValue(ref def.textMaterial, (Material)assetProvider.GetAsset(TextMaterialName), InsertStyle);
+            ValidatedSet.SetValue(ref def.textMaterial, assetProvider.GetInternalAsset<Material>(TextMaterialName), InsertStyle);
             ValidatedSet.SetValue(ref def.textColor, TextColorInfo, InsertStyle, gameDataProvider, assetProvider);
             ValidatedSet.SetValue(ref def.outlineColor, OutlineColorInfo, InsertStyle, gameDataProvider, assetProvider);
             ValidatedSet.SetValue(ref def.shadowColor, ShadowColorInfo, InsertStyle, gameDataProvider, assetProvider);
@@ -103,22 +102,17 @@ namespace Hp2BaseMod.GameDataInfo
             ValidatedSet.SetListValue(ref def.surgeSprites, SurgeSprites, InsertStyle, gameDataProvider, assetProvider);
         }
 
-        public IEnumerable<string> GetInternalAudioRequests() => IEnumerableExtension.OrEmptyIfNull(TextColorInfo?.GetInternalAudioRequests())
-            .ConcatNN(OutlineColorInfo?.GetInternalAudioRequests())
-            .ConcatNN(ShadowColorInfo?.GetInternalAudioRequests())
-            .ConcatNN(SurgeColorInfo?.GetInternalAudioRequests())
-            .ConcatNN(SurgeSprites?.SelectManyNN(x => x.GetInternalAudioRequests()))
-            .ConcatNN(BurstSprites?.SelectManyNN(x => x.GetInternalAudioRequests()))
-            .ConcatNN(TrailSprites?.SelectManyNN(x => x.GetInternalAudioRequests()))
-            .ConcatNN(SplashSprites?.SelectManyNN(x => x.GetInternalAudioRequests()));
-
-        public IEnumerable<string> GetInternalSpriteRequests() => IEnumerableExtension.OrEmptyIfNull(TextColorInfo?.GetInternalSpriteRequests())
-            .ConcatNN(OutlineColorInfo?.GetInternalSpriteRequests())
-            .ConcatNN(ShadowColorInfo?.GetInternalSpriteRequests())
-            .ConcatNN(SurgeColorInfo?.GetInternalSpriteRequests())
-            .ConcatNN(SurgeSprites?.SelectManyNN(x => x.GetInternalSpriteRequests()))
-            .ConcatNN(BurstSprites?.SelectManyNN(x => x.GetInternalSpriteRequests()))
-            .ConcatNN(TrailSprites?.SelectManyNN(x => x.GetInternalSpriteRequests()))
-            .ConcatNN(SplashSprites?.SelectManyNN(x => x.GetInternalSpriteRequests()));
+        /// <inheritdoc/>
+        public void RequestInternals(AssetProvider assetProvider)
+        {
+            TextColorInfo?.RequestInternals(assetProvider);
+            OutlineColorInfo?.RequestInternals(assetProvider);
+            ShadowColorInfo?.RequestInternals(assetProvider);
+            SurgeColorInfo?.RequestInternals(assetProvider);
+            SurgeSprites?.ForEach(x => x?.RequestInternals(assetProvider));
+            BurstSprites?.ForEach(x => x?.RequestInternals(assetProvider));
+            TrailSprites?.ForEach(x => x?.RequestInternals(assetProvider));
+            SplashSprites?.ForEach(x => x?.RequestInternals(assetProvider));
+        }
     }
 }

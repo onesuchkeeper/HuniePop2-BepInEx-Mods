@@ -1,7 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using BepInEx;
+using BepInEx.Bootstrap;
 using HarmonyLib;
 using Hp2BaseMod;
 using Hp2BaseMod.GameDataInfo;
@@ -23,7 +23,7 @@ internal class Plugin : BaseUnityPlugin
 
     private void Awake()
     {
-        try
+        if (Chainloader.PluginInfos.ContainsKey("OSK.BepInEx.Hp2BaseModTweaks"))
         {
             ModConfig.AddModConfig(new ModConfig()
             {
@@ -36,10 +36,6 @@ internal class Plugin : BaseUnityPlugin
                     }
                 }
             });
-        }
-        catch (Exception e)
-        {
-            ModInterface.Log.LogWarning("Failed to add Credits");
         }
 
         _modId = ModInterface.GetSourceId(MyPluginInfo.PLUGIN_GUID);

@@ -6,7 +6,7 @@ using Hp2BaseMod.Utility;
 
 namespace SingleDate;
 
-public static class GirlNobody
+internal static class GirlNobody
 {
     public static RelativeId Id => _id;
     private static RelativeId _id;

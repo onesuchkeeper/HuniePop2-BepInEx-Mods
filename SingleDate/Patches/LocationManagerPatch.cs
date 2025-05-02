@@ -7,7 +7,7 @@ using UnityEngine;
 namespace SingleDate;
 
 [HarmonyPatch(typeof(LocationManager))]
-public static class LocationManagerPatch
+internal static class LocationManagerPatch
 {
     private static FieldInfo _isLocked = AccessTools.Field(typeof(LocationManager), "_isLocked");
     private static FieldInfo _arrivalCutscene = AccessTools.Field(typeof(LocationManager), "_arrivalCutscene");

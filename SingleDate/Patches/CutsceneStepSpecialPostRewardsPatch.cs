@@ -6,7 +6,7 @@ using Hp2BaseMod.Extension;
 namespace SingleDate;
 
 [HarmonyPatch(typeof(CutsceneStepSpecialPostRewards))]
-public static class CutsceneStepSpecialPostRewardsPatch
+internal static class CutsceneStepSpecialPostRewardsPatch
 {
     private static FieldInfo _postRewards = AccessTools.Field(typeof(CutsceneStepSpecialPostRewards), "_postRewards");
 

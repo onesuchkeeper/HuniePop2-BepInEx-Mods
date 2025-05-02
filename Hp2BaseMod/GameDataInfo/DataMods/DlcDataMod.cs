@@ -1,6 +1,5 @@
 ﻿// Hp2BaseMod 2021, By OneSuchKeeper
 
-using System.Collections.Generic;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
 
@@ -43,9 +42,9 @@ namespace Hp2BaseMod.GameDataInfo
         }
 
         /// <inheritdoc/>
-        public IEnumerable<string> GetInternalSpriteRequests() => null;
-
-        /// <inheritdoc/>
-        public IEnumerable<string> GetInternalAudioRequests() => null;
+        public void RequestInternals(AssetProvider assetProvider)
+        {
+            //noop
+        }
     }
 }

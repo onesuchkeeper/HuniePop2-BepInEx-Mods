@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Hp2BaseMod.Commands;
-using Hp2BaseMod.GameDataInfo;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Save;
 using Newtonsoft.Json;
@@ -262,92 +261,92 @@ public static class ModInterface
         _commands[command.Name.ToUpper()] = command;
     }
 
-    public static void AddDataMod(AbilityDataMod mod)
+    public static void AddDataMod(IGameDataMod<AbilityDefinition> mod)
     {
         if (mod == null) { return; }
         _abilityDataMods.Add(mod);
         _data.TryRegisterData(GameDataType.Ability, mod.Id);
     }
 
-    public static void AddDataMod(AilmentDataMod mod)
+    public static void AddDataMod(IGameDataMod<AilmentDefinition> mod)
     {
         if (mod == null) { return; }
         _ailmentDataMods.Add(mod);
         _data.TryRegisterData(GameDataType.Ailment, mod.Id);
     }
 
-    public static void AddDataMod(CodeDataMod mod)
+    public static void AddDataMod(IGameDataMod<CodeDefinition> mod)
     {
         if (mod == null) { return; }
         _codeDataMods.Add(mod);
         _data.TryRegisterData(GameDataType.Code, mod.Id);
     }
 
-    public static void AddDataMod(CutsceneDataMod mod)
+    public static void AddDataMod(IGameDataMod<CutsceneDefinition> mod)
     {
         if (mod == null) { return; }
         _cutsceneDataMods.Add(mod);
         _data.TryRegisterData(GameDataType.Cutscene, mod.Id);
     }
 
-    public static void AddDataMod(DialogTriggerDataMod mod)
+    public static void AddDataMod(IGameDataMod<DialogTriggerDefinition> mod)
     {
         if (mod == null) { return; }
         _dialogTriggerDataMods.Add(mod);
         _data.TryRegisterData(GameDataType.DialogTrigger, mod.Id);
     }
 
-    public static void AddDataMod(DlcDataMod mod)
+    public static void AddDataMod(IGameDataMod<DlcDefinition> mod)
     {
         if (mod == null) { return; }
         _dlcDataMods.Add(mod);
         _data.TryRegisterData(GameDataType.Dlc, mod.Id);
     }
 
-    public static void AddDataMod(EnergyDataMod mod)
+    public static void AddDataMod(IGameDataMod<EnergyDefinition> mod)
     {
         if (mod == null) { return; }
         _energyDataMods.Add(mod);
         _data.TryRegisterData(GameDataType.Energy, mod.Id);
     }
 
-    public static void AddDataMod(GirlDataMod mod)
+    public static void AddDataMod(IGirlDataMod mod)
     {
         if (mod == null) { return; }
         _girlDataMods.Add(mod);
         _data.TryRegisterData(GameDataType.Girl, mod.Id);
     }
-    public static void AddDataMod(GirlPairDataMod mod)
+    public static void AddDataMod(IGirlPairDataMod mod)
     {
         if (mod == null) { return; }
         _girlPairDataMods.Add(mod);
         _data.TryRegisterData(GameDataType.GirlPair, mod.Id);
     }
-    public static void AddDataMod(ItemDataMod mod)
+    public static void AddDataMod(IGameDataMod<ItemDefinition> mod)
     {
         if (mod == null) { return; }
         _itemDataMods.Add(mod);
         _data.TryRegisterData(GameDataType.Item, mod.Id);
     }
-    public static void AddDataMod(LocationDataMod mod)
+    public static void AddDataMod(ILocationDataMod mod)
     {
         if (mod == null) { return; }
         _locationDataMods.Add(mod);
         _data.TryRegisterData(GameDataType.Location, mod.Id);
     }
-    public static void AddDataMod(PhotoDataMod mod)
+    public static void AddDataMod(IGameDataMod<PhotoDefinition> mod)
     {
         if (mod == null) { return; }
         _photoDataMods.Add(mod);
         _data.TryRegisterData(GameDataType.Photo, mod.Id);
     }
-    public static void AddDataMod(QuestionDataMod mod)
+    public static void AddDataMod(IGameDataMod<QuestionDefinition> mod)
     {
         if (mod == null) { return; }
         _questionDataMods.Add(mod);
         _data.TryRegisterData(GameDataType.Question, mod.Id);
     }
-    public static void AddDataMod(TokenDataMod mod)
+    public static void AddDataMod(IGameDataMod<TokenDefinition> mod)
     {
         if (mod == null) { return; }
         _tokenDataMods.Add(mod);

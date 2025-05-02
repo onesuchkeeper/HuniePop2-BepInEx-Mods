@@ -2,13 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using HarmonyLib;
-using Hp2BaseMod;
 using Hp2BaseMod.Extension;
 
 namespace SingleDate;
 
 [HarmonyPatch(typeof(ItemSlotBehavior))]
-public static class ItemSlotBehaviorPatch
+internal static class ItemSlotBehaviorPatch
 {
     [HarmonyPatch(nameof(ItemSlotBehavior.ShowTooltip))]
     [HarmonyPrefix]
@@ -21,7 +20,7 @@ public static class ItemSlotBehaviorPatch
         => ExpandedItemSlotBehavior.Get(__instance).OnDestroy();
 }
 
-public class ExpandedItemSlotBehavior
+internal class ExpandedItemSlotBehavior
 {
     private static Dictionary<ItemSlotBehavior, ExpandedItemSlotBehavior> _expansions
         = new Dictionary<ItemSlotBehavior, ExpandedItemSlotBehavior>();

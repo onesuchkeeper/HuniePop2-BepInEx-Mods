@@ -1,11 +1,8 @@
 ﻿// Hp2BaseModLoader 2021, by OneSuchKeeper
 
 using System;
-using System.IO;
 using System.Reflection;
 using HarmonyLib;
-using Newtonsoft.Json;
-using UnityEngine;
 
 namespace Hp2BaseMod.Save
 {

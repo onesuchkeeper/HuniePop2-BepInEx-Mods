@@ -27,5 +27,29 @@ namespace Hp2BaseMod.GameDataInfo
         }
 
         public static GirlStyleInfo Default => new GirlStyleInfo() { OutfitId = RelativeId.Default, HairstyleId = RelativeId.Default };
+
+        public void Apply(UiDoll doll, int defaultOutfitIndex, int defaultHairstyleIndex)
+        {
+            if (!ModInterface.Data.TryGetDataId(GameDataType.Girl, (doll.soulGirlDefinition ?? doll.girlDefinition).id, out var girlId))
+            {
+                return;
+            }
+
+            var girlExpansion = ExpandedGirlDefinition.Get(girlId);
+
+            if (OutfitId.HasValue)
+            {
+                doll.ChangeOutfit(girlExpansion.OutfitIdToIndex.TryGetValue(OutfitId.Value, out var index)
+                    ? index
+                    : defaultOutfitIndex);
+            }
+
+            if (HairstyleId.HasValue)
+            {
+                doll.ChangeHairstyle(girlExpansion.HairstyleIdToIndex.TryGetValue(HairstyleId.Value, out var index)
+                    ? index
+                    : defaultHairstyleIndex);
+            }
+        }
     }
 }

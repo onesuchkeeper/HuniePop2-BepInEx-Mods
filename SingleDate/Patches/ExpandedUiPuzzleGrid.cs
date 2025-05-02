@@ -9,7 +9,7 @@ using UnityEngine;
 namespace SingleDate;
 
 [HarmonyPatch(typeof(UiPuzzleGrid))]
-public static class UiPuzzleGridPatch
+internal static class UiPuzzleGridPatch
 {
     [HarmonyPatch("Start")]
     [HarmonyPostfix]
@@ -59,7 +59,7 @@ public static class UiPuzzleGridPatch
         => ExpandedUiPuzzleGrid.Get(__instance).RefreshGirlDolls();
 }
 
-public class ExpandedUiPuzzleGrid
+internal class ExpandedUiPuzzleGrid
 {
     private static readonly Dictionary<UiPuzzleGrid, ExpandedUiPuzzleGrid> _expansions
         = new Dictionary<UiPuzzleGrid, ExpandedUiPuzzleGrid>();
@@ -301,7 +301,7 @@ public class ExpandedUiPuzzleGrid
                 || moveMatchSet.HasMatchWithTokenDef(status.girlStatusFocused.extraNoSpawnMatchTokenDefs))
                 && !status.girlStatusFocused.HasAilment(Game.Session.Puzzle.brokenProtectionAilmentDefinition, true))
             {
-                if (!State.ShowSingleUpsetHint)
+                if (!State.SingleUpsetHint)
                 {
                     _warningCheck.SetValue(_uiPuzzleGrid, false);
                 }

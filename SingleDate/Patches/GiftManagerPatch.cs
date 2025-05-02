@@ -5,7 +5,7 @@ using UnityEngine;
 namespace SingleDate;
 
 [HarmonyPatch(typeof(GiftManager))]
-public static class GiftManagerPatch
+internal static class GiftManagerPatch
 {
     [HarmonyPatch(nameof(GiftManager.GiveGift), [typeof(UiDoll), typeof(ItemDefinition)])]
     [HarmonyPrefix]
@@ -41,15 +41,15 @@ public static class GiftManagerPatch
 
         if (__result)
         {
-            if (State.Save.SensitivityExp < 24)
+            if (State.SaveFile.SensitivityExp < 24)
             {
                 text = $"+1 Sensitivity EXP";
 
-                var affectionLevel = State.Save.SensitivityExp / 6;
+                var affectionLevel = State.SaveFile.SensitivityExp / 6;
 
-                State.Save.SensitivityExp++;
+                State.SaveFile.SensitivityExp++;
 
-                var updatedAffectionLevel = State.Save.SensitivityExp / 6;
+                var updatedAffectionLevel = State.SaveFile.SensitivityExp / 6;
                 if (updatedAffectionLevel != affectionLevel)
                 {
                     doll.notificationBox.Show($"Sensitivity Level {updatedAffectionLevel} achieved!", 0f, false);

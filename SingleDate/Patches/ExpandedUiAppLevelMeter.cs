@@ -5,7 +5,7 @@ using HarmonyLib;
 namespace SingleDate;
 
 [HarmonyPatch(typeof(UiAppLevelMeter))]
-public static class UiAppLevelMeterPatch
+internal static class UiAppLevelMeterPatch
 {
     [HarmonyPatch("Start")]
     [HarmonyPostfix]
@@ -18,7 +18,7 @@ public static class UiAppLevelMeterPatch
         => ExpandedUiAppLevelMeter.Get(__instance).OnDestroy();
 }
 
-public class ExpandedUiAppLevelMeter
+internal class ExpandedUiAppLevelMeter
 {
     private static Dictionary<UiAppLevelMeter, ExpandedUiAppLevelMeter> _expansions
         = new Dictionary<UiAppLevelMeter, ExpandedUiAppLevelMeter>();

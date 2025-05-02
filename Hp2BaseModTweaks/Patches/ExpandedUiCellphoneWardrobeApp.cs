@@ -6,6 +6,7 @@ using HarmonyLib;
 using Hp2BaseMod;
 using Hp2BaseMod.Ui;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Hp2BaseModTweaks.CellphoneApps
 {
@@ -13,9 +14,14 @@ namespace Hp2BaseModTweaks.CellphoneApps
     internal static class UiCellphoneAppWardrobePatch
     {
         [HarmonyPatch("Start")]
+        [HarmonyPrefix]
+        public static void PreStart(UiCellphoneAppWardrobe __instance)
+            => ExpandedUiCellphoneWardrobeApp.Get(__instance).PreStart();
+
+        [HarmonyPatch("Start")]
         [HarmonyPostfix]
-        public static void Start(UiCellphoneAppWardrobe __instance)
-            => ExpandedUiCellphoneWardrobeApp.Get(__instance).Start();
+        public static void PostStart(UiCellphoneAppWardrobe __instance)
+            => ExpandedUiCellphoneWardrobeApp.Get(__instance).PostStart();
 
         [HarmonyPatch("OnDestroy")]
         [HarmonyPrefix]
@@ -45,6 +51,9 @@ namespace Hp2BaseModTweaks.CellphoneApps
         }
 
         private static readonly FieldInfo _selectedFileIconSlot = AccessTools.Field(typeof(UiCellphoneAppWardrobe), "_selectedFileIconSlot");
+        private static readonly FieldInfo _image = AccessTools.Field(typeof(ButtonBehavior), "_image");
+        private static readonly MethodInfo _onListItemSelected = AccessTools.Method(typeof(UiCellphoneAppWardrobe), "OnListItemSelected");
+
         private static readonly int _girlsPerPage = 12;
 
         private int _girlsPage;
@@ -68,7 +77,25 @@ namespace Hp2BaseModTweaks.CellphoneApps
             _wardrobeApp = wardrobeApp ?? throw new ArgumentNullException(nameof(wardrobeApp));
         }
 
-        public void Start()
+        public void PreStart()
+        {
+            //the base wardrobe doesn't check to see if there's a valid wardrobe id, so if it's not found it throws
+            //so here set the selected slot as the dummy by default so it's not null
+            var dummySlot_go = new GameObject();
+            var dummySlot_buttonBehavior = dummySlot_go.AddComponent<ButtonBehavior>();
+            var dummySlot_image = dummySlot_go.AddComponent<Image>();
+            _image.SetValue(dummySlot_buttonBehavior, dummySlot_image);
+            _dummyFileIconSlot = dummySlot_go.AddComponent<UiAppFileIconSlot>();
+            _dummyFileIconSlot.button = dummySlot_buttonBehavior;
+            _selectedFileIconSlot.SetValue(_wardrobeApp, _dummyFileIconSlot);
+
+            //playerFileGirl is defaults at null and only set when finding the slot corresponding to the wardrobe flag,
+            //so if that flag is a girl on another page it's never set...
+            //I can't think of any way to fix that without overwriting the method
+            //TODO
+        }
+
+        public void PostStart()
         {
             _metGirls = Game.Persistence.playerFile.girls.Where(x => x.playerMet).OrderBy(x => x.girlDefinition.id).ToArray();
 
@@ -76,19 +103,18 @@ namespace Hp2BaseModTweaks.CellphoneApps
                 ? (_metGirls.Length - 1) / _girlsPerPage
                 : 0;
 
-            //left right buttons
             if (_girlsPageMax > 0)
             {
                 // Buttons
                 var cellphoneButtonPressedKlip = new AudioKlip()
                 {
-                    clip = ModInterface.Assets.GetAsset<AudioClip>(Common.Sfx_PhoneAppButtonPressed),
+                    clip = ModInterface.Assets.GetInternalAsset<AudioClip>(Common.Sfx_PhoneAppButtonPressed),
                     volume = 1f
                 };
 
                 _girlsLeft = Hp2ButtonWrapper.MakeCellphoneButton("GirlsLeft",
-                    ModInterface.Assets.GetAsset<Sprite>(Common.Ui_AppSettingArrowLeft),
-                    ModInterface.Assets.GetAsset<Sprite>(Common.Ui_AppSettingArrowLeftOver),
+                    ModInterface.Assets.GetInternalAsset<Sprite>(Common.Ui_AppSettingArrowLeft),
+                    ModInterface.Assets.GetInternalAsset<Sprite>(Common.Ui_AppSettingArrowLeftOver),
                     cellphoneButtonPressedKlip);
 
                 _girlsLeft.GameObject.transform.SetParent(_wardrobeApp.transform, false);
@@ -100,8 +126,8 @@ namespace Hp2BaseModTweaks.CellphoneApps
                 };
 
                 _girlsRight = Hp2ButtonWrapper.MakeCellphoneButton("GirlsRight",
-                    ModInterface.Assets.GetAsset<Sprite>(Common.Ui_AppSettingArrowRight),
-                    ModInterface.Assets.GetAsset<Sprite>(Common.Ui_AppSettingArrowRightOver),
+                    ModInterface.Assets.GetInternalAsset<Sprite>(Common.Ui_AppSettingArrowRight),
+                    ModInterface.Assets.GetInternalAsset<Sprite>(Common.Ui_AppSettingArrowRightOver),
                     cellphoneButtonPressedKlip);
 
                 _girlsRight.GameObject.transform.SetParent(_wardrobeApp.transform, false);
@@ -111,12 +137,6 @@ namespace Hp2BaseModTweaks.CellphoneApps
                     _girlsPage++;
                     Refresh();
                 };
-
-                _dummyFileIconSlot = new UiAppFileIconSlot() { button = new ButtonBehavior() };
-
-                //shift other stuff down a bit for the buttons to better fit
-                _wardrobeApp.transform.Find("FileIconSlotsContainer").GetComponent<RectTransform>().anchoredPosition -= new Vector2(0, 32);
-                _wardrobeApp.transform.Find("WearOnDatesCheckBox").GetComponent<RectTransform>().anchoredPosition -= new Vector2(0, 16);
 
                 //go to correct page
                 var wardrobeGirlId = Game.Persistence.playerFile.GetFlagValue("wardrobe_girl_id");
@@ -135,6 +155,10 @@ namespace Hp2BaseModTweaks.CellphoneApps
                 _girlsPage = index / _girlsPerPage;
             }
 
+            //shift other stuff down a bit for the buttons to better fit
+            _wardrobeApp.transform.Find("FileIconSlotsContainer").GetComponent<RectTransform>().anchoredPosition -= new Vector2(0, 16);
+            _wardrobeApp.transform.Find("WearOnDatesCheckBox").GetComponent<RectTransform>().anchoredPosition -= new Vector2(0, 16);
+
             //Randomize Styles
             _randomizeStylesCheckBox = GameObject.Instantiate(_wardrobeApp.wearOnDatesCheckBox);
             _randomizeStylesCheckBox.CheckBoxChangedEvent += On_RandomizeStylesCheckBox_CheckBoxChangedEvent;
@@ -148,24 +172,34 @@ namespace Hp2BaseModTweaks.CellphoneApps
             _unpairRandomizeStylesCheckBox.CheckBoxChangedEvent += On_UnpairRandomizeStylesCheckBox_CheckBoxChangedEvent;
             _unpairRandomizeStylesCheckBox.valueLabel.text = "Unpair Random Styles";
             _unpairRandomizeStylesCheckBox.transform.SetParent(_wardrobeApp.wearOnDatesCheckBox.transform.parent);
-            _unpairRandomizeStylesCheckBox.transform.position = _wardrobeApp.wearOnDatesCheckBox.transform.position + new Vector3(680, 0, 0);
+            _unpairRandomizeStylesCheckBox.transform.position = _wardrobeApp.wearOnDatesCheckBox.transform.position + new Vector3(688, 0, 0);
             _unpairRandomizeStylesCheckBox.Toggle(true);
 
             _started = true;
 
-            //only slots where the player has met the girldef are subscribed to
+            //only slots where the player has met the girlDef are subscribed to
             _subscribedSlots = _wardrobeApp.fileIconSlots.Where(x => Game.Persistence.playerFile.GetPlayerFileGirl(x.girlDefinition).playerMet).ToArray();
+
+            //sub to expansions
+            ExpandedUiAppStyleSelectList.Get(_wardrobeApp.selectListOutfit).ListItemSelectedEvent += On_ListItemSelected;
+            ExpandedUiAppStyleSelectList.Get(_wardrobeApp.selectListHairstyle).ListItemSelectedEvent += On_ListItemSelected;
+
             Refresh();
         }
 
         public void OnDestroy()
         {
+            if (!_started) { return; }
+
             _girlsLeft?.Destroy();
             _girlsRight?.Destroy();
             UnityEngine.Object.Destroy(_dummyFileIconSlot);
 
             _randomizeStylesCheckBox.CheckBoxChangedEvent -= On_RandomizeStylesCheckBox_CheckBoxChangedEvent;
             _unpairRandomizeStylesCheckBox.CheckBoxChangedEvent -= On_UnpairRandomizeStylesCheckBox_CheckBoxChangedEvent;
+
+            ExpandedUiAppStyleSelectList.Get(_wardrobeApp.selectListOutfit).ListItemSelectedEvent -= On_ListItemSelected;
+            ExpandedUiAppStyleSelectList.Get(_wardrobeApp.selectListHairstyle).ListItemSelectedEvent -= On_ListItemSelected;
 
             _expansions.Remove(_wardrobeApp);
         }
@@ -269,5 +303,8 @@ namespace Hp2BaseModTweaks.CellphoneApps
         {
             _girlSave.UnpairRandomStyles = checkBox.isChecked;
         }
+
+        private void On_ListItemSelected(UiAppStyleSelectList selectList, bool unlocked)
+            => _onListItemSelected.Invoke(_wardrobeApp, [selectList, unlocked]);
     }
 }

@@ -3,6 +3,7 @@ using System.Linq;
 using System.Reflection;
 using HarmonyLib;
 using Hp2BaseMod;
+using Hp2BaseMod.Utility;
 
 namespace Hp2BaseModTweaks;
 
@@ -24,29 +25,23 @@ internal static class PuzzleManager_OnRoundOver
             && status.bonusRound
             && Game.Persistence.playerFile.storyProgress >= 12)
         {
-            ModInterface.Log.LogInfo($"Adding special characters to player file");
-
-            var moxieDef = ModInterface.GameData.GetGirl(Girls.MoxieId);
-            var jewnDef = ModInterface.GameData.GetGirl(Girls.JewnId);
-            var kyuDef = ModInterface.GameData.GetGirl(Girls.KyuId);
-
-            var moxieFile = GetPlayerFileGirl(Game.Persistence.playerFile, moxieDef);
+            var moxieFile = GetPlayerFileGirl(Game.Persistence.playerFile, ModInterface.GameData.GetGirl(Girls.MoxieId));
             moxieFile.playerMet = true;
             moxieFile.UnlockOutfit(0);
             moxieFile.UnlockHairstyle(0);
-            UnlockRandomStyle(moxieDef, moxieFile);
+            var unlocked = StyleUnlockUtility.UnlockRandomStyle(moxieFile, false);
 
-            var jewnFile = GetPlayerFileGirl(Game.Persistence.playerFile, jewnDef);
+            var jewnFile = GetPlayerFileGirl(Game.Persistence.playerFile, ModInterface.GameData.GetGirl(Girls.JewnId));
             jewnFile.playerMet = true;
             jewnFile.UnlockOutfit(0);
             jewnFile.UnlockHairstyle(0);
-            UnlockRandomStyle(jewnDef, jewnFile);
+            StyleUnlockUtility.UnlockRandomStyle(jewnFile, unlocked);
 
-            var kyuFile = GetPlayerFileGirl(Game.Persistence.playerFile, kyuDef);
+            var kyuFile = GetPlayerFileGirl(Game.Persistence.playerFile, ModInterface.GameData.GetGirl(Girls.KyuId));
             kyuFile.playerMet = true;
             kyuFile.UnlockOutfit(1);
             kyuFile.UnlockHairstyle(1);
-            UnlockRandomStyle(kyuDef, kyuFile);
+            StyleUnlockUtility.UnlockRandomStyle(kyuFile, true);
         }
     }
 

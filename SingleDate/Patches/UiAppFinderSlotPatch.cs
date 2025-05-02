@@ -6,7 +6,7 @@ using UnityEngine;
 namespace SingleDate;
 
 [HarmonyPatch(typeof(UiAppFinderSlot))]
-public static class UiAppFinderSlotPatch
+internal static class UiAppFinderSlotPatch
 {
     private static readonly float _spacing = 48f;
     private static readonly FieldInfo _playerFileFinderSlot = AccessTools.Field(typeof(UiAppFinderSlot), "_playerFileFinderSlot");

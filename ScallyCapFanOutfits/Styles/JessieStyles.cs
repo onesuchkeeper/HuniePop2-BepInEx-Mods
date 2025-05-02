@@ -1,12 +1,13 @@
 using System.Collections.Generic;
 using System.IO;
-using BepInEx;
 using Hp2BaseMod;
 using Hp2BaseMod.GameDataInfo;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
 
-public static partial class Styles
+namespace ScallyCapFanOutfits;
+
+internal static partial class Styles
 {
     private static readonly int _jessieBodyX = 457;
     private static readonly int _jessieBodyY = 983;
@@ -27,7 +28,7 @@ public static partial class Styles
             SpriteInfo = new SpriteInfoPath()
             {
                 IsExternal = true,
-                Path = Path.Combine(Paths.PluginPath, @"ScallyCapFanOutfits\images\jessie_outfit_businesscasual.png")
+                Path = Path.Combine(Plugin.ImageDir, @"jessie_outfit_businesscasual.png")
             }
         }
             },

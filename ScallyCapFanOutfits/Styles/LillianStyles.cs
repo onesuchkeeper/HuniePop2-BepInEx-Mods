@@ -1,12 +1,13 @@
 using System.Collections.Generic;
 using System.IO;
-using BepInEx;
 using Hp2BaseMod;
 using Hp2BaseMod.GameDataInfo;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
 
-public static partial class Styles
+namespace ScallyCapFanOutfits;
+
+internal static partial class Styles
 {
     private static readonly int _lillianBodyX = 435;
     private static readonly int _lillianBodyY = 918;
@@ -27,7 +28,7 @@ public static partial class Styles
                     SpriteInfo = new SpriteInfoPath()
                     {
                         IsExternal = true,
-                        Path = Path.Combine(Paths.PluginPath, @"ScallyCapFanOutfits\images\lillian_outfit_sceneQueen_mirror.png")
+                        Path = Path.Combine(Plugin.ImageDir, @"lillian_outfit_sceneQueen_mirror.png")
                     }
                 },
                 new GirlPartDataMod(Ids.OutfitPart1, InsertStyle.replace)
@@ -41,7 +42,7 @@ public static partial class Styles
                     SpriteInfo = new SpriteInfoPath()
                     {
                         IsExternal = true,
-                        Path = Path.Combine(Paths.PluginPath, @"ScallyCapFanOutfits\images\lillian_outfit_sceneQueen.png")
+                        Path = Path.Combine(Plugin.ImageDir, @"lillian_outfit_sceneQueen.png")
                     }
                 },
                 new GirlPartDataMod(Ids.FronthairPart1, InsertStyle.replace)
@@ -55,7 +56,7 @@ public static partial class Styles
                     SpriteInfo = new SpriteInfoPath()
                     {
                         IsExternal = true,
-                        Path = Path.Combine(Paths.PluginPath, @"ScallyCapFanOutfits\images\lillian_fronthair_sceneQueen.png")
+                        Path = Path.Combine(Plugin.ImageDir, @"lillian_fronthair_sceneQueen.png")
                     }
                 },
                 new GirlPartDataMod(Ids.BackhairPart1, InsertStyle.replace)
@@ -69,7 +70,7 @@ public static partial class Styles
                     SpriteInfo = new SpriteInfoPath()
                     {
                         IsExternal = true,
-                        Path = Path.Combine(Paths.PluginPath, @"ScallyCapFanOutfits\images\lillian_backhair_sceneQueen.png")
+                        Path = Path.Combine(Plugin.ImageDir, @"lillian_backhair_sceneQueen.png")
                     }
                 }
             },

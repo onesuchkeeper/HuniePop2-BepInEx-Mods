@@ -64,24 +64,4 @@ public static class UiDollPatch
 
         return false;
     }
-
-    // [HarmonyPatch(nameof(UiDoll.ReadDialogLine))]
-    // [HarmonyPrefix]
-    // public static void ReadDialogLine(UiDoll __instance, DialogLine dialogLine, DialogLineFormat format, int priority = -1)
-    // {
-    //     if (__instance.girlDefinition == null)
-    //     {
-    //         throw new System.Exception("Attempt to read line with unpopulated doll");
-    //     }
-    // }
-
-    // [HarmonyPatch(nameof(UiDoll.ReadDialogTrigger))]
-    // [HarmonyPrefix]
-    // public static void ReadDialogTrigger(UiDoll __instance, DialogTriggerDefinition dialogTriggerDef, DialogLineFormat format, int lineIndex = -1)
-    // {
-    //     if (__instance.girlDefinition == null)
-    //     {
-    //         throw new System.Exception("Attempt to read line with unpopulated doll");
-    //     }
-    // }
 }

@@ -7,7 +7,7 @@ using UnityEngine;
 namespace SingleDate;
 
 [HarmonyPatch(typeof(PuzzleStatus))]
-public static class PuzzleStatusPatch
+internal static class PuzzleStatusPatch
 {
     private static readonly FieldInfo _altGirlFocused = AccessTools.Field(typeof(PuzzleStatus), "_altGirlFocused");
     private static readonly FieldInfo _affection = AccessTools.Field(typeof(PuzzleStatus), "_affection");
@@ -38,6 +38,8 @@ public static class PuzzleStatusPatch
             return;
         }
 
+        ModInterface.Log.LogInfo("Forcing next round girl focus to alt for single date");
+
         _altGirlFocused.SetValue(__instance, true);
     }
 
@@ -50,6 +52,8 @@ public static class PuzzleStatusPatch
             return;
         }
 
+        ModInterface.Log.LogInfo("Overwrite setGirlFocus for single date to alt girl");
+
         altGirl = true;
     }
 
@@ -61,6 +65,8 @@ public static class PuzzleStatusPatch
         {
             return;
         }
+
+        ModInterface.Log.LogInfo("Overwrite setGirlFocusByStamina for single date to alt girl");
 
         _altGirlFocused.SetValue(__instance, true);
     }

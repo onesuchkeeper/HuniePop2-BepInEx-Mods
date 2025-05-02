@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Hp2BaseMod.Extension.IEnumerableExtension;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
 
@@ -187,10 +186,11 @@ namespace Hp2BaseMod.GameDataInfo
             ValidatedSet.SetListValue(ref def.combineValues, CombineValues, insertStyle);
         }
 
-        public IEnumerable<string> GetInternalSpriteRequests() => IEnumerableExtension.OrEmptyIfNull(TokenConditionSetInfo?.GetInternalSpriteRequests())
-            .ConcatNN(AudioKlipInfo?.GetInternalSpriteRequests());
-
-        public IEnumerable<string> GetInternalAudioRequests() => IEnumerableExtension.OrEmptyIfNull(TokenConditionSetInfo?.GetInternalAudioRequests())
-            .ConcatNN(AudioKlipInfo?.GetInternalAudioRequests());
+        /// <inheritdoc/>
+        public void RequestInternals(AssetProvider assetProvider)
+        {
+            TokenConditionSetInfo?.RequestInternals(assetProvider);
+            AudioKlipInfo?.RequestInternals(assetProvider);
+        }
     }
 }

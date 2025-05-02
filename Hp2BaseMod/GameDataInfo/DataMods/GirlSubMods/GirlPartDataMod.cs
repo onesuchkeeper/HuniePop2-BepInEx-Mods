@@ -1,8 +1,6 @@
 ﻿// Hp2BaseMod 2021, By OneSuchKeeper
 
 using System;
-using System.Collections.Generic;
-using Hp2BaseMod.Extension.IEnumerableExtension;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
 using UnityEngine;
@@ -64,13 +62,10 @@ namespace Hp2BaseMod.GameDataInfo
                     Path = path,
                     IsExternal = false
                 };
-                assetProvider.AddAsset(path, partDef.sprite);
+
+                assetProvider.AddAsset(typeof(Sprite), path, partDef.sprite);
             }
         }
-
-        public IEnumerable<string> GetInternalAudioRequests() => IEnumerableExtension.OrEmptyIfNull(SpriteInfo?.GetInternalAudioRequests());
-
-        public IEnumerable<string> GetInternalSpriteRequests() => IEnumerableExtension.OrEmptyIfNull(SpriteInfo?.GetInternalSpriteRequests());
 
         /// <inheritdoc/>
         public void SetData(ref GirlPartSubDefinition def,
@@ -84,13 +79,23 @@ namespace Hp2BaseMod.GameDataInfo
                 def = Activator.CreateInstance<GirlPartSubDefinition>();
             }
 
+            var girlExpansion = ExpandedGirlDefinition.Get(girlId);
+
             ValidatedSet.SetValue(ref def.partType, PartType);
             ValidatedSet.SetValue(ref def.partName, PartName, insertStyle);
             ValidatedSet.SetValue(ref def.x, X);
             ValidatedSet.SetValue(ref def.y, Y);
-            ValidatedSet.SetValue(ref def.mirroredPartIndex, ModInterface.Data.GetPartIndex(girlId, MirroredPartId));
-            ValidatedSet.SetValue(ref def.altPartIndex, ModInterface.Data.GetPartIndex(girlId, AltPartId));
+
+            ValidatedSet.SetValue(ref def.mirroredPartIndex, girlExpansion.PartIdToIndex, MirroredPartId);
+            ValidatedSet.SetValue(ref def.altPartIndex, girlExpansion.PartIdToIndex, AltPartId);
+
             ValidatedSet.SetValue(ref def.sprite, SpriteInfo, insertStyle, gameDataProvider, assetProvider);
+        }
+
+        /// <inheritdoc/>
+        public void RequestInternals(AssetProvider assetProvider)
+        {
+            SpriteInfo?.RequestInternals(assetProvider);
         }
     }
 }

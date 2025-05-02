@@ -23,8 +23,7 @@ namespace Hp2BaseMod.EnumExpansion
 
                 if (UnityEngine.Random.Range(0f, 1f) <= args.ApplyChance)
                 {
-                    ApplyStyleInfo(Game.Session.gameCanvas.dollRight,
-                        args.Style,
+                    args.Style.Apply(Game.Session.gameCanvas.dollRight,
                         Game.Session.Hub.hubGirlDefinition.defaultOutfitIndex,
                         Game.Session.Hub.hubGirlDefinition.defaultHairstyleIndex);
                 }
@@ -106,31 +105,8 @@ namespace Hp2BaseMod.EnumExpansion
                     rightStyle = rightArgs.Style;
                 }
 
-                ApplyStyleInfo(Game.Session.gameCanvas.dollLeft, leftStyle, leftGirlDef.defaultOutfitIndex, leftGirlDef.defaultHairstyleIndex);
-                ApplyStyleInfo(Game.Session.gameCanvas.dollRight, rightStyle, rightGirlDef.defaultOutfitIndex, rightGirlDef.defaultHairstyleIndex);
-            }
-        }
-
-        private static void ApplyStyleInfo(UiDoll doll, GirlStyleInfo girlStyleInfo, int defaultOutfitIndex, int defaultHairstyleIndex)
-        {
-            if (girlStyleInfo == null
-                || !ModInterface.Data.TryGetDataId(GameDataType.Girl, (doll.soulGirlDefinition ?? doll.girlDefinition).id, out var girlId))
-            {
-                return;
-            }
-
-            if (girlStyleInfo.OutfitId.HasValue)
-            {
-                doll.ChangeOutfit(ModInterface.Data.TryGetOutfitIndex(girlId, girlStyleInfo.OutfitId.Value, out var index)
-                    ? index
-                    : defaultOutfitIndex);
-            }
-
-            if (girlStyleInfo.HairstyleId.HasValue)
-            {
-                doll.ChangeHairstyle(ModInterface.Data.TryGetHairstyleIndex(girlId, girlStyleInfo.HairstyleId.Value, out var index)
-                    ? index
-                    : defaultHairstyleIndex);
+                leftStyle?.Apply(Game.Session.gameCanvas.dollLeft, leftGirlDef.defaultOutfitIndex, leftGirlDef.defaultHairstyleIndex);
+                rightStyle?.Apply(Game.Session.gameCanvas.dollRight, rightGirlDef.defaultOutfitIndex, rightGirlDef.defaultHairstyleIndex);
             }
         }
     }

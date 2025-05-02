@@ -1,28 +1,37 @@
 using System.Reflection;
 using HarmonyLib;
 using Hp2BaseMod.Extension;
+using UnityEngine;
 
 namespace SingleDate;
 
 [HarmonyPatch(typeof(PuzzleManager))]
-public static class PuzzleManagerPatch
+internal static class PuzzleManagerPatch
 {
     private static readonly FieldInfo _puzzleStatus = AccessTools.Field(typeof(PuzzleManager), "_puzzleStatus");
+    private static readonly FieldInfo _puzzleGrid = AccessTools.Field(typeof(PuzzleManager), "_puzzleGrid");
 
-    [HarmonyPatch(nameof(PuzzleManager.StartPuzzle))]
-    [HarmonyPrefix]
-    private static void StartPuzzle(PuzzleManager __instance)
+    [HarmonyPatch("OnRoundOver")]
+    [HarmonyPostfix]
+    private static void OnRoundOver(PuzzleManager __instance)
     {
+        //level ups are dependant on the cutscene played... so we handle level up here
         if (!State.IsSingleDate)
         {
             return;
         }
 
-        //when starting a puzzle, focus is selected by who has more stamina
-        //this makes sure the single date girl is focused
-        //and make it so there's max stamina to start
         var puzzleStatus = _puzzleStatus.GetValue<PuzzleStatus>(__instance);
-        puzzleStatus.girlStatusLeft.stamina = 1;
-        puzzleStatus.girlStatusRight.stamina = 6;
+        var puzzleGrid = _puzzleGrid.GetValue<UiPuzzleGrid>(__instance);
+
+        if (puzzleStatus.statusType == PuzzleStatusType.NORMAL
+            && puzzleGrid.roundState == PuzzleRoundState.SUCCESS)
+        {
+            var girlSave = State.SaveFile.GetGirl(Game.Session.Location.currentGirlPair.girlDefinitionTwo.id);
+
+            girlSave.RelationshipLevel = puzzleStatus.bonusRound
+                ? State.MaxSingleGirlRelationshipLevel
+                : Mathf.Min(girlSave.RelationshipLevel + 1, State.MaxSingleGirlRelationshipLevel - 1);
+        }
     }
 }

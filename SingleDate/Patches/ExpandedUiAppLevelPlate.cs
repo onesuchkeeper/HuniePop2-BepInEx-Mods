@@ -5,7 +5,7 @@ using Hp2BaseMod;
 namespace SingleDate;
 
 [HarmonyPatch(typeof(UiAppLevelPlate))]
-public static class UiAppLevelPlatePatch
+internal static class UiAppLevelPlatePatch
 {
     [HarmonyPatch("Start")]
     [HarmonyPrefix]
@@ -18,7 +18,7 @@ public static class UiAppLevelPlatePatch
         => ExpandedUiAppLevelPlate.Get(__instance).Populate();
 }
 
-public class ExpandedUiAppLevelPlate
+internal class ExpandedUiAppLevelPlate
 {
     private static Dictionary<UiAppLevelPlate, ExpandedUiAppLevelPlate> _expansions
         = new Dictionary<UiAppLevelPlate, ExpandedUiAppLevelPlate>();

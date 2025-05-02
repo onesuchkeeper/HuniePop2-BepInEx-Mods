@@ -2,7 +2,6 @@
 
 using System.Collections.Generic;
 using Hp2BaseMod;
-using UnityEngine;
 
 namespace Hp2BaseModTweaks
 {
@@ -16,12 +15,24 @@ namespace Hp2BaseModTweaks
         public static readonly string Ui_AppSettingArrowRight = "ui_app_setting_arrow_right";
         public static readonly string Ui_AppSettingArrowRightOver = "ui_app_setting_arrow_right_over";
 
+        public static IEnumerable<string> AllSprites()
+        {
+            yield return Ui_PhotoAlbumSlot;
+            yield return Ui_PhotoButtonLeft;
+            yield return Ui_PhotoButtonRight;
+            yield return Ui_AppSettingArrowLeft;
+            yield return Ui_AppSettingArrowLeftOver;
+            yield return Ui_AppSettingArrowRight;
+            yield return Ui_AppSettingArrowRightOver;
+        }
+
         public static readonly string Sfx_PhoneAppButtonPressed = "sfx_phone_app_button_pressed";
 
         public static RelativeId FemaleJizzToggleCodeID;
         public static RelativeId SlowAffectionDrainToggleCodeID;
         public static RelativeId RunInBackgroundCodeId;
         public static RelativeId FairyWingsCodeId;
+        public static RelativeId KyuHoleCodeId;
 
         public static void Init()
         {

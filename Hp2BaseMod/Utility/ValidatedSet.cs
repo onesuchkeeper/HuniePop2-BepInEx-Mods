@@ -35,7 +35,40 @@ namespace Hp2BaseMod.Utility
             }
         }
 
-        public static void SetValue<T>(ref T target, Nullable<T> value)
+        public static void SetValue<Tt, Tv>(ref Tt target, IDictionary<Tv, Tt> lookup, Tv value, InsertStyle style)
+            where Tt : class
+        {
+            if (value == null)
+            {
+                if (style == InsertStyle.assignNull)
+                {
+                    target = null;
+                }
+            }
+            else
+            {
+                target = lookup[value];
+            }
+        }
+
+        public static void SetValue<Tt, Tv>(ref Tt target, IDictionary<Tv, Tt> lookup, Tv? value)
+            where Tv : struct
+        {
+            try
+            {
+                if (value.HasValue)
+                {
+                    target = lookup[value.Value];
+                }
+            }
+            catch (Exception e)
+            {
+                ModInterface.Log.LogError($"Threw setting value from lookup. value: \"{value}\"", e);
+            }
+
+        }
+
+        public static void SetValue<T>(ref T target, T? value)
             where T : struct
         {
             if (value.HasValue)
@@ -52,7 +85,7 @@ namespace Hp2BaseMod.Utility
                 var type = typeof(T);
                 if (style == InsertStyle.assignNull && (!type.IsValueType || Nullable.GetUnderlyingType(type) != null))
                 {
-                    target = default(T);
+                    target = default;
                 }
             }
             else

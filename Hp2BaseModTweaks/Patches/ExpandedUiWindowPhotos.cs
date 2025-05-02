@@ -5,6 +5,7 @@ using System.Reflection;
 using DG.Tweening;
 using HarmonyLib;
 using Hp2BaseMod;
+using Hp2BaseMod.Extension;
 using Hp2BaseMod.Ui;
 using UnityEngine;
 
@@ -20,7 +21,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
 
         [HarmonyPatch("Refresh")]
         [HarmonyPostfix]
-        public static void PostRefresh(UiWindowPhotos __instance)
+        public static void Refresh(UiWindowPhotos __instance)
             => ExpandedUiWindowPhotos.Get(__instance).Refresh();
 
         [HarmonyPatch("Show")]
@@ -46,40 +47,76 @@ namespace Hp2BaseModTweaks.CellphoneApps
         }
 
         private static readonly FieldInfo _photoDefinition = AccessTools.Field(typeof(UiPhotoSlot), "_photoDefinition");
-        private static readonly FieldInfo _earnedPhotos = AccessTools.Field(typeof(UiWindowPhotos), "_earnedPhotos");
+        private static readonly FieldInfo _photoViewMode = AccessTools.Field(typeof(UiWindowPhotos), "_photoViewMode");
         private static readonly FieldInfo _singlePhoto = AccessTools.Field(typeof(UiWindowPhotos), "_singlePhoto");
+        private static readonly FieldInfo _earnedPhotos = AccessTools.Field(typeof(UiWindowPhotos), "_earnedPhotos");
         private static readonly int _photosPerPage = 29;
         private static Sprite _emptyPhotoSlot;
 
         private int _pageIndex;
         private int _pageMax;
 
-        private readonly UiWindowPhotos _photosWindow;
-        private readonly PhotoDefinition[] _photosArray;
-        private readonly Hp2ButtonWrapper _previousPage;
-        private readonly Hp2ButtonWrapper _nextPage;
+        private UiWindowPhotos _photosWindow;
+        private Hp2ButtonWrapper _previousPage;
+        private Hp2ButtonWrapper _nextPage;
+        private bool _init;
 
         public ExpandedUiWindowPhotos(UiWindowPhotos photosWindow)
         {
             _photosWindow = photosWindow ?? throw new ArgumentNullException(nameof(photosWindow));
+        }
 
-            _photosArray = (_earnedPhotos.GetValue(photosWindow) as List<PhotoDefinition>).ToArray();
-            _pageMax = _photosArray.Length > 1 ? (_photosArray.Length - 1) / _photosPerPage : 0;
-            _emptyPhotoSlot = ModInterface.Assets.GetAsset<Sprite>(Common.Ui_PhotoAlbumSlot);
+        public void Init()
+        {
+            //instead of completed pairs, let's look at pairs that have reached lovers.
+            //that way we don't have to force every pair to be added to complete pairs
+            //I think it's weird that completed pairs is a thing anyways, but I digress
+            var earnedPhotos = Game.Persistence.playerFile.girlPairs
+                .Where(x => x.relationshipType == GirlPairRelationshipType.LOVERS)
+                .Select(x => x.girlPairDefinition.photoDefinition)
+                .Append(Game.Session.Hub.tutorialPhotoDef);
+
+            if (Game.Persistence.playerFile.storyProgress >= 12)
+            {
+                earnedPhotos = earnedPhotos.Concat(Game.Session.Hub.nymphojinnPhotoDefs);
+            }
+
+            if (Game.Persistence.playerFile.storyProgress >= 13)
+            {
+                var kyuHole = Game.Persistence.playerFile.GetFlagValue("kyu_hole_selection");
+
+                if (ModInterface.GameData.IsCodeUnlocked(Common.KyuHoleCodeId))
+                {
+                    earnedPhotos = earnedPhotos.Concat(Game.Session.Hub.kyuPhotoDefs);
+                }
+                else if (kyuHole >= 0)
+                {
+                    earnedPhotos = earnedPhotos.Append(Game.Session.Hub.kyuPhotoDefs[Mathf.Clamp(kyuHole, 0, Game.Session.Hub.kyuPhotoDefs.Length - 1)]);
+                }
+            }
+
+            var earnedPhotosList = earnedPhotos.Distinct().ToList();
+            _earnedPhotos.SetValue(_photosWindow, earnedPhotosList);
+
+            _pageMax = earnedPhotosList.Count > 1
+                ? (earnedPhotosList.Count - 1) / _photosPerPage
+                : 0;
+
+            _emptyPhotoSlot = ModInterface.Assets.GetInternalAsset<Sprite>(Common.Ui_PhotoAlbumSlot);
 
             if (_pageMax > 0)
             {
-                var albumContainer = photosWindow.transform.Find("AlbumContainer");
+                var albumContainer = _photosWindow.transform.Find("AlbumContainer");
 
                 var cellphoneButtonPressedKlip = new AudioKlip()
                 {
-                    clip = ModInterface.Assets.GetAsset<AudioClip>(Common.Sfx_PhoneAppButtonPressed),
+                    clip = ModInterface.Assets.GetInternalAsset<AudioClip>(Common.Sfx_PhoneAppButtonPressed),
                     volume = 1f
                 };
 
                 _previousPage = Hp2ButtonWrapper.MakeCellphoneButton("PreviousPage",
-                    ModInterface.Assets.GetAsset<Sprite>(Common.Ui_PhotoButtonLeft),
-                    ModInterface.Assets.GetAsset<Sprite>(Common.Ui_PhotoButtonLeft),
+                    ModInterface.Assets.GetInternalAsset<Sprite>(Common.Ui_PhotoButtonLeft),
+                    ModInterface.Assets.GetInternalAsset<Sprite>(Common.Ui_PhotoButtonLeft),
                     cellphoneButtonPressedKlip);
 
                 _previousPage.GameObject.transform.SetParent(albumContainer, false);
@@ -91,8 +128,8 @@ namespace Hp2BaseModTweaks.CellphoneApps
                 };
 
                 _nextPage = Hp2ButtonWrapper.MakeCellphoneButton("NextPage",
-                    ModInterface.Assets.GetAsset<Sprite>(Common.Ui_PhotoButtonRight),
-                    ModInterface.Assets.GetAsset<Sprite>(Common.Ui_PhotoButtonRight),
+                    ModInterface.Assets.GetInternalAsset<Sprite>(Common.Ui_PhotoButtonRight),
+                    ModInterface.Assets.GetInternalAsset<Sprite>(Common.Ui_PhotoButtonRight),
                     cellphoneButtonPressedKlip);
 
                 _nextPage.GameObject.transform.SetParent(albumContainer, false);
@@ -104,11 +141,8 @@ namespace Hp2BaseModTweaks.CellphoneApps
                 };
             }
 
-            Refresh();
-        }
+            _init = true;
 
-        public void Init()
-        {
             Refresh();
         }
 
@@ -132,22 +166,27 @@ namespace Hp2BaseModTweaks.CellphoneApps
 
         public void Refresh()
         {
-            if ((bool)_singlePhoto.GetValue(_photosWindow))
+            if (!_init) { return; }
+
+            var thumbnailIndex = _photoViewMode.GetValue<int>(_photosWindow);
+
+            if (_singlePhoto.GetValue<bool>(_photosWindow))
             {
                 return;
             }
 
             //photos
             var photoIndex = _pageIndex * _photosPerPage;
+            var earnedPhotos = _earnedPhotos.GetValue<List<PhotoDefinition>>(_photosWindow);
+            var photoEnumerator = earnedPhotos.Skip(photoIndex).GetEnumerator();
 
             foreach (var slot in _photosWindow.photoSlots.Take(_photosPerPage))
             {
-                if (photoIndex < _photosArray.Length)
+                if (photoEnumerator.MoveNext())
                 {
-                    _photoDefinition.SetValue(slot, _photosArray[photoIndex]);
+                    _photoDefinition.SetValue(slot, photoEnumerator.Current);
                     slot.buttonBehavior.Enable();
-                    slot.Refresh(1);
-                    photoIndex++;
+                    slot.Refresh(thumbnailIndex);
                 }
                 else
                 {

@@ -1,10 +1,9 @@
-using System.Collections.Generic;
 using HarmonyLib;
 
 namespace SingleDate;
 
 [HarmonyPatch(typeof(UiPuzzleDateGiftsContainer))]
-public static class UiPuzzleDateGiftsContainerPatch
+internal static class UiPuzzleDateGiftsContainerPatch
 {
     [HarmonyPatch("Start")]
     [HarmonyPostfix]

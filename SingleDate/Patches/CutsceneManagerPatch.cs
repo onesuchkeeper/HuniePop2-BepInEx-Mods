@@ -9,7 +9,7 @@ using Hp2BaseMod.Utility;
 namespace SingleDate;
 
 [HarmonyPatch(typeof(CutsceneManager))]
-public static class CutsceneManagerPatch
+internal static class CutsceneManagerPatch
 {
     private static FieldInfo _currentStep = AccessTools.Field(typeof(CutsceneManager), "_currentStep");
     private static FieldInfo _branchStepIndices = AccessTools.Field(typeof(CutsceneManager), "_branchStepIndices");

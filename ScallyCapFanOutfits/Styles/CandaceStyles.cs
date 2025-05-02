@@ -1,12 +1,12 @@
 using System.Collections.Generic;
 using System.IO;
-using BepInEx;
 using Hp2BaseMod;
 using Hp2BaseMod.GameDataInfo;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
 
-public static partial class Styles
+namespace ScallyCapFanOutfits;
+internal static partial class Styles
 {
     private static readonly int _candaceBodyX = 348;
     private static readonly int _candaceBodyY = 972;
@@ -27,7 +27,7 @@ public static partial class Styles
                     SpriteInfo = new SpriteInfoPath()
                     {
                         IsExternal = true,
-                        Path = Path.Combine(Paths.PluginPath, @"ScallyCapFanOutfits\images\candace_outfit_hime.png")
+                        Path = Path.Combine(Plugin.ImageDir, @"candace_outfit_hime.png")
                     }
                 },
                 new GirlPartDataMod(Ids.FronthairPart1, InsertStyle.replace)
@@ -41,7 +41,7 @@ public static partial class Styles
                     SpriteInfo = new SpriteInfoPath()
                     {
                         IsExternal = true,
-                        Path = Path.Combine(Paths.PluginPath, @"ScallyCapFanOutfits\images\candace_fronthair_hime.png")
+                        Path = Path.Combine(Plugin.ImageDir, @"candace_fronthair_hime.png")
                     }
                 },
                 new GirlPartDataMod(Ids.BackhairPart1, InsertStyle.replace)
@@ -55,7 +55,7 @@ public static partial class Styles
                     SpriteInfo = new SpriteInfoPath()
                     {
                         IsExternal = true,
-                        Path = Path.Combine(Paths.PluginPath, @"ScallyCapFanOutfits\images\candace_backhair_hime.png")
+                        Path = Path.Combine(Plugin.ImageDir, @"candace_backhair_hime.png")
                     }
                 }
             },
@@ -63,12 +63,24 @@ public static partial class Styles
             {
                 new OutfitDataMod(Ids.Style1, InsertStyle.replace)
                 {
-                    Name = "Key West",
+                    Name = "Hime",
                     OutfitPartId = Ids.OutfitPart1,
                     IsNSFW = false,
                     HideNipples = true,
                     TightlyPaired = false,
                     PairHairstyleId = null
+                }
+            },
+            hairstyles = new List<IGirlSubDataMod<ExpandedHairstyleDefinition>>()
+            {
+                new HairstyleDataMod(Ids.Style1, InsertStyle.replace)
+                {
+                    Name = "Hime",
+                    FrontHairPartId = Ids.FronthairPart1,
+                    BackHairPartId = Ids.BackhairPart1,
+                    IsNSFW = false,
+                    TightlyPaired = false,
+                    PairOutfitId = Ids.Style1
                 }
             }
         });

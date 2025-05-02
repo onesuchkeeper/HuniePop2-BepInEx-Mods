@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Hp2BaseMod.Extension.IEnumerableExtension;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
 
@@ -55,12 +54,11 @@ namespace Hp2BaseMod.GameDataInfo
             ValidatedSet.SetListValue(ref def.steps, Steps, insertStyle, gameDataProvider, assetProvider);
         }
 
-        public IEnumerable<string> GetInternalSpriteRequests() => Conditions.OrEmptyIfNull()
-            .SelectManyNN(x => x.GetInternalSpriteRequests())
-            .ConcatNN(Steps?.SelectManyNN(x => x.GetInternalSpriteRequests()));
-
-        public IEnumerable<string> GetInternalAudioRequests() => Conditions.OrEmptyIfNull()
-            .SelectManyNN(x => x.GetInternalAudioRequests())
-            .ConcatNN(Steps?.SelectManyNN(x => x.GetInternalAudioRequests()));
+        /// <inheritdoc/>
+        public void RequestInternals(AssetProvider assetProvider)
+        {
+            Conditions?.ForEach(x => x?.RequestInternals(assetProvider));
+            Steps?.ForEach(x => x?.RequestInternals(assetProvider));
+        }
     }
 }

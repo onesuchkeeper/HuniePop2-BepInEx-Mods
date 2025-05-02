@@ -1,7 +1,6 @@
 ﻿// Hp2BaseMod 2021, By OneSuchKeeper
 
 using Hp2BaseMod.Utility;
-using System;
 
 namespace Hp2BaseMod.GameDataInfo
 {

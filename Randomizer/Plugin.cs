@@ -136,7 +136,7 @@ public class Plugin : BaseUnityPlugin
             ModConfig = JsonConvert.DeserializeObject<SaveFile>(saveString) ?? new SaveFile();
         }
 
-        if (ModConfig.Disable)
+        if (ModConfig.Disable || true)
         {
             ModInterface.Log.LogInfo($"Randomizer disabled");
             return;
@@ -235,144 +235,177 @@ public class Plugin : BaseUnityPlugin
         foreach (var id_handler in _swapHandlers)
         {
             var specialGirl = ModInterface.GameData.GetGirl(id_handler.Key);
-            var target = normalGirls[random.Next() % normalGirls.Count];
+            var targetGirl = normalGirls[random.Next() % normalGirls.Count];
 
             namePool.Add((specialGirl.girlName, specialGirl.girlNickName));
 
             assignedNames[specialGirl] = ModConfig.RandomizeNames
-                ? PopRandom(random, namePool)
+                ? namePool.PopRandom(random)
                 : (specialGirl.girlName, specialGirl.girlNickName);
 
             var specialId = ModInterface.Data.GetDataId(GameDataType.Girl, specialGirl.id);
-            var targetId = ModInterface.Data.GetDataId(GameDataType.Girl, target.id);
+            var targetId = ModInterface.Data.GetDataId(GameDataType.Girl, targetGirl.id);
 
-            id_handler.Value.Invoke(specialGirl, target);
+            id_handler.Value.Invoke(specialGirl, targetGirl);
 
-            ModInterface.Data.SwapGirlStyles(specialId, targetId);
+            var specialGirlExpanded = specialGirl.Expansion();
+            var targetGirlExpanded = targetGirl.Expansion();
+
+            var holdIdToIndex = specialGirlExpanded.OutfitIdToIndex;
+            specialGirlExpanded.OutfitIdToIndex = targetGirlExpanded.OutfitIdToIndex;
+            targetGirlExpanded.OutfitIdToIndex = holdIdToIndex;
+
+            holdIdToIndex = specialGirlExpanded.HairstyleIdToIndex;
+            specialGirlExpanded.HairstyleIdToIndex = targetGirlExpanded.HairstyleIdToIndex;
+            targetGirlExpanded.HairstyleIdToIndex = holdIdToIndex;
+
+            holdIdToIndex = specialGirlExpanded.ExpressionIdToIndex;
+            specialGirlExpanded.ExpressionIdToIndex = targetGirlExpanded.ExpressionIdToIndex;
+            targetGirlExpanded.ExpressionIdToIndex = holdIdToIndex;
+
+            holdIdToIndex = specialGirlExpanded.PartIdToIndex;
+            specialGirlExpanded.PartIdToIndex = targetGirlExpanded.PartIdToIndex;
+            targetGirlExpanded.PartIdToIndex = holdIdToIndex;
+
+            var holdIndexToId = specialGirlExpanded.OutfitIndexToId;
+            specialGirlExpanded.OutfitIndexToId = targetGirlExpanded.OutfitIndexToId;
+            targetGirlExpanded.OutfitIndexToId = holdIndexToId;
+
+            holdIndexToId = specialGirlExpanded.HairstyleIndexToId;
+            specialGirlExpanded.HairstyleIndexToId = targetGirlExpanded.HairstyleIndexToId;
+            targetGirlExpanded.HairstyleIndexToId = holdIndexToId;
+
+            holdIndexToId = specialGirlExpanded.ExpressionIndexToId;
+            specialGirlExpanded.ExpressionIndexToId = targetGirlExpanded.ExpressionIndexToId;
+            targetGirlExpanded.ExpressionIndexToId = holdIndexToId;
+
+            holdIndexToId = specialGirlExpanded.PartIndexToId;
+            specialGirlExpanded.PartIndexToId = targetGirlExpanded.PartIndexToId;
+            targetGirlExpanded.PartIndexToId = holdIndexToId;
 
             var holdParts = specialGirl.parts;
-            specialGirl.parts = target.parts;
-            target.parts = holdParts;
+            specialGirl.parts = targetGirl.parts;
+            targetGirl.parts = holdParts;
 
             var holdSpecialParts = specialGirl.specialParts;
-            specialGirl.specialParts = target.specialParts;
-            target.specialParts = holdSpecialParts;
+            specialGirl.specialParts = targetGirl.specialParts;
+            targetGirl.specialParts = holdSpecialParts;
 
             var holdInt = specialGirl.partIndexBlink;
-            specialGirl.partIndexBlink = target.partIndexBlink;
-            target.partIndexBlink = holdInt;
+            specialGirl.partIndexBlink = targetGirl.partIndexBlink;
+            targetGirl.partIndexBlink = holdInt;
 
             holdInt = specialGirl.partIndexBlushHeavy;
-            specialGirl.partIndexBlushHeavy = target.partIndexBlushHeavy;
-            target.partIndexBlushHeavy = holdInt;
+            specialGirl.partIndexBlushHeavy = targetGirl.partIndexBlushHeavy;
+            targetGirl.partIndexBlushHeavy = holdInt;
 
             holdInt = specialGirl.partIndexBlushLight;
-            specialGirl.partIndexBlushLight = target.partIndexBlushLight;
-            target.partIndexBlushLight = holdInt;
+            specialGirl.partIndexBlushLight = targetGirl.partIndexBlushLight;
+            targetGirl.partIndexBlushLight = holdInt;
 
             holdInt = specialGirl.partIndexBody;
-            specialGirl.partIndexBody = target.partIndexBody;
-            target.partIndexBody = holdInt;
+            specialGirl.partIndexBody = targetGirl.partIndexBody;
+            targetGirl.partIndexBody = holdInt;
 
             var holdIndexList = specialGirl.partIndexesPhonemes;
-            specialGirl.partIndexesPhonemes = target.partIndexesPhonemes;
-            target.partIndexesPhonemes = holdIndexList;
+            specialGirl.partIndexesPhonemes = targetGirl.partIndexesPhonemes;
+            targetGirl.partIndexesPhonemes = holdIndexList;
 
             holdIndexList = specialGirl.partIndexesPhonemesTeeth;
-            specialGirl.partIndexesPhonemesTeeth = target.partIndexesPhonemesTeeth;
-            target.partIndexesPhonemesTeeth = holdIndexList;
+            specialGirl.partIndexesPhonemesTeeth = targetGirl.partIndexesPhonemesTeeth;
+            targetGirl.partIndexesPhonemesTeeth = holdIndexList;
 
             holdInt = specialGirl.partIndexMouthNeutral;
-            specialGirl.partIndexMouthNeutral = target.partIndexMouthNeutral;
-            target.partIndexMouthNeutral = holdInt;
+            specialGirl.partIndexMouthNeutral = targetGirl.partIndexMouthNeutral;
+            targetGirl.partIndexMouthNeutral = holdInt;
 
             holdInt = specialGirl.partIndexNipples;
-            specialGirl.partIndexNipples = target.partIndexNipples;
-            target.partIndexNipples = holdInt;
+            specialGirl.partIndexNipples = targetGirl.partIndexNipples;
+            targetGirl.partIndexNipples = holdInt;
 
             holdInt = specialGirl.defaultOutfitIndex;
-            specialGirl.defaultOutfitIndex = target.defaultOutfitIndex;
-            target.defaultOutfitIndex = holdInt;
+            specialGirl.defaultOutfitIndex = targetGirl.defaultOutfitIndex;
+            targetGirl.defaultOutfitIndex = holdInt;
 
             holdInt = specialGirl.defaultHairstyleIndex;
-            specialGirl.defaultHairstyleIndex = target.defaultHairstyleIndex;
-            target.defaultHairstyleIndex = holdInt;
+            specialGirl.defaultHairstyleIndex = targetGirl.defaultHairstyleIndex;
+            targetGirl.defaultHairstyleIndex = holdInt;
 
             var holdOutfits = specialGirl.outfits;
-            specialGirl.outfits = target.outfits;
-            target.outfits = holdOutfits;
+            specialGirl.outfits = targetGirl.outfits;
+            targetGirl.outfits = holdOutfits;
 
             var holdHair = specialGirl.hairstyles;
-            specialGirl.hairstyles = target.hairstyles;
-            target.hairstyles = holdHair;
+            specialGirl.hairstyles = targetGirl.hairstyles;
+            targetGirl.hairstyles = holdHair;
 
             holdInt = specialGirl.defaultExpressionIndex;
-            specialGirl.defaultExpressionIndex = target.defaultExpressionIndex;
-            target.defaultExpressionIndex = holdInt;
+            specialGirl.defaultExpressionIndex = targetGirl.defaultExpressionIndex;
+            targetGirl.defaultExpressionIndex = holdInt;
 
             var holdExpressions = specialGirl.expressions;
-            specialGirl.expressions = target.expressions;
-            target.expressions = holdExpressions;
+            specialGirl.expressions = targetGirl.expressions;
+            targetGirl.expressions = holdExpressions;
 
             var holdVec2 = specialGirl.specialEffectOffset;
-            specialGirl.specialEffectOffset = target.specialEffectOffset;
-            target.specialEffectOffset = holdVec2;
+            specialGirl.specialEffectOffset = targetGirl.specialEffectOffset;
+            targetGirl.specialEffectOffset = holdVec2;
 
             var holdSpecialEffectPrefab = specialGirl.specialEffectPrefab;
-            specialGirl.specialEffectPrefab = target.specialEffectPrefab;
-            target.specialEffectPrefab = holdSpecialEffectPrefab;
+            specialGirl.specialEffectPrefab = targetGirl.specialEffectPrefab;
+            targetGirl.specialEffectPrefab = holdSpecialEffectPrefab;
 
             var holdSprite = specialGirl.cellphoneHead;
-            specialGirl.cellphoneHead = target.cellphoneHead;
-            target.cellphoneHead = holdSprite;
+            specialGirl.cellphoneHead = targetGirl.cellphoneHead;
+            targetGirl.cellphoneHead = holdSprite;
 
             holdSprite = specialGirl.cellphoneHeadAlt;
-            specialGirl.cellphoneHeadAlt = target.cellphoneHeadAlt;
-            target.cellphoneHeadAlt = holdSprite;
+            specialGirl.cellphoneHeadAlt = targetGirl.cellphoneHeadAlt;
+            targetGirl.cellphoneHeadAlt = holdSprite;
 
             holdSprite = specialGirl.cellphoneMiniHead;
-            specialGirl.cellphoneMiniHead = target.cellphoneMiniHead;
-            target.cellphoneMiniHead = holdSprite;
+            specialGirl.cellphoneMiniHead = targetGirl.cellphoneMiniHead;
+            targetGirl.cellphoneMiniHead = holdSprite;
 
             holdSprite = specialGirl.cellphoneMiniHeadAlt;
-            specialGirl.cellphoneMiniHeadAlt = target.cellphoneMiniHeadAlt;
-            target.cellphoneMiniHeadAlt = holdSprite;
+            specialGirl.cellphoneMiniHeadAlt = targetGirl.cellphoneMiniHeadAlt;
+            targetGirl.cellphoneMiniHeadAlt = holdSprite;
 
             holdSprite = specialGirl.cellphonePortrait;
-            specialGirl.cellphonePortrait = target.cellphonePortrait;
-            target.cellphonePortrait = holdSprite;
+            specialGirl.cellphonePortrait = targetGirl.cellphonePortrait;
+            targetGirl.cellphonePortrait = holdSprite;
 
             holdSprite = specialGirl.cellphonePortraitAlt;
-            specialGirl.cellphonePortraitAlt = target.cellphonePortraitAlt;
-            target.cellphonePortraitAlt = holdSprite;
+            specialGirl.cellphonePortraitAlt = targetGirl.cellphonePortraitAlt;
+            targetGirl.cellphonePortraitAlt = holdSprite;
 
             holdVec2 = specialGirl.upsetEmitterPos;
-            specialGirl.upsetEmitterPos = target.upsetEmitterPos;
-            target.upsetEmitterPos = holdVec2;
+            specialGirl.upsetEmitterPos = targetGirl.upsetEmitterPos;
+            targetGirl.upsetEmitterPos = holdVec2;
 
             holdVec2 = specialGirl.breathEmitterPos;
-            specialGirl.breathEmitterPos = target.breathEmitterPos;
-            target.breathEmitterPos = holdVec2;
+            specialGirl.breathEmitterPos = targetGirl.breathEmitterPos;
+            targetGirl.breathEmitterPos = holdVec2;
 
             var holdBool = specialGirl.hasAltStyles;
-            specialGirl.hasAltStyles = target.hasAltStyles;
-            target.hasAltStyles = holdBool;
+            specialGirl.hasAltStyles = targetGirl.hasAltStyles;
+            targetGirl.hasAltStyles = holdBool;
 
             var holdString = specialGirl.altStylesFlagName;
-            specialGirl.altStylesFlagName = target.altStylesFlagName;
-            target.altStylesFlagName = holdString;
+            specialGirl.altStylesFlagName = targetGirl.altStylesFlagName;
+            targetGirl.altStylesFlagName = holdString;
 
             var holdCode = specialGirl.altStylesCodeDefinition;
-            specialGirl.altStylesCodeDefinition = target.altStylesCodeDefinition;
-            target.altStylesCodeDefinition = holdCode;
+            specialGirl.altStylesCodeDefinition = targetGirl.altStylesCodeDefinition;
+            targetGirl.altStylesCodeDefinition = holdCode;
 
             holdCode = specialGirl.unlockStyleCodeDefinition;
-            specialGirl.unlockStyleCodeDefinition = target.unlockStyleCodeDefinition;
-            target.unlockStyleCodeDefinition = holdCode;
+            specialGirl.unlockStyleCodeDefinition = targetGirl.unlockStyleCodeDefinition;
+            targetGirl.unlockStyleCodeDefinition = holdCode;
 
             holdInt = specialGirl.failureExpressionIndex;
-            specialGirl.failureExpressionIndex = target.failureExpressionIndex;
-            target.failureExpressionIndex = holdInt;
+            specialGirl.failureExpressionIndex = targetGirl.failureExpressionIndex;
+            targetGirl.failureExpressionIndex = holdInt;
         }
 
         var handledCutscenes = new HashSet<CutsceneDefinition>();
@@ -380,14 +413,14 @@ public class Plugin : BaseUnityPlugin
         //randomize girls
         foreach (var girl in normalGirls)
         {
-            var name = ModConfig.RandomizeNames ? PopRandom(random, namePool) : (girl.name, girl.girlNickName);
+            var name = ModConfig.RandomizeNames ? namePool.PopRandom(random) : (girl.name, girl.girlNickName);
             assignedNames[girl] = name;
 
             if (ModConfig.RandomizeBaggage)
             {
-                var baggageA = PopRandom(random, baggagePool);
-                var baggageB = PopRandom(random, baggagePool);
-                var baggageC = PopRandom(random, baggagePool);
+                var baggageA = baggagePool.PopRandom(random);
+                var baggageB = baggagePool.PopRandom(random);
+                var baggageC = baggagePool.PopRandom(random);
 
                 girl.baggageItemDefs = new List<ItemDefinition>(){
                 baggageA.ailment,
@@ -441,7 +474,7 @@ public class Plugin : BaseUnityPlugin
         var swapPool = normalGirls.ToList();
         var lolaDef = ModInterface.GameData.GetGirl(Girls.LolaId);
         normalGirls.Remove(lolaDef);
-        var lolaSwap = PopRandom(random, swapPool);
+        var lolaSwap = swapPool.PopRandom(random);
 
         var tutorialPair = Game.Data.GirlPairs.Get(ModInterface.Data.GetRuntimeDataId(GameDataType.GirlPair, new RelativeId(-1, 26)));
 
@@ -450,7 +483,7 @@ public class Plugin : BaseUnityPlugin
         //for all other cutscenes lets just swap out each normal girl with another random one
         var replaceGroups = normalGirls.Select(x =>
         {
-            var newGirl = PopRandom(random, swapPool);
+            var newGirl = swapPool.PopRandom(random);
             return (x, newGirl, assignedNames[newGirl]);
         }).Append((lolaDef, lolaSwap, assignedNames[lolaSwap])).ToArray();
 
@@ -465,14 +498,6 @@ public class Plugin : BaseUnityPlugin
             girl_names.Key.girlName = girl_names.Value.name;
             girl_names.Key.girlNickName = girl_names.Value.nickName;
         }
-    }
-
-    private T PopRandom<T>(Random random, List<T> list)
-    {
-        var index = random.Next() % list.Count;
-        var result = list[index];
-        list.RemoveAt(index);
-        return result;
     }
 
     private void ReplaceCutsceneGirls(IEnumerable<CutsceneStepSubDefinition> steps,

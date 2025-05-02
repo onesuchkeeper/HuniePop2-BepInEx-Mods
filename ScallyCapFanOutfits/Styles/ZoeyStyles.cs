@@ -1,12 +1,13 @@
 using System.Collections.Generic;
 using System.IO;
-using BepInEx;
 using Hp2BaseMod;
 using Hp2BaseMod.GameDataInfo;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
 
-public static partial class Styles
+namespace ScallyCapFanOutfits;
+
+internal static partial class Styles
 {
     private static readonly int _zoeyBodyX = 522;
     private static readonly int _zoeyBodyY = 900;
@@ -27,7 +28,7 @@ public static partial class Styles
                     SpriteInfo = new SpriteInfoPath()
                     {
                         IsExternal = true,
-                        Path = Path.Combine(Paths.PluginPath, @"ScallyCapFanOutfits\images\zoey_backhair_extraterrestrial.png")
+                        Path = Path.Combine(Plugin.ImageDir, @"zoey_backhair_extraterrestrial.png")
                     }
                 },
                 new GirlPartDataMod(Ids.FronthairPart1, InsertStyle.replace)
@@ -41,7 +42,7 @@ public static partial class Styles
                     SpriteInfo = new SpriteInfoPath()
                     {
                         IsExternal = true,
-                        Path = Path.Combine(Paths.PluginPath, @"ScallyCapFanOutfits\images\zoey_fronthair_extraterrestrial.png")
+                        Path = Path.Combine(Plugin.ImageDir, @"zoey_fronthair_extraterrestrial.png")
                     }
                 },
                 new GirlPartDataMod(Ids.OutfitPart1, InsertStyle.replace)
@@ -55,7 +56,7 @@ public static partial class Styles
                     SpriteInfo = new SpriteInfoPath()
                     {
                         IsExternal = true,
-                        Path = Path.Combine(Paths.PluginPath, @"ScallyCapFanOutfits\images\zoey_outfit_extraterrestrial.png")
+                        Path = Path.Combine(Plugin.ImageDir, @"zoey_outfit_extraterrestrial.png")
                     }
                 }
             },

@@ -1,12 +1,13 @@
 using System.Collections.Generic;
 using System.IO;
-using BepInEx;
 using Hp2BaseMod;
 using Hp2BaseMod.GameDataInfo;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
 
-public static partial class Styles
+namespace ScallyCapFanOutfits;
+
+internal static partial class Styles
 {
     private static readonly int _sarahBodyX = 414;
     private static readonly int _sarahBodyY = 917;
@@ -27,7 +28,7 @@ public static partial class Styles
                     SpriteInfo = new SpriteInfoPath()
                     {
                         IsExternal = true,
-                        Path = Path.Combine(Paths.PluginPath, @"ScallyCapFanOutfits\images\sarah_outfit_tsuyome.png")
+                        Path = Path.Combine(Plugin.ImageDir, @"sarah_outfit_tsuyome.png")
                     }
                 },
                 new GirlPartDataMod(Ids.OutfitPart2, InsertStyle.replace)
@@ -41,7 +42,7 @@ public static partial class Styles
                     SpriteInfo = new SpriteInfoPath()
                     {
                         IsExternal = true,
-                        Path = Path.Combine(Paths.PluginPath, @"ScallyCapFanOutfits\images\sarah_outfit_yamanba.png")
+                        Path = Path.Combine(Plugin.ImageDir, @"sarah_outfit_yamanba.png")
                     }
                 },
                 new GirlPartDataMod(Ids.FronthairPart1, InsertStyle.replace)
@@ -55,7 +56,7 @@ public static partial class Styles
                     SpriteInfo = new SpriteInfoPath()
                     {
                         IsExternal = true,
-                        Path = Path.Combine(Paths.PluginPath, @"ScallyCapFanOutfits\images\sarah_fronthair_yamanba.png")
+                        Path = Path.Combine(Plugin.ImageDir, @"sarah_fronthair_yamanba.png")
                     }
                 },
                 new GirlPartDataMod(Ids.BackhairPart1, InsertStyle.replace)
@@ -69,7 +70,7 @@ public static partial class Styles
                     SpriteInfo = new SpriteInfoPath()
                     {
                         IsExternal = true,
-                        Path = Path.Combine(Paths.PluginPath, @"ScallyCapFanOutfits\images\sarah_backhair_yamanba.png")
+                        Path = Path.Combine(Plugin.ImageDir, @"sarah_backhair_yamanba.png")
                     }
                 }
             },

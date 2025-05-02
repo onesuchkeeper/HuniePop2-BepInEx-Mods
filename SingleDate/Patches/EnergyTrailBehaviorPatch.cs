@@ -4,7 +4,7 @@ using HarmonyLib;
 namespace SingleDate;
 
 [HarmonyPatch(typeof(EnergyTrailBehavior))]
-public static class EnergyTrailBehaviorPatch
+internal static class EnergyTrailBehaviorPatch
 {
     private static FieldInfo _splashText = AccessTools.Field(typeof(EnergyTrailBehavior), "_splashText");
 

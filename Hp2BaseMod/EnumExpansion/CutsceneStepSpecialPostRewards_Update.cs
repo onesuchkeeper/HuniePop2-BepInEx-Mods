@@ -1,5 +1,7 @@
 using System.Reflection;
 using HarmonyLib;
+using Hp2BaseMod.Extension;
+using Hp2BaseMod.Utility;
 
 namespace Hp2BaseMod;
 
@@ -16,7 +18,7 @@ public static class Foo
     [HarmonyPrefix]
     private static void Update(CutsceneStepSpecialPostRewards __instance)
     {
-        if ((bool)_stylesUnlocked.GetValue(__instance)) { return; }
+        if (_stylesUnlocked.GetValue<bool>(__instance)) { return; }
 
         //see if enough time has elapsed
         var rewardtimestamp = (float)_rewardtimestamp.GetValue(__instance);
@@ -39,80 +41,8 @@ public static class Foo
             && !puzzleStatus.IsTutorial(false)
             && !(bool)_puzzleFailure.GetValue(__instance))
         {
-            var silent = HandleStyleUnlocks(puzzleStatus, puzzleStatus.girlStatusLeft, __instance.styleUnlockDuration, __instance.styleUnlockMessage, false);
-            HandleStyleUnlocks(puzzleStatus, puzzleStatus.girlStatusRight, __instance.styleUnlockDuration, __instance.styleUnlockMessage, silent);
+            var silent = StyleUnlockUtility.UnlockCurrentStyle(puzzleStatus.girlStatusLeft.playerFileGirl, false);
+            StyleUnlockUtility.UnlockCurrentStyle(puzzleStatus.girlStatusRight.playerFileGirl, silent);
         }
-    }
-
-    private static bool HandleStyleUnlocks(PuzzleStatus puzzleStatus, PuzzleStatusGirl puzzleStatusGirl, float styleUnlockDuration, string styleUnlockMessage, bool silent)
-    {
-        if (!Game.Persistence.playerFile.girls.Contains(puzzleStatusGirl.playerFileGirl)
-            || (puzzleStatusGirl?.playerFileGirl?.stylesOnDates ?? true))
-        {
-            return false;
-        }
-
-        var doll = Game.Session.gameCanvas.GetDoll(puzzleStatusGirl.girlDefinition);
-        if (doll == null)
-        {
-            return false;
-        }
-
-        var girlId = ModInterface.Data.GetDataId(GameDataType.Girl, puzzleStatusGirl.girlDefinition.id);
-
-        var hairId = puzzleStatusGirl.playerFileGirl.IsHairstyleUnlocked(doll.currentHairstyleIndex)
-            ? RelativeId.Default
-            : ModInterface.Data.GetHairstyleId(girlId, doll.currentHairstyleIndex);
-
-        var outfitId = puzzleStatusGirl.playerFileGirl.IsOutfitUnlocked(doll.currentOutfitIndex)
-            ? RelativeId.Default
-            : ModInterface.Data.GetOutfitId(girlId, doll.currentOutfitIndex);
-
-        if (hairId == outfitId)
-        {
-            if (outfitId != RelativeId.Default)
-            {
-                //both are the same and non-default
-                doll.notificationBox.Show(styleUnlockMessage.Replace("(STYLE)", puzzleStatusGirl.girlDefinition.outfits[doll.currentOutfitIndex].outfitName),
-                    styleUnlockDuration, silent);
-
-                puzzleStatusGirl.playerFileGirl.UnlockHairstyle(doll.currentHairstyleIndex);
-                puzzleStatusGirl.playerFileGirl.UnlockOutfit(doll.currentOutfitIndex);
-            }
-            else
-            {
-                //both are default, nothing to unlock
-                return false;
-            }
-        }
-        else
-        {
-            //one or both are unlocked, they aren't the same
-            string message;
-            if (hairId == RelativeId.Default)
-            {
-                message = string.Empty;
-            }
-            else
-            {
-                message = $"\"{puzzleStatusGirl.girlDefinition.hairstyles[doll.currentHairstyleIndex].hairstyleName}\" hairstyle";
-                puzzleStatusGirl.playerFileGirl.UnlockHairstyle(doll.currentHairstyleIndex);
-            }
-
-            if (outfitId != RelativeId.Default)
-            {
-                if (!string.IsNullOrWhiteSpace(message))
-                {
-                    message += " and ";
-                }
-
-                message += $"\"{puzzleStatusGirl.girlDefinition.outfits[doll.currentOutfitIndex].outfitName}\" outfit";
-                puzzleStatusGirl.playerFileGirl.UnlockOutfit(doll.currentOutfitIndex);
-            }
-
-            doll.notificationBox.Show(message + " unlocked!", styleUnlockDuration, silent);
-        }
-
-        return true;
     }
 }

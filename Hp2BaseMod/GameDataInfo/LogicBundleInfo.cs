@@ -47,13 +47,10 @@ namespace Hp2BaseMod.GameDataInfo
         }
 
         /// <inheritdoc/>
-        public IEnumerable<string> GetInternalSpriteRequests() => Conditions.OrEmptyIfNull()
-            .SelectManyNN(x => x.GetInternalSpriteRequests())
-            .ConcatNN(Actions?.SelectManyNN(x => x.GetInternalSpriteRequests()));
-
-        /// <inheritdoc/>
-        public IEnumerable<string> GetInternalAudioRequests() => Conditions.OrEmptyIfNull()
-            .SelectManyNN(x => x.GetInternalAudioRequests())
-            .ConcatNN(Actions?.SelectManyNN(x => x.GetInternalAudioRequests()));
+        public void RequestInternals(AssetProvider assetProvider)
+        {
+            Conditions?.ForEach(x => x?.RequestInternals(assetProvider));
+            Actions?.ForEach(x => x?.RequestInternals(assetProvider));
+        }
     }
 }

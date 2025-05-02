@@ -5,7 +5,7 @@ using HarmonyLib;
 namespace SingleDate;
 
 [HarmonyPatch(typeof(UiAppStoreSlot))]
-public static class UiAppStoreSlotPatch
+internal static class UiAppStoreSlotPatch
 {
     [HarmonyPatch("Start")]
     [HarmonyPostfix]
@@ -18,7 +18,7 @@ public static class UiAppStoreSlotPatch
         => ExpandedUiAppStoreSlot.Get(__instance).OnDestroy();
 }
 
-public class ExpandedUiAppStoreSlot
+internal class ExpandedUiAppStoreSlot
 {
     private static Dictionary<UiAppStoreSlot, ExpandedUiAppStoreSlot> _expansions
         = new Dictionary<UiAppStoreSlot, ExpandedUiAppStoreSlot>();

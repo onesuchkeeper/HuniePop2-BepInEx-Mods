@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using Hp2BaseMod.Extension.IEnumerableExtension;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
 using UnityEngine;
@@ -77,10 +76,10 @@ namespace Hp2BaseMod.GameDataInfo
         }
 
         /// <inheritdoc/>
-        public IEnumerable<string> GetInternalSpriteRequests() => IEnumerableExtension.OrEmptyIfNull(YuriAudioClipInfo?.GetInternalSpriteRequests())
-            .ConcatNN(AudioClipInfo?.GetInternalSpriteRequests());
-
-        public IEnumerable<string> GetInternalAudioRequests() => IEnumerableExtension.OrEmptyIfNull(YuriAudioClipInfo?.GetInternalAudioRequests())
-            .ConcatNN(AudioClipInfo?.GetInternalAudioRequests());
+        public void RequestInternals(AssetProvider assetProvider)
+        {
+            YuriAudioClipInfo?.RequestInternals(assetProvider);
+            AudioClipInfo?.RequestInternals(assetProvider);
+        }
     }
 }

@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using BepInEx;
 using HarmonyLib;
 using Hp2BaseMod;
 using Hp2BaseMod.Extension.IEnumerableExtension;
@@ -80,13 +79,13 @@ namespace Hp2BaseModTweaks.CellphoneApps
 
             var cellphoneButtonPressedKlip = new AudioKlip()
             {
-                clip = ModInterface.Assets.GetAsset<AudioClip>(Common.Sfx_PhoneAppButtonPressed),
+                clip = ModInterface.Assets.GetInternalAsset<AudioClip>(Common.Sfx_PhoneAppButtonPressed),
                 volume = 1f
             };
 
             ModCycleLeft = Hp2ButtonWrapper.MakeCellphoneButton("ModCycleLeft",
-                ModInterface.Assets.GetAsset<Sprite>(Common.Ui_AppSettingArrowLeft),
-                ModInterface.Assets.GetAsset<Sprite>(Common.Ui_AppSettingArrowLeftOver),
+                ModInterface.Assets.GetInternalAsset<Sprite>(Common.Ui_AppSettingArrowLeft),
+                ModInterface.Assets.GetInternalAsset<Sprite>(Common.Ui_AppSettingArrowLeftOver),
                 cellphoneButtonPressedKlip);
             ModCycleLeft.GameObject.transform.SetParent(creditsApp.transform, false);
             ModCycleLeft.RectTransform.anchoredPosition = new Vector2(528 - 134, -60);
@@ -97,8 +96,8 @@ namespace Hp2BaseModTweaks.CellphoneApps
             };
 
             ModCycleRight = Hp2ButtonWrapper.MakeCellphoneButton("ModCycleRight",
-                ModInterface.Assets.GetAsset<Sprite>(Common.Ui_AppSettingArrowRight),
-                ModInterface.Assets.GetAsset<Sprite>(Common.Ui_AppSettingArrowRightOver),
+                ModInterface.Assets.GetInternalAsset<Sprite>(Common.Ui_AppSettingArrowRight),
+                ModInterface.Assets.GetInternalAsset<Sprite>(Common.Ui_AppSettingArrowRightOver),
                 cellphoneButtonPressedKlip);
             ModCycleRight.GameObject.transform.SetParent(creditsApp.transform, false);
             ModCycleRight.RectTransform.anchoredPosition = new Vector2(528 + 134, -60);
@@ -143,7 +142,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
 
             _cellphoneButtonPressedKlip = new AudioKlip()
             {
-                clip = ModInterface.Assets.GetAsset<AudioClip>(Common.Sfx_PhoneAppButtonPressed),
+                clip = ModInterface.Assets.GetInternalAsset<AudioClip>(Common.Sfx_PhoneAppButtonPressed),
                 volume = 1f
             };
 

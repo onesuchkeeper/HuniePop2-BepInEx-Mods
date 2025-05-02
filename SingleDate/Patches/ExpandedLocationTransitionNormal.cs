@@ -7,7 +7,7 @@ using SingleDate;
 using UnityEngine;
 
 [HarmonyPatch(typeof(LocationTransitionNormal))]
-public static class LocationTransitionNormalPatch
+internal static class LocationTransitionNormalPatch
 {
     [HarmonyPatch("ArriveStep")]
     [HarmonyPostfix]
@@ -20,7 +20,7 @@ public static class LocationTransitionNormalPatch
         => ExpandedLocationTransitionNormal.Get(__instance).DepartStep();
 }
 
-public class ExpandedLocationTransitionNormal
+internal class ExpandedLocationTransitionNormal
 {
     private static Dictionary<LocationTransitionNormal, ExpandedLocationTransitionNormal> _extendedTransitions
         = new Dictionary<LocationTransitionNormal, ExpandedLocationTransitionNormal>();
@@ -38,6 +38,8 @@ public class ExpandedLocationTransitionNormal
 
     private static readonly FieldInfo _stepIndex = AccessTools.Field(typeof(LocationTransitionNormal), "_stepIndex");
     private static readonly MethodInfo _departStep = AccessTools.Method(typeof(LocationTransitionNormal), "DepartStep");
+
+    private static readonly FieldInfo _altGirlFocused = AccessTools.Field(typeof(PuzzleStatus), "_altGirlFocused");
 
     private readonly LocationTransitionNormal _core;
 
@@ -77,8 +79,6 @@ public class ExpandedLocationTransitionNormal
             return true;
         }
 
-        ModInterface.Log.LogInfo("Forcing LocationTransitionNormal to girl on right for single date");
-
         stepIndex++;
         _stepIndex.SetValue(_core, stepIndex);
 
@@ -95,9 +95,19 @@ public class ExpandedLocationTransitionNormal
 
         var uiDoll = Game.Session.gameCanvas.dollRight;
 
-        var dialogTriggerDefinition = Game.Persistence.playerFile.locationDefinition.locationType == LocationType.DATE
-            ? Game.Session.Location.dtAskDate
-            : Game.Session.Location.dtValediction;
+        DialogTriggerDefinition dialogTriggerDefinition;
+        if (Game.Persistence.playerFile.locationDefinition.locationType == LocationType.DATE)
+        {
+            //here we force the focus of the puzzle grid because the initial puzzle 'NextRound' occurs before the current pair is set
+            ModInterface.Log.LogInfo("LocationTransitionNormal-Forcing puzzle focus to alt girl for single date");
+            _altGirlFocused.SetValue(Game.Session.Puzzle.puzzleStatus, true);
+
+            dialogTriggerDefinition = Game.Session.Location.dtAskDate;
+        }
+        else
+        {
+            dialogTriggerDefinition = Game.Session.Location.dtValediction;
+        }
 
         if (dialogTriggerDefinition == null)
         {
