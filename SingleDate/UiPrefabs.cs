@@ -11,12 +11,9 @@ namespace SingleDate;
 /// <summary>
 /// Holds unity engine objects to use as prefabs for alternate single date ui
 /// </summary>
-internal static class UiPrefabs
+public static class UiPrefabs
 {
     private static readonly string _charmsDir = Path.Combine(Paths.PluginPath, "..", "..", "Digital Art Collection", "Charms");
-
-    public static Sprite SingleUiCellphoneAppPairBg => _singleUiCellphoneAppPairBg;
-    private static Sprite _singleUiCellphoneAppPairBg;
 
     public static Sprite SingleUiAppPairSlotBgOver => _singleUiAppPairSlotBgOver;
     private static Sprite _singleUiAppPairSlotBgOver;
@@ -29,6 +26,9 @@ internal static class UiPrefabs
 
     public static Sprite SensitivityPlate => _sensitivityPlate;
     private static Sprite _sensitivityPlate;
+
+    public static Sprite SensitivityMeter => _sensitivityMeter;
+    private static Sprite _sensitivityMeter;
 
     public static UiWindow SingleDateBubbles => _singleBubbles;
     private static UiWindowActionBubbles _singleBubbles;
@@ -43,9 +43,9 @@ internal static class UiPrefabs
     {
         _singleUiAppPairSlotBg = TextureUtility.SpriteFromPath(Path.Combine(SingleDate.Plugin.ImagesDir, "ui_app_pairs_pair_bg.png"));
         _singleUiAppPairSlotBgOver = TextureUtility.SpriteFromPath(Path.Combine(SingleDate.Plugin.ImagesDir, "ui_app_pairs_pair_bg_over.png"));
-        _singleUiCellphoneAppPairBg = TextureUtility.SpriteFromPath(Path.Combine(SingleDate.Plugin.ImagesDir, "ui_app_pair_background.png"));
         _sensitivityIcon = TextureUtility.SpriteFromPath(Path.Combine(SingleDate.Plugin.ImagesDir, "ui_app_pair_icon_sensitivity.png"));
         _sensitivityPlate = TextureUtility.SpriteFromPath(Path.Combine(SingleDate.Plugin.ImagesDir, "ui_app_pair_sensitivity.png"));
+        _sensitivityMeter = TextureUtility.SpriteFromPath(Path.Combine(SingleDate.Plugin.ImagesDir, "ui_app_pair_meter_sensitivity.png"));
 
         if (Directory.Exists(_charmsDir))
         {
@@ -64,6 +64,36 @@ internal static class UiPrefabs
             _charmSprites[Girls.PollyId] = GetCharmSprite("Polly");
             _charmSprites[Girls.SarahId] = GetCharmSprite("Sarah");
             _charmSprites[Girls.ZoeyId] = GetCharmSprite("Zoey");
+        }
+    }
+
+    public static void SwapCharms(RelativeId girlA, RelativeId girlB)
+    {
+        if (_charmSprites.TryGetValue(girlA, out var charmA))
+        {
+            if (_charmSprites.TryGetValue(girlB, out var charmB))
+            {
+                _charmSprites[girlA] = charmB;
+            }
+            else
+            {
+                _charmSprites.Remove(girlA);
+            }
+
+            _charmSprites[girlB] = charmA;
+        }
+        else if (_charmSprites.TryGetValue(girlB, out var charmB))
+        {
+            if (_charmSprites.TryGetValue(girlA, out var charmA2))
+            {
+                _charmSprites[girlB] = charmA2;
+            }
+            else
+            {
+                _charmSprites.Remove(girlB);
+            }
+
+            _charmSprites[girlA] = charmB;
         }
     }
 

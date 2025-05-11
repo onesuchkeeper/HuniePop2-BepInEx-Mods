@@ -21,18 +21,6 @@ internal static class UiPuzzleGridPatch
     private static void PreStartPuzzle(UiPuzzleGrid __instance)
         => ExpandedUiPuzzleGrid.Get(__instance).PreStartPuzzle();
 
-    [HarmonyPatch(nameof(UiPuzzleGrid.StartPuzzle))]
-    [HarmonyPostfix]
-    private static void PostStartPuzzle(UiPuzzleGrid __instance)
-    {
-        if (!State.IsSingleDate)
-        {
-            return;
-        }
-
-        Game.Session.gameCanvas.dollLeft.focusButton.Disable();
-    }
-
     [HarmonyPatch(nameof(UiPuzzleGrid.AttemptGirlFocusSwitch))]
     [HarmonyPrefix]
     public static bool AttemptGirlFocusSwitch(UiPuzzleGrid __instance, ref bool __result)

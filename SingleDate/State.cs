@@ -31,13 +31,17 @@ public static class State
     }
     private static SingleSaveData _save;
 
-    public static bool SingleUpsetHint => _save.SingleUpsetHint;
-    public static int MaxSingleGirlRelationshipLevel => _save.MaxSingleGirlRelationshipLevel;
-    public static bool SingleDateBaggage => _save.SingleDateBaggage;
-    public static bool RequireLoversBeforeThreesome => _save.RequireLoversBeforeThreesome;
-
     public static bool IsSingleDate => _isSingleDate;
     private static bool _isSingleDate;
+
+    public static bool SingleUpsetHint => _save.SingleUpsetHint;
+    public static bool RequireLoversBeforeThreesome => _save.RequireLoversBeforeThreesome;
+    public static bool SingleDateBaggage => _save.SingleDateBaggage;
+
+    public static int MaxSingleGirlRelationshipLevel => _save.MaxSingleGirlRelationshipLevel;
+    public static int MaxSensitivityLevel => _save.MaxSensitivityLevel;
+    public static int SensitivityExp => SaveFile.SensitivityExp;
+    public static float SensitivityPercentage => SaveFile.SensitivityExp / (_save.MaxSensitivityLevel * 6f);
 
     public static bool IsSingle(GirlPairDefinition def)
     {
@@ -61,6 +65,8 @@ public static class State
     public static void On_LocationManger_Arrive()
     {
         _isSingleDate = IsSingle(Game.Persistence.playerFile.girlPairDefinition);
+        Game.Session.gameCanvas.dollLeft.dropZoneCanvasGroup.blocksRaycasts = !_isSingleDate;
+        ModInterface.State.CellphoneOnLeft = _isSingleDate;
     }
 
     public static void On_Plugin_Awake()

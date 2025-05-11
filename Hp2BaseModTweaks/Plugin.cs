@@ -15,7 +15,7 @@ namespace Hp2BaseModTweaks;
 
 [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
 [BepInDependency("OSK.BepInEx.Hp2BaseMod", "1.0.0")]
-internal class Plugin : BaseUnityPlugin
+public class Plugin : BaseUnityPlugin
 {
     internal static readonly string RootDir = Path.Combine(Paths.PluginPath, "Hp2BaseModTweaks");
     internal static readonly string ImagesDir = Path.Combine(RootDir, "images");
@@ -34,6 +34,8 @@ internal class Plugin : BaseUnityPlugin
 
     private void Awake()
     {
+        UiPrefabs.Init();
+
         ModConfig.AddModConfig(new ModConfig()
         {
             ModImagePath = Path.Combine(ImagesDir, "CreditsLogo.png"),
@@ -105,7 +107,6 @@ internal class Plugin : BaseUnityPlugin
         ModInterface.AddCommand(new SetIconCommand());
 
         ModInterface.Events.RequestStyleChange += RandomizeStyles.On_RequestStyleChange;
-        ModInterface.Events.PostDataMods += On_PostDataMods;
         ModInterface.Events.PostCodeSubmitted += On_PostCodeSubmitted;
 
         ModInterface.Events.PostPersistenceReset += () => Application.runInBackground = ModInterface.GameData.IsCodeUnlocked(Common.RunInBackgroundCodeId);
@@ -141,10 +142,154 @@ internal class Plugin : BaseUnityPlugin
 
         _save ??= new TweaksSaveData();
         _save.Clean();
+
+        if (ModInterface.GameData.IsCodeUnlocked(Common.FairyWingsCodeId))
+        {
+            var kyu = ModInterface.GameData.GetGirl(Girls.KyuId);
+
+            ModInterface.Log.LogInfo("Applying wings");
+            if (kyu == null)
+            {
+                ModInterface.Log.LogWarning("Unable to find Kyu, \"PINK BITCH!\" wings not applied D:");
+                return;
+            }
+
+            foreach (var girl in Game.Data.Girls.GetAll())
+            {
+                girl.specialEffectPrefab = kyu.specialEffectPrefab;
+                girl.specialEffectOffset = kyu.specialEffectOffset;
+            }
+        }
     }
 
     private void On_PreDataMods()
     {
+        ModInterface.AddDataMod(new GirlDataMod(Girls.AbiaId, InsertStyle.replace)
+        {
+            BackPosition = new VectorInfo()
+            {
+                Xpos = 423 - 420 + 250,
+                Ypos = 957 - 24 - 460
+            }
+        });
+
+        ModInterface.AddDataMod(new GirlDataMod(Girls.AshleyId, InsertStyle.replace)
+        {
+            BackPosition = new VectorInfo()
+            {
+                Xpos = 387 - 420 + 260,
+                Ypos = 964 - 24 - 400
+            }
+        });
+
+        ModInterface.AddDataMod(new GirlDataMod(Girls.BrookeId, InsertStyle.replace)
+        {
+            BackPosition = new VectorInfo()
+            {
+                Xpos = 378 - 420 + 305,
+                Ypos = 960 - 24 - 440
+            }
+        });
+
+        ModInterface.AddDataMod(new GirlDataMod(Girls.CandaceId, InsertStyle.replace)
+        {
+            BackPosition = new VectorInfo()
+            {
+                Xpos = 348 - 420 + 300,
+                Ypos = 972 - 24 - 430
+            }
+        });
+
+        ModInterface.AddDataMod(new GirlDataMod(Girls.JessieId, InsertStyle.replace)
+        {
+            BackPosition = new VectorInfo()
+            {
+                Xpos = 457 - 420 + 190,
+                Ypos = 983 - 24 - 445
+            }
+        });
+
+        ModInterface.AddDataMod(new GirlDataMod(Girls.JewnId, InsertStyle.replace)
+        {
+            BackPosition = new VectorInfo()
+            {
+                Xpos = 228 - 420 + 450,
+                Ypos = 1019 - 24 - 500
+            }
+        });
+
+        ModInterface.AddDataMod(new GirlDataMod(Girls.LailaniId, InsertStyle.replace)
+        {
+            BackPosition = new VectorInfo()
+            {
+                Xpos = 345 - 420 + 350,
+                Ypos = 931 - 24 - 420
+            }
+        });
+
+        ModInterface.AddDataMod(new GirlDataMod(Girls.LillianId, InsertStyle.replace)
+        {
+            BackPosition = new VectorInfo()
+            {
+                Xpos = 435 - 420 + 248,
+                Ypos = 918 - 24 - 400
+            }
+        });
+
+        ModInterface.AddDataMod(new GirlDataMod(Girls.LolaId, InsertStyle.replace)
+        {
+            BackPosition = new VectorInfo()
+            {
+                Xpos = 414 - 420 + 270,
+                Ypos = 985 - 24 - 450
+            }
+        });
+
+        ModInterface.AddDataMod(new GirlDataMod(Girls.MoxieId, InsertStyle.replace)
+        {
+            BackPosition = new VectorInfo()
+            {
+                Xpos = 262 - 420 + 390,
+                Ypos = 956 - 24 - 450
+            }
+        });
+
+        ModInterface.AddDataMod(new GirlDataMod(Girls.NoraId, InsertStyle.replace)
+        {
+            BackPosition = new VectorInfo()
+            {
+                Xpos = 478 - 420 + 240,
+                Ypos = 966 - 24 - 420
+            }
+        });
+
+        ModInterface.AddDataMod(new GirlDataMod(Girls.PollyId, InsertStyle.replace)
+        {
+            BackPosition = new VectorInfo()
+            {
+                Xpos = 384 - 420 + 300,
+                Ypos = 949 - 24 - 420
+            }
+        });
+
+        ModInterface.AddDataMod(new GirlDataMod(Girls.SarahId, InsertStyle.replace)
+        {
+            BackPosition = new VectorInfo()
+            {
+                Xpos = 414 - 420 + 270,
+                Ypos = 917 - 24 - 420
+            }
+        });
+
+        ModInterface.AddDataMod(new GirlDataMod(Girls.ZoeyId, InsertStyle.replace)
+        {
+            BackPosition = new VectorInfo()
+            {
+                Xpos = 522 - 420 + 170,
+                Ypos = 900 - 24 - 410
+            }
+        });
+
         var kyuEyesGlowNeutralPartId = new RelativeId(ModId, 0);
         var kyuEyesGlowNeutralPart = new GirlPartDataMod(kyuEyesGlowNeutralPartId, InsertStyle.replace)
         {
@@ -225,13 +370,15 @@ internal class Plugin : BaseUnityPlugin
                 new GirlExpressionDataMod(GirlExpressions.Upset, InsertStyle.replace){
                     PartIdEyesGlow = kyuEyesGlowAnnoyedPartId
                 },
-            }
-        });
-
-        ModInterface.AddDataMod(new GirlDataMod(Girls.KyuId, InsertStyle.replace)
-        {
+            },
+            HeadPosition = new VectorInfo()
+            {
+                Xpos = 420 + 250 - 420,
+                Ypos = 968 - 140 - 24,
+            },
             CellphoneMiniHead = new SpriteInfoPath()
             {
+                IsExternal = false,
                 Path = "ui_title_icon_kyu",
             }
         });
@@ -259,26 +406,6 @@ internal class Plugin : BaseUnityPlugin
     private void On_PostCodeSubmitted()
     {
         Application.runInBackground = ModInterface.GameData.IsCodeUnlocked(Common.RunInBackgroundCodeId);
-    }
-
-    private void On_PostDataMods()
-    {
-        if (!ModInterface.GameData.IsCodeUnlocked(Common.FairyWingsCodeId)) { return; }
-
-        var kyu = ModInterface.GameData.GetGirl(Girls.KyuId);
-
-        ModInterface.Log.LogInfo("Applying wings");
-        if (kyu == null)
-        {
-            ModInterface.Log.LogWarning("Unable to find Kyu, \"PINK BITCH!\" wings not applied D:");
-            return;
-        }
-
-        foreach (var girl in Game.Data.Girls.GetAll())
-        {
-            girl.specialEffectPrefab = kyu.specialEffectPrefab;
-            girl.specialEffectOffset = kyu.specialEffectOffset;
-        }
     }
 
     private void AddUiCellphoneSprites(string name, GirlDataMod mod, Vector2 headSize, Vector2 portraitSize)

@@ -4,8 +4,11 @@ using System.Reflection;
 using HarmonyLib;
 using Hp2BaseMod.Extension;
 
-namespace SingleDate;
+namespace Hp2BaseMod;
 
+/// <summary>
+/// 
+/// </summary>
 [HarmonyPatch(typeof(ItemSlotBehavior))]
 internal static class ItemSlotBehaviorPatch
 {
@@ -20,7 +23,7 @@ internal static class ItemSlotBehaviorPatch
         => ExpandedItemSlotBehavior.Get(__instance).OnDestroy();
 }
 
-internal class ExpandedItemSlotBehavior
+public class ExpandedItemSlotBehavior
 {
     private static Dictionary<ItemSlotBehavior, ExpandedItemSlotBehavior> _expansions
         = new Dictionary<ItemSlotBehavior, ExpandedItemSlotBehavior>();
@@ -51,7 +54,7 @@ internal class ExpandedItemSlotBehavior
 
     public bool ShowTooltip()
     {
-        if (!(State.IsSingleDate && _core.eastOnHub))
+        if (!(ModInterface.State.CellphoneOnLeft && _core.eastOnHub))
         {
             return true;
         }

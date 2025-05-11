@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using BepInEx;
+using BepInEx.Bootstrap;
 using HarmonyLib;
 using Hp2BaseMod;
 using Hp2BaseMod.GameDataInfo;
@@ -27,6 +28,8 @@ internal class Plugin : BaseUnityPlugin
         PhotoLailani.AddDataMods();
 
         UiPrefabs.InitExternals();
+
+        ModInterface.AddExp(new SensitivityExp());
 
         ModInterface.Events.PreDataMods += On_PreDataMods;
         ModInterface.Events.PreGameSave += State.On_PreGameSave;

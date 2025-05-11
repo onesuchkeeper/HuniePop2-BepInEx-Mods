@@ -22,13 +22,13 @@ internal static partial class Styles
                     PartType = GirlPartType.OUTFIT,
                     PartName = "sceneQueenOutfitLillianMirror",
                     X = _lillianBodyX - 17,
-                    Y = _lillianBodyY - 210,
+                    Y = _lillianBodyY - 208,
                     MirroredPartId = Ids.OutfitPart1,
                     AltPartId = null,
                     SpriteInfo = new SpriteInfoPath()
                     {
                         IsExternal = true,
-                        Path = Path.Combine(Plugin.ImageDir, @"lillian_outfit_sceneQueen_mirror.png")
+                        Path = Path.Combine(Plugin.ImageDir, "lillian_outfit_sceneQueen_mirror.png")
                     }
                 },
                 new GirlPartDataMod(Ids.OutfitPart1, InsertStyle.replace)
@@ -36,13 +36,13 @@ internal static partial class Styles
                     PartType = GirlPartType.OUTFIT,
                     PartName = "sceneQueenOutfitLillian",
                     X = _lillianBodyX - 17,
-                    Y = _lillianBodyY - 210,
+                    Y = _lillianBodyY - 208,
                     MirroredPartId = Ids.OutfitPart1Mirror,
                     AltPartId = null,
                     SpriteInfo = new SpriteInfoPath()
                     {
                         IsExternal = true,
-                        Path = Path.Combine(Plugin.ImageDir, @"lillian_outfit_sceneQueen.png")
+                        Path = Path.Combine(Plugin.ImageDir, "lillian_outfit_sceneQueen.png")
                     }
                 },
                 new GirlPartDataMod(Ids.FronthairPart1, InsertStyle.replace)
@@ -56,7 +56,7 @@ internal static partial class Styles
                     SpriteInfo = new SpriteInfoPath()
                     {
                         IsExternal = true,
-                        Path = Path.Combine(Plugin.ImageDir, @"lillian_fronthair_sceneQueen.png")
+                        Path = Path.Combine(Plugin.ImageDir, "lillian_fronthair_sceneQueen.png")
                     }
                 },
                 new GirlPartDataMod(Ids.BackhairPart1, InsertStyle.replace)
@@ -70,7 +70,7 @@ internal static partial class Styles
                     SpriteInfo = new SpriteInfoPath()
                     {
                         IsExternal = true,
-                        Path = Path.Combine(Plugin.ImageDir, @"lillian_backhair_sceneQueen.png")
+                        Path = Path.Combine(Plugin.ImageDir, "lillian_backhair_sceneQueen.png")
                     }
                 }
             },

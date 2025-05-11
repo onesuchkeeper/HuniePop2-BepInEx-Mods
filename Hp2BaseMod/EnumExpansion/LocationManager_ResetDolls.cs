@@ -45,11 +45,12 @@ namespace Hp2BaseMod.EnumExpansion
                 if (playerFileGirlPair.relationshipType == GirlPairRelationshipType.UNKNOWN)
                 {
                     var pairId = ModInterface.Data.GetDataId(GameDataType.GirlPair, currentGirlPair.id);
+                    var pairStyle = ExpandedGirlPairDefinition.Get(pairId).PairStyle;
 
-                    if (ModInterface.Data.TryGetPairStyleInfo(pairId, out var pairStyleInfo))
+                    if (pairStyle != null)
                     {
-                        leftStyle = pairStyleInfo.MeetingGirlOne;
-                        rightStyle = pairStyleInfo.MeetingGirlTwo;
+                        leftStyle = pairStyle.MeetingGirlOne;
+                        rightStyle = pairStyle.MeetingGirlTwo;
                     }
                 }
                 else if (currentLocation.locationType == LocationType.DATE)
@@ -58,11 +59,12 @@ namespace Hp2BaseMod.EnumExpansion
                         && Game.Persistence.playerFile.daytimeElapsed % 4 == (int)playerFileGirlPair.girlPairDefinition.sexDaytime)
                     {
                         var pairId = ModInterface.Data.GetDataId(GameDataType.GirlPair, currentGirlPair.id);
+                        var pairStyle = ExpandedGirlPairDefinition.Get(pairId).PairStyle;
 
-                        if (ModInterface.Data.TryGetPairStyleInfo(pairId, out var pairStyleInfo))
+                        if (pairStyle != null)
                         {
-                            leftStyle = pairStyleInfo.SexGirlOne;
-                            rightStyle = pairStyleInfo.SexGirlTwo;
+                            leftStyle = pairStyle.SexGirlOne;
+                            rightStyle = pairStyle.SexGirlTwo;
                         }
                     }
                     else if (!Game.Session.Puzzle.puzzleStatus.isEmpty

@@ -66,6 +66,9 @@ public static class ModInterface
     public static IReadOnlyDictionary<string, ICommand> Commands => _commands;
     private static Dictionary<string, ICommand> _commands = new Dictionary<string, ICommand>();
 
+    public static IReadOnlyList<IExpInfo> ExpDisplays => _expDisplays;
+    private static List<IExpInfo> _expDisplays = new List<IExpInfo>();
+
     /// <summary>
     /// The session's log
     /// </summary>
@@ -259,6 +262,11 @@ public static class ModInterface
         }
 
         _commands[command.Name.ToUpper()] = command;
+    }
+
+    public static void AddExp(IExpInfo expDisplay)
+    {
+        _expDisplays.Add(expDisplay);
     }
 
     public static void AddDataMod(IGameDataMod<AbilityDefinition> mod)

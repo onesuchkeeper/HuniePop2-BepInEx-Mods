@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Hp2BaseMod;
@@ -33,23 +34,35 @@ public class ExpandedDialogTriggerDefinition
     public Dictionary<RelativeId, Dictionary<RelativeId, int>> GirlIdToLineIdToLineIndex = new Dictionary<RelativeId, Dictionary<RelativeId, int>>();
     public Dictionary<RelativeId, Dictionary<int, RelativeId>> GirlIdToLineIndexToLineId = new Dictionary<RelativeId, Dictionary<int, RelativeId>>();
 
-    public DialogTriggerLineSet GetLineSet(DialogTriggerDefinition def, RelativeId girlId)
+    public bool TryGetLineSet(DialogTriggerDefinition def, RelativeId girlId, out DialogTriggerLineSet lineSet)
     {
         var girlExpansion = ExpandedGirlDefinition.Get(girlId);
 
         if (def.dialogLineSets[girlExpansion.DialogTriggerIndex].dialogLines.Count > 0)
         {
-            return def.dialogLineSets[girlExpansion.DialogTriggerIndex];
+            lineSet = def.dialogLineSets[girlExpansion.DialogTriggerIndex];
+            return true;
         }
 
         if (def.dialogLineSets.FirstOrDefault()?.dialogLines.Count > 0)
         {
-            return def.dialogLineSets[0];
+            lineSet = def.dialogLineSets[0];
+            return true;
         }
 
-        return null;
+        lineSet = null;
+        return false;
     }
 
-    public DialogLine GetLine(DialogTriggerDefinition def, RelativeId girlId, RelativeId id)
-        => GetLineSet(def, girlId).dialogLines[GirlIdToLineIdToLineIndex[girlId][id]];
+    public bool TryGetLine(DialogTriggerDefinition def, RelativeId girlId, RelativeId id, out DialogLine line)
+    {
+        if (TryGetLineSet(def, girlId, out var lineSet))
+        {
+            line = lineSet.dialogLines[GirlIdToLineIdToLineIndex[girlId][id]];
+            return true;
+        }
+
+        line = null;
+        return false;
+    }
 }

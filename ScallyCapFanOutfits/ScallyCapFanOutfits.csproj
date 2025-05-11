@@ -27,6 +27,7 @@
   </ItemGroup>
   
   <ItemGroup>
+    <ProjectReference Include="..\Hp2BaseModTweaks\Hp2BaseModTweaks.csproj" />
     <ProjectReference Include="..\Hp2BaseMod\Hp2BaseMod.csproj" />
   </ItemGroup>
 

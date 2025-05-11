@@ -1,7 +1,10 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using BepInEx;
+using BepInEx.Bootstrap;
 using Hp2BaseMod;
+using Hp2BaseModTweaks;
 
 namespace ScallyCapFanOutfits;
 
@@ -31,6 +34,26 @@ internal class Plugin : BaseUnityPlugin
         Styles.AddSarahStyles();
         Styles.AddZoeyStyles();
 
+        if (Chainloader.PluginInfos.ContainsKey("OSK.BepInEx.Hp2BaseModTweaks"))
+        {
+            ModConfig.AddModConfig(new ModConfig()
+            {
+                ModImagePath = Path.Combine(ImageDir, "CreditsLogo.png"),
+                CreditsEntries = new List<CreditsEntry>(){
+                    new CreditsEntry(){
+                        CreditButtonImagePath = Path.Combine(ImageDir, "ScallyCapFan_credits.png"),
+                        CreditButtonImageOverPath = Path.Combine(ImageDir, "ScallyCapFan_credits_over.png"),
+                        RedirectLink = "https://www.reddit.com/user/scallycapfan/"
+                    },
+                    new CreditsEntry() {
+                    CreditButtonImagePath = Path.Combine(ImageDir, "onesuchkeeper_credits.png"),
+                    CreditButtonImageOverPath = Path.Combine(ImageDir, "onesuchkeeper_credits_over.png"),
+                    RedirectLink = "https://www.youtube.com/@onesuchkeeper8389"
+                    }
+                }
+            });
+        }
+
         ModInterface.Events.PreLoadPlayerFile += On_PrePersistenceReset;
     }
 
@@ -46,13 +69,13 @@ internal class Plugin : BaseUnityPlugin
 
                 foreach (var outfitId_Index in expansion.OutfitIdToIndex.Where(x => x.Key.SourceId == Ids.ModId))
                 {
-                    ModInterface.Log.LogInfo($"Unlocking outfit {outfitId_Index} for girl {girlId}");
+                    ModInterface.Log.LogInfo($"Unlocking outfit {outfitId_Index.Key} for girl {girlId}");
                     fileGirl.UnlockOutfit(outfitId_Index.Value);
                 }
 
                 foreach (var hairstyleId_index in expansion.HairstyleIdToIndex.Where(x => x.Key.SourceId == Ids.ModId))
                 {
-                    ModInterface.Log.LogInfo($"Unlocking hairstyle {hairstyleId_index} for girl {girlId}");
+                    ModInterface.Log.LogInfo($"Unlocking hairstyle {hairstyleId_index.Key} for girl {girlId}");
                     fileGirl.UnlockHairstyle(hairstyleId_index.Value);
                 }
             }

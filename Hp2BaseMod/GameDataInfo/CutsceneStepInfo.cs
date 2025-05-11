@@ -156,9 +156,10 @@ namespace Hp2BaseMod.GameDataInfo
                 var expansion = def.dialogTriggerDefinition.Expansion();
                 var girlId = new RelativeId(def.girlDefinition);
 
-                var lineSet = expansion.GetLineSet(def.dialogTriggerDefinition, girlId);
-
-                DialogLineId = expansion.GirlIdToLineIndexToLineId[girlId][lineSet.dialogLines.IndexOf(def.dialogLine)];
+                if (expansion.TryGetLineSet(def.dialogTriggerDefinition, girlId, out var lineSet))
+                {
+                    DialogLineId = expansion.GirlIdToLineIndexToLineId[girlId][lineSet.dialogLines.IndexOf(def.dialogLine)];
+                }
             }
 
             if (def.logicAction != null) { LogicActionInfo = new LogicActionInfo(def.logicAction, assetProvider); }
@@ -245,7 +246,10 @@ namespace Hp2BaseMod.GameDataInfo
                 var girlId = ModInterface.Data.GetDataId(GameDataType.Girl, def.girlDefinition.id);
                 var dtExpansion = def.dialogTriggerDefinition.Expansion();
 
-                def.dialogLine = dtExpansion.GetLine(def.dialogTriggerDefinition, girlId, DialogLineId.Value);
+                if (dtExpansion.TryGetLine(def.dialogTriggerDefinition, girlId, DialogLineId.Value, out var line))
+                {
+                    def.dialogLine = line;
+                }
             }
         }
 

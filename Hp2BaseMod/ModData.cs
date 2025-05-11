@@ -13,11 +13,6 @@ namespace Hp2BaseMod
         private readonly Dictionary<RelativeId, List<IFunctionalAilmentDataMod>> _ailmentIdToFunctionalMods = new Dictionary<RelativeId, List<IFunctionalAilmentDataMod>>();
 
         /// <summary>
-        /// Maps a pair's id to its style info
-        /// </summary>
-        private readonly Dictionary<RelativeId, PairStyleInfo> _pairIdToPairStyleInfo = new Dictionary<RelativeId, PairStyleInfo>();
-
-        /// <summary>
         /// Maps a location's id to its style info
         /// </summary>
         private readonly Dictionary<RelativeId, Dictionary<RelativeId, GirlStyleInfo>> _locationIdToLocationStyleInfo = new Dictionary<RelativeId, Dictionary<RelativeId, GirlStyleInfo>>();
@@ -178,22 +173,6 @@ namespace Hp2BaseMod
             }
         }
 
-        internal void RegisterPairStyle(RelativeId pairId, PairStyleInfo pairStyle)
-        {
-            if (pairStyle != null)
-            {
-                if (_pairIdToPairStyleInfo.ContainsKey(pairId))
-                {
-                    var currentStyle = _pairIdToPairStyleInfo[pairId];
-                    pairStyle.SetData(ref currentStyle);
-                }
-                else
-                {
-                    _pairIdToPairStyleInfo.Add(pairId, pairStyle);
-                }
-            }
-        }
-
         internal void RegisterDefaultData(GameDataType type, int localId)
         {
             var id = new RelativeId(-1, localId);
@@ -287,8 +266,6 @@ namespace Hp2BaseMod
             girlStyleInfo = null;
             return false;
         }
-
-        public bool TryGetPairStyleInfo(RelativeId pairId, out PairStyleInfo pairStyleInfo) => _pairIdToPairStyleInfo.TryGetValue(pairId, out pairStyleInfo);
 
         public int GetRuntimeDataId(GameDataType dataModType, RelativeId id) => _relativeIdToRuntimeId[dataModType][id];
 

@@ -5,10 +5,7 @@ using HarmonyLib;
 
 namespace Hp2BaseModTweaks
 {
-    /// <summary>
-    /// It didn't like me adding a prefix to load girl for whatever reason, but change outfit works just as well I guess...
-    /// </summary>
-    [HarmonyPatch(typeof(UiDoll), "ChangeOutfit")]
+    [HarmonyPatch(typeof(UiDoll), nameof(UiDoll.LoadGirl))]
     internal static class AllowSpecialDollsPatch
     {
         //the special effects always read the def's offset field, which is annoying
@@ -16,17 +13,29 @@ namespace Hp2BaseModTweaks
         private static readonly FieldInfo _specialEffect = AccessTools.Field(typeof(UiDoll), "_specialEffect");
         private static void Postfix(UiDoll __instance)
         {
-            if (__instance.soulGirlDefinition?.specialCharacter ?? true) { return; }
-
-            if (_specialEffect.GetValue(__instance) as UiDollSpecialEffect == null
-                && __instance.soulGirlDefinition?.specialEffectPrefab != null)
+            if (__instance?.soulGirlDefinition == null
+                || __instance.soulGirlDefinition.specialEffectPrefab == null)
             {
-                var specialEffectInstance = UnityEngine.Object.Instantiate(__instance.soulGirlDefinition.specialEffectPrefab);
-
-                _specialEffect.SetValue(__instance, specialEffectInstance);
-                specialEffectInstance.rectTransform.SetParent(Game.Session.gameCanvas.dollSpecialEffectContainer, false);
-                specialEffectInstance.Init(__instance);
+                return;
             }
+
+            var expansion = ExpandedGirlDefinition.Get(__instance.soulGirlDefinition);
+            if (__instance.soulGirlDefinition.specialEffectPrefab.GetType() == typeof(UiDollSpecialEffectFairyWings))
+            {
+                __instance.soulGirlDefinition.specialEffectOffset = expansion.BackPosition;
+            }
+            else if (__instance.soulGirlDefinition.specialEffectPrefab.GetType() == typeof(UiDollSpecialEffectGloWings))
+            {
+                __instance.soulGirlDefinition.specialEffectOffset = expansion.HeadPosition;
+            }
+
+            if (__instance.soulGirlDefinition.specialCharacter) { return; }
+
+            var specialEffectInstance = UnityEngine.Object.Instantiate(__instance.soulGirlDefinition.specialEffectPrefab);
+
+            _specialEffect.SetValue(__instance, specialEffectInstance);
+            specialEffectInstance.rectTransform.SetParent(Game.Session.gameCanvas.dollSpecialEffectContainer, false);
+            specialEffectInstance.Init(__instance);
         }
     }
 }

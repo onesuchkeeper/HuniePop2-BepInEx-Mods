@@ -67,7 +67,10 @@ namespace Hp2BaseModTweaks.CellphoneApps
 
         public void PostStart()
         {
-            _playerFileGirls = Game.Persistence.playerFile.girls.Where(x => x.playerMet).OrderBy(x => x.girlDefinition.id).ToArray();
+            _playerFileGirls = Game.Persistence.playerFile.girls
+                .Where(x => x.playerMet && !x.girlDefinition.specialCharacter)
+                .OrderBy(x => x.girlDefinition.id)
+                .ToArray();
 
             _pageMax = _playerFileGirls.Length > 1
                 ? (_playerFileGirls.Length - 1) / _girlsPerPage

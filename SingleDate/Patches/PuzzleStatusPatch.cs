@@ -38,7 +38,7 @@ internal static class PuzzleStatusPatch
             return;
         }
 
-        ModInterface.Log.LogInfo("Forcing next round girl focus to alt for single date");
+        ModInterface.Log.LogInfo("Forcing next round girl focus for single date to alt girl");
 
         _altGirlFocused.SetValue(__instance, true);
     }

@@ -45,14 +45,14 @@ internal static class GiftManagerPatch
             {
                 text = $"+1 Sensitivity EXP";
 
-                var affectionLevel = State.SaveFile.SensitivityExp / 6;
+                var affectionLevel = State.GetSensitivityLevel();
 
                 State.SaveFile.SensitivityExp++;
 
-                var updatedAffectionLevel = State.SaveFile.SensitivityExp / 6;
+                var updatedAffectionLevel = State.GetSensitivityLevel();
                 if (updatedAffectionLevel != affectionLevel)
                 {
-                    doll.notificationBox.Show($"Sensitivity Level {updatedAffectionLevel} achieved!", 0f, false);
+                    doll.notificationBox.Show($"Sensitivity Level {updatedAffectionLevel + 1} achieved!", 0f, false);
                 }
 
                 doll.ReadDialogTrigger(__instance.dtSmoothieAccept, DialogLineFormat.PASSIVE, -1);

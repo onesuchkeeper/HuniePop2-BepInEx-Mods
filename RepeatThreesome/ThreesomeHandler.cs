@@ -50,24 +50,18 @@ namespace RepeatThreesome
 
         private static void On_CutsceneCompleteEvent()
         {
-            ModInterface.Log.LogInfo($"A");
-
-
             Game.Session.Cutscenes.CutsceneCompleteEvent -= On_CutsceneCompleteEvent;
             var newRoundCutscene = _newRoundCutscene.GetValue<CutsceneDefinition>(Game.Session.Puzzle);
             var roundOverCutscene = _roundOverCutscene.GetValue<CutsceneDefinition>(Game.Session.Puzzle);
 
-            ModInterface.Log.LogInfo($"gameOver:{Game.Session.Puzzle.puzzleStatus.gameOver},nudeCode:{ModInterface.GameData.IsCodeUnlocked(Constants.NudeCodeId)},bonuscutscene:{roundOverCutscene == Game.Session.Puzzle.cutsceneSuccessBonus},isBonusround:{Game.Session.Puzzle.puzzleStatus.bonusRound}");
             if (newRoundCutscene == Game.Session.Puzzle.cutsceneNewroundBossBonus)
             {
-                ModInterface.Log.LogInfo($"B");
                 Game.Session.Cutscenes.CutsceneStartedEvent += On_BossBonusStart;
             }
             else if (!Game.Session.Puzzle.puzzleStatus.gameOver
                 && ModInterface.GameData.IsCodeUnlocked(Constants.NudeCodeId)
                 && Game.Session.Puzzle.puzzleStatus.statusType == PuzzleStatusType.NORMAL)
             {
-                ModInterface.Log.LogInfo($"C");
                 var silent = ChangeToNudeOutfit(Game.Session.Puzzle.puzzleStatus.girlStatusLeft.playerFileGirl,
                     Game.Session.gameCanvas.dollLeft,
                     false);
@@ -108,11 +102,10 @@ namespace RepeatThreesome
 
             if (!expansion.OutfitIdToIndex.TryGetValue(Constants.NudeOutfitId, out var nudeOutfitIndex))
             {
-                ModInterface.Log.LogInfo($"Failed to find nude outfit for Girl {girl.girlDefinition.girlName}.");
+                ModInterface.Log.LogWarning($"Failed to find nude outfit for Girl {girl.girlDefinition.girlName}.");
                 return false;
             }
 
-            ModInterface.Log.LogInfo($"Changing girl to nude outfit");
             doll.ChangeOutfit(nudeOutfitIndex);
 
             return StyleUnlockUtility.UnlockStyle(girl, -1, nudeOutfitIndex, silentUnlock);

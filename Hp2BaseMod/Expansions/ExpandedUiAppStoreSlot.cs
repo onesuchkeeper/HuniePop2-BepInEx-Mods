@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using HarmonyLib;
 
-namespace SingleDate;
+namespace Hp2BaseMod;
 
 [HarmonyPatch(typeof(UiAppStoreSlot))]
 internal static class UiAppStoreSlotPatch

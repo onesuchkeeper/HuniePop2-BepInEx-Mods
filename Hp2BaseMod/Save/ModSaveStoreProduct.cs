@@ -28,11 +28,6 @@ namespace Hp2BaseMod.Save
             if (save == null) { return; }
 
             ValidatedSet.SetFromRelativeId(ref save.itemId, GameDataType.Item, ItemId);
-
-            if (ModInterface.Data.TryGetRuntimeDataId(GameDataType.Item, ItemId, out var id))
-            {
-                save.itemId = id;
-            }
         }
 
         public SaveFileStoreProduct Convert(int index)

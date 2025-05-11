@@ -71,6 +71,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
         private bool _started;
         private UiCellphoneAppWardrobe _wardrobeApp;
         private TweaksSaveGirl _girlSave;
+        private int _initialWardrobeGirlId;
 
         public ExpandedUiCellphoneWardrobeApp(UiCellphoneAppWardrobe wardrobeApp)
         {
@@ -79,8 +80,20 @@ namespace Hp2BaseModTweaks.CellphoneApps
 
         public void PreStart()
         {
-            //the base wardrobe doesn't check to see if there's a valid wardrobe id, so if it's not found it throws
-            //so here set the selected slot as the dummy by default so it's not null
+            //playerFileGirl defaulted at null and only set when finding the slot corresponding to the wardrobe flag,
+            //so if that flag is a girl on another page it's never set...
+            //it's not ideal, but lets set it to lola then repopulate afterwards? I guess...
+            _initialWardrobeGirlId = Game.Persistence.playerFile.GetFlagValue("wardrobe_girl_id");
+            Game.Persistence.playerFile.SetFlagValue("wardrobe_girl_id", 1);
+        }
+
+        public void PostStart()
+        {
+            Game.Persistence.playerFile.SetFlagValue("wardrobe_girl_id", _initialWardrobeGirlId);
+            var playerFileGirl = Game.Persistence.playerFile.GetPlayerFileGirl(Game.Data.Girls.Get(_initialWardrobeGirlId));
+            _wardrobeApp.selectListHairstyle.Populate(playerFileGirl);
+            _wardrobeApp.selectListOutfit.Populate(playerFileGirl);
+
             var dummySlot_go = new GameObject();
             var dummySlot_buttonBehavior = dummySlot_go.AddComponent<ButtonBehavior>();
             var dummySlot_image = dummySlot_go.AddComponent<Image>();
@@ -89,14 +102,6 @@ namespace Hp2BaseModTweaks.CellphoneApps
             _dummyFileIconSlot.button = dummySlot_buttonBehavior;
             _selectedFileIconSlot.SetValue(_wardrobeApp, _dummyFileIconSlot);
 
-            //playerFileGirl is defaults at null and only set when finding the slot corresponding to the wardrobe flag,
-            //so if that flag is a girl on another page it's never set...
-            //I can't think of any way to fix that without overwriting the method
-            //TODO
-        }
-
-        public void PostStart()
-        {
             _metGirls = Game.Persistence.playerFile.girls.Where(x => x.playerMet).OrderBy(x => x.girlDefinition.id).ToArray();
 
             _girlsPageMax = _metGirls.Length > 1
@@ -139,12 +144,11 @@ namespace Hp2BaseModTweaks.CellphoneApps
                 };
 
                 //go to correct page
-                var wardrobeGirlId = Game.Persistence.playerFile.GetFlagValue("wardrobe_girl_id");
                 var index = 0;
 
                 foreach (var girl in _metGirls)
                 {
-                    if (girl.girlDefinition.id == wardrobeGirlId)
+                    if (girl.girlDefinition.id == _initialWardrobeGirlId)
                     {
                         break;
                     }
@@ -159,7 +163,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
             _wardrobeApp.transform.Find("FileIconSlotsContainer").GetComponent<RectTransform>().anchoredPosition -= new Vector2(0, 16);
             _wardrobeApp.transform.Find("WearOnDatesCheckBox").GetComponent<RectTransform>().anchoredPosition -= new Vector2(0, 16);
 
-            //Randomize Styles
+            //Randomize Styles ui
             _randomizeStylesCheckBox = GameObject.Instantiate(_wardrobeApp.wearOnDatesCheckBox);
             _randomizeStylesCheckBox.CheckBoxChangedEvent += On_RandomizeStylesCheckBox_CheckBoxChangedEvent;
             _randomizeStylesCheckBox.valueLabel.text = "Randomize Styles";
@@ -167,7 +171,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
             _randomizeStylesCheckBox.transform.position = _wardrobeApp.wearOnDatesCheckBox.transform.position + new Vector3(400, 0, 0);
             _randomizeStylesCheckBox.Toggle(true);
 
-            // Unpair Random Styles
+            // Unpair Random Styles ui
             _unpairRandomizeStylesCheckBox = GameObject.Instantiate(_wardrobeApp.wearOnDatesCheckBox);
             _unpairRandomizeStylesCheckBox.CheckBoxChangedEvent += On_UnpairRandomizeStylesCheckBox_CheckBoxChangedEvent;
             _unpairRandomizeStylesCheckBox.valueLabel.text = "Unpair Random Styles";

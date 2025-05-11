@@ -41,8 +41,6 @@ namespace Hp2BaseModTweaks.CellphoneApps
             return expansion;
         }
 
-        private static readonly string _creditsBackgroundPath = Path.Combine(Plugin.ImagesDir, "ui_app_credits_modded_background.png");
-
         public Hp2ButtonWrapper ModCycleLeft;
         public Hp2ButtonWrapper ModCycleRight;
         public Image ModLogo;
@@ -59,17 +57,10 @@ namespace Hp2BaseModTweaks.CellphoneApps
         {
             _creditsApp = creditsApp;
 
-            if (File.Exists(_creditsBackgroundPath))
-            {
-                var backgroundImage = creditsApp.transform.Find("Background").GetComponent<Image>();
-                backgroundImage.sprite = TextureUtility.SpriteFromPath(_creditsBackgroundPath);
-                backgroundImage.SetNativeSize();
-                backgroundImage.rectTransform.anchoredPosition = new Vector2(16, -18);
-            }
-            else
-            {
-                ModInterface.Log.LogError($"{_creditsBackgroundPath} not found");
-            }
+            var backgroundImage = creditsApp.transform.Find("Background").GetComponent<Image>();
+            backgroundImage.sprite = UiPrefabs.CreditsBG;
+            backgroundImage.SetNativeSize();
+            backgroundImage.rectTransform.anchoredPosition = new Vector2(16, -18);
 
             var modLogoGO = new GameObject("ModLogo");
             modLogoGO.AddComponent<CanvasRenderer>();
@@ -136,7 +127,9 @@ namespace Hp2BaseModTweaks.CellphoneApps
             contributorsScroll_ScrollRect.content = ContributorsPanel_RectTransform;
 
             var contributorsPanel_VLG = ContributorsPanel.AddComponent<VerticalLayoutGroup>();
-            contributorsPanel_VLG.spacing = 0;
+
+            contributorsPanel_VLG.spacing = 8;
+            contributorsPanel_VLG.padding = new RectOffset(4, 4, 4, 4);
             contributorsPanel_VLG.childForceExpandWidth = false;
             contributorsPanel_VLG.childForceExpandHeight = false;
 

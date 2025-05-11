@@ -118,19 +118,46 @@ namespace Hp2BaseMod
                             MapRelativeIdRange(expansion.PartIdToIndex, expansion.PartIndexToId, girl.parts.Count);
                             MapRelativeIdRange(expansion.HairstyleIdToIndex, expansion.HairstyleIndexToId, girl.hairstyles.Count);
                             MapRelativeIdRange(expansion.OutfitIdToIndex, expansion.OutfitIndexToId, girl.outfits.Count);
+
+                            if (id == Girls.KyuId)
+                            {
+                                expansion.BackPosition = girl.specialEffectOffset;
+                            }
+                            else
+                            {
+                                expansion.HeadPosition = girl.specialEffectOffset;
+                            }
                         }
 
                         ModInterface.Log.LogInfo("pairs");
                         foreach (var def in girlPairDataDict.Values)
                         {
                             var id = new RelativeId(-1, def.id);
-                            ModInterface.Data.RegisterPairStyle(id, new PairStyleInfo()
+                            var expansion = ExpandedGirlPairDefinition.Get(id);
+
+                            expansion.PairStyle = new PairStyleInfo()
                             {
-                                MeetingGirlOne = new GirlStyleInfo() { HairstyleId = new RelativeId(-1, (int)def.meetingStyleTypeOne), OutfitId = new RelativeId(-1, (int)def.meetingStyleTypeOne) },
-                                MeetingGirlTwo = new GirlStyleInfo() { HairstyleId = new RelativeId(-1, (int)def.meetingStyleTypeTwo), OutfitId = new RelativeId(-1, (int)def.meetingStyleTypeTwo) },
-                                SexGirlOne = new GirlStyleInfo() { HairstyleId = new RelativeId(-1, (int)def.sexStyleTypeOne), OutfitId = new RelativeId(-1, (int)def.sexStyleTypeOne) },
-                                SexGirlTwo = new GirlStyleInfo() { HairstyleId = new RelativeId(-1, (int)def.sexStyleTypeTwo), OutfitId = new RelativeId(-1, (int)def.sexStyleTypeTwo) }
-                            });
+                                MeetingGirlOne = new GirlStyleInfo()
+                                {
+                                    HairstyleId = new RelativeId(-1, (int)def.meetingStyleTypeOne),
+                                    OutfitId = new RelativeId(-1, (int)def.meetingStyleTypeOne)
+                                },
+                                MeetingGirlTwo = new GirlStyleInfo()
+                                {
+                                    HairstyleId = new RelativeId(-1, (int)def.meetingStyleTypeTwo),
+                                    OutfitId = new RelativeId(-1, (int)def.meetingStyleTypeTwo)
+                                },
+                                SexGirlOne = new GirlStyleInfo()
+                                {
+                                    HairstyleId = new RelativeId(-1, (int)def.sexStyleTypeOne),
+                                    OutfitId = new RelativeId(-1, (int)def.sexStyleTypeOne)
+                                },
+                                SexGirlTwo = new GirlStyleInfo()
+                                {
+                                    HairstyleId = new RelativeId(-1, (int)def.sexStyleTypeTwo),
+                                    OutfitId = new RelativeId(-1, (int)def.sexStyleTypeTwo)
+                                }
+                            };
                         }
 
                         ModInterface.Log.LogInfo("locations");
@@ -636,11 +663,12 @@ namespace Hp2BaseMod
 
                                         foreach (var lineId_Mods in dialogTriggerIdToModsById.Value)
                                         {
-                                            var line = expansion.GetLine(dialogTrigger, girl_ToModsByIdByDialogTrigger.Key, lineId_Mods.Key); ;
-
-                                            foreach (var mod in lineId_Mods.Value.OrderBy(x => x.LoadPriority))
+                                            if (expansion.TryGetLine(dialogTrigger, girl_ToModsByIdByDialogTrigger.Key, lineId_Mods.Key, out var line))
                                             {
-                                                mod.SetData(ref line, gameDataProvider, assetProvider, InsertStyle.replace, girl_ToModsByIdByDialogTrigger.Key);
+                                                foreach (var mod in lineId_Mods.Value.OrderBy(x => x.LoadPriority))
+                                                {
+                                                    mod.SetData(ref line, gameDataProvider, assetProvider, InsertStyle.replace, girl_ToModsByIdByDialogTrigger.Key);
+                                                }
                                             }
                                         }
                                     }
@@ -658,7 +686,8 @@ namespace Hp2BaseMod
                             {
                                 foreach (var pairMod in girlPairDataMods)
                                 {
-                                    ModInterface.Data.RegisterPairStyle(pairMod.Id, pairMod.GetStyles());
+                                    var expansion = ExpandedGirlPairDefinition.Get(pairMod.Id);
+                                    expansion.PairStyle = pairMod.GetStyles();
                                 }
                             }
                         }

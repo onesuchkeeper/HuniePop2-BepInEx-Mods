@@ -11,7 +11,6 @@ internal static class LocationManagerPatch
 {
     private static FieldInfo _isLocked = AccessTools.Field(typeof(LocationManager), "_isLocked");
     private static FieldInfo _arrivalCutscene = AccessTools.Field(typeof(LocationManager), "_arrivalCutscene");
-    private static FieldInfo _currentSidesFlipped = AccessTools.Field(typeof(LocationManager), "_currentSidesFlipped");
 
     [HarmonyPatch("Awake")]
     [HarmonyPostfix]
@@ -51,9 +50,6 @@ internal static class LocationManagerPatch
         {
             Game.Session.gameCanvas.dollRight.LoadGirl(__instance.currentGirlPair.girlDefinitionTwo);
         }
-
-        //Game.Session.gameCanvas.dollLeft.UnloadGirl();
-        Game.Session.gameCanvas.dollLeft.dropZone.Disable();
 
         Game.Session.gameCanvas.header.rectTransform.anchoredPosition = new Vector2(Game.Session.gameCanvas.header.xValues.y,
             Game.Session.gameCanvas.header.rectTransform.anchoredPosition.y);

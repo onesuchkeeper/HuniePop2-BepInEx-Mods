@@ -1,9 +1,9 @@
 ﻿// Hp2BaseModLoader 2021, by OneSuchKeeper
 
-using Hp2BaseMod.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Hp2BaseMod.Utility;
 
 namespace Hp2BaseMod.Save
 {
@@ -317,7 +317,7 @@ namespace Hp2BaseMod.Save
             i = 0;
             var storeProductEnum = StoreProducts.GetEnumerator();
             var storeProdSaveEnum = saveFile.storeProducts.GetEnumerator();
-            while (storeProdSaveEnum.MoveNext() && invSlotEnum.MoveNext())//important that save is checked first so inv slot doesn't move forward
+            while (storeProdSaveEnum.MoveNext() && storeProductEnum.MoveNext())//important that save is checked first so inv slot doesn't move forward
             {
                 storeProductEnum.Current.SetData(storeProdSaveEnum.Current);
                 i++;

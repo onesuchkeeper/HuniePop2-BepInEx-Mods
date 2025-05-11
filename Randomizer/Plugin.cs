@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using BepInEx;
+using BepInEx.Bootstrap;
 using Hp2BaseMod;
 using Hp2BaseMod.Extension.IEnumerableExtension;
 using Hp2BaseMod.Extension.StringExtension;
@@ -113,7 +114,6 @@ public class Plugin : BaseUnityPlugin
         if (ModConfig.SwappedSpecialCharactersKeepWings)
         {
             otherGirlDef.specialEffectPrefab = kyuDef.specialEffectPrefab;
-            otherGirlDef.specialEffectOffset = kyuDef.specialEffectOffset;
         }
     }
 
@@ -246,10 +246,17 @@ public class Plugin : BaseUnityPlugin
             var specialId = ModInterface.Data.GetDataId(GameDataType.Girl, specialGirl.id);
             var targetId = ModInterface.Data.GetDataId(GameDataType.Girl, targetGirl.id);
 
+            if (Chainloader.PluginInfos.ContainsKey("OSK.BepInEx.SingleDate"))
+            {
+                SingleDate.UiPrefabs.SwapCharms(specialId, targetId);
+            }
+
             id_handler.Value.Invoke(specialGirl, targetGirl);
 
             var specialGirlExpanded = specialGirl.Expansion();
             var targetGirlExpanded = targetGirl.Expansion();
+
+
 
             var holdIdToIndex = specialGirlExpanded.OutfitIdToIndex;
             specialGirlExpanded.OutfitIdToIndex = targetGirlExpanded.OutfitIdToIndex;
@@ -282,6 +289,14 @@ public class Plugin : BaseUnityPlugin
             holdIndexToId = specialGirlExpanded.PartIndexToId;
             specialGirlExpanded.PartIndexToId = targetGirlExpanded.PartIndexToId;
             targetGirlExpanded.PartIndexToId = holdIndexToId;
+
+            var holdVec2 = specialGirlExpanded.HeadPosition;
+            specialGirlExpanded.HeadPosition = targetGirlExpanded.HeadPosition;
+            targetGirlExpanded.HeadPosition = holdVec2;
+
+            holdVec2 = specialGirlExpanded.BackPosition;
+            specialGirlExpanded.BackPosition = targetGirlExpanded.BackPosition;
+            targetGirlExpanded.BackPosition = holdVec2;
 
             var holdParts = specialGirl.parts;
             specialGirl.parts = targetGirl.parts;
@@ -347,7 +362,7 @@ public class Plugin : BaseUnityPlugin
             specialGirl.expressions = targetGirl.expressions;
             targetGirl.expressions = holdExpressions;
 
-            var holdVec2 = specialGirl.specialEffectOffset;
+            holdVec2 = specialGirl.specialEffectOffset;
             specialGirl.specialEffectOffset = targetGirl.specialEffectOffset;
             targetGirl.specialEffectOffset = holdVec2;
 

@@ -32,7 +32,7 @@ internal static class ItemSensitivitySmoothie
             },
             ItemName = "Sensitivity Smoothie",
             ItemDescription = "+1 [[broken]@Sensitivity] EXP.",
-            TooltipColorIndex = 0,
+            TooltipColorIndex = 6,
             StoreCost = 0,
             CategoryDescription = "Sensitivity",
             EnergyDefinitionID = new RelativeId(-1, 6)
@@ -48,7 +48,7 @@ internal static class ItemSensitivitySmoothie
             },
             ItemName = "Sensitivity EXP",
             ItemDescription = "Earn [[broken]@Sensitivity] EXP by giving [[broken]@Sensitivity] smoothies to girls.",
-            TooltipColorIndex = 0,
+            TooltipColorIndex = 6,
             CategoryDescription = "+(NUM0) EXP until Level (NUM1)"
         });
 
@@ -56,8 +56,8 @@ internal static class ItemSensitivitySmoothie
         {
             ItemType = ItemType.MISC,
             ItemName = "Sensitivity Level (LEVEL)",
-            ItemDescription = "[[broken]@Broken Heart] token matches will yield -12 - [[broken](NUM0)x]% Affection.",
-            TooltipColorIndex = 0,
+            ItemDescription = "[[broken]@Broken Heart] token matches will yield [[broken]-(13-(NUM0))%] Affection.",
+            TooltipColorIndex = 6,
             CategoryDescription = "Affection Level • Sensitivity"
         });
     }
