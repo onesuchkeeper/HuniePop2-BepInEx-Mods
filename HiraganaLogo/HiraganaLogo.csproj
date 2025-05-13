@@ -3,8 +3,8 @@
   <PropertyGroup>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <AssemblyName>OSK.BepInEx.ScallyCapFanOutfits</AssemblyName>
-    <Product>ScallyCapFanOutfits</Product>
+    <AssemblyName>OSK.BepInEx.HiraganaLogo</AssemblyName>
+    <Product>HiraganaLogo</Product>
     <Version>1.0.0</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
@@ -13,7 +13,7 @@
       https://nuget.bepinex.dev/v3/index.json;
       https://nuget.samboy.dev/v3/index.json
     </RestoreAdditionalProjectSources>
-    <RootNamespace>ScallyCapFanOutfits</RootNamespace>
+    <RootNamespace>HiraganaLogo</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -27,7 +27,6 @@
   </ItemGroup>
   
   <ItemGroup>
-    <ProjectReference Include="..\Hp2BaseModTweaks\Hp2BaseModTweaks.csproj" />
     <ProjectReference Include="..\Hp2BaseMod\Hp2BaseMod.csproj" />
   </ItemGroup>
 
@@ -55,12 +54,6 @@
     </Reference>
     <Reference Include="UnityEngine.UIModule">
       <HintPath>..\lib\UnityEngine.UIModule.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.AssetBundleModule">
-      <HintPath>..\lib\UnityEngine.AssetBundleModule.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.UnityWebRequestModule">
-      <HintPath>..\lib\UnityEngine.UnityWebRequestModule.dll</HintPath>
     </Reference>
   </ItemGroup>
   

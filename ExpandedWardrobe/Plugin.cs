@@ -4,12 +4,12 @@ using System.Linq;
 using BepInEx;
 using BepInEx.Bootstrap;
 using Hp2BaseMod;
-using Hp2BaseModTweaks;
 
 namespace ScallyCapFanOutfits;
 
 [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
 [BepInDependency("OSK.BepInEx.Hp2BaseMod", "1.0.0")]
+[BepInDependency("OSK.BepInEx.Hp2BaseModTweaks", BepInDependency.DependencyFlags.SoftDependency)]
 internal class Plugin : BaseUnityPlugin
 {
     public static readonly string ModDir = Path.Combine(Paths.PluginPath, "ScallyCapFanOutfits");
@@ -36,22 +36,23 @@ internal class Plugin : BaseUnityPlugin
 
         if (Chainloader.PluginInfos.ContainsKey("OSK.BepInEx.Hp2BaseModTweaks"))
         {
-            ModConfig.AddModConfig(new ModConfig()
-            {
-                ModImagePath = Path.Combine(ImageDir, "CreditsLogo.png"),
-                CreditsEntries = new List<CreditsEntry>(){
-                    new CreditsEntry(){
-                        CreditButtonImagePath = Path.Combine(ImageDir, "ScallyCapFan_credits.png"),
-                        CreditButtonImageOverPath = Path.Combine(ImageDir, "ScallyCapFan_credits_over.png"),
-                        RedirectLink = "https://www.reddit.com/user/scallycapfan/"
-                    },
-                    new CreditsEntry() {
-                    CreditButtonImagePath = Path.Combine(ImageDir, "onesuchkeeper_credits.png"),
-                    CreditButtonImageOverPath = Path.Combine(ImageDir, "onesuchkeeper_credits_over.png"),
-                    RedirectLink = "https://www.youtube.com/@onesuchkeeper8389"
-                    }
+            var configs = ModInterface.GetInterModValue<Dictionary<string, (string ModImagePath, List<(string CreditButtonPath, string CreditButtonOverPath, string RedirectLink)> CreditEntries)>>("OSK.BepInEx.Hp2BaseModTweaks", "ModCredits");
+
+            configs[MyPluginInfo.PLUGIN_GUID] = (
+                Path.Combine(ImageDir, "CreditsLogo.png"),
+                new List<(string creditButtonPath, string creditButtonOverPath, string redirectLink)>(){
+                    (
+                        Path.Combine(ImageDir, "ScallyCapFan_credits.png"),
+                        Path.Combine(ImageDir, "ScallyCapFan_credits_over.png"),
+                        "https://www.reddit.com/user/scallycapfan/"
+                    ),
+                    (
+                        Path.Combine(ImageDir, "onesuchkeeper_credits.png"),
+                        Path.Combine(ImageDir, "onesuchkeeper_credits_over.png"),
+                        "https://www.youtube.com/@onesuchkeeper8389"
+                    ),
                 }
-            });
+            );
         }
 
         ModInterface.Events.PreLoadPlayerFile += On_PrePersistenceReset;
@@ -59,7 +60,6 @@ internal class Plugin : BaseUnityPlugin
 
     private void On_PrePersistenceReset(PlayerFile file)
     {
-        ModInterface.Log.LogInfo("Unlocking ScallyCapFan Outfits");
         using (ModInterface.Log.MakeIndent())
         {
             foreach (var fileGirl in file.girls)
@@ -69,13 +69,11 @@ internal class Plugin : BaseUnityPlugin
 
                 foreach (var outfitId_Index in expansion.OutfitIdToIndex.Where(x => x.Key.SourceId == Ids.ModId))
                 {
-                    ModInterface.Log.LogInfo($"Unlocking outfit {outfitId_Index.Key} for girl {girlId}");
                     fileGirl.UnlockOutfit(outfitId_Index.Value);
                 }
 
                 foreach (var hairstyleId_index in expansion.HairstyleIdToIndex.Where(x => x.Key.SourceId == Ids.ModId))
                 {
-                    ModInterface.Log.LogInfo($"Unlocking hairstyle {hairstyleId_index.Key} for girl {girlId}");
                     fileGirl.UnlockHairstyle(hairstyleId_index.Value);
                 }
             }

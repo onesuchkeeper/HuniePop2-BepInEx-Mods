@@ -5,6 +5,10 @@ using UnityEngine;
 
 namespace Hp2BaseModTweaks;
 
+/// <summary>
+/// Even in the base game the item tooltip is too narrow for some items
+/// This just makes it 24 pixels wider
+/// </summary>
 [HarmonyPatch(typeof(UiTooltipItem))]
 public static class UiTooltipItemPatch
 {

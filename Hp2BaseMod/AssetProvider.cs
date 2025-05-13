@@ -199,6 +199,11 @@ namespace Hp2BaseMod
         /// </summary>
         internal void AddExternalTexture(string identifier, Texture2D sprite) => _externalTextures[identifier] = sprite;
 
+        /// <summary>
+        /// frees refs to external textures
+        /// </summary>
+        internal void ClearExternalTextures() => _externalTextures.Clear();
+
         #endregion
 
         /// <summary>

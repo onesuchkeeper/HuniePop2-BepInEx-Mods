@@ -76,7 +76,6 @@ public class UndirectedGraph
     {
         var result = this.Duplicate();
 
-        int swapCount = 0;
         for (int i = 0; i < attempts; i++)
         {
             var current = result.Duplicate();
@@ -90,7 +89,6 @@ public class UndirectedGraph
 
             if (edgeA.a != edgeB.a && edgeA.b != edgeB.b)
             {
-                swapCount++;
                 current._edges[indexA] = (edgeA.a, edgeB.b);
                 current._edges[indexB] = (edgeB.a, edgeA.b);
 

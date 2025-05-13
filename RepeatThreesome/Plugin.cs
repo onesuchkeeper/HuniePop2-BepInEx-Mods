@@ -7,12 +7,12 @@ using Hp2BaseMod;
 using Hp2BaseMod.GameDataInfo;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
-using Hp2BaseModTweaks;
 
 namespace RepeatThreesome;
 
 [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
 [BepInDependency("OSK.BepInEx.Hp2BaseMod", "1.0.0")]
+[BepInDependency("OSK.BepInEx.Hp2BaseModTweaks", BepInDependency.DependencyFlags.SoftDependency)]
 internal class Plugin : BaseUnityPlugin
 {
 
@@ -25,17 +25,18 @@ internal class Plugin : BaseUnityPlugin
     {
         if (Chainloader.PluginInfos.ContainsKey("OSK.BepInEx.Hp2BaseModTweaks"))
         {
-            ModConfig.AddModConfig(new ModConfig()
-            {
-                ModImagePath = Path.Combine(_imagesDir, "CreditsLogo.png"),
-                CreditsEntries = new List<CreditsEntry>(){
-                    new CreditsEntry(){
-                        CreditButtonImagePath = Path.Combine(_imagesDir, "onesuchkeeper_credits.png"),
-                        CreditButtonImageOverPath = Path.Combine(_imagesDir, "onesuchkeeper_credits_over.png"),
-                        RedirectLink = "https://www.youtube.com/@onesuchkeeper8389"
-                    }
+            var configs = ModInterface.GetInterModValue<Dictionary<string, (string ModImagePath, List<(string CreditButtonPath, string CreditButtonOverPath, string RedirectLink)> CreditEntries)>>("OSK.BepInEx.Hp2BaseModTweaks", "ModCredits");
+
+            configs[MyPluginInfo.PLUGIN_GUID] = (
+                Path.Combine(_imagesDir, "CreditsLogo.png"),
+                new List<(string creditButtonPath, string creditButtonOverPath, string redirectLink)>(){
+                    (
+                        Path.Combine(_imagesDir, "onesuchkeeper_credits.png"),
+                        Path.Combine(_imagesDir, "onesuchkeeper_credits_over.png"),
+                        "https://www.youtube.com/@onesuchkeeper8389"
+                    ),
                 }
-            });
+            );
         }
 
         _modId = ModInterface.GetSourceId(MyPluginInfo.PLUGIN_GUID);

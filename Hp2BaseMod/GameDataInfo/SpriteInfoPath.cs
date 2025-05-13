@@ -1,6 +1,5 @@
 ﻿// Hp2BaseMod 2021, By OneSuchKeeper
 
-using System.Collections.Generic;
 using System.IO;
 using BepInEx;
 using Hp2BaseMod.GameDataInfo.Interface;
@@ -37,7 +36,7 @@ namespace Hp2BaseMod.GameDataInfo
         /// <summary>
         /// Padding of transparent pixels around the texture
         /// </summary>
-        public RectInt? TexturePadding;
+        public RectInt? FinalTexturePadding;
 
         /// <summary>
         /// Mat to use when rendering the texture
@@ -45,7 +44,13 @@ namespace Hp2BaseMod.GameDataInfo
         public Material TextureRenderMat;
 
         /// <summary>
-        /// Position this sprite takes in it's atlas texture
+        /// Rect to trim the initial texture to before
+        /// applying other modifications
+        /// </summary>
+        public RectInt? TrimRect;
+
+        /// <summary>
+        /// Position this sprite takes in its atlas texture
         /// </summary>
         public Rect? AtlasRect;
 
@@ -83,7 +88,7 @@ namespace Hp2BaseMod.GameDataInfo
         }
 
         /// <inheritdoc/>
-        public void SetData(ref Sprite def, GameDefinitionProvider _, AssetProvider assetProvider, InsertStyle insertStyle)
+        public virtual void SetData(ref Sprite def, GameDefinitionProvider _, AssetProvider assetProvider, InsertStyle insertStyle)
         {
             if (Path == null)
             {
@@ -98,11 +103,11 @@ namespace Hp2BaseMod.GameDataInfo
             }
         }
 
-        public Sprite GetSprite()
+        public virtual Sprite GetSprite()
         {
             Sprite def = null;
             Texture2D texture2D = null;
-            var modifyTexture = TextureScale.HasValue || TexturePadding.HasValue || TextureRenderMat != null;
+            var modifyTexture = TextureScale.HasValue || FinalTexturePadding.HasValue || TextureRenderMat != null || TrimRect.HasValue;
             var cacheExists = !CachePath.IsNullOrWhiteSpace() && File.Exists(CachePath);
 
             if (cacheExists)
@@ -122,6 +127,7 @@ namespace Hp2BaseMod.GameDataInfo
                     {
                         texture2D = TextureUtility.LoadFromPath(Path);
                         texture2D.filterMode = FilterMode.Bilinear;
+                        ModInterface.Assets.AddExternalTexture(Path, texture2D);
                     }
                 }
                 else
@@ -138,10 +144,22 @@ namespace Hp2BaseMod.GameDataInfo
 
             if (modifyTexture)
             {
-                var initWidth = texture2D.width;
-                var initHeight = texture2D.height;
+                int initWidth;
+                int initHeight;
+
+                if (TrimRect.HasValue)
+                {
+                    initHeight = TrimRect.Value.height;
+                    initWidth = TrimRect.Value.width;
+                }
+                else
+                {
+                    initWidth = texture2D.width;
+                    initHeight = texture2D.height;
+                }
+
                 TextureScale = TextureScale ?? new Vector2(1, 1);
-                TexturePadding = TexturePadding ?? new RectInt();
+                FinalTexturePadding = FinalTexturePadding ?? new RectInt();
                 int targetX = 0;
                 int targetY = 0;
                 RenderTexture renderTexture = null;
@@ -160,16 +178,40 @@ namespace Hp2BaseMod.GameDataInfo
 
                     RenderTexture.ReleaseTemporary(renderTexture);
 
-                    ModInterface.Log.LogInfo(def.rect.ToString());
+                    var x = Mathf.RoundToInt(def.textureRect.x);
+                    var y = Mathf.RoundToInt(def.textureRect.y);
 
-                    int x = Mathf.RoundToInt(def.textureRect.x);
-                    int y = Mathf.RoundToInt(def.textureRect.y);
-                    int width = Mathf.RoundToInt(def.textureRect.width);
-                    int height = Mathf.RoundToInt(def.textureRect.height);
+                    //and trim the texture at the same time while we're at it
+                    if (TrimRect.HasValue)
+                    {
+                        texture2D = new Texture2D(TrimRect.Value.width, TrimRect.Value.height);
+                        Graphics.CopyTexture(result, 0, 0,
+                            x + TrimRect.Value.x, y + TrimRect.Value.y,
+                            TrimRect.Value.width, TrimRect.Value.height,
+                            texture2D, 0, 0, 0, 0);
+                    }
+                    else
+                    {
+                        var width = Mathf.RoundToInt(def.textureRect.width);
+                        var height = Mathf.RoundToInt(def.textureRect.height);
 
-                    texture2D = new Texture2D(width, height);
-                    Graphics.CopyTexture(result, 0, 0, x, y, width, height, texture2D, 0, 0, 0, 0);
+                        texture2D = new Texture2D(width, height);
+                        Graphics.CopyTexture(result, 0, 0, x, y, width, height, texture2D, 0, 0, 0, 0);
+                    }
+
                     texture2D.Apply();
+                }
+                else if (TrimRect.HasValue)
+                {
+                    var newTexture = new Texture2D(TrimRect.Value.width, TrimRect.Value.height);
+
+                    Graphics.CopyTexture(texture2D, 0, 0,
+                        TrimRect.Value.x, TrimRect.Value.y,
+                        TrimRect.Value.width, TrimRect.Value.height,
+                        newTexture, 0, 0, 0, 0);
+                    newTexture.Apply();
+
+                    texture2D = newTexture;
                 }
 
                 int preScaleRounds = 0;
@@ -211,7 +253,7 @@ namespace Hp2BaseMod.GameDataInfo
                     Graphics.Blit(texture2D, renderTexture, TextureRenderMat);
                 }
 
-                result = new Texture2D(targetX + TexturePadding.Value.width, targetY + TexturePadding.Value.height);
+                result = new Texture2D(targetX + FinalTexturePadding.Value.width, targetY + FinalTexturePadding.Value.height);
 
                 for (var i = 0; i < result.width; i++)
                 {
@@ -221,14 +263,10 @@ namespace Hp2BaseMod.GameDataInfo
                     }
                 }
 
-                result.ReadPixels(new Rect(0, 0, targetX, targetY), TexturePadding.Value.x, TexturePadding.Value.y);
+                result.ReadPixels(new Rect(0, 0, targetX, targetY), FinalTexturePadding.Value.x, FinalTexturePadding.Value.y);
                 result.Apply();
                 texture2D = result;
                 RenderTexture.ReleaseTemporary(renderTexture);
-            }
-            else if (IsExternal)//keep ref to unmodified external textures in case they're used multiple times 
-            {
-                ModInterface.Assets.AddExternalTexture(Path, texture2D);
             }
 
             if (!cacheExists && !CachePath.IsNullOrWhiteSpace())
@@ -239,7 +277,6 @@ namespace Hp2BaseMod.GameDataInfo
             //if we modified the texture or have an atlasRect, make a new sprite
             if (modifyTexture || IsExternal || AtlasRect != null)
             {
-                ModInterface.Log.LogInfo($"Making New Sprite");
                 def = Sprite.Create(texture2D, AtlasRect.HasValue
                     ? AtlasRect.Value
                     : new Rect(0, 0, texture2D.width, texture2D.height), Vector2.zero);
@@ -249,7 +286,7 @@ namespace Hp2BaseMod.GameDataInfo
         }
 
         /// <inheritdoc/>
-        public void RequestInternals(AssetProvider assetProvider)
+        public virtual void RequestInternals(AssetProvider assetProvider)
         {
             if (!IsExternal)
             {

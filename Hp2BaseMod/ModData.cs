@@ -13,11 +13,6 @@ namespace Hp2BaseMod
         private readonly Dictionary<RelativeId, List<IFunctionalAilmentDataMod>> _ailmentIdToFunctionalMods = new Dictionary<RelativeId, List<IFunctionalAilmentDataMod>>();
 
         /// <summary>
-        /// Maps a location's id to its style info
-        /// </summary>
-        private readonly Dictionary<RelativeId, Dictionary<RelativeId, GirlStyleInfo>> _locationIdToLocationStyleInfo = new Dictionary<RelativeId, Dictionary<RelativeId, GirlStyleInfo>>();
-
-        /// <summary>
         /// Map fruit id and index
         /// </summary>
         private readonly Dictionary<RelativeId, int> _fruitIdToIndex = new Dictionary<RelativeId, int>();
@@ -51,6 +46,7 @@ namespace Hp2BaseMod
             { GameDataType.Question, new Dictionary<RelativeId, int>() { { RelativeId.Default, -1}, { RelativeId.Zero, 0 } } },
             { GameDataType.Token, new Dictionary<RelativeId, int>() { { RelativeId.Default, -1}, { RelativeId.Zero, 0 } } }
         };
+
         private readonly Dictionary<GameDataType, Dictionary<int, RelativeId>> _runtimeIdToRelativeId = new Dictionary<GameDataType, Dictionary<int, RelativeId>>()
         {
             { GameDataType.Ability, new Dictionary<int, RelativeId>() { { -1, RelativeId.Default }, { 0, RelativeId.Zero } } },
@@ -150,29 +146,6 @@ namespace Hp2BaseMod
             _affectionIndexSource = Math.Max(index, _affectionIndexSource);
         }
 
-        internal void RegisterLocationStyles(RelativeId locationId, Dictionary<RelativeId, GirlStyleInfo> girlIdToStyleInfo)
-        {
-            if (_locationIdToLocationStyleInfo.ContainsKey(locationId))
-            {
-                foreach (var girl in girlIdToStyleInfo)
-                {
-                    if (_locationIdToLocationStyleInfo[locationId].ContainsKey(girl.Key))
-                    {
-                        var styleInfo = _locationIdToLocationStyleInfo[locationId][girl.Key];
-                        girl.Value.SetData(ref styleInfo);
-                    }
-                    else
-                    {
-                        _locationIdToLocationStyleInfo[locationId].Add(girl.Key, girl.Value);
-                    }
-                }
-            }
-            else
-            {
-                _locationIdToLocationStyleInfo.Add(locationId, girlIdToStyleInfo);
-            }
-        }
-
         internal void RegisterDefaultData(GameDataType type, int localId)
         {
             var id = new RelativeId(-1, localId);
@@ -253,19 +226,6 @@ namespace Hp2BaseMod
         public bool TryGetAffectionId(int index, out RelativeId id) => TryLookupId(_affectionIndexToId, index, out id);
 
         public IEnumerable<RelativeId> GetIds(GameDataType type) => _dataIds[type];
-
-        public GirlStyleInfo GetLocationStyleInfo(RelativeId locationId, RelativeId girlId) => _locationIdToLocationStyleInfo[locationId][girlId];
-        public bool TryGetLocationStyleInfo(RelativeId locationId, RelativeId girlId, out GirlStyleInfo girlStyleInfo)
-        {
-            if (_locationIdToLocationStyleInfo.TryGetValue(locationId, out var girlToStyle)
-                && girlToStyle.TryGetValue(girlId, out girlStyleInfo))
-            {
-                return true;
-            }
-
-            girlStyleInfo = null;
-            return false;
-        }
 
         public int GetRuntimeDataId(GameDataType dataModType, RelativeId id) => _relativeIdToRuntimeId[dataModType][id];
 

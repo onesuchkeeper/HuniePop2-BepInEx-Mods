@@ -1,0 +1,8 @@
+[*.cs]
+
+# IDE0002: Simplify Member Access
+dotnet_diagnostic.IDE0002.severity = none
+[*.cs]
+
+# IDE0002: Simplify Member Access
+dotnet_diagnostic.IDE0002.severity = none

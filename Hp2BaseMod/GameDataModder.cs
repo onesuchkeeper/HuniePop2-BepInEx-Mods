@@ -116,6 +116,7 @@ namespace Hp2BaseMod
                             expansion.DialogTriggerIndex = girl.id;
 
                             MapRelativeIdRange(expansion.PartIdToIndex, expansion.PartIndexToId, girl.parts.Count);
+                            MapRelativeIdRange(expansion.ExpressionIdToIndex, expansion.ExpressionIndexToId, girl.expressions.Count);
                             MapRelativeIdRange(expansion.HairstyleIdToIndex, expansion.HairstyleIndexToId, girl.hairstyles.Count);
                             MapRelativeIdRange(expansion.OutfitIdToIndex, expansion.OutfitIndexToId, girl.outfits.Count);
 
@@ -164,19 +165,19 @@ namespace Hp2BaseMod
                         foreach (var def in locationDataDict.Values)
                         {
                             var id = new RelativeId(-1, def.id);
-
-                            var girlStyles = new Dictionary<RelativeId, GirlStyleInfo>();
+                            var expansion = ExpandedLocationDefinition.Get(id);
+                            expansion.GirlIdToLocationStyleInfo ??= new Dictionary<RelativeId, GirlStyleInfo>();
 
                             foreach (var girl in girlDataDict.Values)
                             {
                                 var girlId = new RelativeId(-1, girl.id);
-                                girlStyles.Add(girlId, new GirlStyleInfo()
+
+                                expansion.GirlIdToLocationStyleInfo[girlId] = new GirlStyleInfo()
                                 {
                                     HairstyleId = new RelativeId(-1, (int)def.dateGirlStyleType),
                                     OutfitId = new RelativeId(-1, (int)def.dateGirlStyleType)
-                                });
+                                };
                             }
-                            ModInterface.Data.RegisterLocationStyles(id, girlStyles);
                         }
                     }
 
@@ -336,15 +337,6 @@ namespace Hp2BaseMod
                                 }
                                 nextIndex++;
                             }
-
-                            // if (ModInterface.Data.TryRegisterGirlDialogTrigger(girlId, nextIndex))
-                            // {
-                            //     foreach (var dialogTrigger in dialogTriggerDataDict.Values)
-                            //     {
-                            //         dialogTrigger.dialogLineSets.Add(new DialogTriggerLineSet());
-                            //     }
-                            //     nextIndex++;
-                            // }
                         }
 
                         ModInterface.Log.LogInfo("girl parts");
@@ -358,16 +350,6 @@ namespace Hp2BaseMod
                                 girlDef.parts.Count,
                                 girlIdToPartModsById.Value.Select(x => x.Key).Distinct(),
                                 () => girlDef.parts.Add(new GirlPartSubDefinition()));
-
-                            // nextIndex = girlDef.parts.Count;
-                            // foreach (var partId in girlIdToPartModsById.Value.Select(x => x.Key).Distinct())
-                            // {
-                            //     if (ModInterface.Data.TryRegisterPart(girlIdToPartModsById.Key, nextIndex, partId))
-                            //     {
-                            //         girlDef.parts.Add(new GirlPartSubDefinition());
-                            //         nextIndex++;
-                            //     }
-                            // }
                         }
 
                         ModInterface.Log.LogInfo("girl expressions");
@@ -381,16 +363,6 @@ namespace Hp2BaseMod
                                 girlDef.expressions.Count,
                                 girlIdToExpressionModsById.Value.Select(x => x.Key).Distinct(),
                                 () => girlDef.expressions.Add(new GirlExpressionSubDefinition()));
-
-                            // nextIndex = girlDef.expressions.Count;
-                            // foreach (var partId in girlIdToExpressionModsById.Value.Select(x => x.Key).Distinct())
-                            // {
-                            //     if (ModInterface.Data.TryRegisterExpression(girlIdToExpressionModsById.Key, nextIndex, partId))
-                            //     {
-                            //         girlDef.expressions.Add(new GirlExpressionSubDefinition());
-                            //         nextIndex++;
-                            //     }
-                            // }
                         }
 
                         ModInterface.Log.LogInfo("girl outfits");
@@ -404,16 +376,6 @@ namespace Hp2BaseMod
                                 girlDef.outfits.Count,
                                 girlIdToOutfitModsById.Value.Select(x => x.Key).Distinct(),
                                 () => girlDef.outfits.Add(new ExpandedOutfitDefinition()));
-
-                            // nextIndex = girlDef.outfits.Count;
-                            // foreach (var outfitId in girlIdToOutfitModsById.Value.Select(x => x.Key).Distinct())
-                            // {
-                            //     if (ModInterface.Data.TryRegisterOutfit(girlIdToOutfitModsById.Key, nextIndex, outfitId))
-                            //     {
-                            //         girlDef.outfits.Add(new ExpandedOutfitDefinition());
-                            //         nextIndex++;
-                            //     }
-                            // }
                         }
 
                         ModInterface.Log.LogInfo("girl hairstyles");
@@ -427,16 +389,6 @@ namespace Hp2BaseMod
                                 girlDef.hairstyles.Count,
                                 girlIdToHairstyleModsById.Value.Select(x => x.Key).Distinct(),
                                 () => girlDef.hairstyles.Add(new ExpandedHairstyleDefinition()));
-
-                            // nextIndex = girlDef.hairstyles.Count;
-                            // foreach (var hairstyleId in girlIdToHairstyleModsById.Value.Select(x => x.Key).Distinct())
-                            // {
-                            //     if (ModInterface.Data.TryRegisterHairstyle(girlIdToHairstyleModsById.Key, nextIndex, hairstyleId))
-                            //     {
-                            //         girlDef.hairstyles.Add(new ExpandedHairstyleDefinition());
-                            //         nextIndex++;
-                            //     }
-                            // }
                         }
 
                         ModInterface.Log.LogInfo("girl lines");
@@ -455,41 +407,6 @@ namespace Hp2BaseMod
                                     dialogTriggerSet.dialogLines.Count,
                                     dialogTriggerId_DialogLineModsById.Value.Select(x => x.Key),
                                     () => dialogTriggerSet.dialogLines.Add(new DialogLine()));
-
-                                //nextIndex = dialogTriggerSet.dialogLines.Count;
-
-                                // foreach (var idToDialogLineMods in dialogTriggerId_DialogLineModsById.Value)
-                                // {
-                                //     if (ModInterface.Data.TryRegisterLine(dialogTriggerId_DialogLineModsById.Key, girlId_DialogLineModsByIdByDialogTrigger.Key, nextIndex, idToDialogLineMods.Key))
-                                //     {
-                                //         dialogTriggerSet.dialogLines.Add(new DialogLine());
-                                //         nextIndex++;
-                                //     }
-                                // }
-
-                                // internal bool TryRegisterLine(RelativeId dialogTriggerId, RelativeId girlId, int index, RelativeId lineId)
-                                // {
-                                //     if (!_dtIdToGirlIdToLineIndexLookup.ContainsKey(dialogTriggerId))
-                                //     {
-                                //         _dtIdToGirlIdToLineIndexLookup.Add(dialogTriggerId, new Dictionary<RelativeId, Dictionary<RelativeId, int>>());
-                                //         _dtIdToGirlIdToLineIdLookup.Add(dialogTriggerId, new Dictionary<RelativeId, Dictionary<int, RelativeId>>());
-                                //     }
-
-                                //     if (!_dtIdToGirlIdToLineIndexLookup[dialogTriggerId].ContainsKey(girlId))
-                                //     {
-                                //         _dtIdToGirlIdToLineIndexLookup[dialogTriggerId].Add(girlId, new Dictionary<RelativeId, int>());
-                                //         _dtIdToGirlIdToLineIdLookup[dialogTriggerId].Add(girlId, new Dictionary<int, RelativeId>());
-                                //     }
-
-                                //     if (!_dtIdToGirlIdToLineIndexLookup[dialogTriggerId][girlId].ContainsKey(lineId))
-                                //     {
-                                //         _dtIdToGirlIdToLineIndexLookup[dialogTriggerId][girlId].Add(lineId, index);
-                                //         _dtIdToGirlIdToLineIdLookup[dialogTriggerId][girlId].Add(index, lineId);
-                                //         return true;
-                                //     }
-
-                                //     return false;
-                                // }
                             }
                         }
 
@@ -726,7 +643,13 @@ namespace Hp2BaseMod
                                     }
                                 }
 
-                                ModInterface.Data.RegisterLocationStyles(locationMod.Id, locationMod.GetStyles().ToDictionary(x => x.Item1, x => x.Item2));
+                                var expansion = ExpandedLocationDefinition.Get(locationMod.Id);
+                                expansion.GirlIdToLocationStyleInfo ??= new Dictionary<RelativeId, GirlStyleInfo>();
+
+                                foreach (var info in locationMod.GetStyles())
+                                {
+                                    expansion.GirlIdToLocationStyleInfo[info.Item1] = info.Item2;
+                                }
                             }
                         }
 

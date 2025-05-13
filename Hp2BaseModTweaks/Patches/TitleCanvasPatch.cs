@@ -19,16 +19,14 @@ namespace Hp2BaseModTweaks
 
         public static void Prefix(UiTitleCanvas __instance)
         {
-            var logoPaths = ModConfig._modConfigs
-                .Where(x => x?.LogoImages != null)
-                .SelectMany(x => x.LogoImages)
+            var logoPaths = Plugin.GetLogoPaths()
+                .Where(x => !string.IsNullOrEmpty(x))
                 .Where(File.Exists)
                 .ToArray();
 
             if (logoPaths.Length > 0)
             {
-                //random.range for ints in this version of unity is min-inclusive, max-exclusive
-                var path = logoPaths[Random.Range(0, logoPaths.Length)];
+                var path = logoPaths.GetRandom();
 
                 if (!(_coverArt.GetValue(__instance) is UiCoverArt coverArt))
                 {

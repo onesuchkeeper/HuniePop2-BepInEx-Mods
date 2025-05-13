@@ -85,7 +85,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
             {
                 var kyuHole = Game.Persistence.playerFile.GetFlagValue("kyu_hole_selection");
 
-                if (ModInterface.GameData.IsCodeUnlocked(Common.KyuHoleCodeId))
+                if (ModInterface.GameData.IsCodeUnlocked(ToggleCodeMods.KyuHoleCodeId))
                 {
                     earnedPhotos = earnedPhotos.Concat(Game.Session.Hub.kyuPhotoDefs);
                 }

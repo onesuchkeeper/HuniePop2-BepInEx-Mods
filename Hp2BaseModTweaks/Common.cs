@@ -1,7 +1,6 @@
 ﻿// Hp2Sample 2022, By OneSuchKeeper
 
 using System.Collections.Generic;
-using Hp2BaseMod;
 
 namespace Hp2BaseModTweaks
 {
@@ -27,16 +26,5 @@ namespace Hp2BaseModTweaks
         }
 
         public static readonly string Sfx_PhoneAppButtonPressed = "sfx_phone_app_button_pressed";
-
-        public static RelativeId FemaleJizzToggleCodeID;
-        public static RelativeId SlowAffectionDrainToggleCodeID;
-        public static RelativeId RunInBackgroundCodeId;
-        public static RelativeId FairyWingsCodeId;
-        public static RelativeId KyuHoleCodeId;
-
-        public static void Init()
-        {
-
-        }
     }
 }

@@ -136,7 +136,7 @@ public class Plugin : BaseUnityPlugin
             ModConfig = JsonConvert.DeserializeObject<SaveFile>(saveString) ?? new SaveFile();
         }
 
-        if (ModConfig.Disable || true)
+        if (ModConfig.Disable)
         {
             ModInterface.Log.LogInfo($"Randomizer disabled");
             return;
@@ -157,7 +157,12 @@ public class Plugin : BaseUnityPlugin
         var random = new Random(ModConfig.Seed);
 
         var normalGirls = Game.Data.Girls.GetAllBySpecial(false);
-        var normalPairs = Game.Data.GirlPairs.GetAll().Where(x => !x.girlDefinitionOne.specialCharacter && !x.girlDefinitionTwo.specialCharacter).ToArray();
+        var normalPairs = Game.Data.GirlPairs.GetAll().Where(x =>
+            x.girlDefinitionOne != null
+            && x.girlDefinitionTwo != null
+            && !x.girlDefinitionOne.specialCharacter
+            && !x.girlDefinitionTwo.specialCharacter)
+            .ToArray();
 
         //determine pairs
         var degreeTotal = normalPairs.Length * 2;

@@ -75,21 +75,13 @@ namespace Hp2BaseMod.EnumExpansion
                         if (!Game.Session.Puzzle.puzzleStatus.girlStatusLeft.playerFileGirl.stylesOnDates)
                         {
                             var girlId = ModInterface.Data.GetDataId(GameDataType.Girl, leftGirlDef.id);
-
-                            if (ModInterface.Data.TryGetLocationStyleInfo(locationId, girlId, out var leftStyleOverride))
-                            {
-                                leftStyle = leftStyleOverride;
-                            }
+                            ExpandedLocationDefinition.Get(locationId).GirlIdToLocationStyleInfo?.TryGetValue(girlId, out leftStyle);
                         }
 
                         if (!Game.Session.Puzzle.puzzleStatus.girlStatusRight.playerFileGirl.stylesOnDates)
                         {
                             var girlId = ModInterface.Data.GetDataId(GameDataType.Girl, rightGirlDef.id);
-
-                            if (ModInterface.Data.TryGetLocationStyleInfo(locationId, girlId, out var rightStyleOverride))
-                            {
-                                rightStyle = rightStyleOverride;
-                            }
+                            ExpandedLocationDefinition.Get(locationId).GirlIdToLocationStyleInfo?.TryGetValue(girlId, out rightStyle);
                         }
                     }
                 }

@@ -8,8 +8,6 @@ namespace Hp2BaseModTweaks
     [HarmonyPatch(typeof(UiDoll), nameof(UiDoll.LoadGirl))]
     internal static class AllowSpecialDollsPatch
     {
-        //the special effects always read the def's offset field, which is annoying
-        //because we can't store two different fields in the case of Kyu for her wings
         private static readonly FieldInfo _specialEffect = AccessTools.Field(typeof(UiDoll), "_specialEffect");
         private static void Postfix(UiDoll __instance)
         {
@@ -20,13 +18,13 @@ namespace Hp2BaseModTweaks
             }
 
             var expansion = ExpandedGirlDefinition.Get(__instance.soulGirlDefinition);
-            if (__instance.soulGirlDefinition.specialEffectPrefab.GetType() == typeof(UiDollSpecialEffectFairyWings))
+            if (__instance.girlDefinition.specialEffectPrefab.GetType() == typeof(UiDollSpecialEffectFairyWings))
             {
-                __instance.soulGirlDefinition.specialEffectOffset = expansion.BackPosition;
+                __instance.girlDefinition.specialEffectOffset = expansion.BackPosition;
             }
-            else if (__instance.soulGirlDefinition.specialEffectPrefab.GetType() == typeof(UiDollSpecialEffectGloWings))
+            else if (__instance.girlDefinition.specialEffectPrefab.GetType() == typeof(UiDollSpecialEffectGloWings))
             {
-                __instance.soulGirlDefinition.specialEffectOffset = expansion.HeadPosition;
+                __instance.girlDefinition.specialEffectOffset = expansion.HeadPosition;
             }
 
             if (__instance.soulGirlDefinition.specialCharacter) { return; }

@@ -14,7 +14,7 @@ namespace Hp2BaseModTweaks
         public static void Postfix(ref int __result)
         {
             if (__result == 1
-                && ModInterface.GameData.IsCodeUnlocked(Common.FemaleJizzToggleCodeID))
+                && ModInterface.GameData.IsCodeUnlocked(ToggleCodeMods.FemaleJizzToggleCodeID))
             {
                 __result = 2;
             }
@@ -30,7 +30,7 @@ namespace Hp2BaseModTweaks
         public static void Prefix(UiWindowPhotos __instance)
         {
             if (!Game.Persistence.playerData.uncensored
-                || !ModInterface.GameData.IsCodeUnlocked(Common.FemaleJizzToggleCodeID))
+                || !ModInterface.GameData.IsCodeUnlocked(ToggleCodeMods.FemaleJizzToggleCodeID))
             {
                 return;
             }

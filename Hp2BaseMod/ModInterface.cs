@@ -69,6 +69,8 @@ public static class ModInterface
     public static IReadOnlyList<IExpInfo> ExpDisplays => _expDisplays;
     private static List<IExpInfo> _expDisplays = new List<IExpInfo>();
 
+    public static Dictionary<int, Dictionary<string, object>> _interModValues = new Dictionary<int, Dictionary<string, object>>();
+
     /// <summary>
     /// The session's log
     /// </summary>
@@ -161,6 +163,7 @@ public static class ModInterface
             _events.NotifyPreDataMods();
             _gameData = new GameDefinitionProvider(Game.Data);
             GameDataModder.Mod(Game.Data);
+            _assetProvider.ClearExternalTextures();
             _events.NotifyPostDataMods();
         }
     }
@@ -191,15 +194,26 @@ public static class ModInterface
     /// </summary>
     public static bool TryGetSourceId(string sourceGUID, out int id)
     {
+        if (sourceGUID == null)
+        {
+            id = default;
+            return false;
+        }
+
         sourceGUID = sourceGUID.ToUpper();
 
-        if (_modSaveData.SourceGUID_Id.TryGetValue(sourceGUID, out var sourceId))
+        if (sourceGUID == "HP2")
+        {
+            id = -1;
+            return true;
+        }
+        else if (_modSaveData.SourceGUID_Id.TryGetValue(sourceGUID, out var sourceId))
         {
             id = sourceId;
             return true;
         }
 
-        id = -1;
+        id = default;
         return false;
     }
 
@@ -208,13 +222,16 @@ public static class ModInterface
     /// </summary>
     public static string GetSourceGUID(int sourceId)
     {
-        if (_sourceId_GUID.TryGetValue(sourceId, out var guid))
+        if (sourceId == -1)
+        {
+            return "HP2";
+        }
+        else if (_sourceId_GUID.TryGetValue(sourceId, out var guid))
         {
             return guid;
         }
 
-        //warning
-        return null;
+        throw new Exception($"SourceId {sourceId} has not been registered");
     }
 
     /// <summary>
@@ -360,4 +377,21 @@ public static class ModInterface
         _tokenDataMods.Add(mod);
         _data.TryRegisterData(GameDataType.Token, mod.Id);
     }
+
+    /// <summary>
+    /// InterMod Values are accessible to all mods
+    /// </summary>
+    public static void RegisterInterModValue(int modId, string name, object value)
+    {
+        if (!_interModValues.TryGetValue(modId, out var name_value))
+        {
+            name_value = new Dictionary<string, object>();
+            _interModValues[modId] = name_value;
+        }
+
+        name_value[name] = value;
+    }
+
+    public static T GetInterModValue<T>(string modGuid, string name) => GetInterModValue<T>(GetSourceId(modGuid), name);
+    public static T GetInterModValue<T>(int modId, string name) => (T)_interModValues[modId][name];
 }
