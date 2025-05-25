@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Hp2BaseMod.GameDataInfo;
 using Hp2BaseMod.GameDataInfo.Interface;
 
 namespace Hp2BaseMod

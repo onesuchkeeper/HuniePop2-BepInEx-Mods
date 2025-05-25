@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using HarmonyLib;
 using Hp2BaseMod;
-using Hp2BaseMod.Utility;
 using UnityEngine;
 using UnityEngine.UI;
 

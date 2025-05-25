@@ -626,29 +626,15 @@ namespace Hp2BaseMod
                             {
                                 var styles = locationMod.GetStyles();
 
-                                var stylesDict = new Dictionary<RelativeId, GirlStyleInfo>();
-
                                 if (styles != null)
                                 {
-                                    foreach (var style in styles)
+                                    var expansion = ExpandedLocationDefinition.Get(locationMod.Id);
+                                    expansion.GirlIdToLocationStyleInfo ??= new Dictionary<RelativeId, GirlStyleInfo>();
+
+                                    foreach (var info in styles)
                                     {
-                                        if (stylesDict.ContainsKey(style.Item1))
-                                        {
-                                            ModInterface.Log.LogError($"Repeat Style for {style.Item1}, ignoring");
-                                        }
-                                        else
-                                        {
-                                            stylesDict.Add(style.Item1, style.Item2);
-                                        }
+                                        expansion.GirlIdToLocationStyleInfo[info.Item1] = info.Item2;
                                     }
-                                }
-
-                                var expansion = ExpandedLocationDefinition.Get(locationMod.Id);
-                                expansion.GirlIdToLocationStyleInfo ??= new Dictionary<RelativeId, GirlStyleInfo>();
-
-                                foreach (var info in locationMod.GetStyles())
-                                {
-                                    expansion.GirlIdToLocationStyleInfo[info.Item1] = info.Item2;
                                 }
                             }
                         }

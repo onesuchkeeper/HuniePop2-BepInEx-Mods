@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using Hp2BaseMod;
 using Hp2BaseMod.GameDataInfo;
-using UnityEngine;
 
 public static class LocationDefinition_Ext
 {
@@ -32,4 +31,9 @@ public class ExpandedLocationDefinition
     }
 
     public Dictionary<RelativeId, GirlStyleInfo> GirlIdToLocationStyleInfo = new Dictionary<RelativeId, GirlStyleInfo>();
+
+    public List<ClockDaytimeType> DateTimes;
+    public bool AllowNonStop;
+    public bool AllowNormal;
+    public bool PostBoss;
 }

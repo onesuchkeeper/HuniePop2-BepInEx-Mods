@@ -5,7 +5,7 @@ using Hp2BaseMod.GameDataInfo;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
 
-namespace ScallyCapFanOutfits;
+namespace ExpandedWardrobe;
 
 internal static partial class Styles
 {
@@ -25,11 +25,7 @@ internal static partial class Styles
                     Y = _lolaBodyY - 284,
                     MirroredPartId = RelativeId.Default,
                     AltPartId = null,
-                    SpriteInfo = new SpriteInfoPath()
-                    {
-                        IsExternal = true,
-                        Path = Path.Combine(Plugin.ImageDir, "lola_outfit_nostalgia.png")
-                    }
+                    SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImageDir, "lola_outfit_nostalgia.png")))
                 },
                 new GirlPartDataMod(Ids.FronthairPart1, InsertStyle.replace)
                 {
@@ -39,11 +35,7 @@ internal static partial class Styles
                     Y = _lolaBodyY + 7,
                     MirroredPartId = RelativeId.Default,
                     AltPartId = null,
-                    SpriteInfo = new SpriteInfoPath()
-                    {
-                        IsExternal = true,
-                        Path = Path.Combine(Plugin.ImageDir, "lola_fronthair_nostalgia.png")
-                    }
+                    SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImageDir, "lola_fronthair_nostalgia.png")))
                 },
                 new GirlPartDataMod(Ids.BackhairPart1, InsertStyle.replace)
                 {
@@ -53,11 +45,7 @@ internal static partial class Styles
                     Y = _lolaBodyY + 50,
                     MirroredPartId = RelativeId.Default,
                     AltPartId = null,
-                    SpriteInfo = new SpriteInfoPath()
-                    {
-                        IsExternal = true,
-                        Path = Path.Combine(Plugin.ImageDir, "lola_backhair_nostalgia.png")
-                    }
+                    SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImageDir, "lola_backhair_nostalgia.png")))
                 }
             },
             outfits = new List<IGirlSubDataMod<ExpandedOutfitDefinition>>()

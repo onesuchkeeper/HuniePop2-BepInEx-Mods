@@ -5,7 +5,7 @@ using Hp2BaseMod.GameDataInfo;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
 
-namespace ScallyCapFanOutfits;
+namespace ExpandedWardrobe;
 
 internal static partial class Styles
 {
@@ -25,11 +25,7 @@ internal static partial class Styles
                     Y = _brookeBodyY - 269,
                     MirroredPartId = RelativeId.Default,
                     AltPartId = null,
-                    SpriteInfo = new SpriteInfoPath()
-                    {
-                        IsExternal = true,
-                        Path = Path.Combine(Plugin.ImageDir, @"brooke_outfit_warcrimes.png")
-                    }
+                    SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImageDir, @"brooke_outfit_warcrimes.png")))
                 },
                 new GirlPartDataMod(Ids.FronthairPart1, InsertStyle.replace)
                 {
@@ -39,11 +35,7 @@ internal static partial class Styles
                     Y = _brookeBodyY + 38,
                     MirroredPartId = RelativeId.Default,
                     AltPartId = null,
-                    SpriteInfo = new SpriteInfoPath()
-                    {
-                        IsExternal = true,
-                        Path = Path.Combine(Plugin.ImageDir, @"brooke_fronthair_warcrimes.png")
-                    }
+                    SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImageDir, @"brooke_fronthair_warcrimes.png")))
                 },
                 new GirlPartDataMod(Ids.BackhairPart1, InsertStyle.replace)
                 {
@@ -53,11 +45,7 @@ internal static partial class Styles
                     Y = _brookeBodyY - 115,
                     MirroredPartId = RelativeId.Default,
                     AltPartId = null,
-                    SpriteInfo = new SpriteInfoPath()
-                    {
-                        IsExternal = true,
-                        Path = Path.Combine(Plugin.ImageDir, @"brooke_backhair_warcrimes.png")
-                    }
+                    SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImageDir, @"brooke_backhair_warcrimes.png")))
                 }
             },
             outfits = new List<IGirlSubDataMod<ExpandedOutfitDefinition>>()

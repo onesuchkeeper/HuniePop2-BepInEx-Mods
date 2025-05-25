@@ -1,13 +1,12 @@
 ﻿// Hp2Sample 2022, By OneSuchKeeper
 
+using System.Reflection;
 using HarmonyLib;
 using Hp2BaseMod;
+using Hp2BaseMod.Extension;
 
 namespace Hp2BaseModTweaks
 {
-    /// <summary>
-    /// If female jizz is on, toggles female UiWindow layout to male
-    /// </summary>
     [HarmonyPatch(typeof(UiWindowPhotos), "GetDefaultPhotoViewMode")]
     public static class UiWindowPhotos_GetDefaultPhotoViewMode_Postfix
     {
@@ -21,19 +20,36 @@ namespace Hp2BaseModTweaks
         }
     }
 
-    /// <summary>
-    /// If female jizz is on, fixes the ui on reload
-    /// </summary>
     [HarmonyPatch(typeof(UiWindowPhotos), "Refresh")]
     public static class UiWindowPhotos_Refresh_Prefix
     {
+        private static readonly FieldInfo _bigPhotoDefinition = AccessTools.Field(typeof(UiWindowPhotos), "_bigPhotoDefinition");
+
         public static void Prefix(UiWindowPhotos __instance)
         {
+            var photoDef = _bigPhotoDefinition.GetValue<PhotoDefinition>(__instance);
+            if (photoDef != null)
+            {
+                for (int i = 0; i < __instance.viewModeButtons.Count; i++)
+                {
+                    if (i >= photoDef.bigPhotoImages.Count
+                        || photoDef.bigPhotoImages[i] == null)
+                    {
+                        __instance.viewModeButtons[i].Disable();
+                    }
+                    else
+                    {
+                        __instance.viewModeButtons[i].Enable();
+                    }
+                }
+            }
+
             if (!Game.Persistence.playerData.uncensored
                 || !ModInterface.GameData.IsCodeUnlocked(ToggleCodeMods.FemaleJizzToggleCodeID))
             {
                 return;
             }
+
             __instance.bpButtonJizzCanvasGroup.blocksRaycasts = true;
             __instance.bpButtonJizzCanvasGroup.alpha = 1f;
         }

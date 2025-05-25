@@ -8,6 +8,7 @@ using Hp2BaseMod;
 using Hp2BaseMod.Extension;
 using Hp2BaseMod.Ui;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Hp2BaseModTweaks.CellphoneApps
 {
@@ -28,6 +29,11 @@ namespace Hp2BaseModTweaks.CellphoneApps
         [HarmonyPostfix]
         public static void Show(UiWindowPhotos __instance, Sequence sequence)
             => ExpandedUiWindowPhotos.Get(__instance).Show();
+
+        [HarmonyPatch("RefreshBigPhoto")]
+        [HarmonyPostfix]
+        public static void RefreshBigPhoto(UiWindowPhotos __instance)
+            => ExpandedUiWindowPhotos.Get(__instance).RefreshBigPhoto();
     }
 
     internal class ExpandedUiWindowPhotos
@@ -50,6 +56,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
         private static readonly FieldInfo _photoViewMode = AccessTools.Field(typeof(UiWindowPhotos), "_photoViewMode");
         private static readonly FieldInfo _singlePhoto = AccessTools.Field(typeof(UiWindowPhotos), "_singlePhoto");
         private static readonly FieldInfo _earnedPhotos = AccessTools.Field(typeof(UiWindowPhotos), "_earnedPhotos");
+        private static readonly FieldInfo _bigPhotoDefinition = AccessTools.Field(typeof(UiWindowPhotos), "_bigPhotoDefinition");
         private static readonly int _photosPerPage = 29;
         private static Sprite _emptyPhotoSlot;
 
@@ -59,43 +66,27 @@ namespace Hp2BaseModTweaks.CellphoneApps
         private UiWindowPhotos _photosWindow;
         private Hp2ButtonWrapper _previousPage;
         private Hp2ButtonWrapper _nextPage;
-        private bool _init;
+        private Image _bg_image;
 
         public ExpandedUiWindowPhotos(UiWindowPhotos photosWindow)
         {
             _photosWindow = photosWindow ?? throw new ArgumentNullException(nameof(photosWindow));
-        }
 
-        public void Init()
-        {
-            //instead of completed pairs, let's look at pairs that have reached lovers.
-            //that way we don't have to force every pair to be added to complete pairs
-            //I think it's weird that completed pairs is a thing anyways, but I digress
-            var earnedPhotos = Game.Persistence.playerFile.girlPairs
-                .Where(x => x.relationshipType == GirlPairRelationshipType.LOVERS)
-                .Select(x => x.girlPairDefinition.photoDefinition)
-                .Append(Game.Session.Hub.tutorialPhotoDef);
+            _photosWindow.bigPhotoImage.useSpriteMesh = true;
+            _photosWindow.bigPhotoImage.preserveAspect = true;
 
-            if (Game.Persistence.playerFile.storyProgress >= 12)
-            {
-                earnedPhotos = earnedPhotos.Concat(Game.Session.Hub.nymphojinnPhotoDefs);
-            }
+            var bg_go = new GameObject();
+            _bg_image = bg_go.AddComponent<Image>();
+            _bg_image.rectTransform.sizeDelta = new Vector2(2000, 1160);
+            _bg_image.transform.SetParent(_photosWindow.bigPhotoContainer);
+            _bg_image.transform.localPosition = _photosWindow.bigPhotoImage.transform.localPosition;
+            _bg_image.transform.SetAsFirstSibling();
+            _bg_image.useSpriteMesh = true;
 
-            if (Game.Persistence.playerFile.storyProgress >= 13)
-            {
-                var kyuHole = Game.Persistence.playerFile.GetFlagValue("kyu_hole_selection");
+            var earnedPhotosList = ModInterface.RequestPlayerPhotos().ToList();
 
-                if (ModInterface.GameData.IsCodeUnlocked(ToggleCodeMods.KyuHoleCodeId))
-                {
-                    earnedPhotos = earnedPhotos.Concat(Game.Session.Hub.kyuPhotoDefs);
-                }
-                else if (kyuHole >= 0)
-                {
-                    earnedPhotos = earnedPhotos.Append(Game.Session.Hub.kyuPhotoDefs[Mathf.Clamp(kyuHole, 0, Game.Session.Hub.kyuPhotoDefs.Length - 1)]);
-                }
-            }
+            ModInterface.Log.LogInfo($"Earned photo count: {earnedPhotosList.Count}");
 
-            var earnedPhotosList = earnedPhotos.Distinct().ToList();
             _earnedPhotos.SetValue(_photosWindow, earnedPhotosList);
 
             _pageMax = earnedPhotosList.Count > 1
@@ -140,10 +131,18 @@ namespace Hp2BaseModTweaks.CellphoneApps
                     Refresh();
                 };
             }
+        }
 
-            _init = true;
-
-            Refresh();
+        public void Init()
+        {
+            if (_singlePhoto.GetValue<bool>(_photosWindow))
+            {
+                _bg_image.rectTransform.localScale = Vector2.one * 2;
+            }
+            else
+            {
+                _bg_image.rectTransform.localScale = Vector2.one * 1;
+            }
         }
 
         public void Show()
@@ -166,8 +165,6 @@ namespace Hp2BaseModTweaks.CellphoneApps
 
         public void Refresh()
         {
-            if (!_init) { return; }
-
             var thumbnailIndex = _photoViewMode.GetValue<int>(_photosWindow);
 
             if (_singlePhoto.GetValue<bool>(_photosWindow))
@@ -224,6 +221,12 @@ namespace Hp2BaseModTweaks.CellphoneApps
                     _nextPage.ButtonBehavior.Enable();
                 }
             }
+        }
+
+        internal void RefreshBigPhoto()
+        {
+            _bg_image.sprite = _photosWindow.bigPhotoImage.sprite;
+            _bg_image.color = new Color(0.25f, 0.25f, 0.4f);
         }
     }
 }

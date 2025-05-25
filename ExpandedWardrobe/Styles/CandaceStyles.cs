@@ -5,7 +5,7 @@ using Hp2BaseMod.GameDataInfo;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
 
-namespace ScallyCapFanOutfits;
+namespace ExpandedWardrobe;
 internal static partial class Styles
 {
     private static readonly int _candaceBodyX = 348;
@@ -24,11 +24,7 @@ internal static partial class Styles
                     Y = _candaceBodyY - 184,
                     MirroredPartId = RelativeId.Default,
                     AltPartId = null,
-                    SpriteInfo = new SpriteInfoPath()
-                    {
-                        IsExternal = true,
-                        Path = Path.Combine(Plugin.ImageDir, @"candace_outfit_hime.png")
-                    }
+                    SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImageDir, @"candace_outfit_hime.png")))
                 },
                 new GirlPartDataMod(Ids.FronthairPart1, InsertStyle.replace)
                 {
@@ -38,11 +34,7 @@ internal static partial class Styles
                     Y = _candaceBodyY + 35,
                     MirroredPartId = RelativeId.Default,
                     AltPartId = null,
-                    SpriteInfo = new SpriteInfoPath()
-                    {
-                        IsExternal = true,
-                        Path = Path.Combine(Plugin.ImageDir, @"candace_fronthair_hime.png")
-                    }
+                    SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImageDir, @"candace_fronthair_hime.png")))
                 },
                 new GirlPartDataMod(Ids.BackhairPart1, InsertStyle.replace)
                 {
@@ -52,11 +44,7 @@ internal static partial class Styles
                     Y = _candaceBodyY - 50,
                     MirroredPartId = RelativeId.Default,
                     AltPartId = null,
-                    SpriteInfo = new SpriteInfoPath()
-                    {
-                        IsExternal = true,
-                        Path = Path.Combine(Plugin.ImageDir, @"candace_backhair_hime.png")
-                    }
+                    SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImageDir, @"candace_backhair_hime.png")))
                 }
             },
             outfits = new List<IGirlSubDataMod<ExpandedOutfitDefinition>>()

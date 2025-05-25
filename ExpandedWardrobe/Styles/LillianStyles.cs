@@ -5,7 +5,7 @@ using Hp2BaseMod.GameDataInfo;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
 
-namespace ScallyCapFanOutfits;
+namespace ExpandedWardrobe;
 
 internal static partial class Styles
 {
@@ -25,11 +25,7 @@ internal static partial class Styles
                     Y = _lillianBodyY - 208,
                     MirroredPartId = Ids.OutfitPart1,
                     AltPartId = null,
-                    SpriteInfo = new SpriteInfoPath()
-                    {
-                        IsExternal = true,
-                        Path = Path.Combine(Plugin.ImageDir, "lillian_outfit_sceneQueen_mirror.png")
-                    }
+                    SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImageDir, "lillian_outfit_sceneQueen_mirror.png")))
                 },
                 new GirlPartDataMod(Ids.OutfitPart1, InsertStyle.replace)
                 {
@@ -39,11 +35,7 @@ internal static partial class Styles
                     Y = _lillianBodyY - 208,
                     MirroredPartId = Ids.OutfitPart1Mirror,
                     AltPartId = null,
-                    SpriteInfo = new SpriteInfoPath()
-                    {
-                        IsExternal = true,
-                        Path = Path.Combine(Plugin.ImageDir, "lillian_outfit_sceneQueen.png")
-                    }
+                    SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImageDir, "lillian_outfit_sceneQueen.png")))
                 },
                 new GirlPartDataMod(Ids.FronthairPart1, InsertStyle.replace)
                 {
@@ -53,11 +45,7 @@ internal static partial class Styles
                     Y = _lillianBodyY + 31,
                     MirroredPartId = RelativeId.Default,
                     AltPartId = null,
-                    SpriteInfo = new SpriteInfoPath()
-                    {
-                        IsExternal = true,
-                        Path = Path.Combine(Plugin.ImageDir, "lillian_fronthair_sceneQueen.png")
-                    }
+                    SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImageDir, "lillian_fronthair_sceneQueen.png")))
                 },
                 new GirlPartDataMod(Ids.BackhairPart1, InsertStyle.replace)
                 {
@@ -67,11 +55,7 @@ internal static partial class Styles
                     Y = _lillianBodyY + 73,
                     MirroredPartId = RelativeId.Default,
                     AltPartId = null,
-                    SpriteInfo = new SpriteInfoPath()
-                    {
-                        IsExternal = true,
-                        Path = Path.Combine(Plugin.ImageDir, "lillian_backhair_sceneQueen.png")
-                    }
+                    SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImageDir, "lillian_backhair_sceneQueen.png")))
                 }
             },
             outfits = new List<IGirlSubDataMod<ExpandedOutfitDefinition>>()

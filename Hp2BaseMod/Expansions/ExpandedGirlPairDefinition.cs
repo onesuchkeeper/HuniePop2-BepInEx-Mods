@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using Hp2BaseMod;
 using Hp2BaseMod.GameDataInfo;
-using UnityEngine;
 
 public static class GirlPairDefinition_Ext
 {

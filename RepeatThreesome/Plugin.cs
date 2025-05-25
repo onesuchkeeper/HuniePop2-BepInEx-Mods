@@ -66,6 +66,7 @@ internal class Plugin : BaseUnityPlugin
     private void On_PreDataMods()
     {
         var pollyNudeOutfitPartAltId = new RelativeId(_modId, 1);
+        var emptySpriteInfo = new SpriteInfoInternal("EmptySprite");
 
         var nudeOutfitPart = new GirlPartDataMod(Constants.NudeOutfitId, InsertStyle.replace)
         {
@@ -75,11 +76,7 @@ internal class Plugin : BaseUnityPlugin
             Y = 0,
             MirroredPartId = RelativeId.Default,
             AltPartId = RelativeId.Default,
-            SpriteInfo = new SpriteInfoPath()
-            {
-                IsExternal = false,
-                Path = "EmptySprite"
-            }
+            SpriteInfo = emptySpriteInfo
         };
 
         var pollyNudeOutfitPart = new GirlPartDataMod(Constants.NudeOutfitId, InsertStyle.replace)
@@ -90,11 +87,7 @@ internal class Plugin : BaseUnityPlugin
             Y = 0,
             MirroredPartId = RelativeId.Default,
             AltPartId = pollyNudeOutfitPartAltId,
-            SpriteInfo = new SpriteInfoPath()
-            {
-                IsExternal = false,
-                Path = "EmptySprite"
-            }
+            SpriteInfo = emptySpriteInfo
         };
 
         var pollyNudeOutfitPartAlt = new GirlPartDataMod(pollyNudeOutfitPartAltId, InsertStyle.replace)
@@ -105,11 +98,7 @@ internal class Plugin : BaseUnityPlugin
             Y = 165,
             MirroredPartId = RelativeId.Default,
             AltPartId = RelativeId.Default,
-            SpriteInfo = new SpriteInfoPath()
-            {
-                IsExternal = true,
-                Path = Path.Combine(Paths.PluginPath, @"RepeatThreesome\images\alt_polly_nude.png")
-            }
+            SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Paths.PluginPath, @"RepeatThreesome\images\alt_polly_nude.png")))
         };
 
         // add nude outfits for girls

@@ -62,9 +62,9 @@ public static class State
         _defaultPuzzleGridPosition = uiPuzzleGrid.transform.position;
     }
 
-    public static void On_LocationManger_Arrive()
+    public static void On_LocationManger_Arrive(GirlPairDefinition pair)
     {
-        _isSingleDate = IsSingle(Game.Persistence.playerFile.girlPairDefinition);
+        _isSingleDate = IsSingle(pair);
         Game.Session.gameCanvas.dollLeft.dropZoneCanvasGroup.blocksRaycasts = !_isSingleDate;
         ModInterface.State.CellphoneOnLeft = _isSingleDate;
     }

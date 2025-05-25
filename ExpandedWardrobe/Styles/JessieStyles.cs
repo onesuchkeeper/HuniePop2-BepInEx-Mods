@@ -5,7 +5,7 @@ using Hp2BaseMod.GameDataInfo;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
 
-namespace ScallyCapFanOutfits;
+namespace ExpandedWardrobe;
 
 internal static partial class Styles
 {
@@ -25,11 +25,7 @@ internal static partial class Styles
             Y = _jessieBodyY - 261,
             MirroredPartId = RelativeId.Default,
             AltPartId = null,
-            SpriteInfo = new SpriteInfoPath()
-            {
-                IsExternal = true,
-                Path = Path.Combine(Plugin.ImageDir, @"jessie_outfit_businesscasual.png")
-            }
+            SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImageDir, @"jessie_outfit_businesscasual.png")))
         }
             },
             outfits = new List<IGirlSubDataMod<ExpandedOutfitDefinition>>()

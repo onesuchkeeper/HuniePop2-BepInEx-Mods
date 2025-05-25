@@ -11,8 +11,6 @@ namespace Hp2BaseMod.GameDataInfo
     /// </summary>
     public class PhotoDataMod : DataMod, IGameDataMod<PhotoDefinition>
     {
-        public RelativeId? GirlPairDefinitionID;
-
         public bool? HasAlts;
 
         public string AltFlagName;
@@ -59,26 +57,25 @@ namespace Hp2BaseMod.GameDataInfo
             {
                 var it = def.bigPhotoImages.GetEnumerator();
                 it.MoveNext();
-                BigPhotoCensored = new SpriteInfoPath(it.Current, assetProvider);
+                BigPhotoCensored = new SpriteInfoInternal(it.Current, assetProvider);
                 it.MoveNext();
-                BigPhotoUncensored = new SpriteInfoPath(it.Current, assetProvider);
+                BigPhotoUncensored = new SpriteInfoInternal(it.Current, assetProvider);
                 it.MoveNext();
-                BigPhotoWet = new SpriteInfoPath(it.Current, assetProvider);
+                BigPhotoWet = new SpriteInfoInternal(it.Current, assetProvider);
             }
 
             if (def.thumbnailImages != null)
             {
                 var it = def.thumbnailImages.GetEnumerator();
                 it.MoveNext();
-                ThumbnailCensored = new SpriteInfoPath(it.Current, assetProvider);
+                ThumbnailCensored = new SpriteInfoInternal(it.Current, assetProvider);
                 it.MoveNext();
-                ThumbnailUncensored = new SpriteInfoPath(it.Current, assetProvider);
+                ThumbnailUncensored = new SpriteInfoInternal(it.Current, assetProvider);
                 it.MoveNext();
-                ThumbnailWet = new SpriteInfoPath(it.Current, assetProvider);
+                ThumbnailWet = new SpriteInfoInternal(it.Current, assetProvider);
             }
 
             AltCodeDefinitionID = new RelativeId(def.altCodeDefinition);
-            GirlPairDefinitionID = new RelativeId(def.girlPairDefinition);
         }
 
         /// <inheritdoc/>
@@ -86,13 +83,12 @@ namespace Hp2BaseMod.GameDataInfo
         {
             ValidatedSet.SetValue(ref def.hasAlts, HasAlts);
 
-            ValidatedSet.SetValue(ref def.girlPairDefinition, (GirlPairDefinition)gameDataProvider.GetDefinition(GameDataType.GirlPair, GirlPairDefinitionID), InsertStyle);
             ValidatedSet.SetValue(ref def.altCodeDefinition, (CodeDefinition)gameDataProvider.GetDefinition(GameDataType.Code, AltCodeDefinitionID), InsertStyle);
 
             ValidatedSet.SetValue(ref def.altFlagName, AltFlagName, InsertStyle);
 
-            ValidatedSet.SetListValue(ref def.bigPhotoImages, new[] { BigPhotoCensored, BigPhotoUncensored, BigPhotoWet }, InsertStyle, gameDataProvider, assetProvider);
-            ValidatedSet.SetListValue(ref def.thumbnailImages, new[] { ThumbnailCensored, ThumbnailUncensored, ThumbnailWet }, InsertStyle, gameDataProvider, assetProvider);
+            ValidatedSet.SetListValue(ref def.bigPhotoImages, [BigPhotoCensored, BigPhotoUncensored, BigPhotoWet], InsertStyle, gameDataProvider, assetProvider);
+            ValidatedSet.SetListValue(ref def.thumbnailImages, [ThumbnailCensored, ThumbnailUncensored, ThumbnailWet], InsertStyle, gameDataProvider, assetProvider);
         }
 
         /// <inheritdoc/>

@@ -1,5 +1,7 @@
-﻿using BepInEx;
+﻿using System.Reflection;
+using BepInEx;
 using HarmonyLib;
+using Hp2BaseMod;
 
 namespace Cheat;
 
@@ -7,9 +9,17 @@ namespace Cheat;
 [BepInDependency("OSK.BepInEx.Hp2BaseMod", "1.0.0")]
 public class Plugin : BaseUnityPlugin
 {
+    private static readonly FieldInfo _testMode = AccessTools.Field(typeof(GameManager), "_testMode");
+
     private void Awake()
     {
+        ModInterface.Events.PostPersistenceReset += On_PostPersistenceReset;
         new Harmony(MyPluginInfo.PLUGIN_GUID).PatchAll();
+    }
+
+    private void On_PostPersistenceReset()
+    {
+        _testMode.SetValue(Game.Manager, true);
     }
 }
 

@@ -75,10 +75,10 @@ namespace Hp2BaseMod.GameDataInfo
             Negative = def.negative;
             AltBonusSprite = def.altBonusSprite;
 
-            if (def.tokenSprite != null) { TokenSpriteInfo = new SpriteInfoPath(def.tokenSprite, assetProvider); }
-            if (def.overSprite != null) { OverSpriteInfo = new SpriteInfoPath(def.overSprite, assetProvider); }
-            if (def.altTokenSprite != null) { AltTokenSpriteInfo = new SpriteInfoPath(def.altTokenSprite, assetProvider); }
-            if (def.altOverSprite != null) { AltOverSpriteInfo = new SpriteInfoPath(def.altOverSprite, assetProvider); }
+            if (def.tokenSprite != null) { TokenSpriteInfo = new SpriteInfoInternal(def.tokenSprite, assetProvider); }
+            if (def.overSprite != null) { OverSpriteInfo = new SpriteInfoInternal(def.overSprite, assetProvider); }
+            if (def.altTokenSprite != null) { AltTokenSpriteInfo = new SpriteInfoInternal(def.altTokenSprite, assetProvider); }
+            if (def.altOverSprite != null) { AltOverSpriteInfo = new SpriteInfoInternal(def.altOverSprite, assetProvider); }
             if (def.sfxMatch != null) { SfxMatchInfo = new AudioKlipInfo(def.sfxMatch, assetProvider); }
 
             EnergyDefinitionID = new RelativeId(def.energyDefinition);

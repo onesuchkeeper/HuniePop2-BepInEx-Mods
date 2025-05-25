@@ -57,11 +57,7 @@ namespace Hp2BaseMod.GameDataInfo
             if (partDef.sprite != null)
             {
                 var path = girlDef.id.ToString() + "_" + partDef.sprite.name;
-                SpriteInfo = new SpriteInfoPath()
-                {
-                    Path = path,
-                    IsExternal = false
-                };
+                SpriteInfo = new SpriteInfoInternal(path);
 
                 assetProvider.AddAsset(typeof(Sprite), path, partDef.sprite);
             }

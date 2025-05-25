@@ -58,6 +58,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
         public void OnStart()
         {
             _simLocations = Game.Data.Locations.GetAll().Where(x => x.locationType == LocationType.SIM).ToArray();
+
             _pageMax = _simLocations.Length > 1
                 ? (_simLocations.Length - 1) / _finderLocationsPerPage
                 : 0;
@@ -119,124 +120,38 @@ namespace Hp2BaseModTweaks.CellphoneApps
                     slot.canvasGroup.alpha = 1f;
                     slot.canvasGroup.blocksRaycasts = true;
                     slot.locationDefinition = _simLocations[locationIndex];
-                    var playerFileFinderSlot = Game.Persistence.playerFile.GetPlayerFileFinderSlot(slot.locationDefinition);
+                    slot.Populate(true);
 
-                    bool blocksRaycasts = true;
-                    bool isUnavailable;
-
-                    if (slot.locationDefinition.locationType == LocationType.SIM && slot.locationDefinition == Game.Session.Location.currentLocation)
+                    if (Game.Persistence.playerFile.GetPlayerFileFinderSlot(slot.locationDefinition)?.girlPairDefinition == null
+                        || (slot.locationDefinition.locationType == LocationType.SIM
+                            && slot.locationDefinition == Game.Session.Location.currentLocation))
                     {
-                        if (Game.Session.Location.currentGirlPair)
-                        {
-                            slot.headSlotLeft.Populate(Game.Session.Location.currentGirlLeft);
-                            slot.headSlotRight.Populate(Game.Session.Location.currentGirlRight);
-                            slot.relationshipSlot.Populate(Game.Session.Location.currentGirlPair, 0, null, false);
-                        }
-                        isUnavailable = true;
-                    }
-                    else if (slot.locationDefinition.locationType == LocationType.SIM)
-                    {
-                        if (playerFileFinderSlot?.girlPairDefinition == null)
-                        {
-                            slot.headSlotLeft.itemIcon.color = Color.clear;
-                            slot.headSlotRight.itemIcon.color = Color.clear;
-                            slot.relationshipSlot.itemIcon.color = Color.clear;
+                        slot.headSlotLeft.canvasGroup.alpha = 0.25f;
+                        slot.headSlotRight.canvasGroup.alpha = 0.25f;
+                        slot.relationshipSlot.canvasGroup.alpha = 0.25f;
 
-                            isUnavailable = true;
-                            blocksRaycasts = false;
-                        }
-                        else
-                        {
-                            slot.headSlotLeft.itemIcon.color = Color.white;
-                            slot.headSlotRight.itemIcon.color = Color.white;
-                            slot.relationshipSlot.itemIcon.color = Color.white;
+                        slot.headSlotLeft.canvasGroup.blocksRaycasts = false;
+                        slot.headSlotRight.canvasGroup.blocksRaycasts = false;
+                        slot.relationshipSlot.canvasGroup.blocksRaycasts = false;
 
-                            if (!playerFileFinderSlot.sidesFlipped)
-                            {
-                                slot.headSlotLeft.Populate(playerFileFinderSlot.girlPairDefinition.girlDefinitionOne);
-                                slot.headSlotRight.Populate(playerFileFinderSlot.girlPairDefinition.girlDefinitionTwo);
-                            }
-                            else
-                            {
-                                slot.headSlotLeft.Populate(playerFileFinderSlot.girlPairDefinition.girlDefinitionTwo);
-                                slot.headSlotRight.Populate(playerFileFinderSlot.girlPairDefinition.girlDefinitionOne);
-                            }
-                            slot.relationshipSlot.Populate(playerFileFinderSlot.girlPairDefinition, 1, null, false);
-
-                            if (Game.Session.Location.AtLocationType(new LocationType[] { LocationType.SIM }))
-                            {
-                                isUnavailable = !Game.Manager.Windows.IsWindowActive(Game.Session.Location.actionBubblesWindow, true, false);
-                            }
-                            else if (Game.Session.Location.AtLocationType(new LocationType[] { LocationType.DATE }))
-                            {
-                                isUnavailable = !Game.Session.Puzzle.puzzleStatus.gameOver;
-                            }
-                            else if (Game.Session.Location.AtLocationType(new LocationType[] { LocationType.HUB }))
-                            {
-                                isUnavailable = !(((Game.Session.Hub.hubStepType == HubStepType.ROOT
-                                            && Game.Manager.Windows.IsWindowActive(Game.Session.Dialog.dialogOptionsWindow, true, false))
-                                          || Game.Persistence.playerFile.GetFlagValue(Game.Session.Hub.firstLocationFlag) < 0));
-                            }
-                            else
-                            {
-                                isUnavailable = true;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        isUnavailable = true;
-                        blocksRaycasts = false;
-                    }
-
-                    if (isUnavailable)
-                    {
-                        if (slot.headSlotLeft.canvasGroup.alpha > 0f)
-                        {
-                            slot.headSlotLeft.canvasGroup.alpha = 0.25f;
-                        }
-                        if (slot.headSlotRight.canvasGroup.alpha > 0f)
-                        {
-                            slot.headSlotRight.canvasGroup.alpha = 0.25f;
-                        }
-                        if (slot.relationshipSlot.canvasGroup.alpha > 0f)
-                        {
-                            slot.relationshipSlot.canvasGroup.alpha = 0.25f;
-                        }
-                        if (slot.headSlotLeft.canvasGroup.blocksRaycasts)
-                        {
-                            slot.headSlotLeft.canvasGroup.blocksRaycasts = blocksRaycasts;
-                        }
-                        if (slot.headSlotRight.canvasGroup.blocksRaycasts)
-                        {
-                            slot.headSlotRight.canvasGroup.blocksRaycasts = blocksRaycasts;
-                        }
-                        if (slot.relationshipSlot.canvasGroup.blocksRaycasts)
-                        {
-                            slot.relationshipSlot.canvasGroup.blocksRaycasts = blocksRaycasts;
-                        }
                         slot.locationIcon.color = ColorUtils.ColorAlpha(slot.locationIcon.color, 0.5f);
                         slot.locationLabel.color = ColorUtils.ColorAlpha(slot.locationLabel.color, 0.4f);
                         slot.locationButton.Disable();
                     }
                     else
                     {
+                        slot.headSlotLeft.canvasGroup.alpha = 1f;
+                        slot.headSlotRight.canvasGroup.alpha = 1f;
+                        slot.relationshipSlot.canvasGroup.alpha = 1f;
+
+                        slot.headSlotLeft.canvasGroup.blocksRaycasts = true;
+                        slot.headSlotRight.canvasGroup.blocksRaycasts = true;
+                        slot.relationshipSlot.canvasGroup.blocksRaycasts = true;
+
                         slot.locationIcon.color = ColorUtils.ColorAlpha(slot.locationIcon.color, 1f);
                         slot.locationLabel.color = ColorUtils.ColorAlpha(slot.locationLabel.color, 1f);
                         slot.locationButton.Enable();
                     }
-
-                    slot.locationIcon.sprite = slot.locationDefinition.finderLocationIcon;
-                    slot.locationLabel.text = slot.locationDefinition.locationName.ToUpper();
-
-                    int num = Mathf.RoundToInt(slot.locationLabel.preferredWidth);
-                    if (num % 2 != 0)
-                    {
-                        num++;
-                    }
-                    slot.locationRectTransform.sizeDelta = new Vector2(90 + num, slot.locationRectTransform.sizeDelta.y);
-
-                    _playerFileFinderSlotAccess.SetValue(slot, playerFileFinderSlot);
 
                     locationIndex++;
                 }

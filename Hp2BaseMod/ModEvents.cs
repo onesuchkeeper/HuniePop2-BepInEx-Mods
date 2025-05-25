@@ -70,5 +70,8 @@ namespace Hp2BaseMod
 
         public event Action<FinderSlotPopulateEventArgs> FinderSlotsPopulate;
         internal void NotifyPreFinderSlotPopulatePairs(FinderSlotPopulateEventArgs args) => FinderSlotsPopulate?.Invoke(args);
+
+        public event Action<RequestUnlockedPhotosEventArgs> RequestUnlockedPhotos;
+        internal void NotifyRequestUnlockedPhotos(RequestUnlockedPhotosEventArgs args) => RequestUnlockedPhotos?.Invoke(args);
     }
 }

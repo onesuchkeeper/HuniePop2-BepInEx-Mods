@@ -16,11 +16,7 @@ internal static class GirlNobody
         _id = new RelativeId(State.ModId, 0);
 
         var emptyPartId = new RelativeId(State.ModId, 0);
-        var emptySpriteInfo = new SpriteInfoPath()
-        {
-            Path = "EmptySprite",
-            IsExternal = false
-        };
+        var emptySpriteInfo = new SpriteInfoInternal("EmptySprite");
 
         ModInterface.AddDataMod(new GirlDataMod(_id, InsertStyle.replace)
         {

@@ -5,14 +5,14 @@ using BepInEx;
 using BepInEx.Bootstrap;
 using Hp2BaseMod;
 
-namespace ScallyCapFanOutfits;
+namespace ExpandedWardrobe;
 
 [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
 [BepInDependency("OSK.BepInEx.Hp2BaseMod", "1.0.0")]
 [BepInDependency("OSK.BepInEx.Hp2BaseModTweaks", BepInDependency.DependencyFlags.SoftDependency)]
 internal class Plugin : BaseUnityPlugin
 {
-    public static readonly string ModDir = Path.Combine(Paths.PluginPath, "ScallyCapFanOutfits");
+    public static readonly string ModDir = Path.Combine(Paths.PluginPath, MyPluginInfo.PLUGIN_NAME);
     public static readonly string ImageDir = Path.Combine(ModDir, "images");
 
     private void Awake()

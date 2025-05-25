@@ -3,7 +3,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using BepInEx;
-using BepInEx.Bootstrap;
 using HarmonyLib;
 using Hp2BaseMod;
 using Hp2BaseMod.GameDataInfo;

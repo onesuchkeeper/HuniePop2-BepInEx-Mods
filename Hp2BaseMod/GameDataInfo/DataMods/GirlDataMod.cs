@@ -247,12 +247,12 @@ namespace Hp2BaseMod.GameDataInfo
             DefaultHairstyleId = new RelativeId(-1, def.defaultHairstyleIndex);
             DefaultOutfitId = new RelativeId(-1, def.defaultOutfitIndex);
 
-            if (def.cellphonePortrait != null) { CellphonePortrait = new SpriteInfoPath(def.cellphonePortrait, assetProvider); }
-            if (def.cellphonePortraitAlt != null) { CellphonePortraitAlt = new SpriteInfoPath(def.cellphonePortraitAlt, assetProvider); }
-            if (def.cellphoneHead != null) { CellphoneHead = new SpriteInfoPath(def.cellphoneHead, assetProvider); }
-            if (def.cellphoneHeadAlt != null) { CellphoneHeadAlt = new SpriteInfoPath(def.cellphoneHeadAlt, assetProvider); }
-            if (def.cellphoneMiniHead) { CellphoneMiniHead = new SpriteInfoPath(def.cellphoneMiniHead, assetProvider); }
-            if (def.cellphoneMiniHeadAlt) { CellphoneMiniHeadAlt = new SpriteInfoPath(def.cellphoneMiniHeadAlt, assetProvider); }
+            if (def.cellphonePortrait != null) { CellphonePortrait = new SpriteInfoInternal(def.cellphonePortrait, assetProvider); }
+            if (def.cellphonePortraitAlt != null) { CellphonePortraitAlt = new SpriteInfoInternal(def.cellphonePortraitAlt, assetProvider); }
+            if (def.cellphoneHead != null) { CellphoneHead = new SpriteInfoInternal(def.cellphoneHead, assetProvider); }
+            if (def.cellphoneHeadAlt != null) { CellphoneHeadAlt = new SpriteInfoInternal(def.cellphoneHeadAlt, assetProvider); }
+            if (def.cellphoneMiniHead) { CellphoneMiniHead = new SpriteInfoInternal(def.cellphoneMiniHead, assetProvider); }
+            if (def.cellphoneMiniHeadAlt) { CellphoneMiniHeadAlt = new SpriteInfoInternal(def.cellphoneMiniHeadAlt, assetProvider); }
             if (def.breathEmitterPos != null) { BreathEmitterPos = new VectorInfo(def.breathEmitterPos); }
             if (def.upsetEmitterPos != null) { UpsetEmitterPos = new VectorInfo(def.upsetEmitterPos); }
 
@@ -298,13 +298,13 @@ namespace Hp2BaseMod.GameDataInfo
 
             foreach (var dialogTrigger in dts)
             {
-                var dialogTirggerId = new RelativeId(dialogTrigger);
+                var dialogTriggerId = new RelativeId(dialogTrigger);
 
                 var found = false;
-                var lines = linesByDialogTriggerId.FirstOrDefault(x => { found = x.Item1 == dialogTirggerId; return found; });
+                var lines = linesByDialogTriggerId.FirstOrDefault(x => { found = x.Item1 == dialogTriggerId; return found; });
                 if (!found)
                 {
-                    lines = (dialogTirggerId, new List<IGirlSubDataMod<DialogLine>>());
+                    lines = (dialogTriggerId, new List<IGirlSubDataMod<DialogLine>>());
                     linesByDialogTriggerId.Add(lines);
                 }
 

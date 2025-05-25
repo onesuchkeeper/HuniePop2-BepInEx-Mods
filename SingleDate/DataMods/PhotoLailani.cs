@@ -14,17 +14,9 @@ internal static class PhotoLailani
     {
         _id = new RelativeId(State.ModId, 0);
 
-        var lailaniPhotoInfo = new SpriteInfoPath()
-        {
-            IsExternal = true,
-            Path = Path.Combine(Plugin.ImagesDir, "photo_lailani_1.png")
-        };
+        var lailaniPhotoInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImagesDir, "photo_lailani_1.png")));
 
-        var lailaniPhotoThumbInfo = new SpriteInfoPath()
-        {
-            IsExternal = true,
-            Path = Path.Combine(Plugin.ImagesDir, "photo_lailani_1_thumb.png")
-        };
+        var lailaniPhotoThumbInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImagesDir, "photo_lailani_1_thumb.png")));
 
         ModInterface.AddDataMod(new PhotoDataMod(_id, InsertStyle.replace)
         {

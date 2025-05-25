@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Hp2BaseMod.Commands;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Save;
@@ -163,8 +164,9 @@ public static class ModInterface
             _events.NotifyPreDataMods();
             _gameData = new GameDefinitionProvider(Game.Data);
             GameDataModder.Mod(Game.Data);
-            _assetProvider.ClearExternalTextures();
             _events.NotifyPostDataMods();
+            _assetProvider.ClearExternalTextures();
+            GC.Collect();
         }
     }
 
@@ -394,4 +396,28 @@ public static class ModInterface
 
     public static T GetInterModValue<T>(string modGuid, string name) => GetInterModValue<T>(GetSourceId(modGuid), name);
     public static T GetInterModValue<T>(int modId, string name) => (T)_interModValues[modId][name];
+
+    public static IEnumerable<PhotoDefinition> RequestPlayerPhotos()
+    {
+        var earnedPhotos = Game.Persistence.playerFile.girlPairs
+                        .Where(x => x.relationshipType == GirlPairRelationshipType.LOVERS)
+                        .Select(x => x.girlPairDefinition.photoDefinition)
+                        .Append(Game.Session.Hub.tutorialPhotoDef);
+
+        if (Game.Persistence.playerFile.storyProgress >= 12)
+        {
+            earnedPhotos = earnedPhotos.Concat(Game.Session.Hub.nymphojinnPhotoDefs);
+        }
+
+        if (Game.Persistence.playerFile.storyProgress >= 13)
+        {
+            var kyuHole = Game.Persistence.playerFile.GetFlagValue("kyu_hole_selection");
+            earnedPhotos = earnedPhotos.Append(Game.Session.Hub.kyuPhotoDefs[Mathf.Clamp(kyuHole, 0, Game.Session.Hub.kyuPhotoDefs.Length - 1)]);
+        }
+
+        var args = new RequestUnlockedPhotosEventArgs() { UnlockedPhotos = earnedPhotos.ToList() };
+        _events.NotifyRequestUnlockedPhotos(args);
+
+        return args.UnlockedPhotos.Distinct().OrderBy(x => x.id);
+    }
 }

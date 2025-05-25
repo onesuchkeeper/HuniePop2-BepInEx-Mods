@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using BepInEx;
-using BepInEx.Configuration;
 using HarmonyLib;
 using Hp2BaseMod;
 using Hp2BaseMod.Extension.IEnumerableExtension;
@@ -19,7 +18,7 @@ namespace Hp2BaseModTweaks;
 [BepInDependency("OSK.BepInEx.Hp2BaseMod", "1.0.0")]
 public class Plugin : BaseUnityPlugin
 {
-    internal static readonly string RootDir = Path.Combine(Paths.PluginPath, "Hp2BaseModTweaks");
+    internal static readonly string RootDir = Path.Combine(Paths.PluginPath, MyPluginInfo.PLUGIN_NAME);
     internal static readonly string ImagesDir = Path.Combine(RootDir, "images");
     internal static readonly string DacDir = Path.Combine(Paths.PluginPath, "..", "..", "Digital Art Collection");
 
@@ -62,11 +61,7 @@ public class Plugin : BaseUnityPlugin
             ItemDescription = "Kyu and the Nymphojinn are now in the wardrobe! Each time the Nymphojinn are defeated, each will have a style unlocked!",
             CategoryDescription = "Otherworldly Attire",
             ItemType = ItemType.MISC,
-            ItemSpriteInfo = new SpriteInfoPath()
-            {
-                IsExternal = false,
-                Path = "item_shell_auger"
-            },
+            ItemSpriteInfo = new SpriteInfoInternal("item_shell_auger")
         });
 
         ModInterface.AddDataMod(new PostGameCutsceneMod());
@@ -84,6 +79,7 @@ public class Plugin : BaseUnityPlugin
         ModInterface.Events.PostDataMods += On_PostDataMods;
         ModInterface.Events.PreGameSave += On_PreGameSave;
         ModInterface.Events.PostPersistenceReset += On_PostPersistenceReset;
+        ModInterface.Events.RequestUnlockedPhotos += On_RequestUnlockedPhotos;
 
         ModInterface.AddCommand(new SetIconCommand());
 
@@ -118,7 +114,7 @@ public class Plugin : BaseUnityPlugin
                 return;
             }
 
-            foreach (var girl in Game.Data.Girls.GetAll())
+            foreach (var girl in Game.Data.Girls.GetAllBySpecial(false))
             {
                 girl.specialEffectPrefab = kyu.specialEffectPrefab;
                 girl.specialEffectOffset = kyu.specialEffectOffset;
@@ -265,11 +261,7 @@ public class Plugin : BaseUnityPlugin
             X = 590,
             Y = 854,
             PartType = GirlPartType.EYESGLOW,
-            SpriteInfo = new SpriteInfoPath()
-            {
-                IsExternal = true,
-                Path = Path.Combine(ImagesDir, "kyu_eyesglow_neutral.png")
-            }
+            SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(ImagesDir, "kyu_eyesglow_neutral.png")))
         };
 
         var kyuEyesGlowAnnoyedPartId = new RelativeId(ModId, 1);
@@ -278,11 +270,7 @@ public class Plugin : BaseUnityPlugin
             X = 592,
             Y = 852,
             PartType = GirlPartType.EYESGLOW,
-            SpriteInfo = new SpriteInfoPath()
-            {
-                IsExternal = true,
-                Path = Path.Combine(ImagesDir, "kyu_eyesglow_annoyed.png")
-            }
+            SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(ImagesDir, "kyu_eyesglow_annoyed.png")))
         };
 
         var kyuEyesGlowHornyPartId = new RelativeId(ModId, 2);
@@ -291,11 +279,7 @@ public class Plugin : BaseUnityPlugin
             X = 590,
             Y = 851,
             PartType = GirlPartType.EYESGLOW,
-            SpriteInfo = new SpriteInfoPath()
-            {
-                IsExternal = true,
-                Path = Path.Combine(ImagesDir, "kyu_eyesglow_horny.png")
-            }
+            SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(ImagesDir, "kyu_eyesglow_horny.png")))
         };
 
         ModInterface.AddDataMod(new GirlDataMod(Girls.KyuId, InsertStyle.append)
@@ -345,17 +329,23 @@ public class Plugin : BaseUnityPlugin
                 Xpos = 420 + 250 - 420,
                 Ypos = 968 - 140 - 24,
             },
-            CellphoneMiniHead = new SpriteInfoPath()
-            {
-                IsExternal = false,
-                Path = "ui_title_icon_kyu",
-            }
+            CellphoneMiniHead = new SpriteInfoInternal("ui_title_icon_kyu")
         });
 
         if (Directory.Exists(DacDir))
         {
             CellphoneSprites.AddUiCellphoneSprites("Jewn", Girls.JewnId, new Vector2(2636, 1990), new Vector2(3911, 4711));
             CellphoneSprites.AddUiCellphoneSprites("Moxie", Girls.MoxieId, new Vector2(2411, 2287), new Vector2(3900, 5068));
+        }
+    }
+
+    private void On_RequestUnlockedPhotos(RequestUnlockedPhotosEventArgs args)
+    {
+        if (Game.Persistence.playerFile.storyProgress >= 13
+            && ModInterface.GameData.IsCodeUnlocked(ToggleCodeMods.KyuHoleCodeId))
+        {
+            args.UnlockedPhotos ??= new List<PhotoDefinition>();
+            args.UnlockedPhotos.AddRange(Game.Session.Hub.kyuPhotoDefs);
         }
     }
 

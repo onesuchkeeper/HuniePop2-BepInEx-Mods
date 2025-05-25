@@ -62,10 +62,10 @@ namespace Hp2BaseMod.GameDataInfo
         internal EnergyDataMod(EnergyDefinition def, AssetProvider assetProvider)
             : base(new RelativeId(def), InsertStyle.replace, 0)
         {
-            BurstSprites = def.burstSprites?.Select(x => (IGameDefinitionInfo<Sprite>)new SpriteInfoPath(x, assetProvider)).ToList();
-            TrailSprites = def.trailSprites?.Select(x => (IGameDefinitionInfo<Sprite>)new SpriteInfoPath(x, assetProvider)).ToList();
-            SplashSprites = def.splashSprites?.Select(x => (IGameDefinitionInfo<Sprite>)new SpriteInfoPath(x, assetProvider)).ToList();
-            SurgeSprites = def.surgeSprites?.Select(x => (IGameDefinitionInfo<Sprite>)new SpriteInfoPath(x, assetProvider)).ToList();
+            BurstSprites = def.burstSprites?.Select(x => (IGameDefinitionInfo<Sprite>)new SpriteInfoInternal(x, assetProvider)).ToList();
+            TrailSprites = def.trailSprites?.Select(x => (IGameDefinitionInfo<Sprite>)new SpriteInfoInternal(x, assetProvider)).ToList();
+            SplashSprites = def.splashSprites?.Select(x => (IGameDefinitionInfo<Sprite>)new SpriteInfoInternal(x, assetProvider)).ToList();
+            SurgeSprites = def.surgeSprites?.Select(x => (IGameDefinitionInfo<Sprite>)new SpriteInfoInternal(x, assetProvider)).ToList();
             assetProvider.NameAndAddAsset(ref TextMaterialName, def.textMaterial);
             SurgeExpression = def.surgeExpression;
             SurgeEyesClosed = def.surgeEyesClosed;

@@ -77,6 +77,15 @@ namespace Hp2BaseMod.Utility
             }
         }
 
+        public static void SetValue<T>(ref T? target, T? value, InsertStyle style)
+            where T : struct
+        {
+            if (value.HasValue || style == InsertStyle.assignNull)
+            {
+                target = value;
+            }
+        }
+
         public static void SetValue<T>(ref T target, IGameDefinitionInfo<T> info, InsertStyle style, GameDefinitionProvider gameData, AssetProvider assetProvider)
         {
             if (info == null)
@@ -188,7 +197,7 @@ namespace Hp2BaseMod.Utility
             var converted = value?.Select(x =>
             {
                 var newEntry = default(T);
-                x.SetData(ref newEntry, gameData, assetProvider, style);
+                x?.SetData(ref newEntry, gameData, assetProvider, style);
                 return newEntry;
             });
 

@@ -35,6 +35,12 @@ namespace Hp2BaseMod.GameDataInfo
 
         public List<IGameDefinitionInfo<LogicBundle>> DepartBundleList;
 
+        public List<ClockDaytimeType> DateTimes;
+        public bool? AllowNonStop;
+        public bool? AllowNormal;
+        public bool? PostBoss;
+        public bool? IgnoreDateTime;
+
         /// <inheritdoc/>
         public LocationDataMod() { }
 
@@ -62,10 +68,10 @@ namespace Hp2BaseMod.GameDataInfo
             LocationType = def.locationType;
             BgMusic = new AudioKlipInfo(def.bgMusic, assetProvider);
             BgYOffset = def.bgYOffset;
-            FinderLocationIcon = new SpriteInfoPath(def.finderLocationIcon, assetProvider);
+            FinderLocationIcon = new SpriteInfoInternal(def.finderLocationIcon, assetProvider);
             NonStopOptionText = def.nonStopOptionText;
             SpecialLabels = def.specialLabels;
-            Backgrounds = def.backgrounds.Select(x => (IGameDefinitionInfo<Sprite>)new SpriteInfoPath(x, assetProvider)).ToList();
+            Backgrounds = def.backgrounds.Select(x => (IGameDefinitionInfo<Sprite>)new SpriteInfoInternal(x, assetProvider)).ToList();
             ArriveBundleList = def.arriveBundleList.Select(x => (IGameDefinitionInfo<LogicBundle>)new LogicBundleInfo(x, assetProvider)).ToList();
             DepartBundleList = def.departBundleList.Select(x => (IGameDefinitionInfo<LogicBundle>)new LogicBundleInfo(x, assetProvider)).ToList();
 
@@ -94,6 +100,13 @@ namespace Hp2BaseMod.GameDataInfo
             ValidatedSet.SetListValue(ref def.backgrounds, Backgrounds, InsertStyle, gameDataProvider, assetProvider);
             ValidatedSet.SetListValue(ref def.arriveBundleList, ArriveBundleList, InsertStyle, gameDataProvider, assetProvider);
             ValidatedSet.SetListValue(ref def.departBundleList, DepartBundleList, InsertStyle, gameDataProvider, assetProvider);
+
+            var expansion = def.Expansion();
+
+            ValidatedSet.SetValue(ref expansion.AllowNormal, AllowNormal);
+            ValidatedSet.SetValue(ref expansion.AllowNonStop, AllowNonStop);
+            ValidatedSet.SetValue(ref expansion.PostBoss, PostBoss);
+            ValidatedSet.SetListValue(ref expansion.DateTimes, DateTimes, InsertStyle);
         }
 
         public IEnumerable<(RelativeId, GirlStyleInfo)> GetStyles() => GirlStyles;

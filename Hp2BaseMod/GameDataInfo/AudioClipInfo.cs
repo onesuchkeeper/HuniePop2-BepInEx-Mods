@@ -5,6 +5,7 @@ using System.IO;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace Hp2BaseMod.GameDataInfo
 {
@@ -53,14 +54,30 @@ namespace Hp2BaseMod.GameDataInfo
                 {
                     if (File.Exists(Path))
                     {
-                        byte[] fileBytes = File.ReadAllBytes(Path);
-                        def = WAVUtility.LoadAudioClip(fileBytes);
+                        // byte[] fileBytes = File.ReadAllBytes(Path);
+                        // def = WAVUtility.LoadAudioClip(fileBytes);
+                        //def = Resources.Load<AudioClip>("file://" + System.IO.Path.GetFullPath(Path));
 
-                        ModInterface.Log.LogInfo($"{(def == null ? "Failed to load" : "Loaded")} external {nameof(AudioClip)} {Path ?? "null"}");
+                        using (var request = UnityWebRequestMultimedia.GetAudioClip("file://" + System.IO.Path.GetFullPath(Path), AudioType.WAV))
+                        {
+                            request.SendWebRequest();
+
+                            //with the way the resource pipeline works atm there's no great way to await this
+                            while (!request.isDone) { }
+
+                            if (request.isNetworkError)
+                            {
+                                ModInterface.Log.LogError($"Error while loading external {nameof(AudioClip)}: {request.error}");
+                            }
+                            else
+                            {
+                                def = DownloadHandlerAudioClip.GetContent(request);
+                            }
+                        }
                     }
                     else
                     {
-                        ModInterface.Log.LogInfo($"Could not find {Path} to load {nameof(AudioClip)} from");
+                        ModInterface.Log.LogError($"Could not find {Path} to load {nameof(AudioClip)} from");
                     }
                 }
                 else
@@ -75,7 +92,7 @@ namespace Hp2BaseMod.GameDataInfo
         {
             if (!IsExternal)
             {
-                assetProvider.RequestInternal(typeof(Sprite), Path);
+                assetProvider.RequestInternal(typeof(AudioClip), Path);
             }
         }
     }

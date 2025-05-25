@@ -22,14 +22,12 @@ internal static class ItemSensitivitySmoothie
         _expId = new RelativeId(State.ModId, 1);
         _levelId = new RelativeId(State.ModId, 2);
 
+        var smoothieTexture = new TextureInfoExternal(Path.Combine(Plugin.ImagesDir, "item_smoothie_sensitivity.png"));
+
         ModInterface.AddDataMod(new ItemDataMod(_smoothieId, InsertStyle.replace)
         {
             ItemType = ItemType.SMOOTHIE,
-            ItemSpriteInfo = new SpriteInfoPath()
-            {
-                IsExternal = true,
-                Path = Path.Combine(Plugin.ImagesDir, "item_smoothie_sensitivity.png")
-            },
+            ItemSpriteInfo = new SpriteInfoTexture(smoothieTexture),
             ItemName = "Sensitivity Smoothie",
             ItemDescription = "+1 [[broken]@Sensitivity] EXP.",
             TooltipColorIndex = 6,
@@ -41,11 +39,7 @@ internal static class ItemSensitivitySmoothie
         ModInterface.AddDataMod(new ItemDataMod(_expId, InsertStyle.replace)
         {
             ItemType = ItemType.MISC,
-            ItemSpriteInfo = new SpriteInfoPath()
-            {
-                IsExternal = true,
-                Path = Path.Combine(Plugin.ImagesDir, "item_smoothie_sensitivity.png")
-            },
+            ItemSpriteInfo = new SpriteInfoTexture(smoothieTexture),
             ItemName = "Sensitivity EXP",
             ItemDescription = "Earn [[broken]@Sensitivity] EXP by giving [[broken]@Sensitivity] smoothies to girls.",
             TooltipColorIndex = 6,

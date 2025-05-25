@@ -137,7 +137,7 @@ namespace Hp2BaseMod.GameDataInfo
             CutsceneDefinitionID = new RelativeId(def.cutsceneDefinition);
             AilmentDefinitionID = new RelativeId(def.ailmentDefinition);
 
-            if (def.itemSprite != null) { ItemSpriteInfo = new SpriteInfoPath(def.itemSprite, assetProvider); }
+            if (def.itemSprite != null) { ItemSpriteInfo = new SpriteInfoInternal(def.itemSprite, assetProvider); }
         }
 
         /// <inheritdoc/>

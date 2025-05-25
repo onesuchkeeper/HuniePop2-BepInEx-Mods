@@ -1,6 +1,6 @@
 using Hp2BaseMod;
 
-namespace ScallyCapFanOutfits;
+namespace ExpandedWardrobe;
 
 internal static class Ids
 {

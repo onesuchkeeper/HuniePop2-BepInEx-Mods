@@ -30,6 +30,17 @@ internal static class LocationManagerPatch
     }
 
     [HarmonyPatch(nameof(LocationManager.Arrive))]
+    [HarmonyPrefix]
+    public static void PreArrive(LocationManager __instance,
+    LocationDefinition locationDef,
+    GirlPairDefinition girlPairDef,
+    bool sidesFlipped,
+    bool initialArrive = false)
+    {
+        State.On_LocationManger_Arrive(girlPairDef);
+    }
+
+    [HarmonyPatch(nameof(LocationManager.Arrive))]
     [HarmonyPostfix]
     public static void PostArrive(LocationManager __instance,
     LocationDefinition locationDef,
@@ -37,8 +48,6 @@ internal static class LocationManagerPatch
     bool sidesFlipped,
     bool initialArrive = false)
     {
-        State.On_LocationManger_Arrive();
-
         if (__instance.currentLocation.locationType == LocationType.SPECIAL
             || __instance.currentLocation.locationType == LocationType.HUB
             || !State.IsSingleDate)
@@ -92,11 +101,6 @@ internal static class LocationManagerPatch
         }
 
         _arrivalCutscene.SetValue(__instance, null);
-
-        // The position of the dialogue options is based on which dolls are hidden
-        // and if a doll is hidden or not is based on it's actual anchor position...
-        Game.Session.gameCanvas.dollLeft.slideLayer.anchoredPosition = Game.Session.gameCanvas.dollLeft.GetPositionByType(DollPositionType.HIDDEN);
-
         return false;
     }
 }
