@@ -136,7 +136,7 @@ public class Plugin : BaseUnityPlugin
             ModConfig = JsonConvert.DeserializeObject<SaveFile>(saveString) ?? new SaveFile();
         }
 
-        if (ModConfig.Disable)
+        if (ModConfig.Disable || true)
         {
             ModInterface.Log.LogInfo($"Randomizer disabled");
             return;
@@ -260,8 +260,6 @@ public class Plugin : BaseUnityPlugin
 
             var specialGirlExpanded = specialGirl.Expansion();
             var targetGirlExpanded = targetGirl.Expansion();
-
-
 
             var holdIdToIndex = specialGirlExpanded.OutfitIdToIndex;
             specialGirlExpanded.OutfitIdToIndex = targetGirlExpanded.OutfitIdToIndex;

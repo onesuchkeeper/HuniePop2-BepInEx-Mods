@@ -51,7 +51,7 @@ public class ExpandedUiAppFinderSlot
     {
         var pairDef = _core.locationDefinition.locationType == LocationType.SIM && _core.locationDefinition == Game.Session.Location.currentLocation
             ? Game.Session.Location.currentGirlPair
-            : ((PlayerFileFinderSlot)_playerFileFinderSlot.GetValue(_core))?.girlPairDefinition;
+            : _playerFileFinderSlot.GetValue<PlayerFileFinderSlot>(_core)?.girlPairDefinition;
 
         if (State.IsSingle(pairDef))
         {
@@ -68,7 +68,6 @@ public class ExpandedUiAppFinderSlot
                     ? _core.headSlotLeft
                     : _core.headSlotRight;
 
-                _girlSlot.Populate(pairDef.girlDefinitionTwo);
                 _girlSlot.rectTransform.anchoredPosition = new Vector2(-_singleSpacing, _core.headSlotLeft.rectTransform.anchoredPosition.y);
 
                 _nobodySlot.rectTransform.SetParent(null);
@@ -78,6 +77,8 @@ public class ExpandedUiAppFinderSlot
 
                 _populatedAsSingle = true;
             }
+
+            _girlSlot.Populate(pairDef.girlDefinitionTwo);
         }
         else if (_populatedAsSingle)
         {
@@ -90,6 +91,14 @@ public class ExpandedUiAppFinderSlot
             relationshipTransform.anchoredPosition = new Vector2(0, relationshipTransform.anchoredPosition.y);
 
             _populatedAsSingle = false;
+        }
+
+        if (_core.locationDefinition.locationType != LocationType.HUB
+            && pairDef == null)
+        {
+            _core.headSlotLeft.Populate(null);
+            _core.headSlotRight.Populate(null);
+            _core.relationshipSlot.Populate(null);
         }
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using DG.Tweening;
 using Hp2BaseMod.GameDataInfo;
 
 namespace Hp2BaseMod
@@ -73,5 +74,17 @@ namespace Hp2BaseMod
 
         public event Action<RequestUnlockedPhotosEventArgs> RequestUnlockedPhotos;
         internal void NotifyRequestUnlockedPhotos(RequestUnlockedPhotosEventArgs args) => RequestUnlockedPhotos?.Invoke(args);
+
+        public event Action<LocationArriveSequenceArgs> LocationArriveSequence;
+        internal void NotifyLocationArriveSequence(LocationArriveSequenceArgs sequence) => LocationArriveSequence?.Invoke(sequence);
+
+        public event Action<LocationDepartSequenceArgs> LocationDepartSequence;
+        internal void NotifyLocationDepartSequence(LocationDepartSequenceArgs sequence) => LocationDepartSequence?.Invoke(sequence);
+
+        public event Action<RandomDollSelectedArgs> RandomDollSelected;
+        internal void NotifyRandomDollSelected(RandomDollSelectedArgs args) => RandomDollSelected?.Invoke(args);
+
+        public event Action<DateLocationSelectedArgs> DateLocationSelected;
+        internal void NotifyDateLocationSelected(DateLocationSelectedArgs args) => DateLocationSelected?.Invoke(args);
     }
 }

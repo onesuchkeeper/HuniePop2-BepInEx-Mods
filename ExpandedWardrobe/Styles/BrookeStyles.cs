@@ -46,7 +46,17 @@ internal static partial class Styles
                     MirroredPartId = RelativeId.Default,
                     AltPartId = null,
                     SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImageDir, @"brooke_backhair_warcrimes.png")))
-                }
+                },
+                new GirlPartDataMod(Ids.OutfitPart2, InsertStyle.replace)
+                {
+                    PartType = GirlPartType.OUTFIT,
+                    PartName = "plasticOutfitBrooke",
+                    X = _brookeBodyX + 2,
+                    Y = _brookeBodyY - 234,
+                    MirroredPartId = RelativeId.Default,
+                    AltPartId = null,
+                    SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImageDir, @"brooke_outfit_plastic.png")))
+                },
             },
             outfits = new List<IGirlSubDataMod<ExpandedOutfitDefinition>>()
             {
@@ -56,8 +66,16 @@ internal static partial class Styles
                     OutfitPartId = Ids.OutfitPart1,
                     IsNSFW = false,
                     HideNipples = true,
-                    TightlyPaired = false,
+                    TightlyPaired = true,
                     PairHairstyleId = Ids.Style1
+                },
+                new OutfitDataMod(Ids.Style2, InsertStyle.replace)
+                {
+                    Name = "Plastic",
+                    OutfitPartId = Ids.OutfitPart2,
+                    IsNSFW = false,
+                    HideNipples = true,
+                    TightlyPaired = false,
                 }
             },
             hairstyles = new List<IGirlSubDataMod<ExpandedHairstyleDefinition>>()
@@ -68,7 +86,7 @@ internal static partial class Styles
                     FrontHairPartId = Ids.FronthairPart1,
                     BackHairPartId = Ids.BackhairPart1,
                     IsNSFW = false,
-                    TightlyPaired = false,
+                    TightlyPaired = true,
                     PairOutfitId = Ids.Style1
                 }
             }

@@ -76,14 +76,23 @@ namespace Hp2BaseModTweaks.CellphoneApps
             _photosWindow.bigPhotoImage.preserveAspect = true;
 
             var bg_go = new GameObject();
+            bg_go.layer = _photosWindow.bigPhotoImage.gameObject.layer;
             _bg_image = bg_go.AddComponent<Image>();
             _bg_image.rectTransform.sizeDelta = new Vector2(2000, 1160);
-            _bg_image.transform.SetParent(_photosWindow.bigPhotoContainer);
+            _bg_image.transform.SetParent(_photosWindow.bigPhotoImage.transform.parent);
             _bg_image.transform.localPosition = _photosWindow.bigPhotoImage.transform.localPosition;
             _bg_image.transform.SetAsFirstSibling();
             _bg_image.useSpriteMesh = true;
+            _bg_image.material = GameObject.Instantiate<Material>(UiPrefabs.BgBlur);
 
-            var earnedPhotosList = ModInterface.RequestPlayerPhotos().ToList();
+            var earnedPhotos = ModInterface.RequestPlayerPhotos();
+
+            if (!Game.Persistence.playerData.uncensored)
+            {
+                earnedPhotos = earnedPhotos.Where(x => x?.GetBigPhotoImage(0) != null);
+            }
+
+            var earnedPhotosList = earnedPhotos.ToList();
 
             ModInterface.Log.LogInfo($"Earned photo count: {earnedPhotosList.Count}");
 
@@ -112,7 +121,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
 
                 _previousPage.GameObject.transform.SetParent(albumContainer, false);
                 _previousPage.RectTransform.anchoredPosition = new Vector2(42, 1038);
-                _previousPage.ButtonBehavior.ButtonPressedEvent += (e) =>
+                _previousPage.ButtonBehavior.ButtonPressedEvent += (_) =>
                 {
                     _pageIndex--;
                     Refresh();
@@ -125,7 +134,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
 
                 _nextPage.GameObject.transform.SetParent(albumContainer, false);
                 _nextPage.RectTransform.anchoredPosition = new Vector2(1878, 1038);
-                _nextPage.ButtonBehavior.ButtonPressedEvent += (e) =>
+                _nextPage.ButtonBehavior.ButtonPressedEvent += (_) =>
                 {
                     _pageIndex++;
                     Refresh();
@@ -165,7 +174,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
 
         public void Refresh()
         {
-            var thumbnailIndex = _photoViewMode.GetValue<int>(_photosWindow);
+            var photoViewMode = _photoViewMode.GetValue<int>(_photosWindow);
 
             if (_singlePhoto.GetValue<bool>(_photosWindow))
             {
@@ -182,8 +191,9 @@ namespace Hp2BaseModTweaks.CellphoneApps
                 if (photoEnumerator.MoveNext())
                 {
                     _photoDefinition.SetValue(slot, photoEnumerator.Current);
+
                     slot.buttonBehavior.Enable();
-                    slot.Refresh(thumbnailIndex);
+                    slot.Refresh(photoViewMode);
                 }
                 else
                 {
@@ -221,12 +231,82 @@ namespace Hp2BaseModTweaks.CellphoneApps
                     _nextPage.ButtonBehavior.Enable();
                 }
             }
+
+            UpdateViewModeButtons();
         }
 
         internal void RefreshBigPhoto()
         {
-            _bg_image.sprite = _photosWindow.bigPhotoImage.sprite;
-            _bg_image.color = new Color(0.25f, 0.25f, 0.4f);
+            var photoDef = _bigPhotoDefinition.GetValue<PhotoDefinition>(_photosWindow);
+            if (photoDef == null)
+            {
+                return;
+            }
+
+            var sprite = GetBigPhotoSprite(photoDef, out var photoViewMode) ?? UiPrefabs.CensoredBig;
+            UpdateViewModeButtons(photoViewMode, photoDef);
+
+            _photosWindow.bigPhotoImage.sprite = sprite;
+            _bg_image.sprite = sprite;
+
+            if (_bg_image.sprite != null
+                && _bg_image.material != null)
+            {
+                var ratio = (_bg_image.sprite.rect.size.x / _bg_image.sprite.rect.size.y)
+                    / (_bg_image.rectTransform.sizeDelta.x / _bg_image.rectTransform.sizeDelta.y);
+
+                _bg_image.material.SetFloat("_AspectRatio", ratio);
+            }
+        }
+
+        private Sprite GetBigPhotoSprite(PhotoDefinition photoDef, out int usedPhotoViewMode)
+        {
+            usedPhotoViewMode = _photoViewMode.GetValue<int>(_photosWindow);
+            var sprite = photoDef.GetBigPhotoImage(usedPhotoViewMode);
+
+            while (sprite == null && usedPhotoViewMode != 0)
+            {
+                usedPhotoViewMode--;
+                sprite = photoDef.GetBigPhotoImage(usedPhotoViewMode);
+            }
+
+            return sprite;
+        }
+
+        private void UpdateViewModeButtons()
+        {
+            var photoDef = _bigPhotoDefinition.GetValue<PhotoDefinition>(_photosWindow);
+
+            if (photoDef == null)
+            {
+                return;
+            }
+
+            GetBigPhotoSprite(photoDef, out var photoViewMode);
+            UpdateViewModeButtons(photoViewMode, photoDef);
+        }
+
+        private void UpdateViewModeButtons(int photoViewMode, PhotoDefinition photoDef)
+        {
+            if (photoDef == null)
+            {
+                return;
+            }
+
+            var index = 0;
+            foreach (var button in _photosWindow.viewModeButtons)
+            {
+                if (index == photoViewMode || photoDef.GetBigPhotoImage(index) == null)
+                {
+                    button.Disable();
+                }
+                else
+                {
+                    button.Enable();
+                }
+
+                index++;
+            }
         }
     }
 }

@@ -37,7 +37,7 @@ internal static partial class Styles
                     AltPartId = null,
                     SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImageDir, @"sarah_outfit_yamanba.png")))
                 },
-                new GirlPartDataMod(Ids.FronthairPart1, InsertStyle.replace)
+                new GirlPartDataMod(Ids.FronthairPart2, InsertStyle.replace)
                 {
                     PartType = GirlPartType.FRONTHAIR,
                     PartName = "sarahYamanbaFronthairPart",
@@ -47,7 +47,7 @@ internal static partial class Styles
                     AltPartId = null,
                     SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImageDir, @"sarah_fronthair_yamanba.png")))
                 },
-                new GirlPartDataMod(Ids.BackhairPart1, InsertStyle.replace)
+                new GirlPartDataMod(Ids.BackhairPart2, InsertStyle.replace)
                 {
                     PartType = GirlPartType.BACKHAIR,
                     PartName = "sarahYamanbaBackhairPart",
@@ -56,6 +56,36 @@ internal static partial class Styles
                     MirroredPartId = RelativeId.Default,
                     AltPartId = null,
                     SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImageDir, @"sarah_backhair_yamanba.png")))
+                },
+                new GirlPartDataMod(Ids.OutfitPart3, InsertStyle.replace)
+                {
+                    PartType = GirlPartType.OUTFIT,
+                    PartName = "sarahMomoOutfitPart",
+                    X = _sarahBodyX - 11,
+                    Y = _sarahBodyY - 109,
+                    MirroredPartId = RelativeId.Default,
+                    AltPartId = null,
+                    SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImageDir, @"sarah_outfit_momo.png")))
+                },
+                new GirlPartDataMod(Ids.FronthairPart3, InsertStyle.replace)
+                {
+                    PartType = GirlPartType.FRONTHAIR,
+                    PartName = "sarahMomoFronthairPart",
+                    X = _sarahBodyX + 88,
+                    Y = _sarahBodyY + 90,
+                    MirroredPartId = RelativeId.Default,
+                    AltPartId = null,
+                    SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImageDir, @"sarah_fronthair_momo.png")))
+                },
+                new GirlPartDataMod(Ids.BackhairPart3, InsertStyle.replace)
+                {
+                    PartType = GirlPartType.BACKHAIR,
+                    PartName = "sarahMomoBackhairPart",
+                    X = _sarahBodyX + 153,
+                    Y = _sarahBodyY - 61,
+                    MirroredPartId = RelativeId.Default,
+                    AltPartId = null,
+                    SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImageDir, @"sarah_backhair_momo.png")))
                 }
             },
             outfits = new List<IGirlSubDataMod<ExpandedOutfitDefinition>>()
@@ -75,8 +105,17 @@ internal static partial class Styles
                     OutfitPartId = Ids.OutfitPart2,
                     IsNSFW = false,
                     HideNipples = true,
-                    TightlyPaired = false,
+                    TightlyPaired = true,
                     PairHairstyleId = Ids.Style2
+                },
+                new OutfitDataMod(Ids.Style3, InsertStyle.replace)
+                {
+                    Name = "Momo",
+                    OutfitPartId = Ids.OutfitPart3,
+                    IsNSFW = false,
+                    HideNipples = true,
+                    TightlyPaired = true,
+                    PairHairstyleId = Ids.Style3
                 }
             },
             hairstyles = new List<IGirlSubDataMod<ExpandedHairstyleDefinition>>()
@@ -84,12 +123,22 @@ internal static partial class Styles
                 new HairstyleDataMod(Ids.Style2, InsertStyle.replace)
                 {
                     Name = "Yamanba",
-                    BackHairPartId = Ids.BackhairPart1,
-                    FrontHairPartId = Ids.FronthairPart1,
+                    BackHairPartId = Ids.BackhairPart2,
+                    FrontHairPartId = Ids.FronthairPart2,
                     IsNSFW = false,
                     HideSpecials = false,
                     TightlyPaired = true,
                     PairOutfitId = Ids.Style2
+                },
+                new HairstyleDataMod(Ids.Style3, InsertStyle.replace)
+                {
+                    Name = "Momo",
+                    BackHairPartId = Ids.BackhairPart3,
+                    FrontHairPartId = Ids.FronthairPart3,
+                    IsNSFW = false,
+                    HideSpecials = false,
+                    TightlyPaired = true,
+                    PairOutfitId = Ids.Style3
                 }
             }
         });

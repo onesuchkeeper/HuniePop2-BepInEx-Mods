@@ -7,6 +7,11 @@ public class TextureRsScale : ITextureRenderStep
 {
     private Vector2 _scale;
 
+    public TextureRsScale(float scale)
+    : this(new Vector2(scale, scale))
+    {
+    }
+
     public TextureRsScale(Vector2 scale)
     {
         _scale = scale;

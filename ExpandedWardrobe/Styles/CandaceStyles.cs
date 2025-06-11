@@ -45,6 +45,36 @@ internal static partial class Styles
                     MirroredPartId = RelativeId.Default,
                     AltPartId = null,
                     SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImageDir, @"candace_backhair_hime.png")))
+                },
+                new GirlPartDataMod(Ids.OutfitPart2, InsertStyle.replace)
+                {
+                    PartType = GirlPartType.OUTFIT,
+                    PartName = "backwoodsOutfitCandace",
+                    X = _candaceBodyX + 107,
+                    Y = _candaceBodyY - 277,
+                    MirroredPartId = RelativeId.Default,
+                    AltPartId = null,
+                    SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImageDir, @"candace_outfit_backwoods.png")))
+                },
+                new GirlPartDataMod(Ids.FronthairPart2, InsertStyle.replace)
+                {
+                    PartType = GirlPartType.FRONTHAIR,
+                    PartName = "backwoodsFronthairCandace",
+                    X = _candaceBodyX + 192,
+                    Y = _candaceBodyY + 58,
+                    MirroredPartId = RelativeId.Default,
+                    AltPartId = null,
+                    SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImageDir, @"candace_fronthair_backwoods.png")))
+                },
+                new GirlPartDataMod(Ids.BackhairPart2, InsertStyle.replace)
+                {
+                    PartType = GirlPartType.BACKHAIR,
+                    PartName = "backwoodsBackhairCandace",
+                    X = _candaceBodyX + 251,
+                    Y = _candaceBodyY - 113,
+                    MirroredPartId = RelativeId.Default,
+                    AltPartId = null,
+                    SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImageDir, @"candace_backhair_backwoods.png")))
                 }
             },
             outfits = new List<IGirlSubDataMod<ExpandedOutfitDefinition>>()
@@ -55,8 +85,17 @@ internal static partial class Styles
                     OutfitPartId = Ids.OutfitPart1,
                     IsNSFW = false,
                     HideNipples = true,
-                    TightlyPaired = false,
-                    PairHairstyleId = null
+                    TightlyPaired = true,
+                    PairHairstyleId = Ids.Style1
+                },
+                new OutfitDataMod(Ids.Style2, InsertStyle.replace)
+                {
+                    Name = "Backwoods",
+                    OutfitPartId = Ids.OutfitPart2,
+                    IsNSFW = false,
+                    HideNipples = true,
+                    TightlyPaired = true,
+                    PairHairstyleId = Ids.Style2
                 }
             },
             hairstyles = new List<IGirlSubDataMod<ExpandedHairstyleDefinition>>()
@@ -67,8 +106,17 @@ internal static partial class Styles
                     FrontHairPartId = Ids.FronthairPart1,
                     BackHairPartId = Ids.BackhairPart1,
                     IsNSFW = false,
-                    TightlyPaired = false,
+                    TightlyPaired = true,
                     PairOutfitId = Ids.Style1
+                },
+                new HairstyleDataMod(Ids.Style2, InsertStyle.replace)
+                {
+                    Name = "Backwoods",
+                    FrontHairPartId = Ids.FronthairPart2,
+                    BackHairPartId = Ids.BackhairPart2,
+                    IsNSFW = false,
+                    TightlyPaired = true,
+                    PairOutfitId = Ids.Style2
                 }
             }
         });

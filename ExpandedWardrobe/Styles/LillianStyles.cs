@@ -56,6 +56,36 @@ internal static partial class Styles
                     MirroredPartId = RelativeId.Default,
                     AltPartId = null,
                     SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImageDir, "lillian_backhair_sceneQueen.png")))
+                },
+                new GirlPartDataMod(Ids.OutfitPart2, InsertStyle.replace)
+                {
+                    PartType = GirlPartType.OUTFIT,
+                    PartName = "lolitaOutfitLillian",
+                    X = _lillianBodyX - 149,
+                    Y = _lillianBodyY - 227,
+                    MirroredPartId = Ids.OutfitPart1Mirror,
+                    AltPartId = null,
+                    SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImageDir, "lillian_outfit_lolita.png")))
+                },
+                new GirlPartDataMod(Ids.FronthairPart2, InsertStyle.replace)
+                {
+                    PartType = GirlPartType.FRONTHAIR,
+                    PartName = "lolitaFronthairLillian",
+                    X = _lillianBodyX - 7,
+                    Y = _lillianBodyY + 67,
+                    MirroredPartId = RelativeId.Default,
+                    AltPartId = null,
+                    SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImageDir, "lillian_fronthair_lolita.png")))
+                },
+                new GirlPartDataMod(Ids.BackhairPart2, InsertStyle.replace)
+                {
+                    PartType = GirlPartType.BACKHAIR,
+                    PartName = "lolitaBackhairLillian",
+                    X = _lillianBodyX - 48,
+                    Y = _lillianBodyY - 185,
+                    MirroredPartId = RelativeId.Default,
+                    AltPartId = null,
+                    SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImageDir, "lillian_backhair_lolita.png")))
                 }
             },
             outfits = new List<IGirlSubDataMod<ExpandedOutfitDefinition>>()
@@ -68,6 +98,15 @@ internal static partial class Styles
                     HideNipples = true,
                     TightlyPaired = true,
                     PairHairstyleId = Ids.Style1
+                },
+                new OutfitDataMod(Ids.Style2, InsertStyle.replace)
+                {
+                    Name = "Lolita",
+                    OutfitPartId = Ids.OutfitPart2,
+                    IsNSFW = false,
+                    HideNipples = true,
+                    TightlyPaired = true,
+                    PairHairstyleId = Ids.Style2
                 }
             },
             hairstyles = new List<IGirlSubDataMod<ExpandedHairstyleDefinition>>()
@@ -81,6 +120,16 @@ internal static partial class Styles
                     HideSpecials = false,
                     TightlyPaired = true,
                     PairOutfitId = Ids.Style1
+                },
+                new HairstyleDataMod(Ids.Style2, InsertStyle.replace)
+                {
+                    Name = "Lolita",
+                    BackHairPartId = Ids.BackhairPart2,
+                    FrontHairPartId = Ids.FronthairPart2,
+                    IsNSFW = false,
+                    HideSpecials = false,
+                    TightlyPaired = true,
+                    PairOutfitId = Ids.Style2
                 }
             }
         });

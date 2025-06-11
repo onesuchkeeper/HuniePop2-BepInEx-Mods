@@ -46,6 +46,36 @@ internal static partial class Styles
                     MirroredPartId = RelativeId.Default,
                     AltPartId = null,
                     SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImageDir, @"zoey_outfit_extraterrestrial.png")))
+                },
+                new GirlPartDataMod(Ids.BackhairPart2, InsertStyle.replace)
+                {
+                    PartType = GirlPartType.BACKHAIR,
+                    PartName = "freakshitBackhairZoey",
+                    X = _zoeyBodyX + 5,
+                    Y = _zoeyBodyY + 46,
+                    MirroredPartId = RelativeId.Default,
+                    AltPartId = null,
+                    SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImageDir, @"zoey_backhair_freakshit.png")))
+                },
+                new GirlPartDataMod(Ids.FronthairPart2, InsertStyle.replace)
+                {
+                    PartType = GirlPartType.FRONTHAIR,
+                    PartName = "freakshitFronthairZoey",
+                    X = _zoeyBodyX + 23,
+                    Y = _zoeyBodyY + 19,
+                    MirroredPartId = RelativeId.Default,
+                    AltPartId = null,
+                    SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImageDir, @"zoey_fronthair_freakshit.png")))
+                },
+                new GirlPartDataMod(Ids.OutfitPart2, InsertStyle.replace)
+                {
+                    PartType = GirlPartType.OUTFIT,
+                    PartName = "freakshitOutfitZoey",
+                    X = _zoeyBodyX - 11,
+                    Y = _zoeyBodyY - 247,
+                    MirroredPartId = RelativeId.Default,
+                    AltPartId = null,
+                    SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImageDir, @"zoey_outfit_freakshit.png")))
                 }
             },
             outfits = new List<IGirlSubDataMod<ExpandedOutfitDefinition>>()
@@ -58,6 +88,15 @@ internal static partial class Styles
                     HideNipples = true,
                     TightlyPaired = true,
                     PairHairstyleId = Ids.Style1,
+                },
+                new OutfitDataMod(Ids.Style2, InsertStyle.replace)
+                {
+                    Name = "Freak Shit",
+                    OutfitPartId = Ids.OutfitPart2,
+                    IsNSFW = false,
+                    HideNipples = true,
+                    TightlyPaired = true,
+                    PairHairstyleId = Ids.Style2,
                 }
             },
             hairstyles = new List<IGirlSubDataMod<ExpandedHairstyleDefinition>>()
@@ -71,6 +110,16 @@ internal static partial class Styles
                     HideSpecials = false,
                     TightlyPaired = true,
                     PairOutfitId = Ids.Style1
+                },
+                new HairstyleDataMod(Ids.Style2, InsertStyle.replace)
+                {
+                    Name = "Freak Shit",
+                    BackHairPartId = Ids.BackhairPart2,
+                    FrontHairPartId = Ids.FronthairPart2,
+                    IsNSFW = false,
+                    HideSpecials = false,
+                    TightlyPaired = true,
+                    PairOutfitId = Ids.Style2
                 }
             }
         });

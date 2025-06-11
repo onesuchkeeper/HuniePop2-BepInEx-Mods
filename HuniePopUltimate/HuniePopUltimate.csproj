@@ -25,6 +25,10 @@
   <ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.2" PrivateAssets="all" />
   </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NVorbis" Version="0.10.5" />
+  </ItemGroup>
   
   <ItemGroup>
     <ProjectReference Include="..\..\ETAR\Plugins\AssetStudio\ETAR.AssetStudioPlugin.Extractor\ETAR.AssetStudioPlugin.Extractor.csproj" />

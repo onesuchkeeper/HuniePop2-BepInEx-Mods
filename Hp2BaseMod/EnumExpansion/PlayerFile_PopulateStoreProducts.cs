@@ -48,6 +48,7 @@ public static class PlayerFile_PopulateStoreProducts
         {
             var modTotalWeight = modSmoothiePool.Sum(x => x.weight);
             var baseTotalWeight = smoothiePool.Sum(x => x.weight);
+
             if (WeightedBool(baseTotalWeight, modTotalWeight))
             {
                 var randomSmoothie = PopWeighted(modSmoothiePool, modTotalWeight);
@@ -241,25 +242,23 @@ public static class PlayerFile_PopulateStoreProducts
         var selectedWeight = Random.Range(0, totalWeight);
         var currentWeight = 0;
 
-        (T value, int weight) selection = default;
         foreach (var weightedValue in values)
         {
             currentWeight += weightedValue.weight;
 
             if (currentWeight >= selectedWeight)
             {
-                selection = weightedValue;
-                break;
+                values.Remove(weightedValue);
+                return weightedValue;
             }
         }
 
-        values.Remove(selection);
-        return selection;
+        throw new System.Exception("Failed to pop weighted");
     }
 
     private static (T value, int weight) PopWeighted<T>(List<(T value, int weight)> values)
         => PopWeighted(values, values.Sum(x => x.weight));
 
     private static bool WeightedBool(int weightFalse, int weightTrue)
-        => weightTrue >= Random.Range(0, weightFalse + weightTrue);
+        => weightTrue > Random.Range(0, weightFalse + weightTrue);
 }

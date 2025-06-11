@@ -114,9 +114,9 @@ namespace Hp2BaseMod.GameDataInfo
         /// <inheritdoc/>
         public void RequestInternals(AssetProvider assetProvider)
         {
-            Backgrounds?.ForEach(x => x.RequestInternals(assetProvider));
-            ArriveBundleList?.ForEach(x => x.RequestInternals(assetProvider));
-            DepartBundleList?.ForEach(x => x.RequestInternals(assetProvider));
+            Backgrounds?.ForEach(x => x?.RequestInternals(assetProvider));
+            ArriveBundleList?.ForEach(x => x?.RequestInternals(assetProvider));
+            DepartBundleList?.ForEach(x => x?.RequestInternals(assetProvider));
             BgMusic?.RequestInternals(assetProvider);
             FinderLocationIcon?.RequestInternals(assetProvider);
         }

@@ -30,7 +30,7 @@ public class TextureInfoExternal : ITextureInfo
     {
         if (_texture == null)
         {
-            _texture = TextureUtility.LoadFromPath(_path);
+            _texture = TextureUtility.LoadFromPng(_path);
             _texture.filterMode = _filter;
 
             if (_renderSteps != null)

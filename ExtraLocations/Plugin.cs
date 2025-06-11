@@ -134,7 +134,7 @@ public class Plugin : BaseUnityPlugin
         {
             LocationName = "Airplane Bathroom",
             LocationType = LocationType.DATE,
-            NonStopOptionText = "I think the [[highlight]AIRPLANE BATHROOM] may have awoken something im me... Not sure how I feel about that...",
+            NonStopOptionText = "I think the [[highlight]AIRPLANE BATHROOM] may have awoken something in me... Not sure how I feel about that...",
             BgMusic = new AudioKlipInfo()
             {
                 AudioClipInfo = new AudioClipInfo()

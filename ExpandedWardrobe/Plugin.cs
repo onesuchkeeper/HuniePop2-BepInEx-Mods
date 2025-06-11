@@ -30,6 +30,8 @@ internal class Plugin : BaseUnityPlugin
         Styles.AddLillianStyles();
         Styles.AddLolaStyles();
         Styles.AddMoxieStyles();
+        Styles.AddNoraStyles();
+        Styles.AddPollyStyles();
         Styles.AddJewnStyles();
         Styles.AddSarahStyles();
         Styles.AddZoeyStyles();

@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using BepInEx;
 using HarmonyLib;
+using Hp2BaseMod.Extension.IEnumerableExtension;
 using Hp2BaseMod.GameDataInfo;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
@@ -19,6 +20,28 @@ namespace Hp2BaseMod
         private static readonly string _defaultDataDir = Path.Combine(Paths.PluginPath, "Hp2BaseMod", "DefaultDataMods");
         private static readonly bool _isDevMode = false;
         private static readonly string _defaultDataPath = @"C:\Git\onesuchkeeper\Hp2BaseMod\Hp2BaseMod\DefaultData.cs";
+
+        //in game this info is stored in the location manager which isn't instantiated at this point
+        //I don't love it but for now I'll just copy it here
+        private static Dictionary<int, ClockDaytimeType> _locationIdToDateTime = new Dictionary<int, ClockDaytimeType>(){
+            {9, ClockDaytimeType.MORNING},
+            {10, ClockDaytimeType.MORNING},
+            {11, ClockDaytimeType.MORNING},
+            {12, ClockDaytimeType.AFTERNOON},
+            {13, ClockDaytimeType.AFTERNOON},
+            {14, ClockDaytimeType.AFTERNOON},
+            {15, ClockDaytimeType.EVENING},
+            {16, ClockDaytimeType.EVENING},
+            {17, ClockDaytimeType.EVENING},
+            {18, ClockDaytimeType.NIGHT},
+            {19, ClockDaytimeType.NIGHT},
+            {20, ClockDaytimeType.NIGHT},
+        };
+
+        private static HashSet<int> _specialDateLocationIds = new HashSet<int>(){
+            23,//outerspace
+            26,//airplane bathroom
+        };
 
         public static void Mod(GameData gameData)
         {
@@ -177,6 +200,19 @@ namespace Hp2BaseMod
                                     HairstyleId = new RelativeId(-1, (int)def.dateGirlStyleType),
                                     OutfitId = new RelativeId(-1, (int)def.dateGirlStyleType)
                                 };
+                            }
+
+                            if (def.locationType == LocationType.DATE && !_specialDateLocationIds.Contains(def.id))
+                            {
+                                expansion.AllowNormal = true;
+                                expansion.PostBoss = false;
+                                expansion.AllowNonStop = true;
+                            }
+
+                            if (_locationIdToDateTime.TryGetValue(def.id, out var time))
+                            {
+                                expansion.DateTimes ??= new List<ClockDaytimeType>();
+                                expansion.DateTimes.Add(time);
                             }
                         }
                     }

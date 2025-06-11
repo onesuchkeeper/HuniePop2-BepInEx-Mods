@@ -15,16 +15,18 @@ public class TextureInfoRaw : ITextureInfo
     private int _height;
     private IEnumerable<ITextureRenderStep> _renderSteps;
     private FilterMode _filterMode;
+    private TextureWrapMode _wrapMode;
 
     private Texture2D _texture;
 
-    public TextureInfoRaw(int width, int height, byte[] data, TextureFormat format, FilterMode filterMode, IEnumerable<ITextureRenderStep> renderSteps)
+    public TextureInfoRaw(int width, int height, byte[] data, TextureFormat format, FilterMode filterMode, TextureWrapMode wrapMode, IEnumerable<ITextureRenderStep> renderSteps)
     {
         _data = data ?? throw new ArgumentNullException(nameof(data));
         _width = width;
         _height = height;
         _format = format;
         _filterMode = filterMode;
+        _wrapMode = wrapMode;
         _renderSteps = renderSteps;
     }
 
@@ -34,6 +36,7 @@ public class TextureInfoRaw : ITextureInfo
         {
             _texture = TextureUtility.LoadFromRaw(_data, _width, _height, _format);
             _texture.filterMode = _filterMode;
+            _texture.wrapMode = _wrapMode;
 
             if (_renderSteps != null)
             {
@@ -43,6 +46,8 @@ public class TextureInfoRaw : ITextureInfo
 
         return _texture;
     }
+
+    public Vector2 GetSize() => new Vector2(_width, _height);
 
     public void RequestInternals(AssetProvider assetProvider)
     {

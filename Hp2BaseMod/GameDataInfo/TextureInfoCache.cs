@@ -28,7 +28,7 @@ public class TextureInfoCache : ITextureInfo
 
         if (File.Exists(_path))
         {
-            _texture = TextureUtility.LoadFromPath(_path);
+            _texture = TextureUtility.LoadFromPng(_path);
             return _texture;
         }
 

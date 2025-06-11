@@ -11,13 +11,22 @@ namespace Hp2BaseMod.Utility
 {
     public static class TextureUtility
     {
-        public static Sprite SpriteFromPath(string path) => TextureToSprite(LoadFromPath(path), Vector2.zero);
+        public static Sprite SpriteFromPng(string path) => TextureToSprite(LoadFromPng(path), Vector2.zero);
 
-        public static Texture2D LoadFromPath(string path) => LoadFromBytes(File.ReadAllBytes(path), TextureFormat.ARGB32);
+        public static Texture2D LoadFromPng(string path)
+        {
+            if (!File.Exists(path))
+            {
+                ModInterface.Log.LogWarning($"Failed to load png file {path}");
+                return null;
+            }
+
+            return LoadFromBytes(File.ReadAllBytes(path), TextureFormat.ARGB32);
+        }
 
         public static Texture2D LoadFromBytes(byte[] bytes, TextureFormat format)
         {
-            var texture = new Texture2D(2, 2, format, false);
+            var texture = new Texture2D(2, 2);
             texture.LoadImage(bytes);
 
             return texture;
@@ -92,8 +101,6 @@ namespace Hp2BaseMod.Utility
         public static IEnumerable Foo()
         {
             yield return endOfFrame;
-
-
         }
 
         public static Texture2D Duplicate(Texture2D texture2D)

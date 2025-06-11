@@ -51,6 +51,7 @@ namespace RepeatThreesome
         private static void On_CutsceneCompleteEvent()
         {
             Game.Session.Cutscenes.CutsceneCompleteEvent -= On_CutsceneCompleteEvent;
+
             var newRoundCutscene = _newRoundCutscene.GetValue<CutsceneDefinition>(Game.Session.Puzzle);
             var roundOverCutscene = _roundOverCutscene.GetValue<CutsceneDefinition>(Game.Session.Puzzle);
 

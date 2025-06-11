@@ -2,11 +2,10 @@ using System.Collections.Generic;
 using System.Reflection;
 using DG.Tweening;
 using HarmonyLib;
-using Hp2BaseMod;
 using Hp2BaseMod.Extension;
 using Hp2BaseMod.Utility;
 
-namespace SingleDate;
+namespace Hp2BaseMod;
 
 [HarmonyPatch(typeof(CutsceneManager))]
 internal static class CutsceneManagerPatch
@@ -21,12 +20,7 @@ internal static class CutsceneManagerPatch
     [HarmonyPrefix]
     public static bool NextStep(CutsceneManager __instance, bool resetSequence = true)
     {
-        //Some cutscene steps select a girl at random, but on a single date there's only one valid selection
-        //this forces random selection to the girl on the right which is what we use for single dates
-        if (!State.IsSingleDate)
-        {
-            return true;
-        }
+        //Some cutscene steps select a girl at random
 
         var branchStepIndices = _branchStepIndices.GetValue<List<int>>(__instance);
         var branches = _branches.GetValue<List<List<CutsceneStepSubDefinition>>>(__instance);
@@ -53,10 +47,12 @@ internal static class CutsceneManagerPatch
             return true;
         }
 
+        var args = new RandomDollSelectedArgs();
+        ModInterface.Events.NotifyRandomDollSelected(args);
+        var uiDoll = args.SelectedDoll ?? Game.Session.gameCanvas.GetDoll(MathUtils.RandomBool());
+
         //we're committed, no more return trues, apply changes to the actual branchStepIndices and use that from now on
         //and set the other values
-        ModInterface.Log.LogInfo("Forcing cutscene random girl selection to the right for single date");
-
         var stepSequence = _stepSequence.GetValue<Sequence>(__instance);
 
         if (resetSequence)
@@ -73,7 +69,7 @@ internal static class CutsceneManagerPatch
         CutsceneManagerUtility.HandleStepType(currentStep,
             branches,
             branchStepIndices,
-            Game.Session.gameCanvas.dollRight,
+            uiDoll,
             stepSequence);
 
         return false;

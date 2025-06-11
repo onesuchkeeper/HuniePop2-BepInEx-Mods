@@ -41,11 +41,11 @@ public static class UiPrefabs
 
     public static void InitExternals()
     {
-        _singleUiAppPairSlotBg = TextureUtility.SpriteFromPath(Path.Combine(SingleDate.Plugin.ImagesDir, "ui_app_pairs_pair_bg.png"));
-        _singleUiAppPairSlotBgOver = TextureUtility.SpriteFromPath(Path.Combine(SingleDate.Plugin.ImagesDir, "ui_app_pairs_pair_bg_over.png"));
-        _sensitivityIcon = TextureUtility.SpriteFromPath(Path.Combine(SingleDate.Plugin.ImagesDir, "ui_app_pair_icon_sensitivity.png"));
-        _sensitivityPlate = TextureUtility.SpriteFromPath(Path.Combine(SingleDate.Plugin.ImagesDir, "ui_app_pair_sensitivity.png"));
-        _sensitivityMeter = TextureUtility.SpriteFromPath(Path.Combine(SingleDate.Plugin.ImagesDir, "ui_app_pair_meter_sensitivity.png"));
+        _singleUiAppPairSlotBg = TextureUtility.SpriteFromPng(Path.Combine(SingleDate.Plugin.ImagesDir, "ui_app_pairs_pair_bg.png"));
+        _singleUiAppPairSlotBgOver = TextureUtility.SpriteFromPng(Path.Combine(SingleDate.Plugin.ImagesDir, "ui_app_pairs_pair_bg_over.png"));
+        _sensitivityIcon = TextureUtility.SpriteFromPng(Path.Combine(SingleDate.Plugin.ImagesDir, "ui_app_pair_icon_sensitivity.png"));
+        _sensitivityPlate = TextureUtility.SpriteFromPng(Path.Combine(SingleDate.Plugin.ImagesDir, "ui_app_pair_sensitivity.png"));
+        _sensitivityMeter = TextureUtility.SpriteFromPng(Path.Combine(SingleDate.Plugin.ImagesDir, "ui_app_pair_meter_sensitivity.png"));
 
         if (Directory.Exists(_charmsDir))
         {

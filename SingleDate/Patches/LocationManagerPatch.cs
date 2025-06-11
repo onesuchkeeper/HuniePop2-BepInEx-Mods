@@ -49,11 +49,17 @@ internal static class LocationManagerPatch
     bool initialArrive = false)
     {
         if (__instance.currentLocation.locationType == LocationType.SPECIAL
-            || __instance.currentLocation.locationType == LocationType.HUB
-            || !State.IsSingleDate)
+            || __instance.currentLocation.locationType == LocationType.HUB)
         {
             return;
         }
+
+        if (!State.IsSingleDate)
+        {
+            __instance.actionBubblesWindow = UiPrefabs.DefaultDateBubbles;
+            return;
+        }
+        __instance.actionBubblesWindow = UiPrefabs.SingleDateBubbles;
 
         if (Game.Session.gameCanvas.dollRight.girlDefinition != __instance.currentGirlPair.girlDefinitionTwo)
         {
@@ -65,42 +71,5 @@ internal static class LocationManagerPatch
 
         Game.Session.gameCanvas.cellphone.rectTransform.anchoredPosition = new Vector2(Game.Session.gameCanvas.cellphone.xValues.y,
             Game.Session.gameCanvas.cellphone.rectTransform.anchoredPosition.y);
-    }
-
-    [HarmonyPatch("OnLocationSettled")]
-    [HarmonyPrefix]
-    private static bool OnLocationSettled(LocationManager __instance)
-    {
-        if (!__instance.AtLocationType(LocationType.SIM))
-        {
-            __instance.actionBubblesWindow = UiPrefabs.DefaultDateBubbles;
-            return true;
-        }
-
-        if (!State.IsSingle(__instance.currentGirlPair))
-        {
-            __instance.actionBubblesWindow = UiPrefabs.DefaultDateBubbles;
-            return true;
-        }
-        __instance.actionBubblesWindow = UiPrefabs.SingleDateBubbles;
-
-        var arrivalCutscene = _arrivalCutscene.GetValue<CutsceneDefinition>(__instance);
-
-        _isLocked.SetValue(__instance, false);
-        Game.Session.Logic.ProcessBundleList(__instance.currentLocation.departBundleList, false);
-
-        Game.Manager.Windows.ShowWindow(__instance.actionBubblesWindow, false);
-
-        if (arrivalCutscene == null)
-        {
-            ModInterface.Log.LogInfo("Forcing greeting to girl on right for single date");
-
-            var greetingIndex = Mathf.Clamp(Game.Persistence.playerFile.daytimeElapsed % 4, 0, __instance.dtGreetings.Length - 1);
-
-            Game.Session.gameCanvas.dollRight.ReadDialogTrigger(__instance.dtGreetings[greetingIndex], DialogLineFormat.PASSIVE, -1);
-        }
-
-        _arrivalCutscene.SetValue(__instance, null);
-        return false;
     }
 }
