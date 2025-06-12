@@ -61,10 +61,6 @@ internal class ExpandedUiAppLevelPlate
     private static readonly FieldInfo _tooltip = AccessTools.Field(typeof(UiAppLevelPlate), "_tooltip");
     private static readonly MethodInfo m_resize = AccessTools.Method(typeof(UiTooltipItem), "Resize");
 
-    public RelativeId ExpTypeId;
-
-    public IExpInfo _display;
-
     public IExpInfo ExpDisplay;
     protected UiAppLevelPlate _core;
     private ExpandedUiAppLevelPlate(UiAppLevelPlate core)

@@ -84,6 +84,7 @@ public class ExpandedHubManager
                     });
 
                 var locPool = locs.ToList();
+
                 _nonStopLocs = [
                     locPool.PopRandom(),
                     locPool.PopRandom(),

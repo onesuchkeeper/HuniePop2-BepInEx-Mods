@@ -34,14 +34,8 @@ public static class State
     public static bool IsSingleDate => _isSingleDate;
     private static bool _isSingleDate;
 
-    public static bool SingleUpsetHint => _save.SingleUpsetHint;
-    public static bool RequireLoversBeforeThreesome => _save.RequireLoversBeforeThreesome;
-    public static bool SingleDateBaggage => _save.SingleDateBaggage;
-
-    public static int MaxSingleGirlRelationshipLevel => _save.MaxSingleGirlRelationshipLevel;
-    public static int MaxSensitivityLevel => _save.MaxSensitivityLevel;
     public static int SensitivityExp => SaveFile.SensitivityExp;
-    public static float SensitivityPercentage => SaveFile.SensitivityExp / (_save.MaxSensitivityLevel * 6f);
+    public static float SensitivityPercentage => SaveFile.SensitivityExp / (Plugin.Instance.MaxSensitivityLevel * 6f);
 
     public static bool IsSingle(GirlPairDefinition def)
     {
@@ -79,7 +73,7 @@ public static class State
         ModInterface.SetSourceSave(State.ModId, JsonConvert.SerializeObject(_save));
     }
 
-    public static void On_PostPersistenceReset()
+    public static void On_PostPersistenceReset(SaveData data)
     {
         var saveStr = ModInterface.GetSourceSave(State.ModId);
 

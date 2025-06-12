@@ -110,7 +110,7 @@ internal static partial class Styles
                 },
                 new OutfitDataMod(Ids.Style3, InsertStyle.replace)
                 {
-                    Name = "Momo",
+                    Name = "Neko",
                     OutfitPartId = Ids.OutfitPart3,
                     IsNSFW = false,
                     HideNipples = true,
@@ -132,7 +132,7 @@ internal static partial class Styles
                 },
                 new HairstyleDataMod(Ids.Style3, InsertStyle.replace)
                 {
-                    Name = "Momo",
+                    Name = "Neko",
                     BackHairPartId = Ids.BackhairPart3,
                     FrontHairPartId = Ids.FronthairPart3,
                     IsNSFW = false,

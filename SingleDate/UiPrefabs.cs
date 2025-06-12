@@ -97,12 +97,12 @@ public static class UiPrefabs
         }
     }
 
-    private static Vector2 _charmScale = new Vector2(14 / 45f, 14 / 45f);
+    private static TextureRsScale _charmScale = new TextureRsScale(new Vector2(14 / 45f, 14 / 45f));
 
     private static Sprite GetCharmSprite(string name) => new SpriteInfoTexture(new TextureInfoCache(
         Path.Combine(SingleDate.Plugin.ImagesDir, $"{name}Charm.png"),
         new TextureInfoExternal(Path.Combine(_charmsDir, $"{name}.png"), FilterMode.Bilinear, [
-            new TextureRsScale(_charmScale)
+            _charmScale
         ])
     )).GetSprite();
 

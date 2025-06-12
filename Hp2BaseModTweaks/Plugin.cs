@@ -18,9 +18,17 @@ namespace Hp2BaseModTweaks;
 [BepInDependency("OSK.BepInEx.Hp2BaseMod", "1.0.0")]
 public class Plugin : BaseUnityPlugin
 {
+    public static Plugin Instance => _instance;
+    private static Plugin _instance;
+
     internal static readonly string RootDir = Path.Combine(Paths.PluginPath, MyPluginInfo.PLUGIN_NAME);
     internal static readonly string ImagesDir = Path.Combine(RootDir, "images");
-    internal static readonly string DacDir = Path.Combine(Paths.PluginPath, "..", "..", "Digital Art Collection");
+
+    private static readonly string ConfigGeneralName = "General";
+
+    public string DigitalArtCollectionDir => this.Config.TryGetEntry<string>(ConfigGeneralName, nameof(DigitalArtCollectionDir), out var config)
+        ? config.Value
+        : string.Empty;
 
     internal static TweaksSaveData Save => _save;
     private static TweaksSaveData _save;
@@ -34,6 +42,10 @@ public class Plugin : BaseUnityPlugin
 
     private void Awake()
     {
+        _instance = this;
+        Config.SaveOnConfigSet = false;
+        this.Config.Bind(ConfigGeneralName, nameof(DigitalArtCollectionDir), Path.Combine(Paths.PluginPath, "..", "..", "Digital Art Collection"), "Directory containing the Huniepop 2 Digital Art Collection Dlc");
+
         ModInterface.RegisterInterModValue(ModId, "ModCredits", new Dictionary<string, (string ModImagePath, List<(string CreditButtonPath, string CreditButtonOverPath, string RedirectLink)> CreditEntries)>() {
             {MyPluginInfo.PLUGIN_GUID, (
                 Path.Combine(ImagesDir, "CreditsLogo.png"),
@@ -70,29 +82,67 @@ public class Plugin : BaseUnityPlugin
         ModInterface.Events.RequestStyleChange += RandomizeStyles.On_RequestStyleChange;
         ModInterface.Events.PostCodeSubmitted += On_PostCodeSubmitted;
 
-        ModInterface.Events.PostPersistenceReset += () => Application.runInBackground = ModInterface.GameData.IsCodeUnlocked(ToggleCodeMods.RunInBackgroundCodeId);
-
         ModInterface.Assets.RequestInternal(typeof(Sprite), Common.AllSprites());
         ModInterface.Assets.RequestInternal(typeof(AudioClip), Common.Sfx_PhoneAppButtonPressed);
 
         ModInterface.Events.PreDataMods += On_PreDataMods;
         ModInterface.Events.PostDataMods += On_PostDataMods;
         ModInterface.Events.PreGameSave += On_PreGameSave;
+        ModInterface.Events.PrePersistenceReset += On_PrePersistenceReset;
         ModInterface.Events.PostPersistenceReset += On_PostPersistenceReset;
         ModInterface.Events.RequestUnlockedPhotos += On_RequestUnlockedPhotos;
-
-        ModInterface.AddCommand(new SetIconCommand());
 
         new Harmony(MyPluginInfo.PLUGIN_GUID).PatchAll();
     }
 
-    private void On_PreGameSave()
+    private void On_PrePersistenceReset(SaveData data)
     {
-        ModInterface.SetSourceSave(ModId, JsonConvert.SerializeObject(_save));
+        if (File.Exists(this.Config.ConfigFilePath))
+        {
+            foreach (var codeId in ModInterface.Data.GetIds(GameDataType.Code).Where(x => x.SourceId == -1 || x.SourceId == ModId))
+            {
+                var code = ModInterface.GameData.GetCode(codeId);
+                var key = $"{codeId}{code.name}";
+
+                var config = this.Config.Bind("Codes", key, false, code.codeType == CodeType.TOGGLE ? $"False:{code.offMessage}, True:{code.onMessage}" : code.onMessage);
+
+                var runtimeId = ModInterface.Data.GetRuntimeDataId(GameDataType.Code, codeId);
+                if (config.Value)
+                {
+                    if (!data.unlockedCodes.Contains(runtimeId))
+                    {
+                        data.unlockedCodes.Add(runtimeId);
+                    }
+                }
+                else
+                {
+                    data.unlockedCodes.Remove(runtimeId);
+                }
+            }
+        }
     }
 
-    private void On_PostPersistenceReset()
+    private void On_PostPersistenceReset(SaveData data)
     {
+        var handledCodes = ModInterface.Data.GetIds(GameDataType.Code).Where(x => x.SourceId == -1 || x.SourceId == ModId);
+
+        if (!File.Exists(this.Config.ConfigFilePath))
+        {
+            foreach (var codeId in handledCodes)
+            {
+                var code = ModInterface.GameData.GetCode(codeId);
+                var key = $"{codeId}{code.name}";
+
+                var config = this.Config.Bind("Codes", key, false, code.codeType == CodeType.TOGGLE ? $"False:{code.offMessage}, True:{code.onMessage}" : code.onMessage);
+                config.Value = ModInterface.GameData.IsCodeUnlocked(codeId);
+            }
+        }
+
+        Config.SaveOnConfigSet = true;
+        Config.Save();
+
+        Application.runInBackground = data.unlockedCodes.Contains(ModInterface.Data.GetRuntimeDataId(GameDataType.Code, ToggleCodeMods.RunInBackgroundCodeId));
+
         var saveStr = ModInterface.GetSourceSave(ModId);
 
         if (!string.IsNullOrWhiteSpace(saveStr))
@@ -120,6 +170,11 @@ public class Plugin : BaseUnityPlugin
                 girl.specialEffectOffset = kyu.specialEffectOffset;
             }
         }
+    }
+
+    private void On_PreGameSave()
+    {
+        ModInterface.SetSourceSave(ModId, JsonConvert.SerializeObject(_save));
     }
 
     /// <summary>
@@ -332,7 +387,7 @@ public class Plugin : BaseUnityPlugin
             CellphoneMiniHead = new SpriteInfoInternal("ui_title_icon_kyu")
         });
 
-        if (Directory.Exists(DacDir))
+        if (Directory.Exists(DigitalArtCollectionDir))
         {
             CellphoneSprites.AddUiCellphoneSprites("Jewn", Girls.JewnId, new Vector2(2636, 1990), new Vector2(3911, 4711));
             CellphoneSprites.AddUiCellphoneSprites("Moxie", Girls.MoxieId, new Vector2(2411, 2287), new Vector2(3900, 5068));
@@ -359,8 +414,27 @@ public class Plugin : BaseUnityPlugin
             .ForEach(x => x.partIndexEyesGlow = x.partIndexEyes);
     }
 
-    private void On_PostCodeSubmitted()
+    private void On_PostCodeSubmitted(CodeDefinition codeDefinition)
     {
-        Application.runInBackground = ModInterface.GameData.IsCodeUnlocked(ToggleCodeMods.RunInBackgroundCodeId);
+        if (codeDefinition == null)
+        {
+            ModInterface.Log.LogInfo("null code");
+            return;
+        }
+
+        var id = ModInterface.Data.GetDataId(GameDataType.Code, codeDefinition.id);
+
+        if (id.SourceId == -1 || id.SourceId == ModId)
+        {
+            if (this.Config.TryGetEntry<bool>("Codes", $"{id}{codeDefinition.name}", out var config))
+            {
+                config.Value = ModInterface.GameData.IsCodeUnlocked(id);
+            }
+        }
+
+        if (id == ToggleCodeMods.RunInBackgroundCodeId)
+        {
+            Application.runInBackground = ModInterface.GameData.IsCodeUnlocked(ToggleCodeMods.RunInBackgroundCodeId);
+        }
     }
 }

@@ -6,7 +6,6 @@ using BepInEx.Bootstrap;
 using Hp2BaseMod;
 using Hp2BaseMod.Extension.IEnumerableExtension;
 using Hp2BaseMod.Extension.StringExtension;
-using Newtonsoft.Json;
 
 namespace Hp2Randomizer;
 
@@ -14,7 +13,9 @@ namespace Hp2Randomizer;
 [BepInDependency("OSK.BepInEx.Hp2BaseMod", "1.0.0")]
 public class Plugin : BaseUnityPlugin
 {
-    internal static SaveFile ModConfig;
+    internal static Plugin Instance => _instance;
+    private static Plugin _instance;
+
     private static int _modId;
 
     /// <summary>
@@ -28,14 +29,40 @@ public class Plugin : BaseUnityPlugin
     private static Dictionary<RelativeId, Action<GirlDefinition, GirlDefinition>> _swapHandlers = new Dictionary<RelativeId, Action<GirlDefinition, GirlDefinition>>();
 
     private DialogTriggerDefinition[] _moanTriggers;
+    private bool _keepSwappedWings;
+
+    public static readonly string ConfigGeneralName = "General";
+
+    public static readonly string ConfigSeedName = "Seed";
+    public static readonly string ConfigRandomizeNamesName = "RandomizeNames";
+    public static readonly string ConfigRandomizeBaggageName = "RandomizeBaggage";
+    public static readonly string ConfigRandomizePairsName = "RandomizePairs";
+    public static readonly string ConfigRandomizeAffectionName = "RandomizeAffection";
+    public static readonly string ConfigIncludeKyuName = "IncludeKyu";
+    public static readonly string ConfigIncludeNymphojinnName = "IncludeNymphojinn";
+    public static readonly string ConfigForceSpecialNormalSwapName = "ForceSpecialNormalSwap";
+    public static readonly string ConfigSwappedSpecialKeepWingsName = "SwappedSpecialKeepWings";
+    public static readonly string ConfigDisableName = "Disable";
 
     private void Awake()
     {
+        _instance = this;
+
+        this.Config.Bind(ConfigGeneralName, ConfigSeedName, -1, "Randomizer seed. Set to -1 for a random seed.");
+        this.Config.Bind(ConfigGeneralName, ConfigRandomizeNamesName, true, "If character names will be randomized.");
+        this.Config.Bind(ConfigGeneralName, ConfigRandomizeBaggageName, true, "If character baggages will be randomized.");
+        this.Config.Bind(ConfigGeneralName, ConfigRandomizePairsName, true, "If character pairings will be randomized.");
+        this.Config.Bind(ConfigGeneralName, ConfigRandomizeAffectionName, true, "If character favorite and least favorite affection will be randomized.");
+        this.Config.Bind(ConfigGeneralName, ConfigIncludeKyuName, true, "If Kyu should be included in the randomized characters.");
+        this.Config.Bind(ConfigGeneralName, ConfigIncludeNymphojinnName, true, "If the Nymphojinn should be included in the randomized characters.");
+        this.Config.Bind(ConfigGeneralName, ConfigForceSpecialNormalSwapName, true, "If special characters should always be swapped with a normal character.");
+        this.Config.Bind(ConfigGeneralName, ConfigSwappedSpecialKeepWingsName, true, "If special characters should keep their wings when swapped.");
+        this.Config.Bind(ConfigGeneralName, ConfigDisableName, false, "Disables the randomizer entirely.");
+
         _modId = ModInterface.GetSourceId(MyPluginInfo.PLUGIN_GUID);
 
         ModInterface.AddCommand(new SetSeedCommand());
 
-        ModInterface.Events.PreGameSave += On_PreSave;
         ModInterface.Events.PostDataMods += On_PostDataMods;
         ModInterface.Events.PreLoadPlayerFile += On_PreLoadPlayerFile;
     }
@@ -97,10 +124,7 @@ public class Plugin : BaseUnityPlugin
         nymphojinnDef.defaultHairstyleIndex = 0;
         nymphojinnDef.defaultOutfitIndex = 0;
 
-        //girls already have nymphojinn wing positions for the boss,
-        //except kyu. The special effects are hard-coded to look at the
-        //def.SpecialEffectOffset which is unfortunate, maybe change kyu wings to not use that?
-        if (ModConfig.SwappedSpecialCharactersKeepWings)
+        if (_keepSwappedWings && otherGirlDef.specialEffectPrefab == null)
         {
             otherGirlDef.specialEffectPrefab = nymphojinnDef.specialEffectPrefab;
         }
@@ -111,50 +135,55 @@ public class Plugin : BaseUnityPlugin
         kyuDef.defaultHairstyleIndex = 1;
         kyuDef.defaultOutfitIndex = 1;
 
-        if (ModConfig.SwappedSpecialCharactersKeepWings)
+        if (_keepSwappedWings && otherGirlDef.specialEffectPrefab == null)
         {
             otherGirlDef.specialEffectPrefab = kyuDef.specialEffectPrefab;
         }
     }
 
-    private void On_PreSave()
-    {
-        ModInterface.SetSourceSave(_modId, JsonConvert.SerializeObject(ModConfig));
-    }
-
     private void On_PostDataMods()
     {
-        var saveString = ModInterface.GetSourceSave(_modId);
-
-        if (saveString.IsNullOrWhiteSpace())
+        int seed;
+        if (this.Config.TryGetEntry<int>(ConfigGeneralName, ConfigSeedName, out var seedConfig)
+            && seedConfig.Value != -1)
         {
-            ModConfig = new SaveFile();
-            ModConfig.Seed = Environment.TickCount;
+            seed = seedConfig.Value;
         }
         else
         {
-            ModConfig = JsonConvert.DeserializeObject<SaveFile>(saveString) ?? new SaveFile();
+            seed = Environment.TickCount;
+            this.Config[ConfigGeneralName, ConfigSeedName].BoxedValue = seed;
         }
 
-        if (ModConfig.Disable || true)
+        if (ConfigGrab(ConfigDisableName, false))
         {
             ModInterface.Log.LogInfo($"Randomizer disabled");
             return;
         }
 
-        if (ModConfig.IncludeKyu)
+        if (ConfigGrab(ConfigIncludeKyuName, true))
         {
             _swapHandlers.Add(Girls.KyuId, SwapKyu);
         }
 
-        if (ModConfig.IncludeNymphojinn)
+        if (ConfigGrab(ConfigIncludeNymphojinnName, true))
         {
             _swapHandlers.Add(Girls.MoxieId, SwapNymphojinn);
             _swapHandlers.Add(Girls.JewnId, SwapNymphojinn);
         }
 
-        ModInterface.Log.LogInfo($"Randomizing, seed:{ModConfig.Seed}");
-        var random = new Random(ModConfig.Seed);
+        _keepSwappedWings = ConfigGrab(ConfigSwappedSpecialKeepWingsName, true);
+
+        _moanTriggers = [
+            ModInterface.GameData.GetDialogTrigger(new RelativeId(-1, 43)),
+            ModInterface.GameData.GetDialogTrigger(new RelativeId(-1, 44)),
+            ModInterface.GameData.GetDialogTrigger(new RelativeId(-1, 45)),
+            ModInterface.GameData.GetDialogTrigger(new RelativeId(-1, 46)),
+            ModInterface.GameData.GetDialogTrigger(new RelativeId(-1, 47))
+        ];
+
+        ModInterface.Log.LogInfo($"Randomizing, seed:{seed}");
+        var random = new Random(seed);
 
         var normalGirls = Game.Data.Girls.GetAllBySpecial(false);
         var normalPairs = Game.Data.GirlPairs.GetAll().Where(x =>
@@ -182,7 +211,7 @@ public class Plugin : BaseUnityPlugin
         }
 
         IEnumerable<(int a, int b)> pairings;
-        if (!ModConfig.RandomizePairs)
+        if (!ConfigGrab(ConfigRandomizePairsName, true))
         {
             pairings = normalPairs.Select(x => (x.girlDefinitionOne.id, x.girlDefinitionTwo.id));
         }
@@ -226,13 +255,7 @@ public class Plugin : BaseUnityPlugin
             baggagePool.AddRange(girl.baggageItemDefs.Select(x => (girl, x)));
         }
 
-        _moanTriggers = [
-            ModInterface.GameData.GetDialogTrigger(new RelativeId(-1, 43)),
-                ModInterface.GameData.GetDialogTrigger(new RelativeId(-1, 44)),
-                ModInterface.GameData.GetDialogTrigger(new RelativeId(-1, 45)),
-                ModInterface.GameData.GetDialogTrigger(new RelativeId(-1, 46)),
-                ModInterface.GameData.GetDialogTrigger(new RelativeId(-1, 47))
-        ];
+        var randomizedNames = ConfigGrab(ConfigRandomizeNamesName, true);
 
         //special characters don't have all the stuff they need,
         //so instead I'll just swap their visuals and other bits with someone
@@ -244,7 +267,7 @@ public class Plugin : BaseUnityPlugin
 
             namePool.Add((specialGirl.girlName, specialGirl.girlNickName));
 
-            assignedNames[specialGirl] = ModConfig.RandomizeNames
+            assignedNames[specialGirl] = randomizedNames
                 ? namePool.PopRandom(random)
                 : (specialGirl.girlName, specialGirl.girlNickName);
 
@@ -428,13 +451,16 @@ public class Plugin : BaseUnityPlugin
 
         var handledCutscenes = new HashSet<CutsceneDefinition>();
 
+        var randomizedBaggage = ConfigGrab(ConfigRandomizeBaggageName, true);
+        var randomizedAffection = ConfigGrab(ConfigRandomizeAffectionName, true);
+
         //randomize girls
         foreach (var girl in normalGirls)
         {
-            var name = ModConfig.RandomizeNames ? namePool.PopRandom(random) : (girl.name, girl.girlNickName);
+            var name = randomizedNames ? namePool.PopRandom(random) : (girl.name, girl.girlNickName);
             assignedNames[girl] = name;
 
-            if (ModConfig.RandomizeBaggage)
+            if (randomizedBaggage)
             {
                 var baggageA = baggagePool.PopRandom(random);
                 var baggageB = baggagePool.PopRandom(random);
@@ -454,7 +480,7 @@ public class Plugin : BaseUnityPlugin
                 handledCutscenes.Add(baggageC.ailment.cutsceneDefinition);
             }
 
-            if (ModConfig.RandomizeAffection)
+            if (randomizedAffection)
             {
                 var favoriteAffection = random.Next() % 4;
                 girl.favoriteAffectionType = (PuzzleAffectionType)favoriteAffection;
@@ -488,7 +514,7 @@ public class Plugin : BaseUnityPlugin
             finalPairsEnumerator.MoveNext();
         }
 
-        //swap lola in tutorial pair
+        //swap lola in tutorial pair 
         var swapPool = normalGirls.ToList();
         var lolaDef = ModInterface.GameData.GetGirl(Girls.LolaId);
         normalGirls.Remove(lolaDef);
@@ -595,4 +621,9 @@ public class Plugin : BaseUnityPlugin
             }
         }
     }
+
+    private T ConfigGrab<T>(string name, T defaultValue)
+        => this.Config.TryGetEntry<T>(ConfigGeneralName, name, out var configEntry)
+            ? configEntry.Value
+            : defaultValue;
 }

@@ -60,6 +60,7 @@ internal class Plugin : BaseUnityPlugin
         ModInterface.Events.PreLoadPlayerFile += On_PrePersistenceReset;
     }
 
+    //unlock all expanded wardrobe styles
     private void On_PrePersistenceReset(PlayerFile file)
     {
         using (ModInterface.Log.MakeIndent())

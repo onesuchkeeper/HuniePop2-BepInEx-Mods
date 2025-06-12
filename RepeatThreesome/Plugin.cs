@@ -15,14 +15,58 @@ namespace RepeatThreesome;
 [BepInDependency("OSK.BepInEx.Hp2BaseModTweaks", BepInDependency.DependencyFlags.SoftDependency)]
 internal class Plugin : BaseUnityPlugin
 {
+    public static Plugin Instance => _instance;
+    private static Plugin _instance;
 
     private static string _pluginDir = Path.Combine(Paths.PluginPath, "RepeatThreesome");
     private static string _imagesDir = Path.Combine(_pluginDir, "images");
+    private static string ConfigGeneral = "General";
+
+    public bool LoversLocationRequirement
+    {
+        get => this.Config.TryGetEntry<bool>(ConfigGeneral, nameof(LoversLocationRequirement), out var config)
+            ? config.Value
+            : true;
+        set
+        {
+            if (this.Config.TryGetEntry<bool>(ConfigGeneral, nameof(LoversLocationRequirement), out var config))
+            {
+                config.Value = value;
+            }
+            else
+            {
+                Logger.LogWarning($"Failed to find binding for config value {nameof(LoversLocationRequirement)}");
+            }
+        }
+    }
+
+    public bool IsBonusRoundNude
+    {
+        get => this.Config.TryGetEntry<bool>(ConfigGeneral, nameof(IsBonusRoundNude), out var config)
+            ? config.Value
+            : true;
+        set
+        {
+            if (this.Config.TryGetEntry<bool>(ConfigGeneral, nameof(IsBonusRoundNude), out var config))
+            {
+                config.Value = value;
+            }
+            else
+            {
+                Logger.LogWarning($"Failed to find binding for config value {nameof(IsBonusRoundNude)}");
+            }
+        }
+    }
 
     private int _modId;
 
     private void Awake()
     {
+        _instance = this;
+
+        this.Config.Bind(ConfigGeneral, nameof(LoversLocationRequirement), true, "If threesomes can only take place at the location their photo occurs at.");
+        this.Config.Bind(ConfigGeneral, nameof(IsBonusRoundNude), true, "If characters will change to nude outfits during bonus rounds.");
+
         if (Chainloader.PluginInfos.ContainsKey("OSK.BepInEx.Hp2BaseModTweaks"))
         {
             var configs = ModInterface.GetInterModValue<Dictionary<string, (string ModImagePath, List<(string CreditButtonPath, string CreditButtonOverPath, string RedirectLink)> CreditEntries)>>("OSK.BepInEx.Hp2BaseModTweaks", "ModCredits");
@@ -60,7 +104,42 @@ internal class Plugin : BaseUnityPlugin
 
         ModInterface.Events.PreDataMods += On_PreDataMods;
         ModInterface.Events.PreRoundOverCutscene += ThreesomeHandler.PreRoundOverCutscene;
+        ModInterface.Events.PostCodeSubmitted += On_PostCodeSubmitted;
+        ModInterface.Events.PrePersistenceReset += On_PostPersistenceReset;
         new Harmony(MyPluginInfo.PLUGIN_GUID).PatchAll();
+    }
+
+    private void On_PostPersistenceReset(SaveData data)
+    {
+        ValidateCode(data, Constants.LocalCodeId, LoversLocationRequirement);
+        ValidateCode(data, Constants.NudeCodeId, IsBonusRoundNude);
+    }
+
+    private void ValidateCode(SaveData data, RelativeId codeId, bool isUnlocked)
+    {
+        var runtimeId = ModInterface.Data.GetRuntimeDataId(GameDataType.Code, codeId);
+        if (isUnlocked)
+        {
+            if (!data.unlockedCodes.Contains(runtimeId))
+            {
+                data.unlockedCodes.Add(runtimeId);
+            }
+        }
+        else
+        {
+            data.unlockedCodes.Remove(runtimeId);
+        }
+    }
+
+    private void On_PostCodeSubmitted(CodeDefinition codeDefinition)
+    {
+        if (codeDefinition == null)
+        {
+            return;
+        }
+
+        LoversLocationRequirement = ModInterface.GameData.IsCodeUnlocked(Constants.LocalCodeId);
+        IsBonusRoundNude = ModInterface.GameData.IsCodeUnlocked(Constants.NudeCodeId);
     }
 
     private void On_PreDataMods()

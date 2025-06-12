@@ -14,11 +14,128 @@ namespace SingleDate;
 [BepInDependency("OSK.BepInEx.Hp2BaseMod", "1.0.0")]
 internal class Plugin : BaseUnityPlugin
 {
+    internal static Plugin Instance => _instance;
+    private static Plugin _instance;
+
+    private static string ConfigGeneralCat = "General";
+
+    internal bool ShowSingleUpsetHunt
+    {
+        get => this.Config.TryGetEntry<bool>(ConfigGeneralCat, nameof(ShowSingleUpsetHunt), out var config)
+            ? config.Value
+            : false;
+        set
+        {
+            if (this.Config.TryGetEntry<bool>(ConfigGeneralCat, nameof(ShowSingleUpsetHunt), out var config))
+            {
+                config.Value = value;
+            }
+            else
+            {
+                Logger.LogWarning($"Failed to find config binding for {nameof(ShowSingleUpsetHunt)}");
+            }
+        }
+    }
+
+    internal bool SingleDateBaggage
+    {
+        get => this.Config.TryGetEntry<bool>(ConfigGeneralCat, nameof(SingleDateBaggage), out var config)
+            ? config.Value
+            : false;
+        set
+        {
+            if (this.Config.TryGetEntry<bool>(ConfigGeneralCat, nameof(SingleDateBaggage), out var config))
+            {
+                config.Value = value;
+            }
+            else
+            {
+                Logger.LogWarning($"Failed to find config binding for {nameof(SingleDateBaggage)}");
+            }
+        }
+    }
+
+    internal bool RequireLoversBeforeThreesome
+    {
+        get => this.Config.TryGetEntry<bool>(ConfigGeneralCat, nameof(RequireLoversBeforeThreesome), out var config)
+            ? config.Value
+            : false;
+        set
+        {
+            if (this.Config.TryGetEntry<bool>(ConfigGeneralCat, nameof(RequireLoversBeforeThreesome), out var config))
+            {
+                config.Value = value;
+            }
+            else
+            {
+                Logger.LogWarning($"Failed to find config binding for {nameof(RequireLoversBeforeThreesome)}");
+            }
+        }
+    }
+
+    internal int MaxSingleGirlRelationshipLevel
+    {
+        get
+        {
+            if (this.Config.TryGetEntry<int>(ConfigGeneralCat, nameof(MaxSingleGirlRelationshipLevel), out var config)
+                && config.Value > 0)
+            {
+                return config.Value;
+            }
+
+            return 3;
+        }
+        set
+        {
+            if (this.Config.TryGetEntry<int>(ConfigGeneralCat, nameof(MaxSingleGirlRelationshipLevel), out var config))
+            {
+                config.Value = value;
+            }
+            else
+            {
+                Logger.LogWarning($"Failed to find config binding for {nameof(MaxSingleGirlRelationshipLevel)}");
+            }
+        }
+    }
+
+    internal int MaxSensitivityLevel
+    {
+        get
+        {
+            if (this.Config.TryGetEntry<int>(ConfigGeneralCat, nameof(MaxSensitivityLevel), out var config)
+                && config.Value > 0)
+            {
+                return config.Value;
+            }
+
+            return 4;
+        }
+        set
+        {
+            if (this.Config.TryGetEntry<int>(ConfigGeneralCat, nameof(MaxSensitivityLevel), out var config))
+            {
+                config.Value = value;
+            }
+            else
+            {
+                Logger.LogWarning($"Failed to find config binding for {nameof(MaxSensitivityLevel)}");
+            }
+        }
+    }
+
     public static readonly string RootDir = Path.Combine(Paths.PluginPath, "SingleDate");
     public static readonly string ImagesDir = Path.Combine(RootDir, "images");
 
     private void Awake()
     {
+        _instance = this;
+
+        this.Config.Bind(ConfigGeneralCat, nameof(ShowSingleUpsetHunt), false, "If upset hints are shown on single dates.");
+        this.Config.Bind(ConfigGeneralCat, nameof(SingleDateBaggage), true, "If baggage is active on single dates.");
+        this.Config.Bind(ConfigGeneralCat, nameof(RequireLoversBeforeThreesome), true, "If both characters must reach lovers on single dates before a threesome can occur.");
+        this.Config.Bind(ConfigGeneralCat, nameof(MaxSingleGirlRelationshipLevel), 3, "Maximum relationship level for single dates. Maximum level must be reached for lovers status.");
+        this.Config.Bind(ConfigGeneralCat, nameof(MaxSensitivityLevel), 4, "Maximum level for sensitivity.");
+
         State.On_Plugin_Awake();
 
         GirlNobody.AddDataMods();
@@ -36,7 +153,7 @@ internal class Plugin : BaseUnityPlugin
 
         ModInterface.Events.PreRoundOverCutscene += EventHandles.On_PreRoundOverCutscene;
         ModInterface.Events.FinderSlotsPopulate += EventHandles.On_FinderSlotsPopulate;
-        ModInterface.Events.LocationArriveSequence += EventHandles.On_PreLocationTransitionNormalSequencePlay;
+        ModInterface.Events.LocationArriveSequence += EventHandles.On_LocationArriveSequence;
         ModInterface.Events.RandomDollSelected += EventHandles.On_RandomDollSelected;
         ModInterface.Events.DateLocationSelected += EventHandles.On_DateLocationSelected;
 

@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using System.Reflection;
 using HarmonyLib;
@@ -11,21 +10,23 @@ internal static class EventHandles
 {
     private static readonly FieldInfo _altGirlFocused = AccessTools.Field(typeof(PuzzleStatus), "_altGirlFocused");
 
-    private static bool _singleDropZone;
+    private static bool _singleDropZone = false;
 
-    internal static void On_PreLocationTransitionNormalSequencePlay(LocationArriveSequenceArgs sequence)
+    internal static void On_LocationArriveSequence(LocationArriveSequenceArgs sequence)
     {
         var rightOuter = Game.Session.gameCanvas.dollRight.GetPositionByType(DollPositionType.OUTER);
-        var rightSinglePos = (Game.Session.gameCanvas.dollRight.GetPositionByType(DollPositionType.INNER) + rightOuter) / 2f;
-        var diff = rightSinglePos - rightOuter - rightSinglePos;
-        var rightDrop = Game.Session.gameCanvas.dollRight.dropZone.transform.position;
+        var rightInnerPos = Game.Session.gameCanvas.dollRight.GetPositionByType(DollPositionType.INNER);
+        var diff = rightInnerPos - rightOuter;
 
         if (State.IsSingleDate)
         {
+            sequence.LeftDollPosition = DollPositionType.HIDDEN;
+            sequence.RightDollPosition = DollPositionType.INNER;
+
             if (!_singleDropZone)
             {
                 _singleDropZone = true;
-                Game.Session.gameCanvas.dollRight.dropZone.transform.position = new Vector3(rightDrop.x - diff.x, rightDrop.y - diff.y, rightDrop.z);
+                Game.Session.gameCanvas.dollRight.dropZone.transform.localPosition += new Vector3(diff.x, diff.y, 0);
             }
 
             var delta = Game.Session.gameCanvas.header.xValues.y - Game.Session.gameCanvas.header.xValues.x;
@@ -40,7 +41,7 @@ internal static class EventHandles
             if (_singleDropZone)
             {
                 _singleDropZone = false;
-                Game.Session.gameCanvas.dollRight.dropZone.transform.position = new Vector3(rightDrop.x + diff.x, rightDrop.y + diff.y, rightDrop.z);
+                Game.Session.gameCanvas.dollRight.dropZone.transform.localPosition -= new Vector3(diff.x, diff.y, 0);
             }
 
             Game.Session.Puzzle.puzzleGrid.transform.position = State.DefaultPuzzleGridPosition;
@@ -64,27 +65,29 @@ internal static class EventHandles
 
     internal static void On_FinderSlotsPopulate(FinderSlotPopulateEventArgs args)
     {
+        var maxSingleGirlRelationshipLevel = Plugin.Instance.MaxSingleGirlRelationshipLevel;
+
         args.SexPool?.RemoveAll(x => State.IsSingle(x.girlPairDefinition)
-            && State.SaveFile.GetGirl(x.girlPairDefinition.girlDefinitionTwo.id)?.RelationshipLevel != State.MaxSingleGirlRelationshipLevel - 1);
+            && State.SaveFile.GetGirl(x.girlPairDefinition.girlDefinitionTwo.id)?.RelationshipLevel != maxSingleGirlRelationshipLevel - 1);
 
         foreach (var id in args.SexPool)
         {
             ModInterface.Log.LogInfo(id.ToString());
         }
 
-        if (State.RequireLoversBeforeThreesome)
+        if (Plugin.Instance.RequireLoversBeforeThreesome)
         {
             args.SexPool?.RemoveAll(x => !State.IsSingle(x.girlPairDefinition)
-                && (State.SaveFile.GetGirl(x.girlPairDefinition.girlDefinitionOne.id)?.RelationshipLevel != State.MaxSingleGirlRelationshipLevel
-                || State.SaveFile.GetGirl(x.girlPairDefinition.girlDefinitionTwo.id)?.RelationshipLevel != State.MaxSingleGirlRelationshipLevel));
+                && (State.SaveFile.GetGirl(x.girlPairDefinition.girlDefinitionOne.id)?.RelationshipLevel != maxSingleGirlRelationshipLevel
+                || State.SaveFile.GetGirl(x.girlPairDefinition.girlDefinitionTwo.id)?.RelationshipLevel != maxSingleGirlRelationshipLevel));
         }
 
-        args.CompatiblePool.AddRange(args.AttractedPool.Where(IsIncompleteAttracted));
-        args.AttractedPool.RemoveAll(IsIncompleteAttracted);
+        args.CompatiblePool.AddRange(args.AttractedPool.Where(x => IsIncompleteAttracted(x, maxSingleGirlRelationshipLevel)));
+        args.AttractedPool.RemoveAll(x => IsIncompleteAttracted(x, maxSingleGirlRelationshipLevel));
     }
 
-    private static bool IsIncompleteAttracted(PlayerFileGirlPair filePair) => State.IsSingle(filePair.girlPairDefinition)
-        && State.SaveFile.GetGirl(filePair.girlPairDefinition.girlDefinitionTwo.id)?.RelationshipLevel < (State.MaxSingleGirlRelationshipLevel - 1);
+    private static bool IsIncompleteAttracted(PlayerFileGirlPair filePair, int maxSingleGirlRelationshipLevel) => State.IsSingle(filePair.girlPairDefinition)
+        && State.SaveFile.GetGirl(filePair.girlPairDefinition.girlDefinitionTwo.id)?.RelationshipLevel < (maxSingleGirlRelationshipLevel - 1);
 
     private static FieldInfo _roundOverCutscene = AccessTools.Field(typeof(PuzzleManager), "_roundOverCutscene");
     private static FieldInfo _newRoundCutscene = AccessTools.Field(typeof(PuzzleManager), "_newRoundCutscene");
@@ -105,21 +108,23 @@ internal static class EventHandles
             return;
         }
 
+        var maxSingleGirlRelationshipLevel = Plugin.Instance.MaxSingleGirlRelationshipLevel;
+
         bool validSingleLevels = false;
         if (State.IsSingleDate)
         {
             var girlSave = State.SaveFile.GetGirl(playerFileGirlPair.girlPairDefinition.girlDefinitionTwo.id);
 
             //single date relationship levels are handled post round over, so girl will be at max already for bonus round
-            validSingleLevels = girlSave?.RelationshipLevel == State.MaxSingleGirlRelationshipLevel;
+            validSingleLevels = girlSave?.RelationshipLevel == maxSingleGirlRelationshipLevel;
         }
-        else if (State.RequireLoversBeforeThreesome)
+        else if (Plugin.Instance.RequireLoversBeforeThreesome)
         {
             var girlSaveOne = State.SaveFile.GetGirl(playerFileGirlPair.girlPairDefinition.girlDefinitionOne.id);
             var girlSaveTwo = State.SaveFile.GetGirl(playerFileGirlPair.girlPairDefinition.girlDefinitionTwo.id);
 
-            validSingleLevels = (girlSaveOne == null || girlSaveOne.RelationshipLevel == State.MaxSingleGirlRelationshipLevel)
-                && (girlSaveTwo == null || girlSaveTwo.RelationshipLevel == State.MaxSingleGirlRelationshipLevel);
+            validSingleLevels = (girlSaveOne == null || girlSaveOne.RelationshipLevel == maxSingleGirlRelationshipLevel)
+                && (girlSaveTwo == null || girlSaveTwo.RelationshipLevel == maxSingleGirlRelationshipLevel);
         }
 
         //disable the bonus round for dates without the correct single relationship level
@@ -141,6 +146,7 @@ internal static class EventHandles
             return;
         }
 
+        var maxSingleGirlRelationshipLevel = Plugin.Instance.MaxSingleGirlRelationshipLevel;
         bool sexDate;
 
         if (State.IsSingleDate)
@@ -155,7 +161,7 @@ internal static class EventHandles
             var girlSave = State.SaveFile.GetGirl(playerFileGirlPair.girlPairDefinition.girlDefinitionTwo.id);
 
             sexDate = playerFileGirlPair.relationshipType == GirlPairRelationshipType.ATTRACTED
-                && girlSave.RelationshipLevel == State.MaxSingleGirlRelationshipLevel - 1
+                && girlSave.RelationshipLevel == maxSingleGirlRelationshipLevel - 1
                 && Game.Persistence.playerFile.daytimeElapsed % 4 == (int)playerFileGirlPair.girlPairDefinition.sexDaytime;
         }
         else
@@ -163,8 +169,8 @@ internal static class EventHandles
             var girlSaveOne = State.SaveFile.GetGirl(playerFileGirlPair.girlPairDefinition.girlDefinitionOne.id);
             var girlSaveTwo = State.SaveFile.GetGirl(playerFileGirlPair.girlPairDefinition.girlDefinitionTwo.id);
 
-            sexDate = girlSaveOne?.RelationshipLevel == State.MaxSingleGirlRelationshipLevel
-                && girlSaveTwo?.RelationshipLevel == State.MaxSingleGirlRelationshipLevel
+            sexDate = girlSaveOne?.RelationshipLevel == maxSingleGirlRelationshipLevel
+                && girlSaveTwo?.RelationshipLevel == maxSingleGirlRelationshipLevel
                 && playerFileGirlPair.relationshipType == GirlPairRelationshipType.ATTRACTED
                 && Game.Persistence.playerFile.daytimeElapsed % 4 == (int)playerFileGirlPair.girlPairDefinition.sexDaytime;
         }

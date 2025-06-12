@@ -94,7 +94,7 @@ namespace Hp2BaseMod.Save
         {
             if ((bool)inited.GetValue(__instance))
             {
-                ModInterface.Events.NotifyPostPersistenceReset();
+                ModInterface.Events.NotifyPostPersistenceReset(_saveDataAccess.GetValue(__instance) as SaveData);
             }
         }
 

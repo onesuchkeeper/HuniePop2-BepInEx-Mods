@@ -37,8 +37,10 @@ internal static class UiAppRelationshipSlotPatch
 
         if (playerFileGirlPair != null)
         {
+            var maxSingleGirlRelationshipLevel = Plugin.Instance.MaxSingleGirlRelationshipLevel;
+
             if (playerFileGirlPair.relationshipType == GirlPairRelationshipType.ATTRACTED
-                && girlSave?.RelationshipLevel == (State.MaxSingleGirlRelationshipLevel - 1)
+                && girlSave?.RelationshipLevel == (maxSingleGirlRelationshipLevel - 1)
                 && (Game.Persistence.playerFile.daytimeElapsed + daytimeOffset) % 4 == (int)playerFileGirlPair.girlPairDefinition.sexDaytime
                 && (!__instance.hornyDelayed || (__instance.hornyDelayed && (!Game.Session.Location.AtLocationType(LocationType.DATE) || Game.Session.Puzzle.isPuzzleActive))))
             {
@@ -117,14 +119,15 @@ internal static class UiAppRelationshipSlotPatch
         var daytimeOffset = _daytimeOffset.GetValue<int>(__instance);
 
         //when not horny
-        if (!(girlSave.RelationshipLevel == State.MaxSingleGirlRelationshipLevel - 1
+        var maxSingleGirlRelationshipLevel = Plugin.Instance.MaxSingleGirlRelationshipLevel;
+        if (!(girlSave.RelationshipLevel == maxSingleGirlRelationshipLevel - 1
                 && (Game.Persistence.playerFile.daytimeElapsed + daytimeOffset) % 4 == (int)playerFileGirlPair.girlPairDefinition.sexDaytime)
         //and attracted or compatible
             && (playerFileGirlPair.relationshipType == GirlPairRelationshipType.ATTRACTED
                 || playerFileGirlPair.relationshipType == GirlPairRelationshipType.COMPATIBLE))
         {
             var tooltip = _tooltip.GetValue<UiTooltipSimple>(__instance);
-            tooltip.Populate($"Relationship Status:\n{playerFileGirlPair.relationshipType} {girlSave.RelationshipLevel}/{State.MaxSingleGirlRelationshipLevel}", 0, 1f, 1920f);
+            tooltip.Populate($"Relationship Status:\n{playerFileGirlPair.relationshipType} {girlSave.RelationshipLevel}/{maxSingleGirlRelationshipLevel}", 0, 1f, 1920f);
         }
     }
 }

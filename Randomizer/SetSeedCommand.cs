@@ -13,19 +13,23 @@ public class SetSeedCommand : ICommand
 
     public bool Invoke(string[] inputs, out string result)
     {
+        int seed;
+
         if (inputs.Length == 0)
         {
-            Plugin.ModConfig.Seed = new Random().Next();
+            seed = Environment.TickCount;
         }
         else
         {
             var str = inputs.Length > 1 ? string.Concat(inputs) : inputs[0];
             MD5 md5Hasher = MD5.Create();
             var hashed = md5Hasher.ComputeHash(Encoding.UTF8.GetBytes(str));
-            Plugin.ModConfig.Seed = BitConverter.ToInt32(hashed, 0);
+            seed = BitConverter.ToInt32(hashed, 0);
         }
 
-        result = $"Seed set to {Plugin.ModConfig.Seed}. The game must be saved then restarted for it to take effect.";
+        Plugin.Instance.Config[Plugin.ConfigGeneralName, Plugin.ConfigSeedName].BoxedValue = seed;
+
+        result = $"Seed set to {seed}. The game must be saved then restarted for it to take effect.";
         return true;
     }
 }

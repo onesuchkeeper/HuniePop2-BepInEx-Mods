@@ -113,18 +113,20 @@ internal class ExpandedUiCellphoneAppStatus
         //single relationship progress
         var saveGirl = State.SaveFile.GetGirl(_girlId);
 
-        var radAllotment = Mathf.PI / State.MaxSingleGirlRelationshipLevel;
+        var maxSingleGirlRelationshipLevel = Plugin.Instance.MaxSingleGirlRelationshipLevel;
+
+        var radAllotment = Mathf.PI / maxSingleGirlRelationshipLevel;
 
         if (Game.Session.Puzzle.puzzleStatus.bonusRound)
         {
-            for (int i = 0; i < State.MaxSingleGirlRelationshipLevel; i++)
+            for (int i = 0; i < maxSingleGirlRelationshipLevel; i++)
             {
                 MakeHeart(_uiCellphoneAppPair.relationshipSlot.hornyIcon, i, radAllotment, _uiCellphoneAppPair.relationshipSlot.pauseDefinition);
             }
         }
-        else if (State.MaxSingleGirlRelationshipLevel == saveGirl.RelationshipLevel)
+        else if (maxSingleGirlRelationshipLevel == saveGirl.RelationshipLevel)
         {
-            for (int i = 0; i < State.MaxSingleGirlRelationshipLevel; i++)
+            for (int i = 0; i < maxSingleGirlRelationshipLevel; i++)
             {
                 MakeHeart(_uiCellphoneAppPair.relationshipSlot.relationshipIcons[3], i, radAllotment, _uiCellphoneAppPair.relationshipSlot.pauseDefinition);
             }
@@ -132,12 +134,12 @@ internal class ExpandedUiCellphoneAppStatus
         else
         {
             int i = 0;
-            for (; i < State.MaxSingleGirlRelationshipLevel - saveGirl.RelationshipLevel; i++)
+            for (; i < maxSingleGirlRelationshipLevel - saveGirl.RelationshipLevel; i++)
             {
                 MakeHeart(_uiCellphoneAppPair.relationshipSlot.relationshipIcons[0], i, radAllotment, _uiCellphoneAppPair.relationshipSlot.pauseDefinition);
             }
 
-            for (; i < State.MaxSingleGirlRelationshipLevel; i++)
+            for (; i < maxSingleGirlRelationshipLevel; i++)
             {
                 MakeHeart(_uiCellphoneAppPair.relationshipSlot.relationshipIcons[2], i, radAllotment, _uiCellphoneAppPair.relationshipSlot.pauseDefinition);
             }

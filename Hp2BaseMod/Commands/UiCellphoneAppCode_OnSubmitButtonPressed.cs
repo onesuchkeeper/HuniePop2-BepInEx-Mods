@@ -8,14 +8,15 @@ namespace Hp2BaseMod.Commands;
 [HarmonyPatch(typeof(UiCellphoneAppCode), "OnSubmitButtonPressed")]
 public static class UiCellphoneAppCode_OnSubmitButtonPressed
 {
-    private static MethodInfo ShowCodeResult = AccessTools.Method(typeof(UiCellphoneAppCode), "ShowCodeResult");
+    private static MethodInfo m_showCodeResult = AccessTools.Method(typeof(UiCellphoneAppCode), "ShowCodeResult");
     private static FieldInfo _currentFieldText = AccessTools.Field(typeof(UiCellphoneAppCode), "_currentFieldText");
     private static FieldInfo _inputField = AccessTools.Field(typeof(UiCellphoneAppCode), "inputField");
 
-    public static bool Prefix(UiCellphoneAppCode __instance)
+    public static bool Prefix(UiCellphoneAppCode __instance, out string __state)
     {
         if (!(_inputField.GetValue(__instance) is InputField inputField))
         {
+            __state = null;
             return true;
         }
 
@@ -33,16 +34,25 @@ public static class UiCellphoneAppCode_OnSubmitButtonPressed
 
             ModInterface.Log.LogInfo($"Command {(success ? "succeeded" : "failed")}: {result}");
 
-            ShowCodeResult.Invoke(__instance, [result, !success]);
+            m_showCodeResult.Invoke(__instance, [result, !success]);
 
+            __state = null;
             return false;
         }
 
+        __state = input;
         return true;
     }
 
-    public static void Postfix()
+    public static void Postfix(UiCellphoneAppCode __instance, string __state)
     {
-        ModInterface.Events.NotifyPostCodeSubmitted();
+        if (__state == null)
+        {
+            return;
+        }
+
+        Game.Manager.Settings.unlockCodes.TryGetValue(StringUtils.MD5(__state), out var codeDefinition);
+
+        ModInterface.Events.NotifyPostCodeSubmitted(codeDefinition);
     }
 }

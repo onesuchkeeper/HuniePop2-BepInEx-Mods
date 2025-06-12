@@ -1,5 +1,4 @@
 using System;
-using DG.Tweening;
 using Hp2BaseMod.GameDataInfo;
 
 namespace Hp2BaseMod
@@ -57,14 +56,14 @@ namespace Hp2BaseMod
         /// <summary>
         /// Notifies after SaveData is applied to the persistence
         /// </summary>
-        public event Action PostPersistenceReset;
-        internal void NotifyPostPersistenceReset() => PostPersistenceReset?.Invoke();
+        public event Action<SaveData> PostPersistenceReset;
+        internal void NotifyPostPersistenceReset(SaveData playerData) => PostPersistenceReset?.Invoke(playerData);
 
         /// <summary>
         /// Notifies after a code is submitted
         /// </summary>
-        public event Action PostCodeSubmitted;
-        internal void NotifyPostCodeSubmitted() => PostCodeSubmitted?.Invoke();
+        public event Action<CodeDefinition> PostCodeSubmitted;
+        internal void NotifyPostCodeSubmitted(CodeDefinition codeDefinition) => PostCodeSubmitted?.Invoke(codeDefinition);
 
         public event Action PreRoundOverCutscene;
         internal void NotifyPreRoundOverCutscene() => PreRoundOverCutscene?.Invoke();

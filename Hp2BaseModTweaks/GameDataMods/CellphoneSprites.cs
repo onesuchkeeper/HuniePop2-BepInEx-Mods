@@ -18,7 +18,9 @@ public static class CellphoneSprites
     {
         var mod = new GirlDataMod(girlId, InsertStyle.replace);
 
-        var texturePath = Path.Combine(Plugin.DacDir, "Heads", $"{name}.png");
+        var digitalArtCollectionDir = Plugin.Instance.DigitalArtCollectionDir;
+
+        var texturePath = Path.Combine(digitalArtCollectionDir, "Heads", $"{name}.png");
         if (File.Exists(texturePath))
         {
             //pad to center in square
@@ -48,7 +50,7 @@ public static class CellphoneSprites
                 ])));
         }
 
-        texturePath = Path.Combine(Plugin.DacDir, "Sprites", $"{name}.png");
+        texturePath = Path.Combine(digitalArtCollectionDir, "Sprites", $"{name}.png");
         if (File.Exists(texturePath))
         {
             var trimAmount = portraitSize.y * 0.1f;

@@ -67,7 +67,7 @@ public class ExpandedUiBackgroundArt
         _bgImage.rectTransform.SetAsFirstSibling();
         _bgImage.rectTransform.sizeDelta = _core.image.rectTransform.sizeDelta;
         _bgImage.rectTransform.localPosition = _core.image.rectTransform.localPosition;
-        _bgImage.material = GameObject.Instantiate<Material>(UiPrefabs.BgBlur);
+        _bgImage.sprite = _core.image.sprite;
 
         ModInterface.Events.LocationArriveSequence += On_LocationArriveSequence;
         ModInterface.Events.LocationDepartSequence += On_LocationDepartSequence;
@@ -106,7 +106,7 @@ public class ExpandedUiBackgroundArt
         get => x_saturation;
         set
         {
-            _bgImage.material.SetFloat("_Saturation", value);
+            //_bgImage.material.SetFloat("_Saturation", value);
             x_saturation = value;
         }
     }
@@ -116,12 +116,12 @@ public class ExpandedUiBackgroundArt
     {
         _bgImage.sprite = _core.image.sprite;
 
-        if (_bgImage.sprite != null)
-        {
-            var ratio = (_bgImage.sprite.rect.size.x / _bgImage.sprite.rect.size.y)
-                / (_bgImage.rectTransform.sizeDelta.x / _bgImage.rectTransform.sizeDelta.y);
+        // if (_bgImage.sprite != null)
+        // {
+        //     var ratio = (_bgImage.sprite.rect.size.x / _bgImage.sprite.rect.size.y)
+        //         / (_bgImage.rectTransform.sizeDelta.x / _bgImage.rectTransform.sizeDelta.y);
 
-            _bgImage.material.SetFloat("_AspectRatio", ratio);
-        }
+        //     _bgImage.material.SetFloat("_AspectRatio", ratio);
+        // }
     }
 }

@@ -20,17 +20,6 @@ namespace Hp2BaseMod
         public Sprite EmptySprite => _emptySprite;
         private readonly Sprite _emptySprite = Sprite.Create(TextureUtility.Empty(), new Rect(0, 0, 0, 0), Vector2.zero);
 
-        /// <summary>
-        /// Textures loaded from external paths
-        /// </summary>
-        public IReadOnlyDictionary<string, Texture2D> ExternalTextures => _externalTextures;
-        private readonly Dictionary<string, Texture2D> _externalTextures = new Dictionary<string, Texture2D>();
-
-        /// <summary>
-        /// Sprite atlases loaded from external paths
-        /// </summary>
-        public readonly Dictionary<string, SpriteAtlas> ExternalAtlases = new Dictionary<string, SpriteAtlas>();
-
         private bool _internalsScraped = false;
 
         private readonly Dictionary<Type, Dictionary<string, UnityEngine.Object>> _assets;
@@ -193,16 +182,6 @@ namespace Hp2BaseMod
 
             assets[identifier] = asset;
         }
-
-        /// <summary>
-        /// Adds an externally loaded texture to the cache
-        /// </summary>
-        internal void AddExternalTexture(string identifier, Texture2D sprite) => _externalTextures[identifier] = sprite;
-
-        /// <summary>
-        /// frees refs to external textures
-        /// </summary>
-        internal void ClearExternalTextures() => _externalTextures.Clear();
 
         #endregion
 

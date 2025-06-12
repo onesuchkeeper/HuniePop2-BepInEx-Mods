@@ -17,7 +17,7 @@ public class Plugin : BaseUnityPlugin
         new Harmony(MyPluginInfo.PLUGIN_GUID).PatchAll();
     }
 
-    private void On_PostPersistenceReset()
+    private void On_PostPersistenceReset(SaveData data)
     {
         _testMode.SetValue(Game.Manager, true);
     }

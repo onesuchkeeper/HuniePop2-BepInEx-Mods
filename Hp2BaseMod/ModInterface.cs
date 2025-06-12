@@ -165,7 +165,6 @@ public static class ModInterface
             _gameData = new GameDefinitionProvider(Game.Data);
             GameDataModder.Mod(Game.Data);
             _events.NotifyPostDataMods();
-            _assetProvider.ClearExternalTextures();
             GC.Collect();
         }
     }
