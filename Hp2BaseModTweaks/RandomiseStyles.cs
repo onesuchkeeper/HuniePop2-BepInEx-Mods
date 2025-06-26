@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Hp2BaseMod;
-using Hp2BaseMod.Extension.IEnumerableExtension;
 using Hp2BaseMod.GameDataInfo;
 
 namespace Hp2BaseModTweaks;
@@ -16,18 +15,16 @@ public static class RandomizeStyles
             && (args.Loc.locationType != LocationType.DATE || (Game.Persistence.playerFile.GetPlayerFileGirl(args.Def)?.stylesOnDates ?? false)))
         {
             args.ApplyChance = 1;
+            RandomizeStyle(args.Def, girlSave.UnpairRandomStyles, args.Loc.locationType == LocationType.HUB, out args.Style);
         }
-
-        RandomizeStyle(args.Def, girlSave.UnpairRandomStyles, args.Loc.locationType == LocationType.HUB, out args.Style);
     }
 
     private static void RandomizeStyle(GirlDefinition girl, bool unpaired, bool anyOutfit, out GirlStyleInfo style)
     {
         var playerFileGirl = Game.Persistence.playerFile.GetPlayerFileGirl(girl);
         var girlExpansion = girl.Expansion();
-
-        IEnumerable<RelativeId> outfits = null;
-        IEnumerable<RelativeId> hairstyles = null;
+        ICollection<RelativeId> hairstyles;
+        ICollection<RelativeId> outfits;
 
         if (playerFileGirl == null || anyOutfit)
         {
@@ -68,13 +65,12 @@ public static class RandomizeStyles
             hairstyles = [RelativeId.Default];
         }
 
-        var outfitId = outfits.ElementAt(UnityEngine.Random.Range(0, outfits.Count() - 1));
+        var outfitId = outfits.ElementAt(UnityEngine.Random.Range(0, outfits.Count()));
+        var outfit = girlExpansion.GetOutfit(girl, outfitId);
 
-        //if paired and a paired hairstyle exists, use that, otherwise pick a random one
-        if (!(!unpaired && hairstyles.TryGetFirst(x => x == outfitId, out var hairStyleId)))
-        {
-            hairStyleId = hairstyles.ElementAt(UnityEngine.Random.Range(0, hairstyles.Count() - 1));
-        }
+        var hairStyleId = (!unpaired && outfit.pairHairstyleIndex != -1)
+            ? girlExpansion.HairstyleIndexToId[outfit.pairHairstyleIndex]
+            : hairstyles.ElementAt(UnityEngine.Random.Range(0, hairstyles.Count()));
 
         style = new GirlStyleInfo()
         {

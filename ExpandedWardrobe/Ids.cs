@@ -13,6 +13,9 @@ internal static class Ids
     public static RelativeId Style3 => _style3;
     private static RelativeId _style3;
 
+    public static RelativeId Style4 => _style4;
+    private static RelativeId _style4;
+
     public static RelativeId OutfitPart1 => _outfitPart1;
     private static RelativeId _outfitPart1;
 
@@ -24,6 +27,9 @@ internal static class Ids
 
     public static RelativeId OutfitPart3 => _outfitPart3;
     private static RelativeId _outfitPart3;
+
+    public static RelativeId OutfitPart4 => _outfitPart4;
+    private static RelativeId _outfitPart4;
 
     public static RelativeId FronthairPart1 => _fronthairPart1;
     private static RelativeId _fronthairPart1;
@@ -43,6 +49,12 @@ internal static class Ids
     public static RelativeId BackhairPart3 => _backhairPart3;
     private static RelativeId _backhairPart3;
 
+    public static RelativeId FronthairPart4 => _fronthairPart4;
+    private static RelativeId _fronthairPart4;
+
+    public static RelativeId BackhairPart4 => _backhairPart4;
+    private static RelativeId _backhairPart4;
+
     public static int ModId => _modId;
     private static int _modId;
 
@@ -56,18 +68,22 @@ internal static class Ids
         _style1 = new RelativeId(_modId, styleIndex++);
         _style2 = new RelativeId(_modId, styleIndex++);
         _style3 = new RelativeId(_modId, styleIndex++);
+        _style4 = new RelativeId(_modId, styleIndex++);
 
         _outfitPart1 = new RelativeId(_modId, partIndex++);
         _outfitPart1Mirror = new RelativeId(_modId, partIndex++);
         _outfitPart2 = new RelativeId(_modId, partIndex++);
         _outfitPart3 = new RelativeId(_modId, partIndex++);
+        _outfitPart4 = new RelativeId(_modId, partIndex++);
 
         _fronthairPart1 = new RelativeId(_modId, partIndex++);
-        _backhairPart1 = new RelativeId(_modId, partIndex++);
-
         _fronthairPart2 = new RelativeId(_modId, partIndex++);
         _fronthairPart3 = new RelativeId(_modId, partIndex++);
+        _fronthairPart4 = new RelativeId(_modId, partIndex++);
+
+        _backhairPart1 = new RelativeId(_modId, partIndex++);
         _backhairPart2 = new RelativeId(_modId, partIndex++);
         _backhairPart3 = new RelativeId(_modId, partIndex++);
+        _backhairPart4 = new RelativeId(_modId, partIndex++);
     }
 }

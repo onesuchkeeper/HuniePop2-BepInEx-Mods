@@ -191,7 +191,7 @@ internal class Plugin : BaseUnityPlugin
                 ModInterface.AddDataMod(new GirlDataMod(girlId, InsertStyle.append)
                 {
                     parts = new List<IGirlSubDataMod<GirlPartSubDefinition>>() { pollyNudeOutfitPart, pollyNudeOutfitPartAlt },
-                    outfits = new List<IGirlSubDataMod<ExpandedOutfitDefinition>>()
+                    outfits = new List<IGirlSubDataMod<GirlOutfitSubDefinition>>()
                     {
                         new OutfitDataMod(Constants.NudeOutfitId, InsertStyle.replace)
                         {
@@ -213,7 +213,7 @@ internal class Plugin : BaseUnityPlugin
                 ModInterface.AddDataMod(new GirlDataMod(girlId, InsertStyle.append)
                 {
                     parts = new List<IGirlSubDataMod<GirlPartSubDefinition>>() { nudeOutfitPart },
-                    outfits = new List<IGirlSubDataMod<ExpandedOutfitDefinition>>()
+                    outfits = new List<IGirlSubDataMod<GirlOutfitSubDefinition>>()
                     {
                         new OutfitDataMod(Constants.NudeOutfitId, InsertStyle.replace)
                         {

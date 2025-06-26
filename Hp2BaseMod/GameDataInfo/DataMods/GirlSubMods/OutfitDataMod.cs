@@ -7,7 +7,7 @@ namespace Hp2BaseMod.GameDataInfo
     /// <summary>
     /// Serializable info to modify an expanded outfit def
     /// </summary>
-    public class OutfitDataMod : DataMod, IGirlSubDataMod<ExpandedOutfitDefinition>
+    public class OutfitDataMod : DataMod, IGirlSubDataMod<GirlOutfitSubDefinition>
     {
         public string Name;
 
@@ -18,6 +18,7 @@ namespace Hp2BaseMod.GameDataInfo
         public bool? IsPurchased;
 
         public bool? HideNipples;
+        public bool? HideSpecial;
 
         public bool? TightlyPaired;
 
@@ -54,7 +55,7 @@ namespace Hp2BaseMod.GameDataInfo
         }
 
         /// <inheritdoc/>
-        public void SetData(ref ExpandedOutfitDefinition def,
+        public void SetData(ref GirlOutfitSubDefinition def,
                             GameDefinitionProvider gameData,
                             AssetProvider assetProvider,
                             InsertStyle insertStyle,
@@ -62,16 +63,18 @@ namespace Hp2BaseMod.GameDataInfo
         {
             if (def == null)
             {
-                def = Activator.CreateInstance<ExpandedOutfitDefinition>();
+                def = Activator.CreateInstance<GirlOutfitSubDefinition>();
             }
 
+            var expansion = def.Expansion();
             var girlExpansion = ExpandedGirlDefinition.Get(girlId);
 
             ValidatedSet.SetValue(ref def.outfitName, Name, insertStyle);
-            ValidatedSet.SetValue(ref def.IsNSFW, IsNSFW);
-            ValidatedSet.SetValue(ref def.IsCodeUnlocked, IsCodeUnlocked);
-            ValidatedSet.SetValue(ref def.IsPurchased, IsPurchased);
+            ValidatedSet.SetValue(ref expansion.IsNSFW, IsNSFW);
+            ValidatedSet.SetValue(ref expansion.IsCodeUnlocked, IsCodeUnlocked);
+            ValidatedSet.SetValue(ref expansion.IsPurchased, IsPurchased);
             ValidatedSet.SetValue(ref def.hideNipples, HideNipples);
+            ValidatedSet.SetValue(ref expansion.HideSpecial, HideSpecial);
             ValidatedSet.SetValue(ref def.pairHairstyleIndex, girlExpansion.HairstyleIdToIndex, PairHairstyleId);
             ValidatedSet.SetValue(ref def.partIndexOutfit, girlExpansion.PartIdToIndex, OutfitPartId);
         }

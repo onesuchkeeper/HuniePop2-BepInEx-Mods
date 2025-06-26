@@ -69,6 +69,8 @@ public class ExpandedUiBackgroundArt
         _bgImage.rectTransform.localPosition = _core.image.rectTransform.localPosition;
         _bgImage.sprite = _core.image.sprite;
 
+        _bgImage.material = UiPrefabs.BgBlur;// _core.image.material;
+
         ModInterface.Events.LocationArriveSequence += On_LocationArriveSequence;
         ModInterface.Events.LocationDepartSequence += On_LocationDepartSequence;
     }
@@ -106,7 +108,7 @@ public class ExpandedUiBackgroundArt
         get => x_saturation;
         set
         {
-            //_bgImage.material.SetFloat("_Saturation", value);
+            _bgImage.material.SetFloat("_Saturation", value);
             x_saturation = value;
         }
     }

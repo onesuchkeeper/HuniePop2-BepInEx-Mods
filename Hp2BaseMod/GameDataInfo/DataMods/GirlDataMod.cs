@@ -19,9 +19,9 @@ namespace Hp2BaseMod.GameDataInfo
 
         public List<IGirlSubDataMod<GirlExpressionSubDefinition>> expressions;
 
-        public List<IGirlSubDataMod<ExpandedHairstyleDefinition>> hairstyles;
+        public List<IGirlSubDataMod<GirlHairstyleSubDefinition>> hairstyles;
 
-        public List<IGirlSubDataMod<ExpandedOutfitDefinition>> outfits;
+        public List<IGirlSubDataMod<GirlOutfitSubDefinition>> outfits;
 
         public List<(RelativeId, List<IGirlSubDataMod<DialogLine>>)> linesByDialogTriggerId;
 
@@ -285,13 +285,13 @@ namespace Hp2BaseMod.GameDataInfo
             if (def.outfits != null)
             {
                 i = 0;
-                outfits = def.outfits.Select(x => (IGirlSubDataMod<ExpandedOutfitDefinition>)new OutfitDataMod(i++, def, assetProvider)).ToList();
+                outfits = def.outfits.Select(x => (IGirlSubDataMod<GirlOutfitSubDefinition>)new OutfitDataMod(i++, def, assetProvider)).ToList();
             }
 
             if (def.hairstyles != null)
             {
                 i = 0;
-                hairstyles = def.hairstyles.Select(x => (IGirlSubDataMod<ExpandedHairstyleDefinition>)new HairstyleDataMod(i++, def, assetProvider)).ToList();
+                hairstyles = def.hairstyles.Select(x => (IGirlSubDataMod<GirlHairstyleSubDefinition>)new HairstyleDataMod(i++, def, assetProvider)).ToList();
             }
 
             linesByDialogTriggerId = new List<(RelativeId, List<IGirlSubDataMod<DialogLine>>)>();
@@ -409,8 +409,8 @@ namespace Hp2BaseMod.GameDataInfo
         }
 
         public IEnumerable<IGirlSubDataMod<GirlExpressionSubDefinition>> GetExpressions() => expressions;
-        public IEnumerable<IGirlSubDataMod<ExpandedOutfitDefinition>> GetOutfits() => outfits;
-        public IEnumerable<IGirlSubDataMod<ExpandedHairstyleDefinition>> GetHairstyles() => hairstyles;
+        public IEnumerable<IGirlSubDataMod<GirlOutfitSubDefinition>> GetOutfits() => outfits;
+        public IEnumerable<IGirlSubDataMod<GirlHairstyleSubDefinition>> GetHairstyles() => hairstyles;
         public IEnumerable<IGirlSubDataMod<GirlPartSubDefinition>> GetPartMods() => parts;
 
         public IEnumerable<Tuple<RelativeId, IEnumerable<IGirlSubDataMod<DialogLine>>>> GetLinesByDialogTriggerId()

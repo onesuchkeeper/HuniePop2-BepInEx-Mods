@@ -13,33 +13,18 @@ internal static partial class Styles
     private static readonly int _noraBodyY = 966;
     public static void AddNoraStyles()
     {
+        var modParts = new List<IGirlSubDataMod<GirlPartSubDefinition>>();
+        var modOutfits = new List<IGirlSubDataMod<GirlOutfitSubDefinition>>();
+        var modHairstyles = new List<IGirlSubDataMod<GirlHairstyleSubDefinition>>();
+
+        AddOutfit(modParts, modOutfits, "hotline", "Hotline", "nora", _noraBodyX - 11, _noraBodyY - 250, false, false, false, true);
+        AddOutfit(modParts, modOutfits, "topless", "Melons", "nora", _noraBodyX - 24, _noraBodyY - 810, true, false, false, false);
+
         ModInterface.AddDataMod(new GirlDataMod(Girls.NoraId, InsertStyle.append)
         {
-            parts = new List<IGirlSubDataMod<GirlPartSubDefinition>>()
-            {
-                new GirlPartDataMod(Ids.OutfitPart1, InsertStyle.replace)
-                {
-                    PartType = GirlPartType.OUTFIT,
-                    PartName = "hotlineOutfitNora",
-                    X = _noraBodyX - 11,
-                    Y = _noraBodyY - 250,
-                    MirroredPartId = RelativeId.Default,
-                    AltPartId = null,
-                    SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImageDir, @"nora_outfit_hotline.png")))
-                }
-            },
-            outfits = new List<IGirlSubDataMod<ExpandedOutfitDefinition>>()
-            {
-                new OutfitDataMod(Ids.Style1, InsertStyle.replace)
-                {
-                    Name = "Hotline",
-                    OutfitPartId = Ids.OutfitPart1,
-                    IsNSFW = false,
-                    HideNipples = true,
-                    TightlyPaired = false,
-                    PairHairstyleId = null
-                }
-            }
+            parts = modParts,
+            outfits = modOutfits,
+            hairstyles = modHairstyles
         });
     }
 }

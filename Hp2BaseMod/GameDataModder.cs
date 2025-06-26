@@ -76,15 +76,6 @@ namespace Hp2BaseMod
                     var questionDataDict = GetDataDict<QuestionDefinition>(gameData, typeof(QuestionData), "_questionData");
                     var tokenDataDict = GetDataDict<TokenDefinition>(gameData, typeof(TokenData), "_tokenData");
 
-                    //replace outfits/hairstyles with expansions
-                    foreach (var girl in girlDataDict)
-                    {
-                        var i = 0;
-                        girl.Value.outfits = girl.Value.outfits.Select(x => (GirlOutfitSubDefinition)new ExpandedOutfitDefinition(x, i++)).ToList();
-                        i = 0;
-                        girl.Value.hairstyles = girl.Value.hairstyles.Select(x => (GirlHairstyleSubDefinition)new ExpandedHairstyleDefinition(x, i++)).ToList();
-                    }
-
                     // register default sub data
                     ModInterface.Log.LogInfo("registering default sub data");
                     using (ModInterface.Log.MakeIndent())
@@ -131,27 +122,53 @@ namespace Hp2BaseMod
                         }
 
                         ModInterface.Log.LogInfo("girls");
-                        foreach (var girl in girlDataDict.Values)
+                        using (ModInterface.Log.MakeIndent())
                         {
-                            var expansion = ExpandedGirlDefinition.Get(girl);
-                            var id = new RelativeId(-1, girl.id);
-
-                            expansion.DialogTriggerIndex = girl.id;
-
-                            MapRelativeIdRange(expansion.PartIdToIndex, expansion.PartIndexToId, girl.parts.Count);
-                            MapRelativeIdRange(expansion.ExpressionIdToIndex, expansion.ExpressionIndexToId, girl.expressions.Count);
-                            MapRelativeIdRange(expansion.HairstyleIdToIndex, expansion.HairstyleIndexToId, girl.hairstyles.Count);
-                            MapRelativeIdRange(expansion.OutfitIdToIndex, expansion.OutfitIndexToId, girl.outfits.Count);
-
-                            if (id == Girls.KyuId)
+                            foreach (var girl in girlDataDict.Values)
                             {
-                                expansion.BackPosition = girl.specialEffectOffset;
-                            }
-                            else
-                            {
-                                expansion.HeadPosition = girl.specialEffectOffset;
+                                ModInterface.Log.LogInfo($"Id: {girl.id}, Name: {girl.name}");
+                                using (ModInterface.Log.MakeIndent())
+                                {
+                                    void defaultStyleExpansion(ExpandedStyleDefinition expansion, int index)
+                                    {
+                                        expansion.IsNSFW = false;
+                                        expansion.IsPurchased = index > 6;
+                                        expansion.IsCodeUnlocked = index == 6;
+                                    }
+
+                                    var expansion = ExpandedGirlDefinition.Get(girl);
+                                    var id = new RelativeId(-1, girl.id);
+
+                                    expansion.DialogTriggerIndex = girl.id;
+
+                                    ModInterface.Log.LogInfo("parts");
+                                    MapRelativeIdRange(expansion.PartIdToIndex, expansion.PartIndexToId, girl.parts.Count);
+
+                                    ModInterface.Log.LogInfo("expressions");
+                                    MapRelativeIdRange(expansion.ExpressionIdToIndex, expansion.ExpressionIndexToId, girl.expressions.Count);
+
+                                    ModInterface.Log.LogInfo("hairstyles");
+                                    MapRelativeIdRange(expansion.HairstyleIdToIndex, expansion.HairstyleIndexToId, girl.hairstyles.Count);
+                                    int i = 0;
+                                    girl.hairstyles.ForEach(x => defaultStyleExpansion(x.Expansion(), i++));
+
+                                    ModInterface.Log.LogInfo("outfits");
+                                    MapRelativeIdRange(expansion.OutfitIdToIndex, expansion.OutfitIndexToId, girl.outfits.Count);
+                                    i = 0;
+                                    girl.outfits.ForEach(x => defaultStyleExpansion(x.Expansion(), i++));
+
+                                    if (id == Girls.KyuId)
+                                    {
+                                        expansion.BackPosition = girl.specialEffectOffset;
+                                    }
+                                    else
+                                    {
+                                        expansion.HeadPosition = girl.specialEffectOffset;
+                                    }
+                                }
                             }
                         }
+
 
                         ModInterface.Log.LogInfo("pairs");
                         foreach (var def in girlPairDataDict.Values)
@@ -293,8 +310,8 @@ namespace Hp2BaseMod
 
                     var partModsByIdByGirl = new Dictionary<RelativeId, Dictionary<RelativeId, List<IGirlSubDataMod<GirlPartSubDefinition>>>>();
                     var expressionModsByIdByGirl = new Dictionary<RelativeId, Dictionary<RelativeId, List<IGirlSubDataMod<GirlExpressionSubDefinition>>>>();
-                    var outfitModsByIdByGirl = new Dictionary<RelativeId, Dictionary<RelativeId, List<IGirlSubDataMod<ExpandedOutfitDefinition>>>>();
-                    var hairstyleModsByIdByGirl = new Dictionary<RelativeId, Dictionary<RelativeId, List<IGirlSubDataMod<ExpandedHairstyleDefinition>>>>();
+                    var outfitModsByIdByGirl = new Dictionary<RelativeId, Dictionary<RelativeId, List<IGirlSubDataMod<GirlOutfitSubDefinition>>>>();
+                    var hairstyleModsByIdByGirl = new Dictionary<RelativeId, Dictionary<RelativeId, List<IGirlSubDataMod<GirlHairstyleSubDefinition>>>>();
                     var dialogLineModsByIdByDialogTriggerByGirlId = new Dictionary<RelativeId, Dictionary<RelativeId, Dictionary<RelativeId, List<IGirlSubDataMod<DialogLine>>>>>();
 
                     foreach (var girlMod in girlDataMods)
@@ -411,7 +428,7 @@ namespace Hp2BaseMod
                                 expansion.OutfitIndexToId,
                                 girlDef.outfits.Count,
                                 girlIdToOutfitModsById.Value.Select(x => x.Key).Distinct(),
-                                () => girlDef.outfits.Add(new ExpandedOutfitDefinition()));
+                                () => girlDef.outfits.Add(new GirlOutfitSubDefinition()));
                         }
 
                         ModInterface.Log.LogInfo("girl hairstyles");
@@ -424,7 +441,7 @@ namespace Hp2BaseMod
                                 expansion.HairstyleIndexToId,
                                 girlDef.hairstyles.Count,
                                 girlIdToHairstyleModsById.Value.Select(x => x.Key).Distinct(),
-                                () => girlDef.hairstyles.Add(new ExpandedHairstyleDefinition()));
+                                () => girlDef.hairstyles.Add(new GirlHairstyleSubDefinition()));
                         }
 
                         ModInterface.Log.LogInfo("girl lines");
@@ -564,14 +581,10 @@ namespace Hp2BaseMod
                                     foreach (var outfitId_Mods in girlId_ModsByOutfitId.Value)
                                     {
                                         var outfit = expansion.GetOutfit(girl, outfitId_Mods.Key);
-                                        if (!(outfit is ExpandedOutfitDefinition expandedOutfit))
-                                        {
-                                            throw new Exception();
-                                        }
 
                                         foreach (var mod in outfitId_Mods.Value.OrderBy(x => x.LoadPriority))
                                         {
-                                            mod.SetData(ref expandedOutfit, gameDataProvider, assetProvider, InsertStyle.replace, girlId_ModsByOutfitId.Key);
+                                            mod.SetData(ref outfit, gameDataProvider, assetProvider, InsertStyle.replace, girlId_ModsByOutfitId.Key);
                                         }
                                     }
                                 }
@@ -589,14 +602,9 @@ namespace Hp2BaseMod
                                     {
                                         var hairstyle = expansion.GetHairstyle(girl, hairstyleId_Mods.Key);
 
-                                        if (!(hairstyle is ExpandedHairstyleDefinition expandedHairstye))
-                                        {
-                                            throw new Exception();
-                                        }
-
                                         foreach (var mod in hairstyleId_Mods.Value.OrderBy(x => x.LoadPriority))
                                         {
-                                            mod.SetData(ref expandedHairstye, gameDataProvider, assetProvider, InsertStyle.replace, girlId_ModsByHairstyleId.Key);
+                                            mod.SetData(ref hairstyle, gameDataProvider, assetProvider, InsertStyle.replace, girlId_ModsByHairstyleId.Key);
                                         }
                                     }
                                 }

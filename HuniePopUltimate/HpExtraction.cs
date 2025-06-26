@@ -134,7 +134,7 @@ public class HpExtraction : BaseExtraction
                         locationMod.BgMusic = new AudioKlipInfo()
                         {
                             AudioClipInfo = clipInfo,
-                            Volume = musicVolume * 1.3f //hp2 is louder
+                            Volume = musicVolume * 1.8f //hp2 is louder
                         };
                     }
                 }

@@ -13,33 +13,24 @@ internal static partial class Styles
     private static readonly int _ashleyBodyY = 964;
     public static void AddAshleyStyles()
     {
+        var modParts = new List<IGirlSubDataMod<GirlPartSubDefinition>>();
+        var modOutfits = new List<IGirlSubDataMod<GirlOutfitSubDefinition>>();
+        var modHairstyles = new List<IGirlSubDataMod<GirlHairstyleSubDefinition>>();
+
+        AddOutfit(modParts, modOutfits, "bikerlaces", "Biker Laves", "ashley", _ashleyBodyX, _ashleyBodyY - 96, false, false, false, true);
+        AddPair(modParts, modOutfits, modHairstyles, "junko", "Junko", "ashley",
+            _ashleyBodyX - 4, _ashleyBodyY - 99,
+            _ashleyBodyX + 205, _ashleyBodyY + 13,
+            _ashleyBodyX + 45, _ashleyBodyY + 102,
+            false, false, false, true);
+
+        //Chesticles
+
         ModInterface.AddDataMod(new GirlDataMod(Girls.AshleyId, InsertStyle.append)
         {
-            parts = new List<IGirlSubDataMod<GirlPartSubDefinition>>()
-            {
-                new GirlPartDataMod(Ids.OutfitPart1, InsertStyle.replace)
-                {
-                    PartType = GirlPartType.OUTFIT,
-                    PartName = "bikerLacesOutfitAshley",
-                    X = _ashleyBodyX,
-                    Y = _ashleyBodyY - 96,
-                    MirroredPartId = RelativeId.Default,
-                    AltPartId = null,
-                    SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImageDir, @"ashley_outfit_ashley.png")))
-                }
-            },
-            outfits = new List<IGirlSubDataMod<ExpandedOutfitDefinition>>()
-            {
-                new OutfitDataMod(Ids.Style1, InsertStyle.replace)
-                {
-                    Name = "Biker Laces",
-                    OutfitPartId = Ids.OutfitPart1,
-                    IsNSFW = false,
-                    HideNipples = true,
-                    TightlyPaired = false,
-                    PairHairstyleId = null
-                }
-            }
+            parts = modParts,
+            outfits = modOutfits,
+            hairstyles = modHairstyles
         });
     }
 }

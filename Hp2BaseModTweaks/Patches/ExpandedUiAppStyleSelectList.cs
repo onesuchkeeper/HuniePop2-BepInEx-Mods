@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using HarmonyLib;
+using Hp2BaseMod;
 using Hp2BaseMod.Extension;
 using UnityEngine;
 using UnityEngine.UI;
@@ -222,8 +223,8 @@ namespace Hp2BaseModTweaks
             var visibleItemCount = 0;
 
             var styleEnumerator = _uiAppStyleSelectList.alternative
-                ? playerFileGirl.girlDefinition.outfits.OfType<IExpandedStyleDefinition>().GetEnumerator()
-                : playerFileGirl.girlDefinition.hairstyles.OfType<IExpandedStyleDefinition>().GetEnumerator();
+                ? playerFileGirl.girlDefinition.outfits.Select<GirlOutfitSubDefinition, (string Name, ExpandedStyleDefinition Expansion)>(x => (x.outfitName, x.Expansion())).GetEnumerator()
+                : playerFileGirl.girlDefinition.hairstyles.Select<GirlHairstyleSubDefinition, (string Name, ExpandedStyleDefinition Expansion)>(x => (x.hairstyleName, x.Expansion())).GetEnumerator();
 
             var listItemEnumerator = _uiAppStyleSelectList.listItems.GetEnumerator();
 
@@ -240,7 +241,7 @@ namespace Hp2BaseModTweaks
                 var hideIfLocked = false;
                 string text;
 
-                if (styleEnumerator.Current.IsCodeUnlocked)
+                if (styleEnumerator.Current.Expansion.IsCodeUnlocked)
                 {
                     text = unlocked
                         ? styleEnumerator.Current.Name
@@ -258,7 +259,7 @@ namespace Hp2BaseModTweaks
                         visibleItemCount++;
                     }
                 }
-                else if (styleEnumerator.Current.IsPurchased)
+                else if (styleEnumerator.Current.Expansion.IsPurchased)
                 {
                     hideIfLocked = !postGame;
 

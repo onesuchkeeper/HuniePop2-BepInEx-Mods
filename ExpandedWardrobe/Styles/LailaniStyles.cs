@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.IO;
 using Hp2BaseMod;
 using Hp2BaseMod.GameDataInfo;
 using Hp2BaseMod.GameDataInfo.Interface;
@@ -13,33 +12,18 @@ internal static partial class Styles
     private static readonly int _lailaniBodyY = 931;
     public static void AddLailaniStyles()
     {
+        var modParts = new List<IGirlSubDataMod<GirlPartSubDefinition>>();
+        var modOutfits = new List<IGirlSubDataMod<GirlOutfitSubDefinition>>();
+        var modHairstyles = new List<IGirlSubDataMod<GirlHairstyleSubDefinition>>();
+
+        AddOutfit(modParts, modOutfits, "keyWest", "Key West", "lailani", _lailaniBodyX + 76, _lailaniBodyY - 249, false, false, false, true);
+        AddOutfit(modParts, modOutfits, "topless", "Chest Puppies", "lailani", _lailaniBodyX + 101, _lailaniBodyY - 284, true, false, false, false);
+
         ModInterface.AddDataMod(new GirlDataMod(Girls.LailaniId, InsertStyle.append)
         {
-            parts = new List<IGirlSubDataMod<GirlPartSubDefinition>>()
-            {
-                new GirlPartDataMod(Ids.OutfitPart1, InsertStyle.replace)
-                {
-                    PartType = GirlPartType.OUTFIT,
-                    PartName = "keyWestOutfitLailani",
-                    X = _lailaniBodyX + 76,
-                    Y = _lailaniBodyY - 249,
-                    MirroredPartId = RelativeId.Default,
-                    AltPartId = null,
-                    SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImageDir, @"lailani_outfit_keyWest.png")))
-                }
-            },
-            outfits = new List<IGirlSubDataMod<ExpandedOutfitDefinition>>()
-            {
-                new OutfitDataMod(Ids.Style1, InsertStyle.replace)
-                {
-                    Name = "Key West",
-                    OutfitPartId = Ids.OutfitPart1,
-                    IsNSFW = false,
-                    HideNipples = true,
-                    TightlyPaired = false,
-                    PairHairstyleId = null
-                }
-            }
+            parts = modParts,
+            outfits = modOutfits,
+            hairstyles = modHairstyles
         });
     }
 }

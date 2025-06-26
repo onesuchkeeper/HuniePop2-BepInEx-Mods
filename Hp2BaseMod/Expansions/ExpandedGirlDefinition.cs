@@ -1,6 +1,7 @@
 using System.Collections.Generic;
-using Hp2BaseMod;
 using UnityEngine;
+
+namespace Hp2BaseMod;
 
 public static class GirlDefinition_Ext
 {
@@ -45,7 +46,16 @@ public class ExpandedGirlDefinition
     };
 
     public GirlOutfitSubDefinition GetOutfit(GirlDefinition def, RelativeId id)
-        => def.outfits[OutfitIdToIndex[id]];
+    {
+        var index = OutfitIdToIndex[id];
+
+        if (index == -1)
+        {
+            index = def.defaultOutfitIndex;
+        }
+
+        return def.outfits[index];
+    }
 
     public Dictionary<RelativeId, int> HairstyleIdToIndex = new Dictionary<RelativeId, int>()
     {
@@ -58,7 +68,16 @@ public class ExpandedGirlDefinition
     };
 
     public GirlHairstyleSubDefinition GetHairstyle(GirlDefinition def, RelativeId id)
-        => def.hairstyles[HairstyleIdToIndex[id]];
+    {
+        var index = HairstyleIdToIndex[id];
+
+        if (index == -1)
+        {
+            index = def.defaultHairstyleIndex;
+        }
+
+        return def.hairstyles[index];
+    }
 
     public Dictionary<RelativeId, int> PartIdToIndex = new Dictionary<RelativeId, int>()
     {

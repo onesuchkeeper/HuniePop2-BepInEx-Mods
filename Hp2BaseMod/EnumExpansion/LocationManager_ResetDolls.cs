@@ -19,7 +19,27 @@ namespace Hp2BaseMod.EnumExpansion
 
             if (currentLocation.locationType == LocationType.HUB)
             {
-                var args = ModInterface.Events.NotifyRequestStyleChange(Game.Session.Hub.hubGirlDefinition, currentLocation, 0f, GirlStyleInfo.Default);
+                //pick a random style
+                var girlExpansion = Game.Session.Hub.hubGirlDefinition.Expansion();
+
+                var outfitIndex = UnityEngine.Random.Range(0, Game.Session.Hub.hubGirlDefinition.outfits.Count);
+                var outfit = Game.Session.Hub.hubGirlDefinition.outfits[outfitIndex];
+
+                var hubStyle = new GirlStyleInfo()
+                {
+                    OutfitId = girlExpansion.OutfitIndexToId[outfitIndex],
+                };
+
+                if (outfit.pairHairstyleIndex != -1)
+                {
+                    hubStyle.HairstyleId = girlExpansion.HairstyleIndexToId[outfit.pairHairstyleIndex];
+                }
+                else
+                {
+                    hubStyle.HairstyleId = girlExpansion.HairstyleIndexToId[UnityEngine.Random.Range(0, Game.Session.Hub.hubGirlDefinition.hairstyles.Count)];
+                }
+
+                var args = ModInterface.Events.NotifyRequestStyleChange(Game.Session.Hub.hubGirlDefinition, currentLocation, 0.1f, hubStyle);
 
                 if (UnityEngine.Random.Range(0f, 1f) <= args.ApplyChance)
                 {

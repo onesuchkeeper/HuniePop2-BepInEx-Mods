@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
-using Hp2BaseMod;
+
+namespace Hp2BaseMod;
 
 public static class DialogTriggerDefinitionExtension
 {

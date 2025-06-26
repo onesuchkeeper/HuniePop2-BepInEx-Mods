@@ -4,7 +4,7 @@ using Hp2BaseMod.Utility;
 
 namespace Hp2BaseMod.GameDataInfo
 {
-    public class HairstyleDataMod : DataMod, IGirlSubDataMod<ExpandedHairstyleDefinition>
+    public class HairstyleDataMod : DataMod, IGirlSubDataMod<GirlHairstyleSubDefinition>
     {
         public string Name;
 
@@ -54,7 +54,7 @@ namespace Hp2BaseMod.GameDataInfo
         }
 
         /// <inheritdoc/>
-        public void SetData(ref ExpandedHairstyleDefinition def,
+        public void SetData(ref GirlHairstyleSubDefinition def,
                             GameDefinitionProvider gameData,
                             AssetProvider assetProvider,
                             InsertStyle insertStyle,
@@ -62,15 +62,16 @@ namespace Hp2BaseMod.GameDataInfo
         {
             if (def == null)
             {
-                def = Activator.CreateInstance<ExpandedHairstyleDefinition>();
+                def = Activator.CreateInstance<GirlHairstyleSubDefinition>();
             }
 
+            var expansion = def.Expansion();
             var girlExpansion = ExpandedGirlDefinition.Get(girlId);
 
             ValidatedSet.SetValue(ref def.hairstyleName, Name, insertStyle);
-            ValidatedSet.SetValue(ref def.IsNSFW, IsNSFW);
-            ValidatedSet.SetValue(ref def.IsCodeUnlocked, IsCodeUnlocked);
-            ValidatedSet.SetValue(ref def.IsPurchased, IsPurchased);
+            ValidatedSet.SetValue(ref expansion.IsNSFW, IsNSFW);
+            ValidatedSet.SetValue(ref expansion.IsCodeUnlocked, IsCodeUnlocked);
+            ValidatedSet.SetValue(ref expansion.IsPurchased, IsPurchased);
             ValidatedSet.SetValue(ref def.hideSpecials, HideSpecials);
             ValidatedSet.SetValue(ref def.pairOutfitIndex, girlExpansion.OutfitIdToIndex, PairOutfitId);
             ValidatedSet.SetValue(ref def.partIndexBackhair, girlExpansion.PartIdToIndex, BackHairPartId);

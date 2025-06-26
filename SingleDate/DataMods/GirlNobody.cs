@@ -65,7 +65,7 @@ internal static class GirlNobody
                 }
             },
 
-            hairstyles = new List<IGirlSubDataMod<ExpandedHairstyleDefinition>>(){
+            hairstyles = new List<IGirlSubDataMod<GirlHairstyleSubDefinition>>(){
                 new HairstyleDataMod(emptyPartId, InsertStyle.replace){
                     Name = string.Empty,
                     FrontHairPartId = RelativeId.Default,
@@ -73,7 +73,7 @@ internal static class GirlNobody
                 }
             },
 
-            outfits = new List<IGirlSubDataMod<ExpandedOutfitDefinition>>()
+            outfits = new List<IGirlSubDataMod<GirlOutfitSubDefinition>>()
             {
                 new OutfitDataMod(emptyPartId, InsertStyle.replace)
                 {
