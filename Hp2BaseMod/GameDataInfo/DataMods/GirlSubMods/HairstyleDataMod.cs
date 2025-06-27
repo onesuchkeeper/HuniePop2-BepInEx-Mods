@@ -4,6 +4,9 @@ using Hp2BaseMod.Utility;
 
 namespace Hp2BaseMod.GameDataInfo
 {
+    /// <summary>
+    /// Information to make a <see cref="GirlHairstyleSubDefinition"/>.
+    /// </summary>
     public class HairstyleDataMod : DataMod, IGirlSubDataMod<GirlHairstyleSubDefinition>
     {
         public string Name;
@@ -25,10 +28,6 @@ namespace Hp2BaseMod.GameDataInfo
         /// <inheritdoc/>
         public HairstyleDataMod() { }
 
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="id"></param>
         public HairstyleDataMod(RelativeId id, InsertStyle insertStyle, int loadPriority = 0)
             : base(id, insertStyle, loadPriority)
         {

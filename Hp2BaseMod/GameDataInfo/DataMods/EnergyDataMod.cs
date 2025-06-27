@@ -9,7 +9,7 @@ using UnityEngine;
 namespace Hp2BaseMod.GameDataInfo
 {
     /// <summary>
-    /// Serializable information to make an EnergyDefinition
+    /// Information to make a <see cref="EnergyDefinition"/>.
     /// </summary>
     public class EnergyDataMod : DataMod, IGameDataMod<EnergyDefinition>
     {
@@ -44,21 +44,11 @@ namespace Hp2BaseMod.GameDataInfo
         /// <inheritdoc/>
         public EnergyDataMod() { }
 
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="id"></param>
-        /// <param name="insertStyle">The way in which mod data should be applied to the data instance.</param>
         public EnergyDataMod(RelativeId id, InsertStyle insertStyle, int loadPriority = 0)
             : base(id, insertStyle, loadPriority)
         {
         }
 
-        /// <summary>
-        /// Constructor from a definition instance.
-        /// </summary>
-        /// <param name="def">The definition.</param>
-        /// <param name="assetProvider">Asset provider containing the assets referenced by the definition.</param>
         internal EnergyDataMod(EnergyDefinition def, AssetProvider assetProvider)
             : base(new RelativeId(def), InsertStyle.replace, 0)
         {

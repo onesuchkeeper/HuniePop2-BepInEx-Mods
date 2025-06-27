@@ -17,6 +17,8 @@ namespace Hp2BaseMod.Save
         private const int _defaultShopSlotCount = 32;
         private const int _defaultGirlCount = 12;
         private const int _defaultPairCount = 24;
+        private const int _defaultFruitCount = 4;
+        private const int _defaultAffectionCount = 4;
 
         public bool Started;
         public int SettingGender;
@@ -72,29 +74,29 @@ namespace Hp2BaseMod.Save
             NonstopDataCount = saveFile.nonstopDateCount;
             SidesFlipped = saveFile.sidesFlipped;
 
-            FruitCounts = new Dictionary<RelativeId, int>();
-            CommonSaveMethods.HandleIndex(saveFile.fruitCounts,
-                FruitCounts,
-                ModInterface.Data.TryGetFruitId);
+            //Fruit and Affection are accessed by enum, so to expand that access needs to be 
+            //circumvented entirely. So, just store mod Fruit and Affection in the mod save and only
+            //handle vanilla stuff in the main save
+            FruitCounts = new();
 
-            saveFile.fruitCounts = new int[]{
-                FruitCounts.TryGetValue(AffectionTypes.Talent, out var talentFC) ? talentFC : 0,
-                FruitCounts.TryGetValue(AffectionTypes.Flirtation, out var flirtationFC) ? flirtationFC : 0,
-                FruitCounts.TryGetValue(AffectionTypes.Romance, out var romanceFC) ? romanceFC : 0,
-                FruitCounts.TryGetValue(AffectionTypes.Sexuality, out var sexualityFC) ? sexualityFC : 0,
-            };
+            var i = 1;
+            foreach (var value in saveFile.fruitCounts)
+            {
+                if (ModInterface.Data.TryGetDataId(GameDataType.Fruit, i++, out var key))
+                {
+                    FruitCounts[key] = value;
+                }
+            }
 
             AffectionLevelExps = new();
-            CommonSaveMethods.HandleIndex(saveFile.affectionLevelExps,
-                AffectionLevelExps,
-                ModInterface.Data.TryGetAffectionId);
-
-            saveFile.affectionLevelExps = new int[]{
-                AffectionLevelExps.TryGetValue(AffectionTypes.Talent, out var talentALE) ? talentALE : 0,
-                AffectionLevelExps.TryGetValue(AffectionTypes.Flirtation, out var flirtationALE) ? flirtationALE : 0,
-                AffectionLevelExps.TryGetValue(AffectionTypes.Romance, out var romanceALE) ? romanceALE : 0,
-                AffectionLevelExps.TryGetValue(AffectionTypes.Sexuality, out var sexualityALE) ? sexualityALE : 0,
-            };
+            i = 1;
+            foreach (var value in saveFile.affectionLevelExps)
+            {
+                if (ModInterface.Data.TryGetDataId(GameDataType.Affection, i++, out var key))
+                {
+                    AffectionLevelExps[key] = value;
+                }
+            }
 
             var wardrobeGirlIdFlag = saveFile.flags.FirstOrDefault(x => x.flagName == _wardrobeGirlIdFlagName);
             var wardrobeGirlId = wardrobeGirlIdFlag?.flagValue;
@@ -246,30 +248,6 @@ namespace Hp2BaseMod.Save
             ValidatedSet.SetFromRelativeId(ref saveFile.locationId, GameDataType.Location, LocationId);
             ValidatedSet.SetFromRelativeId(ref saveFile.girlPairId, GameDataType.GirlPair, GirlPairId);
 
-            var fruitCounts = saveFile.fruitCounts;
-            saveFile.fruitCounts = new int[ModInterface.Data.MaxFruitIndex + 1];
-            for (i = 0; i < fruitCounts.Length; i++)
-            {
-                saveFile.fruitCounts[i] = fruitCounts[i];
-
-                if (ModInterface.Data.TryGetFruitId(i, out var id))
-                {
-                    FruitCounts.Remove(id);
-                }
-            }
-
-            var affectionLevelExps = saveFile.affectionLevelExps;
-            saveFile.affectionLevelExps = new int[ModInterface.Data.MaxAffectionIndex + 1];
-            for (i = 0; i < affectionLevelExps.Length; i++)
-            {
-                saveFile.affectionLevelExps[i] = affectionLevelExps[i];
-
-                if (ModInterface.Data.TryGetAffectionId(i, out var id))
-                {
-                    AffectionLevelExps.Remove(id);
-                }
-            }
-
             foreach (var girl in saveFile.girls)
             {
                 if (ModInterface.Data.TryGetDataId(GameDataType.Girl, girl.girlId, out var girlId)
@@ -350,8 +328,8 @@ namespace Hp2BaseMod.Save
                 finderRestockTime = FinderRestockTime,
                 storeRestockDay = StoreRestockDay,
                 staminaFoodLimit = StaminaFoodLimit,
-                fruitCounts = new int[ModInterface.Data.MaxFruitIndex + 1],
-                affectionLevelExps = new int[ModInterface.Data.MaxAffectionIndex + 1],
+                //fruitCounts = new int[ModInterface.Data.MaxFruitIndex + 1],
+                //affectionLevelExps = new int[ModInterface.Data.MaxAffectionIndex + 1],
                 relationshipPoints = RelationshipPoints,
                 alphaDateCount = AlphaDateCount,
                 nonstopDateCount = NonstopDataCount,
@@ -388,17 +366,19 @@ namespace Hp2BaseMod.Save
         {
             foreach (var fruitCount in FruitCounts)
             {
-                if (ModInterface.Data.TryGetFruitIndex(fruitCount.Key, out var index))
+                if (fruitCount.Key.SourceId == -1
+                    && ModInterface.Data.TryGetRuntimeDataId(GameDataType.Fruit, fruitCount.Key, out var fruitRuntimeId))
                 {
-                    saveFile.fruitCounts[index] = fruitCount.Value;
+                    saveFile.fruitCounts[fruitRuntimeId] = fruitCount.Value;
                 }
             }
 
             foreach (var affectionLevelExp in AffectionLevelExps)
             {
-                if (ModInterface.Data.TryGetAffectionIndex(affectionLevelExp.Key, out var index))
+                if (affectionLevelExp.Key.SourceId == -1
+                    && ModInterface.Data.TryGetRuntimeDataId(GameDataType.Affection, affectionLevelExp.Key, out var affectionRuntimeId))
                 {
-                    saveFile.affectionLevelExps[index] = affectionLevelExp.Value;
+                    saveFile.affectionLevelExps[affectionRuntimeId] = affectionLevelExp.Value;
                 }
             }
 

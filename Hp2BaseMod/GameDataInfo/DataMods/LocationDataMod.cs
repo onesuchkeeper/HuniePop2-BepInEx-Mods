@@ -9,7 +9,7 @@ using UnityEngine;
 namespace Hp2BaseMod.GameDataInfo
 {
     /// <summary>
-    /// Serializable information to make a LocationDefinition
+    /// Information to make a LocationDefinition
     /// </summary>
     public class LocationDataMod : DataMod, ILocationDataMod
     {

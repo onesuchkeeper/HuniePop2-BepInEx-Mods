@@ -18,6 +18,9 @@ internal static class UiAppStoreSlotPatch
         => ExpandedUiAppStoreSlot.Get(__instance).OnDestroy();
 }
 
+/// <summary>
+/// Handles <see cref="ExpandedItemSlotBehavior.PreShowEvent"/>.
+/// </summary>
 internal class ExpandedUiAppStoreSlot
 {
     private static Dictionary<UiAppStoreSlot, ExpandedUiAppStoreSlot> _expansions

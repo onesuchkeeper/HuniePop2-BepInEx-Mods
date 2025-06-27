@@ -3,6 +3,9 @@ using Hp2BaseMod.GameDataInfo;
 
 namespace Hp2BaseMod
 {
+    /// <summary>
+    /// Events raised by the base mod for dependents.
+    /// </summary>
     public class ModEvents
     {
         /// <summary>

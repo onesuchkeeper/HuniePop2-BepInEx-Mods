@@ -1,3 +1,5 @@
+// Hp2BaseMod 2025, By OneSuchKeeper
+
 using System.Reflection;
 using HarmonyLib;
 using Hp2BaseMod.Extension;
@@ -5,8 +7,12 @@ using Hp2BaseMod.Utility;
 
 namespace Hp2BaseMod;
 
+/// <summary>
+/// Overrides the style unlocking process, in order to allow for only a single hairstyle or outfit to be unlocked rather than
+/// both
+/// </summary>
 [HarmonyPatch(typeof(CutsceneStepSpecialPostRewards))]
-public static class Foo
+public static class CutsceneStepSpecialPostRewardsPatch
 {
     private static FieldInfo _rewardDelay = AccessTools.Field(typeof(CutsceneStepSpecialPostRewards), "_rewardDelay");
     private static FieldInfo _rewardtimestamp = AccessTools.Field(typeof(CutsceneStepSpecialPostRewards), "_rewardtimestamp");

@@ -1,3 +1,5 @@
+// Hp2BaseMod 2025, By OneSuchKeeper
+
 namespace Hp2BaseMod
 {
     public static class SpecialParts

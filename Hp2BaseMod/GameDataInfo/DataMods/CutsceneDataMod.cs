@@ -8,7 +8,7 @@ using Hp2BaseMod.Utility;
 namespace Hp2BaseMod.GameDataInfo
 {
     /// <summary>
-    /// Serializable information to make a CutsceneDefinition
+    /// Information to make a <see cref="CutsceneDefinition"/>.
     /// </summary>
     public class CutsceneDataMod : DataMod, IGameDataMod<CutsceneDefinition>
     {
@@ -19,22 +19,12 @@ namespace Hp2BaseMod.GameDataInfo
         /// <inheritdoc/>
         public CutsceneDataMod() { }
 
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="id"></param>
-        /// <param name="insertStyle">The way in which mod data should be applied to the data instance.</param>
         public CutsceneDataMod(RelativeId id, InsertStyle insertStyle, int loadPriority = 0)
             : base(id, insertStyle, loadPriority)
         {
         }
 
-        /// <summary>
-        /// Constructor from a definition instance.
-        /// </summary>
-        /// <param name="def">The definition.</param>
-        /// <param name="assetProvider">Asset provider containing the assets referenced by the definition.</param>
-        public CutsceneDataMod(CutsceneDefinition def, AssetProvider assetProvider)
+        internal CutsceneDataMod(CutsceneDefinition def, AssetProvider assetProvider)
             : base(new RelativeId(def), InsertStyle.replace, 0)
         {
             CleanUpType = def.cleanUpType;

@@ -1,3 +1,5 @@
+// Hp2BaseMod 2025, By OneSuchKeeper
+
 using System.Collections.Generic;
 using System.Linq;
 using HarmonyLib;
@@ -7,6 +9,10 @@ using UnityEngine;
 
 namespace Hp2BaseMod;
 
+/// <summary>
+/// overrides store product population to allow for modded smoothies
+/// TODO: provide hook for dependant mods to alter populating items and pools
+/// </summary>
 [HarmonyPatch(typeof(PlayerFile), nameof(PlayerFile.PopulateStoreProducts))]
 public static class PlayerFile_PopulateStoreProducts
 {

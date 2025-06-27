@@ -9,7 +9,7 @@ using UnityEngine;
 namespace Hp2BaseMod.GameDataInfo
 {
     /// <summary>
-    /// Serializable information to make a DialogueLine
+    /// Information to make a <see cref="DialogLine"/>.
     /// </summary>
     public class DialogLineDataMod : DataMod, IGirlSubDataMod<DialogLine>
     {
@@ -29,17 +29,11 @@ namespace Hp2BaseMod.GameDataInfo
 
         public List<DialogLineExpression> Expressions;
 
-        /// <summary>
-        /// Constructor
-        /// </summary>
+        /// <inheritdoc/>
         public DialogLineDataMod() { }
 
-        /// <summary>
-        /// Constructor from a definition instance.
-        /// </summary>
-        /// <param name="def">The definition.</param>
-        /// <param name="assetProvider">Asset provider containing the assets referenced by the definition.</param>
-        public DialogLineDataMod(DialogLine def, AssetProvider assetProvider, RelativeId id)
+        internal DialogLineDataMod(DialogLine def, AssetProvider assetProvider, RelativeId id)
+        : base(id, InsertStyle.replace, 0)
         {
             if (def == null) { throw new ArgumentNullException(nameof(def)); }
             if (assetProvider == null) { throw new ArgumentNullException(nameof(assetProvider)); }
@@ -50,7 +44,6 @@ namespace Hp2BaseMod.GameDataInfo
             StartExpression = def.startExpression;
             Expressions = def.expressions;
             EndExpression = def.endExpression;
-            Id = id;
 
             if (def.yuriAudioClip != null) { YuriAudioClipInfo = new AudioClipInfo(def.yuriAudioClip, assetProvider); }
             if (def.audioClip != null) { AudioClipInfo = new AudioClipInfo(def.audioClip, assetProvider); }

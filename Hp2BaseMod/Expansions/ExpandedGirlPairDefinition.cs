@@ -9,6 +9,11 @@ public static class GirlPairDefinition_Ext
         => ExpandedGirlPairDefinition.Get(def);
 }
 
+/// <summary>
+/// Holds additional fields for a <see cref="GirlPairDefinition"/>.
+/// Consider this readonly and do not modify these fields unless you know what your doing, instead
+/// register a <see cref="GirlPairDataMod"/> using <see cref="ModInterface.AddDataMod"/>.
+/// </summary>
 public class ExpandedGirlPairDefinition
 {
     private static Dictionary<RelativeId, ExpandedGirlPairDefinition> _expansions
@@ -32,7 +37,7 @@ public class ExpandedGirlPairDefinition
     }
 
     /// <summary>
-    /// Maps a pair's id to its style info
+    /// Maps a pair's id to its style info.
     /// </summary>
     public PairStyleInfo PairStyle;
 }

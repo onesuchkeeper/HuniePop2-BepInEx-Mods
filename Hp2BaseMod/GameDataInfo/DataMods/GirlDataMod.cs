@@ -11,7 +11,7 @@ using UnityEngine;
 namespace Hp2BaseMod.GameDataInfo
 {
     /// <summary>
-    /// Serializable information to make a GirlDefinition
+    /// Information to make a <see cref="GirlDefinition"/>.
     /// </summary>
     public class GirlDataMod : DataMod, IGirlDataMod
     {
@@ -159,21 +159,11 @@ namespace Hp2BaseMod.GameDataInfo
         /// <inheritdoc/>
         public GirlDataMod() { }
 
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="id"></param>
-        /// <param name="insertStyle">The way in which mod data should be applied to the data instance.</param>
         public GirlDataMod(RelativeId id, InsertStyle insertStyle, int loadPriority = 0)
             : base(id, insertStyle, loadPriority)
         {
         }
 
-        /// <summary>
-        /// Constructor from an unmodified definition instance.
-        /// </summary>
-        /// <param name="def">The definition.</param>
-        /// <param name="assetProvider">Asset provider containing the assets referenced by the definition.</param>
         internal GirlDataMod(GirlDefinition def, AssetProvider assetProvider, IEnumerable<DialogTriggerDefinition> dts)
             : base(new RelativeId(def), InsertStyle.replace, 0)
         {

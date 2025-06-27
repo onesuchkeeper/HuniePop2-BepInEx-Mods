@@ -13,7 +13,7 @@ namespace Hp2BaseMod.GameDataInfo
         {
             if (def == null)
             {
-                def = Default;
+                def = new GirlStyleInfo() { OutfitId = RelativeId.Default, HairstyleId = RelativeId.Default };
             }
 
             ValidatedSet.SetValue(ref def.OutfitId, OutfitId, InsertStyle.replace);
@@ -25,8 +25,6 @@ namespace Hp2BaseMod.GameDataInfo
             OutfitId = getNewId(OutfitId);
             HairstyleId = getNewId(OutfitId);
         }
-
-        public static GirlStyleInfo Default => new GirlStyleInfo() { OutfitId = RelativeId.Default, HairstyleId = RelativeId.Default };
 
         public void Apply(UiDoll doll, int defaultOutfitIndex, int defaultHairstyleIndex)
         {

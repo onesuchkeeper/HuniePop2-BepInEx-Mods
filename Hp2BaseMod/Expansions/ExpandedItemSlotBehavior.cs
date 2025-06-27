@@ -6,9 +6,6 @@ using Hp2BaseMod.Extension;
 
 namespace Hp2BaseMod;
 
-/// <summary>
-/// 
-/// </summary>
 [HarmonyPatch(typeof(ItemSlotBehavior))]
 internal static class ItemSlotBehaviorPatch
 {
@@ -23,6 +20,10 @@ internal static class ItemSlotBehaviorPatch
         => ExpandedItemSlotBehavior.Get(__instance).OnDestroy();
 }
 
+/// <summary>
+/// Allows tooltips to be displayed when ui is offset outside the hub.
+/// Use <see cref="ModInterface.State.CellphoneOnLeft"/> to control ui position
+/// </summary>
 public class ExpandedItemSlotBehavior
 {
     private static Dictionary<ItemSlotBehavior, ExpandedItemSlotBehavior> _expansions

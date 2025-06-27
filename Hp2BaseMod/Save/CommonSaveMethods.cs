@@ -19,7 +19,7 @@ public static class CommonSaveMethods
             }
             else
             {
-                ModInterface.Log.LogError($"Unregistered affection index {i}");
+                ModInterface.Log.LogError($"Unregistered index {i}");
             }
         }
     }

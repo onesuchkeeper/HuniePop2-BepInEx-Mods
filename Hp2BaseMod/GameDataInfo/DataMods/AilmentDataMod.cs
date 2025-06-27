@@ -8,7 +8,7 @@ using Hp2BaseMod.Utility;
 namespace Hp2BaseMod.GameDataInfo
 {
     /// <summary>
-    /// Serializable information to make an AilmentDefinition
+    /// Information to make a <see cref="AilmentDefinition"/>.
     /// </summary>
     public class AilmentDataMod : DataMod, IGameDataMod<AilmentDefinition>
     {
@@ -41,20 +41,11 @@ namespace Hp2BaseMod.GameDataInfo
         /// <inheritdoc/>
         public AilmentDataMod() { }
 
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="id"></param>
-        /// <param name="insertStyle">The way in which mod data should be applied to the data instance.</param>
         public AilmentDataMod(RelativeId id, InsertStyle insertStyle, int loadPriority = 0)
             : base(id, insertStyle, loadPriority)
         {
         }
 
-        /// <summary>
-        /// Constructor from a definition instance.
-        /// </summary>
-        /// <param name="def">The definition.</param>
         internal AilmentDataMod(AilmentDefinition def)
             : base(new RelativeId(def), InsertStyle.replace, 0)
         {

@@ -18,6 +18,9 @@ internal static class UiAppDisplaySlotPatch
         => ExpandedUiAppDisplaySlot.Get(__instance).OnDestroy();
 }
 
+/// <summary>
+/// Handles <see cref="ExpandedItemSlotBehavior.PreShowEvent"/>.
+/// </summary>
 internal class ExpandedUiAppDisplaySlot
 {
     private static Dictionary<UiAppDisplaySlot, ExpandedUiAppDisplaySlot> _expansions

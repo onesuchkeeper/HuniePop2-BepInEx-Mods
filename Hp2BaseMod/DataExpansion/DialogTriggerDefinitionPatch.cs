@@ -1,10 +1,15 @@
-﻿using System;
+﻿// Hp2BaseMod 2025, By OneSuchKeeper
+
+using System;
 using HarmonyLib;
 
 namespace Hp2BaseMod.EnumExpansion
 {
+    /// <summary>
+    /// overrides getting line sets to use relative ids
+    /// </summary>
     [HarmonyPatch(typeof(DialogTriggerDefinition))]
-    internal class DialogTriggerDefinition_GetLineSetByGirlPatch
+    internal class DialogTriggerDefinitionPatch
     {
         [HarmonyPrefix]
         [HarmonyPatch("GetLineSetByGirl")]

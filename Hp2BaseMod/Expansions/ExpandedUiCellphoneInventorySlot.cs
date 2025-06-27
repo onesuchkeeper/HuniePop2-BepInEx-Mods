@@ -18,6 +18,9 @@ internal static class UiCellphoneInventorySlotPatch
         => ExpandedUiCellphoneInventorySlot.Get(__instance).OnDestroy();
 }
 
+/// <summary>
+/// Handles <see cref="ExpandedItemSlotBehavior.PreShowEvent"/>.
+/// </summary>
 internal class ExpandedUiCellphoneInventorySlot
 {
     private static Dictionary<UiCellphoneInventorySlot, ExpandedUiCellphoneInventorySlot> _expansions

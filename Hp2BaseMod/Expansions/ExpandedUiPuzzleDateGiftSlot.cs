@@ -18,6 +18,9 @@ internal static class UiPuzzleDateGiftSlotPatch
         => ExpandedUiPuzzleDateGiftSlot.Get(__instance).OnDestroy();
 }
 
+/// <summary>
+/// Handles <see cref="ExpandedItemSlotBehavior.PreShowEvent"/>.
+/// </summary>
 internal class ExpandedUiPuzzleDateGiftSlot
 {
     private static Dictionary<UiPuzzleDateGiftSlot, ExpandedUiPuzzleDateGiftSlot> _expansions

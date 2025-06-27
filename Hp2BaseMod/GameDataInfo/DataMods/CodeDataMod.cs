@@ -6,7 +6,7 @@ using Hp2BaseMod.Utility;
 namespace Hp2BaseMod.GameDataInfo
 {
     /// <summary>
-    /// Serializable information to make a CodeDefinition
+    /// Information to make a <see cref="CodeDefinition"/>.
     /// </summary>
     public class CodeDataMod : DataMod, IGameDataMod<CodeDefinition>
     {
@@ -21,20 +21,11 @@ namespace Hp2BaseMod.GameDataInfo
         /// <inheritdoc/>
         public CodeDataMod() { }
 
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="id"></param>
-        /// <param name="insertStyle">The way in which mod data should be applied to the data instance.</param>
         public CodeDataMod(RelativeId id, InsertStyle insertStyle, int loadPriority = 0)
             : base(id, insertStyle, loadPriority)
         {
         }
 
-        /// <summary>
-        /// Constructor from a definition instance.
-        /// </summary>
-        /// <param name="def">The definition.</param>
         internal CodeDataMod(CodeDefinition def)
             : base(new RelativeId(def), InsertStyle.replace, 0)
         {

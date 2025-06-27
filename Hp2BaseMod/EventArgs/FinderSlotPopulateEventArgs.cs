@@ -1,6 +1,13 @@
+// Hp2BaseMod 2025, By OneSuchKeeper
+
 using System;
 using System.Collections.Generic;
 
+namespace Hp2BaseMod;
+
+/// <summary>
+/// Args used in <see cref="ModEvents.FinderSlotsPopulate"/>.
+/// </summary>
 public class FinderSlotPopulateEventArgs : EventArgs
 {
     /// <summary>

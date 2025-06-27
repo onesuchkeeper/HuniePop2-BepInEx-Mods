@@ -18,6 +18,9 @@ internal static class UiPuzzleAilmentSlotPatch
         => ExpandedUiPuzzleAilmentSlot.Get(__instance).OnDestroy();
 }
 
+/// <summary>
+/// Handles <see cref="ExpandedItemSlotBehavior.PreShowEvent"/>.
+/// </summary>
 internal class ExpandedUiPuzzleAilmentSlot
 {
     private static Dictionary<UiPuzzleAilmentSlot, ExpandedUiPuzzleAilmentSlot> _expansions

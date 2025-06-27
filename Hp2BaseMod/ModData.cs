@@ -12,20 +12,6 @@ namespace Hp2BaseMod
         private readonly Dictionary<RelativeId, List<IFunctionalAilmentDataMod>> _ailmentIdToFunctionalMods = new Dictionary<RelativeId, List<IFunctionalAilmentDataMod>>();
 
         /// <summary>
-        /// Map fruit id and index
-        /// </summary>
-        private readonly Dictionary<RelativeId, int> _fruitIdToIndex = new Dictionary<RelativeId, int>();
-        private readonly Dictionary<int, RelativeId> _fruitIndexToId = new Dictionary<int, RelativeId>();
-        private int _fruitIndexSource = 0;
-
-        /// <summary>
-        /// Map affection id and index
-        /// </summary>
-        private readonly Dictionary<RelativeId, int> _affectionIdToIndex = new Dictionary<RelativeId, int>();
-        private readonly Dictionary<int, RelativeId> _affectionIndexToId = new Dictionary<int, RelativeId>();
-        private int _affectionIndexSource = 0;
-
-        /// <summary>
         /// Maps a source's local ids to the ids used at runtime.
         /// </summary>
         private readonly Dictionary<GameDataType, Dictionary<RelativeId, int>> _relativeIdToRuntimeId = new Dictionary<GameDataType, Dictionary<RelativeId, int>>()
@@ -43,7 +29,10 @@ namespace Hp2BaseMod
             { GameDataType.Location, new Dictionary<RelativeId, int>() { { RelativeId.Default, -1}, { RelativeId.Zero, 0 } } },
             { GameDataType.Photo, new Dictionary<RelativeId, int>() { { RelativeId.Default, -1}, { RelativeId.Zero, 0 } } },
             { GameDataType.Question, new Dictionary<RelativeId, int>() { { RelativeId.Default, -1}, { RelativeId.Zero, 0 } } },
-            { GameDataType.Token, new Dictionary<RelativeId, int>() { { RelativeId.Default, -1}, { RelativeId.Zero, 0 } } }
+            { GameDataType.Token, new Dictionary<RelativeId, int>() { { RelativeId.Default, -1}, { RelativeId.Zero, 0 } } },
+            { GameDataType.Fruit, new Dictionary<RelativeId, int>() { { RelativeId.Default, -1} } },
+            { GameDataType.Affection, new Dictionary<RelativeId, int>() { { RelativeId.Default, -1} } },
+            { GameDataType.SpecialPart, new Dictionary<RelativeId, int>() { { RelativeId.Default, -1} } }
         };
 
         private readonly Dictionary<GameDataType, Dictionary<int, RelativeId>> _runtimeIdToRelativeId = new Dictionary<GameDataType, Dictionary<int, RelativeId>>()
@@ -61,7 +50,10 @@ namespace Hp2BaseMod
             { GameDataType.Location, new Dictionary<int, RelativeId>() { { -1, RelativeId.Default }, { 0, RelativeId.Zero } } },
             { GameDataType.Photo, new Dictionary<int, RelativeId>() { { -1, RelativeId.Default }, { 0, RelativeId.Zero } } },
             { GameDataType.Question, new Dictionary<int, RelativeId>() { { -1, RelativeId.Default }, { 0, RelativeId.Zero } } },
-            { GameDataType.Token, new Dictionary<int, RelativeId>() { { -1, RelativeId.Default }, { 0, RelativeId.Zero } } }
+            { GameDataType.Token, new Dictionary<int, RelativeId>() { { -1, RelativeId.Default }, { 0, RelativeId.Zero } } },
+            { GameDataType.Fruit, new Dictionary<int, RelativeId>() { { -1, RelativeId.Default } } },
+            { GameDataType.Affection, new Dictionary<int, RelativeId>() { { -1, RelativeId.Default } } },
+            { GameDataType.SpecialPart, new Dictionary<int, RelativeId>() { { -1, RelativeId.Default } } },
         };
 
         /// <summary>
@@ -84,7 +76,10 @@ namespace Hp2BaseMod
             { GameDataType.Location, 1000000},
             { GameDataType.Photo, 1000000},
             { GameDataType.Question, 1000000},
-            { GameDataType.Token, 1000000}
+            { GameDataType.Token, 1000000},
+            { GameDataType.Fruit, 1000000},
+            { GameDataType.Affection, 1000000},
+            { GameDataType.SpecialPart, 1000000},
         };
 
         /// <summary>
@@ -126,24 +121,13 @@ namespace Hp2BaseMod
             { GameDataType.Location, new HashSet<RelativeId>() },
             { GameDataType.Photo, new HashSet<RelativeId>() },
             { GameDataType.Question, new HashSet<RelativeId>() },
-            { GameDataType.Token, new HashSet<RelativeId>() }
+            { GameDataType.Token, new HashSet<RelativeId>() },
+            { GameDataType.Fruit, new HashSet<RelativeId>() },
+            { GameDataType.Affection, new HashSet<RelativeId>() },
+            { GameDataType.SpecialPart, new HashSet<RelativeId>() },
         };
 
         #region registration
-
-        internal void RegisterFruit(int index, RelativeId fruitId)
-        {
-            _fruitIdToIndex[fruitId] = index;
-            _fruitIndexToId[index] = fruitId;
-            _fruitIndexSource = Math.Max(index, _fruitIndexSource);
-        }
-
-        internal void RegisterAffection(int index, RelativeId fruitId)
-        {
-            _affectionIdToIndex[fruitId] = index;
-            _affectionIndexToId[index] = fruitId;
-            _affectionIndexSource = Math.Max(index, _affectionIndexSource);
-        }
 
         internal void RegisterDefaultData(GameDataType type, int localId)
         {
@@ -153,9 +137,13 @@ namespace Hp2BaseMod
             _dataIds[type].Add(id);
         }
 
-        internal bool TryRegisterData(GameDataType type, RelativeId id)
+        /// <summary>
+        /// Attempts to register an id for a GameDataType. Use <see cref="ModInterface.AddDataMod"/> instead
+        /// if adding a data mod, which will automatically handle its id.
+        /// </summary>
+        public bool TryRegisterDataId(GameDataType type, RelativeId id)
         {
-            if (!_relativeIdToRuntimeId[type].ContainsKey(id))
+            if (id.SourceId != -1 && !_relativeIdToRuntimeId[type].ContainsKey(id))
             {
                 var runtimeId = _runtimeIdSource[type]++;
                 _relativeIdToRuntimeId[type].Add(id, runtimeId);
@@ -213,16 +201,6 @@ namespace Hp2BaseMod
             id = RelativeId.Default;
             return false;
         }
-
-        public int MaxFruitIndex => _fruitIndexSource;
-
-        public bool TryGetFruitIndex(RelativeId id, out int index) => TryLookupIndex(_fruitIdToIndex, id, out index);
-        public bool TryGetFruitId(int index, out RelativeId id) => TryLookupId(_fruitIndexToId, index, out id);
-
-        public int MaxAffectionIndex => _affectionIndexSource;
-
-        public bool TryGetAffectionIndex(RelativeId id, out int index) => TryLookupIndex(_affectionIdToIndex, id, out index);
-        public bool TryGetAffectionId(int index, out RelativeId id) => TryLookupId(_affectionIndexToId, index, out id);
 
         public IEnumerable<RelativeId> GetIds(GameDataType type) => _dataIds[type];
 

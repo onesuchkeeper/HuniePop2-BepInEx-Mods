@@ -1,3 +1,5 @@
+// Hp2BaseMod 2025, By OneSuchKeeper
+
 using System.Linq;
 using System.Reflection;
 using HarmonyLib;
@@ -5,6 +7,9 @@ using UnityEngine.UI;
 
 namespace Hp2BaseMod.Commands;
 
+/// <summary>
+/// Handles codes starting with '/' as commands. See <see cref="ICommand"/>
+/// </summary>
 [HarmonyPatch(typeof(UiCellphoneAppCode), "OnSubmitButtonPressed")]
 public static class UiCellphoneAppCode_OnSubmitButtonPressed
 {

@@ -1,11 +1,19 @@
+// Hp2BaseMod 2025, By OneSuchKeeper
+
 namespace Hp2BaseMod.Commands;
 
+/// <summary>
+/// Accepts the name of a command. Displays information about the command
+/// </summary>
 public class HelpCommand : ICommand
 {
+    ///<inheritdoc/>
     public string Name => "help";
 
+    ///<inheritdoc/>
     public string Help => "Accepts the name of a command. Displays information about the command";
 
+    ///<inheritdoc/>
     public bool Invoke(string[] inputs, out string result)
     {
         if (inputs.Length != 1)

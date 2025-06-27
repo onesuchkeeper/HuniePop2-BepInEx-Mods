@@ -3,6 +3,9 @@ using Hp2BaseMod.Utility;
 
 namespace Hp2BaseMod.GameDataInfo
 {
+    /// <summary>
+    /// Information to make an <see cref="GirlExpressionSubDefinition"/>.
+    /// </summary>
     public class GirlExpressionDataMod : DataMod, IGirlSubDataMod<GirlExpressionSubDefinition>
     {
         public GirlExpressionType? ExpressionType;
@@ -29,10 +32,7 @@ namespace Hp2BaseMod.GameDataInfo
         {
         }
 
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        public GirlExpressionDataMod(int index, AssetProvider assetProvider, GirlDefinition girlDef)
+        internal GirlExpressionDataMod(int index, AssetProvider assetProvider, GirlDefinition girlDef)
             : base(new RelativeId() { SourceId = -1, LocalId = index }, InsertStyle.replace, 0)
         {
             var expressionDef = girlDef.expressions[index];

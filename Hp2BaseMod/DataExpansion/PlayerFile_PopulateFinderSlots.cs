@@ -1,3 +1,5 @@
+// Hp2BaseMod 2025, By OneSuchKeeper
+
 using System.Collections.Generic;
 using System.Linq;
 using HarmonyLib;

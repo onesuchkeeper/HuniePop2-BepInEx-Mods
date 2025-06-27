@@ -9,11 +9,11 @@ namespace Hp2BaseMod.GameDataInfo
     /// </summary>
     public abstract class DataMod
     {
-        public RelativeId Id { get; set; }
+        public RelativeId Id { get; }
 
-        public int LoadPriority { get; set; }
+        public int LoadPriority { get; }
 
-        public InsertStyle InsertStyle { get; set; }
+        public InsertStyle InsertStyle { get; }
 
         /// <summary>
         /// Required for serialization, it is not recommended that you use this.

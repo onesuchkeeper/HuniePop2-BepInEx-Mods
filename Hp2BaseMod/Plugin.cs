@@ -93,15 +93,19 @@ public class Plugin : BaseUnityPlugin
                     ModInterface.Data.RegisterDefaultData(GameDataType.Token, token.LocalId);
                 }
 
-                ModInterface.Data.RegisterFruit(0, AffectionTypes.Talent);
-                ModInterface.Data.RegisterFruit(1, AffectionTypes.Flirtation);
-                ModInterface.Data.RegisterFruit(2, AffectionTypes.Romance);
-                ModInterface.Data.RegisterFruit(3, AffectionTypes.Sexuality);
+                ModInterface.Data.RegisterDefaultData(GameDataType.Fruit, FruitTypes.Talent.LocalId);
+                ModInterface.Data.RegisterDefaultData(GameDataType.Fruit, FruitTypes.Flirtation.LocalId);
+                ModInterface.Data.RegisterDefaultData(GameDataType.Fruit, FruitTypes.Romance.LocalId);
+                ModInterface.Data.RegisterDefaultData(GameDataType.Fruit, FruitTypes.Sexuality.LocalId);
 
-                ModInterface.Data.RegisterAffection(0, AffectionTypes.Talent);
-                ModInterface.Data.RegisterAffection(1, AffectionTypes.Flirtation);
-                ModInterface.Data.RegisterAffection(2, AffectionTypes.Romance);
-                ModInterface.Data.RegisterAffection(3, AffectionTypes.Sexuality);
+                ModInterface.Data.RegisterDefaultData(GameDataType.Affection, AffectionTypes.Talent.LocalId);
+                ModInterface.Data.RegisterDefaultData(GameDataType.Affection, AffectionTypes.Flirtation.LocalId);
+                ModInterface.Data.RegisterDefaultData(GameDataType.Affection, AffectionTypes.Romance.LocalId);
+                ModInterface.Data.RegisterDefaultData(GameDataType.Affection, AffectionTypes.Sexuality.LocalId);
+
+                ModInterface.Data.RegisterDefaultData(GameDataType.SpecialPart, SpecialParts.KyuWingId.LocalId);
+                ModInterface.Data.RegisterDefaultData(GameDataType.SpecialPart, SpecialParts.MoxieWingId.LocalId);
+                ModInterface.Data.RegisterDefaultData(GameDataType.SpecialPart, SpecialParts.JewnWingId.LocalId);
             }
         }
         catch (Exception e)

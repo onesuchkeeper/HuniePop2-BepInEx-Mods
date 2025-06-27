@@ -11,6 +11,11 @@ public static class GirlStyleSubDefinition_Ext
         => ExpandedStyleDefinition.Get(def);
 }
 
+/// <summary>
+/// Holds additional fields for a <see cref="GirlHairstyleSubDefinition"/> or a <see cref="GirlOutfitSubDefinition"/> .
+/// Consider this readonly and do not modify these fields unless you know what your doing, instead
+/// register a <see cref="GirlDataMod"/> with a <see cref="HairstyleDataMod"/> or <see cref="OutfitDataMod"/> using <see cref="ModInterface.AddDataMod"/>
+/// </summary>
 public class ExpandedStyleDefinition
 {
     private static Dictionary<GirlHairstyleSubDefinition, ExpandedStyleDefinition> _hairstyleExpansions
@@ -41,8 +46,23 @@ public class ExpandedStyleDefinition
         return expansion;
     }
 
+    /// <summary>
+    /// If style is unavailable when censored.
+    /// </summary>
     public bool IsNSFW;
+
+    /// <summary>
+    /// Is the style is unlocked via a code.
+    /// </summary>
     public bool IsCodeUnlocked;
+
+    /// <summary>
+    /// If the style is unlocked via purchase.
+    /// </summary>
     public bool IsPurchased;
+
+    /// <summary>
+    /// If the style should hide special parts.
+    /// </summary>
     public bool HideSpecial;
 }

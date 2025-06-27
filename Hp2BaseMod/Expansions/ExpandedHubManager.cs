@@ -1,11 +1,11 @@
-
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using DG.Tweening;
 using HarmonyLib;
-using Hp2BaseMod;
 using Hp2BaseMod.Extension;
+
+namespace Hp2BaseMod;
 
 [HarmonyPatch(typeof(HubManager), "HubStep")]
 internal static class HubManager_HubStep
@@ -16,6 +16,10 @@ internal static class HubManager_HubStep
         => ExpandedHubManager.Get(__instance).HubStep();
 }
 
+/// <summary>
+/// Allows for additional non-stop date locations
+/// by overriding the HubStep where the are handled
+/// </summary>
 public class ExpandedHubManager
 {
     private static Dictionary<HubManager, ExpandedHubManager> _expansions

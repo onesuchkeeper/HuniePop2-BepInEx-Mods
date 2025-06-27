@@ -6,7 +6,7 @@ using Hp2BaseMod.Utility;
 namespace Hp2BaseMod.GameDataInfo
 {
     /// <summary>
-    /// Serializable information to make a DlcDefinition
+    /// Information to make a <see cref="DlcDefinition"/>.
     /// </summary>
     public class DlcDataMod : DataMod, IGameDataMod<DlcDefinition>
     {
@@ -15,20 +15,11 @@ namespace Hp2BaseMod.GameDataInfo
         /// <inheritdoc/>
         public DlcDataMod() { }
 
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="id"></param>
-        /// <param name="insertStyle">The way in which mod data should be applied to the data instance.</param>
         public DlcDataMod(RelativeId id, InsertStyle insertStyle, int loadPriority = 0)
             : base(id, insertStyle, loadPriority)
         {
         }
 
-        /// <summary>
-        /// Constructor from a definition instance.
-        /// </summary>
-        /// <param name="def">The definition.</param>
         internal DlcDataMod(DlcDefinition def)
             : base(new RelativeId(def), InsertStyle.replace, 0)
         {

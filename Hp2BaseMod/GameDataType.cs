@@ -17,6 +17,9 @@ namespace Hp2BaseMod
         Location,
         Photo,
         Question,
-        Token
+        Token,
+        Fruit,
+        Affection,
+        SpecialPart,
     }
 }

@@ -8,7 +8,7 @@ using UnityEngine;
 namespace Hp2BaseMod.GameDataInfo
 {
     /// <summary>
-    /// Serializable information to make a GirlPartSubDefinition
+    /// Information to make a <see cref="GirlPartSubDefinition"/>.
     /// </summary>
     public class GirlPartDataMod : DataMod, IGirlSubDataMod<GirlPartSubDefinition>
     {
@@ -34,12 +34,6 @@ namespace Hp2BaseMod.GameDataInfo
         {
         }
 
-        /// <summary>
-        /// Constructor from a definition instance.
-        /// </summary>
-        /// <param name="def">The definition.</param>
-        /// <param name="assetProvider">Asset provider containing the assets referenced by the definition.</param>
-        /// <param name="GirlId">The runtime id of the <see cref="GirlDefinition"/> this part is for.</param>
         internal GirlPartDataMod(int index, AssetProvider assetProvider, GirlDefinition girlDef)
             : base(new RelativeId() { SourceId = -1, LocalId = index }, InsertStyle.replace, 0)
         {

@@ -1,8 +1,13 @@
+// Hp2BaseMod 2025, By OneSuchKeeper
+
 using System;
 using Hp2BaseMod.GameDataInfo;
 
 namespace Hp2BaseMod;
 
+/// <summary>
+/// Args used in <see cref="ModEvents.RequestStyleChange"/>.
+/// </summary>
 public class RequestStyleChangeEventArgs : EventArgs
 {
     /// <summary>

@@ -5,7 +5,7 @@ using Hp2BaseMod.Utility;
 namespace Hp2BaseMod.GameDataInfo
 {
     /// <summary>
-    /// Serializable info to modify an expanded outfit def
+    /// Information to make a <see cref="GirlOutfitSubDefinition"/>.
     /// </summary>
     public class OutfitDataMod : DataMod, IGirlSubDataMod<GirlOutfitSubDefinition>
     {
@@ -27,10 +27,6 @@ namespace Hp2BaseMod.GameDataInfo
         /// <inheritdoc/>
         public OutfitDataMod() { }
 
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="id"></param>
         public OutfitDataMod(RelativeId id, InsertStyle insertStyle, int loadPriority = 0)
             : base(id, insertStyle, loadPriority)
         {

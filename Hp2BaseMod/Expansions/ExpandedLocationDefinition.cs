@@ -9,6 +9,11 @@ public static class LocationDefinition_Ext
         => ExpandedLocationDefinition.Get(def);
 }
 
+/// <summary>
+/// Holds additional fields for a <see cref="LocationDefinition"/>.
+/// Consider this readonly and do not modify these fields unless you know what your doing, instead
+/// register a <see cref="LocationDataMod"/> using <see cref="ModInterface.AddDataMod"/>
+/// </summary>
 public class ExpandedLocationDefinition
 {
     private static Dictionary<RelativeId, ExpandedLocationDefinition> _expansions
@@ -31,10 +36,28 @@ public class ExpandedLocationDefinition
         return expansion;
     }
 
+    /// <summary>
+    /// Maps girl id to her style at the location.
+    /// </summary>
     public Dictionary<RelativeId, GirlStyleInfo> GirlIdToLocationStyleInfo = new Dictionary<RelativeId, GirlStyleInfo>();
 
+    /// <summary>
+    /// Times when this location can be used
+    /// </summary>
     public List<ClockDaytimeType> DateTimes;
+
+    /// <summary>
+    /// If this location can be used for non-stop dates
+    /// </summary>
     public bool AllowNonStop;
+
+    /// <summary>
+    /// If this location can be used for standard dates
+    /// </summary>
     public bool AllowNormal;
+
+    /// <summary>
+    /// If this location is only available after defeating the nymphojinn
+    /// </summary>
     public bool PostBoss;
 }
