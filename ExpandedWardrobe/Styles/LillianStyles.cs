@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using Hp2BaseMod;
 using Hp2BaseMod.GameDataInfo;
 using Hp2BaseMod.GameDataInfo.Interface;
@@ -42,6 +41,7 @@ internal static partial class Styles
             false, false, false, true);
 
         AddOutfit(modParts, modOutfits, "topless", "Double D's", "lillian", _lillianBodyX - 2, _lillianBodyY - 225, true, false, false, false);
+        AddOutfit(modParts, modOutfits, "batMicro", "Anarchy", "lillian", _lillianBodyX + 3, _lillianBodyY - 203, true, false, false, true);
 
         ModInterface.AddDataMod(new GirlDataMod(Girls.LillianId, InsertStyle.append)
         {

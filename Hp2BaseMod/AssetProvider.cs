@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.IO;
 using Hp2BaseMod.Utility;
 using UnityEngine;
-using UnityEngine.U2D;
 
 namespace Hp2BaseMod
 {

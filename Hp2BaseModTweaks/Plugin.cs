@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using BepInEx;
@@ -30,13 +29,15 @@ public class Plugin : BaseUnityPlugin
         ? config.Value
         : string.Empty;
 
+    public bool UseModLogo => this.Config.TryGetEntry<bool>(ConfigGeneralName, nameof(UseModLogo), out var config)
+        ? config.Value
+        : true;
+
     internal static TweaksSaveData Save => _save;
     private static TweaksSaveData _save;
 
-    internal static Dictionary<string, (string ModImagePath, List<(string CreditButtonPath, string CreditButtonOverPath, string RedirectLink)> CreditEntries)> GetModCredits()
-        => ModInterface.GetInterModValue<Dictionary<string, (string ModImagePath, List<(string CreditButtonPath, string CreditButtonOverPath, string RedirectLink)> CreditEntries)>>(ModId, "ModCredits");
-
-    internal static IEnumerable<string> GetLogoPaths() => ModInterface.GetInterModValue<IEnumerable<string>>(ModId, "LogoPaths");
+    internal static List<CreditEntry> ModCredits;
+    internal static List<string> LogoPaths;
 
     public static readonly int ModId = ModInterface.GetSourceId(MyPluginInfo.PLUGIN_GUID);
 
@@ -44,26 +45,24 @@ public class Plugin : BaseUnityPlugin
     {
         _instance = this;
         Config.SaveOnConfigSet = false;
-        this.Config.Bind(ConfigGeneralName, nameof(DigitalArtCollectionDir), Path.Combine(Paths.PluginPath, "..", "..", "Digital Art Collection"), "Directory containing the Huniepop 2 Digital Art Collection Dlc");
+        this.Config.Bind(ConfigGeneralName, nameof(DigitalArtCollectionDir), Path.Combine(Paths.PluginPath, "..", "..", "Digital Art Collection"), "Directory containing the HuniePop 2 Digital Art Collection Dlc");
+        this.Config.Bind(ConfigGeneralName, nameof(UseModLogo), true, "If the \"HuneiePop 2: Modded\" logo should be included in logo rotation. You may want to disable this if you've installed a mod with another custom logo.");
 
-        ModInterface.RegisterInterModValue(ModId, "ModCredits", new Dictionary<string, (string ModImagePath, List<(string CreditButtonPath, string CreditButtonOverPath, string RedirectLink)> CreditEntries)>() {
-            {MyPluginInfo.PLUGIN_GUID, (
-                Path.Combine(ImagesDir, "CreditsLogo.png"),
-                new List<(string creditButtonPath, string creditButtonOverPath, string redirectLink)>(){
-                    (
-                        Path.Combine(ImagesDir, "onesuchkeeper_credits.png"),
-                        Path.Combine(ImagesDir, "onesuchkeeper_credits_over.png"),
-                        "https://www.youtube.com/@onesuchkeeper8389"
-                    )
-                }
-            )}
-        });
+        ModCredits = new List<CreditEntry>()
+        {
+            new CreditEntry(Path.Combine(ImagesDir, "CreditsLogo.png"),
+            [
+                new CreditMember(Path.Combine(ImagesDir, "onesuchkeeper_credits.png"),
+                    Path.Combine(ImagesDir, "onesuchkeeper_credits_over.png"),
+                    "https://www.youtube.com/@onesuchkeeper8389")
+            ])
+        };
 
-        ModInterface.RegisterInterModValue(ModId, "LogoPaths",
-            new List<string> {
-                Path.Combine(ImagesDir, "logo.png")
-            });
+        LogoPaths = UseModLogo
+            ? new List<string> { Path.Combine(ImagesDir, "logo.png") }
+            : new();
 
+        Interop.RegisterInterModValues();
         UiPrefabs.Init();
         ToggleCodeMods.AddMods(ModId);
 

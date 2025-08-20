@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.IO;
 using Hp2BaseMod;
 using Hp2BaseMod.GameDataInfo;
 using Hp2BaseMod.GameDataInfo.Interface;
@@ -17,7 +16,7 @@ internal static partial class Styles
         var modOutfits = new List<IGirlSubDataMod<GirlOutfitSubDefinition>>();
         var modHairstyles = new List<IGirlSubDataMod<GirlHairstyleSubDefinition>>();
 
-        AddOutfit(modParts, modOutfits, "bikerlaces", "Biker Laves", "ashley", _ashleyBodyX, _ashleyBodyY - 96, false, false, false, true);
+        AddOutfit(modParts, modOutfits, "bikerlaces", "Biker Laces", "ashley", _ashleyBodyX, _ashleyBodyY - 96, false, false, false, true);
         AddPair(modParts, modOutfits, modHairstyles, "junko", "Junko", "ashley",
             _ashleyBodyX - 4, _ashleyBodyY - 99,
             _ashleyBodyX + 205, _ashleyBodyY + 13,

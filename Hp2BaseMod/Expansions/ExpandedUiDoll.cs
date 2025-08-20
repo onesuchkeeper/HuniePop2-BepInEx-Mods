@@ -74,13 +74,13 @@ public class ExpandedUiDoll
         }
 
         var expansion = ExpandedGirlDefinition.Get(_core.soulGirlDefinition);
-        if (_core.girlDefinition.specialEffectPrefab.GetType() == typeof(UiDollSpecialEffectFairyWings))
+        if (_core.soulGirlDefinition.specialEffectPrefab.GetType() == typeof(UiDollSpecialEffectFairyWings))
         {
-            _core.girlDefinition.specialEffectOffset = expansion.BackPosition;
+            _core.soulGirlDefinition.specialEffectOffset = expansion.BackPosition;
         }
-        else if (_core.girlDefinition.specialEffectPrefab.GetType() == typeof(UiDollSpecialEffectGloWings))
+        else if (_core.soulGirlDefinition.specialEffectPrefab.GetType() == typeof(UiDollSpecialEffectGloWings))
         {
-            _core.girlDefinition.specialEffectOffset = expansion.HeadPosition;
+            _core.soulGirlDefinition.specialEffectOffset = expansion.HeadPosition;
         }
 
         if (_core.soulGirlDefinition.specialCharacter) { return; }

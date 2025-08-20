@@ -6,7 +6,6 @@ using System.IO;
 using System.Linq;
 using BepInEx;
 using HarmonyLib;
-using Hp2BaseMod.Extension.IEnumerableExtension;
 using Hp2BaseMod.GameDataInfo;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;

@@ -296,16 +296,32 @@ namespace Hp2BaseModTweaks.CellphoneApps
             _girlSave = Plugin.Save.GetCurrentFile().GetGirl(girlId);
             _randomizeStylesCheckBox.Populate(_girlSave.RandomizeStyles);
             _unpairRandomizeStylesCheckBox.Populate(_girlSave.UnpairRandomStyles);
+            UpdateUnpair();
+        }
+
+        private void UpdateUnpair()
+        {
+            if (_girlSave.RandomizeStyles)
+            {
+                _unpairRandomizeStylesCheckBox.canvasGroup.alpha = 1f;
+                _unpairRandomizeStylesCheckBox.canvasGroup.blocksRaycasts = true;
+            }
+            else
+            {
+                _unpairRandomizeStylesCheckBox.canvasGroup.alpha = 0.5f;
+                _unpairRandomizeStylesCheckBox.canvasGroup.blocksRaycasts = false;
+            }
         }
 
         private void On_RandomizeStylesCheckBox_CheckBoxChangedEvent(UiAppCheckBox checkBox)
         {
             _girlSave.RandomizeStyles = checkBox.isChecked;
+            UpdateUnpair();
         }
 
         private void On_UnpairRandomizeStylesCheckBox_CheckBoxChangedEvent(UiAppCheckBox checkBox)
         {
-            _girlSave.UnpairRandomStyles = checkBox.isChecked;
+            _girlSave.UnpairRandomStyles = _unpairRandomizeStylesCheckBox.isChecked;
         }
 
         private void On_ListItemSelected(UiAppStyleSelectList selectList, bool unlocked)

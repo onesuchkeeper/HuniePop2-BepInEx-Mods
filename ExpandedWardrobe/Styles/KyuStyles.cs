@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using Hp2BaseMod;
 using Hp2BaseMod.GameDataInfo;
@@ -26,11 +25,11 @@ internal static partial class Styles
 
         ((OutfitDataMod)modOutfits.Last()).HideSpecial = true;
 
-        AddPair(modParts, modOutfits, modHairstyles, "micro", "Micro", "kyu",
+        AddPair(modParts, modOutfits, modHairstyles, "micro", "Valentine", "kyu",
             _kyuBodyX + 138, _kyuBodyY - 272,
             _kyuBodyX + 89, _kyuBodyY + 25,
             _kyuBodyX + 146, _kyuBodyY - 152,
-            false, false, false, true);
+            true, false, false, true);
 
         AddOutfit(modParts, modOutfits, "topless", "Big Breasts", "kyu", _kyuBodyX + 96, _kyuBodyY - 624, true, false, false, false);
 

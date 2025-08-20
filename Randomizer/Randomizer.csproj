@@ -28,7 +28,6 @@
   
   <ItemGroup>
     <ProjectReference Include="..\Hp2BaseMod\Hp2BaseMod.csproj" />
-    <ProjectReference Include="..\SingleDate\SingleDate.csproj" />
   </ItemGroup>
 
   <ItemGroup>

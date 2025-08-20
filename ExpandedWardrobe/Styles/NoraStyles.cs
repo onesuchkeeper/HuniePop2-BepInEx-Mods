@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.IO;
 using Hp2BaseMod;
 using Hp2BaseMod.GameDataInfo;
 using Hp2BaseMod.GameDataInfo.Interface;
@@ -19,6 +18,11 @@ internal static partial class Styles
 
         AddOutfit(modParts, modOutfits, "hotline", "Hotline", "nora", _noraBodyX - 11, _noraBodyY - 250, false, false, false, true);
         AddOutfit(modParts, modOutfits, "topless", "Melons", "nora", _noraBodyX - 24, _noraBodyY - 810, true, false, false, false);
+        AddPair(modParts, modOutfits, modHairstyles, "cow", "Texas", "nora",
+            _noraBodyX - 8, _noraBodyY - 251,
+            _noraBodyX - 2, _noraBodyY + 42,
+            _noraBodyX, _noraBodyY,
+            false, false, false, true);
 
         ModInterface.AddDataMod(new GirlDataMod(Girls.NoraId, InsertStyle.append)
         {

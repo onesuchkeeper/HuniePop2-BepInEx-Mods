@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.IO;
 using Hp2BaseMod;
 using Hp2BaseMod.GameDataInfo;
 using Hp2BaseMod.GameDataInfo.Interface;
@@ -27,6 +26,12 @@ internal static partial class Styles
             _zoeyBodyX - 11, _zoeyBodyY - 247,
             _zoeyBodyX + 23, _zoeyBodyY + 19,
             _zoeyBodyX + 5, _zoeyBodyY + 46,
+            false, false, false, true);
+
+        AddPair(modParts, modOutfits, modHairstyles, "tropical", "Tropical", "zoey",
+            _zoeyBodyX - 8, _zoeyBodyY - 209,
+            _zoeyBodyX + 13, _zoeyBodyY + 71,
+            _zoeyBodyX + 121, _zoeyBodyY + 71,
             false, false, false, true);
 
         //Fun Bags

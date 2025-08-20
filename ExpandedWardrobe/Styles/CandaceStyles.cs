@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.IO;
 using Hp2BaseMod;
 using Hp2BaseMod.GameDataInfo;
 using Hp2BaseMod.GameDataInfo.Interface;
@@ -22,7 +21,7 @@ internal static partial class Styles
             _candaceBodyX + 150, _candaceBodyY - 50,
             false, false, false, true);
 
-        AddPair(modParts, modOutfits, modHairstyles, "backwoods", "Backwoods", "candace",
+        AddPair(modParts, modOutfits, modHairstyles, "backwoods", "Backwoods Bottom", "candace",
             _candaceBodyX + 107, _candaceBodyY - 277,
             _candaceBodyX + 192, _candaceBodyY + 58,
             _candaceBodyX + 251, _candaceBodyY - 113,

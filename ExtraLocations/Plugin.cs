@@ -27,8 +27,8 @@ public class Plugin : BaseUnityPlugin
     {
         var modId = ModInterface.GetSourceId(MyPluginInfo.PLUGIN_GUID);
 
-        this.Config.Bind(ConfigGeneralName, ConfigDacName, Path.Combine(Paths.PluginPath, "..", "..", "Digital Art Collection"), "Directory containing the Huniepop 2 Digital Art Collection Dlc");
-        this.Config.Bind(ConfigGeneralName, ConfigOstName, Path.Combine(Paths.PluginPath, "..", "..", "..", "..", "music", "Huniepop 2 - Double Date OST", "WAV"), "Directory containing the Huniepop 2 OST");
+        this.Config.Bind(ConfigGeneralName, ConfigDacName, Path.Combine(Paths.PluginPath, "..", "..", "Digital Art Collection"), "Directory containing the HuniePop 2 Digital Art Collection Dlc");
+        this.Config.Bind(ConfigGeneralName, ConfigOstName, Path.Combine(Paths.PluginPath, "..", "..", "..", "..", "music", "HuniePop 2 - Double Date OST", "WAV"), "Directory containing the HuniePop 2 OST");
 
         var dacBgScaleRs = new TextureRsScale(BgSize / dacSize);
 

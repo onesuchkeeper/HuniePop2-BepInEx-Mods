@@ -19,7 +19,7 @@ namespace Hp2BaseModTweaks
 
         public static void Prefix(UiTitleCanvas __instance)
         {
-            var logoPaths = Plugin.GetLogoPaths()
+            var logoPaths = Plugin.LogoPaths
                 .Where(x => !string.IsNullOrEmpty(x))
                 .Where(File.Exists)
                 .ToArray();

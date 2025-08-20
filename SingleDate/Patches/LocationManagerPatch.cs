@@ -1,7 +1,5 @@
 using System.Reflection;
 using HarmonyLib;
-using Hp2BaseMod;
-using Hp2BaseMod.Extension;
 using UnityEngine;
 
 namespace SingleDate;

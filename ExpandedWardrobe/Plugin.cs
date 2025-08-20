@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using BepInEx;
@@ -36,14 +37,11 @@ internal class Plugin : BaseUnityPlugin
         Styles.AddSarahStyles();
         Styles.AddZoeyStyles();
 
-        if (Chainloader.PluginInfos.ContainsKey("OSK.BepInEx.Hp2BaseModTweaks"))
+        if (ModInterface.TryGetInterModValue("OSK.BepInEx.Hp2BaseModTweaks", "AddModCredit",
+                out Action<string, IEnumerable<(string creditButtonPath, string creditButtonOverPath, string redirectLink)>> m_addModConfig))
         {
-            var configs = ModInterface.GetInterModValue<Dictionary<string, (string ModImagePath, List<(string CreditButtonPath, string CreditButtonOverPath, string RedirectLink)> CreditEntries)>>("OSK.BepInEx.Hp2BaseModTweaks", "ModCredits");
-
-            configs[MyPluginInfo.PLUGIN_GUID] = (
-                Path.Combine(ImageDir, "CreditsLogo.png"),
-                new List<(string creditButtonPath, string creditButtonOverPath, string redirectLink)>(){
-                    (
+            m_addModConfig(Path.Combine(ImageDir, "CreditsLogo.png"), [
+                (
                         Path.Combine(ImageDir, "ScallyCapFan_credits.png"),
                         Path.Combine(ImageDir, "ScallyCapFan_credits_over.png"),
                         "https://www.reddit.com/user/scallycapfan/"
@@ -52,9 +50,8 @@ internal class Plugin : BaseUnityPlugin
                         Path.Combine(ImageDir, "onesuchkeeper_credits.png"),
                         Path.Combine(ImageDir, "onesuchkeeper_credits_over.png"),
                         "https://www.youtube.com/@onesuchkeeper8389"
-                    ),
-                }
-            );
+                    )
+            ]);
         }
 
         ModInterface.Events.PreLoadPlayerFile += On_PrePersistenceReset;

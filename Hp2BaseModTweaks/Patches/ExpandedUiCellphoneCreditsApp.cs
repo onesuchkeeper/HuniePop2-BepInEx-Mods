@@ -52,7 +52,6 @@ namespace Hp2BaseModTweaks.CellphoneApps
         private List<Hp2ButtonWrapper> _contributors = new List<Hp2ButtonWrapper>();
 
         private UiCellphoneAppCredits _creditsApp;
-        private (string ModImagePath, List<(string CreditButtonPath, string CreditButtonOverPath, string RedirectLink)> CreditEntries)[] _credits;
         private bool _started = false;
 
         public ExpandedUiCellphoneCreditsApp(UiCellphoneAppCredits creditsApp)
@@ -147,7 +146,6 @@ namespace Hp2BaseModTweaks.CellphoneApps
         public void Start()
         {
             _started = true;
-            _credits = Plugin.GetModCredits().Values.ToArray();
             Refresh();
         }
 
@@ -180,7 +178,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
                 ModCycleLeft.ButtonBehavior.Enable();
             }
 
-            var maxModIndex = _credits.Length - 1;
+            var maxModIndex = Plugin.ModCredits.Count() - 1;
             if (_creditsIndex >= maxModIndex)
             {
                 _creditsIndex = maxModIndex;
@@ -198,29 +196,29 @@ namespace Hp2BaseModTweaks.CellphoneApps
             }
             _contributors.Clear();
 
-            if (!_credits.Any()) { return; }
+            if (!Plugin.ModCredits.Any()) { return; }
 
-            var modConfig = _credits[_creditsIndex];
+            var modConfig = Plugin.ModCredits[_creditsIndex];
 
-            ModLogo.sprite = TextureUtility.SpriteFromPng(modConfig.ModImagePath);
+            ModLogo.sprite = TextureUtility.SpriteFromPng(modConfig.LogoPath);
             ModLogo.SetNativeSize();
 
             // add new contributors
-            ContributorsPanel_RectTransform.sizeDelta = new Vector2(319, (modConfig.CreditEntries.Count * 135) - 10);
+            ContributorsPanel_RectTransform.sizeDelta = new Vector2(319, (modConfig.Members.Count() * 135) - 10);
 
             int i = 0;
-            foreach (var contributorConfig in modConfig.CreditEntries.OrEmptyIfNull())
+            foreach (var contributorConfig in modConfig.Members.OrEmptyIfNull())
             {
                 var newContributorButton = Hp2ButtonWrapper.MakeCellphoneButton($"Contributor {i++}",
-                    TextureUtility.SpriteFromPng(contributorConfig.CreditButtonPath),
-                    TextureUtility.SpriteFromPng(contributorConfig.CreditButtonOverPath),
+                    TextureUtility.SpriteFromPng(contributorConfig.ButtonPath),
+                    TextureUtility.SpriteFromPng(contributorConfig.ButtonOverPath),
                     _cellphoneButtonPressedKlip);
 
                 newContributorButton.GameObject.transform.SetParent(ContributorsPanel.transform, false);
 
                 _contributors.Add(newContributorButton);
 
-                newContributorButton.ButtonBehavior.ButtonPressedEvent += (e) => System.Diagnostics.Process.Start(contributorConfig.RedirectLink);
+                newContributorButton.ButtonBehavior.ButtonPressedEvent += (e) => System.Diagnostics.Process.Start(contributorConfig.ButtonLink);
             }
         }
     }

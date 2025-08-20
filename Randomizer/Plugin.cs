@@ -257,6 +257,8 @@ public class Plugin : BaseUnityPlugin
 
         var randomizedNames = ConfigGrab(ConfigRandomizeNamesName, true);
 
+        var canSwapCharms = ModInterface.TryGetInterModValue("OSK.BepInEx.SingleDate", "SwapCharms", out Action<RelativeId, RelativeId> m_swapCharms);
+
         //special characters don't have all the stuff they need,
         //so instead I'll just swap their visuals and other bits with someone
         //swaps like this aren't the same odds but I don't really care
@@ -274,9 +276,9 @@ public class Plugin : BaseUnityPlugin
             var specialId = ModInterface.Data.GetDataId(GameDataType.Girl, specialGirl.id);
             var targetId = ModInterface.Data.GetDataId(GameDataType.Girl, targetGirl.id);
 
-            if (Chainloader.PluginInfos.ContainsKey("OSK.BepInEx.SingleDate"))
+            if (canSwapCharms)
             {
-                SingleDate.UiPrefabs.SwapCharms(specialId, targetId);
+                m_swapCharms(specialId, targetId);
             }
 
             id_handler.Value.Invoke(specialGirl, targetGirl);

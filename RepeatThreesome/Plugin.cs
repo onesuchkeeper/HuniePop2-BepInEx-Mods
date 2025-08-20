@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using BepInEx;
 using BepInEx.Bootstrap;
@@ -67,20 +68,17 @@ internal class Plugin : BaseUnityPlugin
         this.Config.Bind(ConfigGeneral, nameof(LoversLocationRequirement), true, "If threesomes can only take place at the location their photo occurs at.");
         this.Config.Bind(ConfigGeneral, nameof(IsBonusRoundNude), true, "If characters will change to nude outfits during bonus rounds.");
 
-        if (Chainloader.PluginInfos.ContainsKey("OSK.BepInEx.Hp2BaseModTweaks"))
+        if (ModInterface.TryGetInterModValue("OSK.BepInEx.Hp2BaseModTweaks", "AddModCredit",
+                out Action<string, IEnumerable<(string creditButtonPath, string creditButtonOverPath, string redirectLink)>> m_addModCredit))
         {
-            var configs = ModInterface.GetInterModValue<Dictionary<string, (string ModImagePath, List<(string CreditButtonPath, string CreditButtonOverPath, string RedirectLink)> CreditEntries)>>("OSK.BepInEx.Hp2BaseModTweaks", "ModCredits");
-
-            configs[MyPluginInfo.PLUGIN_GUID] = (
-                Path.Combine(_imagesDir, "CreditsLogo.png"),
-                new List<(string creditButtonPath, string creditButtonOverPath, string redirectLink)>(){
-                    (
-                        Path.Combine(_imagesDir, "onesuchkeeper_credits.png"),
-                        Path.Combine(_imagesDir, "onesuchkeeper_credits_over.png"),
-                        "https://www.youtube.com/@onesuchkeeper8389"
-                    ),
-                }
-            );
+            m_addModCredit(Path.Combine(_imagesDir, "CreditsLogo.png"),
+            [
+                (
+                    Path.Combine(_imagesDir, "onesuchkeeper_credits.png"),
+                    Path.Combine(_imagesDir, "onesuchkeeper_credits_over.png"),
+                    "https://www.youtube.com/@onesuchkeeper8389"
+                )
+            ]);
         }
 
         _modId = ModInterface.GetSourceId(MyPluginInfo.PLUGIN_GUID);

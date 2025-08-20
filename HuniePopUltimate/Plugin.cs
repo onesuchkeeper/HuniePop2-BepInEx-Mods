@@ -34,7 +34,7 @@ public class Plugin : BaseUnityPlugin
 
         var imagesDir = Path.Combine(_dir, "images");
 
-        this.Config.Bind("General", "HuniePopDir", Path.Combine(Paths.PluginPath, "..", "..", "..", "HuniePop"), "Path to the Huniepop install directory.");
+        this.Config.Bind("General", "HuniePopDir", Path.Combine(Paths.PluginPath, "..", "..", "..", "HuniePop"), "Path to the HuniePop install directory.");
 
         if (!(this.Config.TryGetEntry<string>("General", "HuniePopDir", out var hpDirConfig)
                 && !string.IsNullOrWhiteSpace(hpDirConfig.Value)

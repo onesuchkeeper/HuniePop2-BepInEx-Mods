@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Hp2BaseMod.Extension.IEnumerableExtension;
@@ -6,11 +7,17 @@ using UnityEngine;
 
 namespace Hp2BaseMod;
 
-public class TextureRsComposite : ITextureInfo
+public class TextureInfoComposite : ITextureInfo
 {
     private IEnumerable<(ITextureInfo texture, Vector2 offset)> _textures;
     private Vector2Int _size;
     private Texture2D _texture;
+
+    public TextureInfoComposite(Vector2Int size, IEnumerable<(ITextureInfo texture, Vector2 offset)> textures)
+    {
+        _size = size;
+        _textures = textures ?? throw new ArgumentNullException(nameof(textures));
+    }
 
     public Texture2D GetTexture()
     {

@@ -67,6 +67,9 @@ public static class UiPrefabs
         }
     }
 
+    /// <summary>
+    /// Swaps the charms used for two girls with the provided ids
+    /// </summary>
     public static void SwapCharms(RelativeId girlA, RelativeId girlB)
     {
         if (_charmSprites.TryGetValue(girlA, out var charmA))

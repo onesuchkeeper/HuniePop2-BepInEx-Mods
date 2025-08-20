@@ -411,8 +411,31 @@ public static class ModInterface
         name_value[name] = value;
     }
 
-    public static T GetInterModValue<T>(string modGuid, string name) => GetInterModValue<T>(GetSourceId(modGuid), name);
-    public static T GetInterModValue<T>(int modId, string name) => (T)_interModValues[modId][name];
+    /// <summary>
+    /// Attempts to get a value registered by a mod via <see cref="RegisterInterModValue"/>.<para/>
+    /// You may want to add a soft dependency to your mod to make sure the value gets registered first: [BepInDependency("modGuid", BepInDependency.DependencyFlags.SoftDependency)]
+    /// </summary>
+    /// <returns>True if value exists, false otherwise</returns>
+    public static bool TryGetInterModValue<T>(string modGuid, string name, out T value) => TryGetInterModValue<T>(GetSourceId(modGuid), name, out value);
+
+    /// <summary>
+    /// Attempts to get a value registered by a mod via <see cref="RegisterInterModValue"/>.<para/>
+    /// You may want to add a soft dependency to your mod to make sure the value gets registered first: [BepInDependency("modGuid", BepInDependency.DependencyFlags.SoftDependency)]
+    /// </summary>
+    /// <returns>True if value exists, false otherwise</returns>
+    public static bool TryGetInterModValue<T>(int modId, string name, out T value)
+    {
+        if (_interModValues.TryGetValue(modId, out var modValues)
+            && modValues.TryGetValue(name, out var valueObj)
+            && valueObj is T asT)
+        {
+            value = asT;
+            return true;
+        }
+
+        value = default;
+        return false;
+    }
 
     public static IEnumerable<PhotoDefinition> RequestPlayerPhotos()
     {
