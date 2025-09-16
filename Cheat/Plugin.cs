@@ -13,14 +13,14 @@ public class Plugin : BaseUnityPlugin
 
     private void Awake()
     {
-        ModInterface.Events.PostPersistenceReset += On_PostPersistenceReset;
+        //ModInterface.Events.PostPersistenceReset += On_PostPersistenceReset;
         new Harmony(MyPluginInfo.PLUGIN_GUID).PatchAll();
     }
 
-    private void On_PostPersistenceReset(SaveData data)
-    {
-        _testMode.SetValue(Game.Manager, true);
-    }
+    // private void On_PostPersistenceReset(SaveData data)
+    // {
+    //     _testMode.SetValue(Game.Manager, true);
+    // }
 }
 
 [HarmonyPatch(typeof(PuzzleStatus), "AddPuzzleReward")]

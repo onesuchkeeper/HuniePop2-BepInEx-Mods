@@ -88,5 +88,8 @@ namespace Hp2BaseMod
 
         public event Action<DateLocationSelectedArgs> DateLocationSelected;
         internal void NotifyDateLocationSelected(DateLocationSelectedArgs args) => DateLocationSelected?.Invoke(args);
+
+        public event Action<SinglePhotoDisplayArgs> SinglePhotoDisplayed;
+        internal void NotifySinglePhotoDisplayed(SinglePhotoDisplayArgs args) => SinglePhotoDisplayed?.Invoke(args);
     }
 }

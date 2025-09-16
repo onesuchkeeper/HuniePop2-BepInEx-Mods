@@ -402,6 +402,8 @@ public static class ModInterface
     /// </summary>
     public static void RegisterInterModValue(int modId, string name, object value)
     {
+        ModInterface.Log.LogInfo($"Registering interop value with name {name}, for mod with id {modId}.");
+
         if (!_interModValues.TryGetValue(modId, out var name_value))
         {
             name_value = new Dictionary<string, object>();

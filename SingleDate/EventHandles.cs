@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using HarmonyLib;
@@ -176,5 +177,42 @@ internal static class EventHandles
         }
 
         args.Location = sexDate ? playerFileGirlPair.girlPairDefinition.sexLocationDefinition : null;
+    }
+
+    internal static void On_SinglePhotoDisplayed(SinglePhotoDisplayArgs args)
+    {
+        var playerFileGirlPair = Game.Persistence.playerFile.GetPlayerFileGirlPair(Game.Session.Location.currentGirlPair);
+
+        if (playerFileGirlPair == null
+            || !State.IsSingle(playerFileGirlPair.girlPairDefinition))
+        {
+            return;
+        }
+
+        var girlId = ModInterface.Data.GetDataId(playerFileGirlPair.girlPairDefinition.girlDefinitionTwo);
+        var girlSave = State.SaveFile.GetGirl(girlId);
+
+        if (girlSave.RelationshipLevel == 1)
+        {
+            args.BigPhotoId = Plugin.Instance.GirlIdToDatePhotoId.TryGetValue(girlId, out var datePhotoId)
+                ? datePhotoId
+                : PhotoDefault.Id;
+
+            ModInterface.Log.LogInfo("WAZZZZZZAUP");
+        }
+    }
+
+    internal static void On_RequestUnlockedPhotos(RequestUnlockedPhotosEventArgs args)
+    {
+        args.UnlockedPhotos ??= new List<PhotoDefinition>();
+
+        foreach (var id_girlSave in State.SaveFile.Girls)
+        {
+            if (id_girlSave.Value.RelationshipLevel >= 1
+                && Plugin.Instance.GirlIdToDatePhotoId.TryGetValue(id_girlSave.Key, out var datePhotoId))
+            {
+                args.UnlockedPhotos.Add(ModInterface.GameData.GetPhoto(datePhotoId));
+            }
+        }
     }
 }

@@ -12,7 +12,7 @@ internal static class PhotoLailani
 
     public static void AddDataMods()
     {
-        _id = new RelativeId(State.ModId, 0);
+        _id = new RelativeId(State.ModId, 3);
 
         var lailaniPhotoInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImagesDir, "photo_lailani_1.png")));
 
@@ -22,13 +22,13 @@ internal static class PhotoLailani
         {
             HasAlts = false,
 
-            BigPhotoCensored = lailaniPhotoInfo,
+            //BigPhotoCensored = lailaniPhotoInfo,
             BigPhotoUncensored = lailaniPhotoInfo,
-            BigPhotoWet = lailaniPhotoInfo,
+            //BigPhotoWet = lailaniPhotoInfo,
 
-            ThumbnailCensored = lailaniPhotoThumbInfo,
+            //ThumbnailCensored = lailaniPhotoThumbInfo,
             ThumbnailUncensored = lailaniPhotoThumbInfo,
-            ThumbnailWet = lailaniPhotoThumbInfo,
+            //ThumbnailWet = lailaniPhotoThumbInfo,
         });
     }
 }

@@ -11,6 +11,7 @@ namespace Hp2Randomizer;
 
 [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
 [BepInDependency("OSK.BepInEx.Hp2BaseMod", "1.0.0")]
+[BepInDependency("OSK.BepInEx.SingleDate", BepInDependency.DependencyFlags.SoftDependency)]
 public class Plugin : BaseUnityPlugin
 {
     internal static Plugin Instance => _instance;
@@ -258,6 +259,14 @@ public class Plugin : BaseUnityPlugin
         var randomizedNames = ConfigGrab(ConfigRandomizeNamesName, true);
 
         var canSwapCharms = ModInterface.TryGetInterModValue("OSK.BepInEx.SingleDate", "SwapCharms", out Action<RelativeId, RelativeId> m_swapCharms);
+        if (canSwapCharms)
+        {
+            ModInterface.Log.LogInfo("RANDOMIZER FOUND SWAP CHARMS FROM SINGLE DATE WOOP WOOP");
+        }
+        else
+        {
+            ModInterface.Log.LogInfo("RANDOMIZER !!!FAILED!!! TO SWAP CHARMS FROM SINGLE DATE WOMP WOMP");
+        }
 
         //special characters don't have all the stuff they need,
         //so instead I'll just swap their visuals and other bits with someone

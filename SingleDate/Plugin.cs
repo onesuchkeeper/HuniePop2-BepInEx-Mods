@@ -126,6 +126,12 @@ internal class Plugin : BaseUnityPlugin
     public static readonly string RootDir = Path.Combine(Paths.PluginPath, "SingleDate");
     public static readonly string ImagesDir = Path.Combine(RootDir, "images");
 
+    internal Dictionary<RelativeId, RelativeId> GirlIdToSexPhotoId;
+    public void SetGirlSexPhoto(RelativeId girlId, RelativeId photoId) => GirlIdToSexPhotoId[girlId] = photoId;
+
+    internal Dictionary<RelativeId, RelativeId> GirlIdToDatePhotoId;
+    public void SetGirlDatePhoto(RelativeId girlId, RelativeId photoId) => GirlIdToDatePhotoId[girlId] = photoId;
+
     private void Awake()
     {
         _instance = this;
@@ -138,9 +144,37 @@ internal class Plugin : BaseUnityPlugin
 
         State.On_Plugin_Awake();
 
+        Interop.RegisterInterModValues();//add interop for providing photos and charms
+
         GirlNobody.AddDataMods();
         ItemSensitivitySmoothie.AddDataMods();
+
+        PhotoDefault.AddDataMods();
+        PhotoAbia.AddDataMods();
+        PhotoBrooke.AddDataMods();
+        PhotoCandace.AddDataMods();
         PhotoLailani.AddDataMods();
+        PhotoLillian.AddDataMods();
+        PhotoNora.AddDataMods();
+        PhotoPolly.AddDataMods();
+        PhotoSarah.AddDataMods();
+        PhotoZoey.AddDataMods();
+
+        GirlIdToSexPhotoId = new Dictionary<RelativeId, RelativeId>(){
+            {Girls.AbiaId, PhotoAbia.Id},
+            {Girls.BrookeId, PhotoBrooke.Id},
+            {Girls.CandaceId, PhotoCandace.Id},
+            {Girls.LailaniId, PhotoLailani.Id},
+            {Girls.LillianId, PhotoLillian.Id},
+            {Girls.NoraId, PhotoNora.Id},
+            {Girls.PollyId, PhotoPolly.Id},
+            {Girls.SarahId, PhotoSarah.Id},
+            {Girls.ZoeyId, PhotoZoey.Id},
+        };
+
+        GirlIdToDatePhotoId = new Dictionary<RelativeId, RelativeId>()
+        {
+        };
 
         UiPrefabs.InitExternals();
 
@@ -156,6 +190,8 @@ internal class Plugin : BaseUnityPlugin
         ModInterface.Events.LocationArriveSequence += EventHandles.On_LocationArriveSequence;
         ModInterface.Events.RandomDollSelected += EventHandles.On_RandomDollSelected;
         ModInterface.Events.DateLocationSelected += EventHandles.On_DateLocationSelected;
+        ModInterface.Events.SinglePhotoDisplayed += EventHandles.On_SinglePhotoDisplayed;
+        ModInterface.Events.RequestUnlockedPhotos += EventHandles.On_RequestUnlockedPhotos;
 
         new Harmony(MyPluginInfo.PLUGIN_GUID).PatchAll();
     }
@@ -184,12 +220,29 @@ internal class Plugin : BaseUnityPlugin
             CleanUpType = CutsceneCleanUpType.NONE,
             Steps = new List<IGameDefinitionInfo<CutsceneStepSubDefinition>>()
             {
+                //big move dialogue
                 new CutsceneStepInfo(){
                     StepType = CutsceneStepType.DIALOG_TRIGGER,
                     ProceedType = CutsceneStepProceedType.AUTOMATIC,
                     DollTargetType = CutsceneStepDollTargetType.RANDOM,
                     DialogTriggerDefinitionID = new RelativeId(-1, 34)//big move
-                }
+                },
+
+                //wait 0.5 sec
+                new CutsceneStepInfo() {
+                    StepType = CutsceneStepType.NOTHING,
+                    ProceedFloat = 0.5f,
+                    ProceedType = CutsceneStepProceedType.WAIT,
+                },
+
+                //show photo, shown photo is hard coded to the pair data
+                // so instead this is handled in EventHandles.On_SinglePhotoDisplayed 
+                new CutsceneStepInfo() {
+                    StepType = CutsceneStepType.SHOW_WINDOW,
+                    BoolValue = false,
+                    WindowPrefabName = "PhotosWindow",
+                    ProceedType = CutsceneStepProceedType.AUTOMATIC,
+                },
             }
         });
 
@@ -244,14 +297,17 @@ internal class Plugin : BaseUnityPlugin
         var pairCount = 0;
         foreach (var girlId in ModInterface.Data.GetIds(GameDataType.Girl).Where(x => x != GirlNobody.Id || !(x.SourceId == -1 && x.LocalId > 12)))
         {
+            if (!GirlIdToSexPhotoId.TryGetValue(girlId, out var photoId))
+            {
+                photoId = PhotoDefault.Id;
+            }
+
             ModInterface.AddDataMod(new GirlPairDataMod(new RelativeId(State.ModId, pairCount), InsertStyle.replace)
             {
-                GirlDefinitionOneID = new RelativeId(State.ModId, 0),
+                GirlDefinitionOneID = GirlNobody.Id,
                 GirlDefinitionTwoID = girlId,
                 SpecialPair = false,
-                PhotoDefinitionID = (girlId.SourceId == -1 && girlId.LocalId == 6)
-                    ? new RelativeId(State.ModId, 0)
-                    : new RelativeId(-1, 1),
+                PhotoDefinitionID = photoId,
                 IntroductionPair = false,
                 IntroSidesFlipped = false,
                 HasMeetingStyleOne = false,

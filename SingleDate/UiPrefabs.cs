@@ -65,7 +65,13 @@ public static class UiPrefabs
             _charmSprites[Girls.SarahId] = GetCharmSprite("Sarah");
             _charmSprites[Girls.ZoeyId] = GetCharmSprite("Zoey");
         }
+
+        _defaultCharmSprite = new SpriteInfoTexture(new TextureInfoExternal(
+                Path.Combine(SingleDate.Plugin.ImagesDir, $"DefaultCharm.png"))
+            ).GetSprite();
     }
+
+    public static void SetCharmSprite(RelativeId girlId, Sprite sprite) => _charmSprites[girlId] = sprite;
 
     /// <summary>
     /// Swaps the charms used for two girls with the provided ids

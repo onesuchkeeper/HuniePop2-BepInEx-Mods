@@ -1,3 +1,4 @@
+using System;
 using Hp2BaseMod;
 using Newtonsoft.Json;
 using UnityEngine;
@@ -47,7 +48,7 @@ public static class State
         return ModInterface.Data.GetDataId(GameDataType.Girl, def.girlDefinitionOne.id) == GirlNobody.Id;
     }
 
-    public static float GetBrokenMult() => _baseBrokenMult - (GetSensitivityLevel() * _deltaBrokenMult);
+    public static float GetBrokenMult() => Math.Max(0.01f, _baseBrokenMult - (GetSensitivityLevel() * _deltaBrokenMult));
 
     public static int GetSensitivityLevel() => SaveFile.SensitivityExp / 6;
 

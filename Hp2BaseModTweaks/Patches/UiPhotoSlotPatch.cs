@@ -16,6 +16,7 @@ public static class UiPhotoSlotPatch
     {
         __instance.thumbnailImage.preserveAspect = true;
         __instance.thumbnailImage.useSpriteMesh = true;
+        __instance.slotType = PhotoSlotType.NORMAL;
     }
 
     [HarmonyPatch(nameof(UiPhotoSlot.Refresh))]
