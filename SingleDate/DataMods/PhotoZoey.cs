@@ -12,7 +12,7 @@ internal static class PhotoZoey
 
     public static void AddDataMods()
     {
-        _id = new RelativeId(State.ModId, 8);
+        _id = new RelativeId(Plugin.ModId, 8);
 
         var photoInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImagesDir, "photo_zoey_1.png")));
 

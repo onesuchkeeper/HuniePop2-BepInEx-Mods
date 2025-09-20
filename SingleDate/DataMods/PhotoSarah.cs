@@ -12,7 +12,7 @@ internal static class PhotoSarah
 
     public static void AddDataMods()
     {
-        _id = new RelativeId(State.ModId, 7);
+        _id = new RelativeId(Plugin.ModId, 7);
 
         var photoInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImagesDir, "photo_sarah_1.png")));
 

@@ -11,6 +11,6 @@ internal static class Interop
 {
     internal static void RegisterInterModValues()
     {
-        ModInterface.RegisterInterModValue(State.ModId, nameof(UiPrefabs.SwapCharms), (Action<RelativeId, RelativeId>)UiPrefabs.SwapCharms);
+        ModInterface.RegisterInterModValue(Plugin.ModId, nameof(UiPrefabs.SwapCharms), (Action<RelativeId, RelativeId>)UiPrefabs.SwapCharms);
     }
 }

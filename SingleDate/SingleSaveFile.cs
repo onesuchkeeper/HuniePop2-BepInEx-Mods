@@ -7,7 +7,6 @@ namespace SingleDate;
 [Serializable]
 public class SingleSaveFile
 {
-    public int SensitivityExp;
     public Dictionary<RelativeId, SingleSaveGirl> Girls;
 
     public void Clean()

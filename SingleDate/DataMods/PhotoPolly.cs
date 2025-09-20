@@ -12,7 +12,7 @@ internal static class PhotoPolly
 
     public static void AddDataMods()
     {
-        _id = new RelativeId(State.ModId, 6);
+        _id = new RelativeId(Plugin.ModId, 6);
 
         var photoInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImagesDir, "photo_polly_1.png")));
 

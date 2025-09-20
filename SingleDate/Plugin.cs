@@ -132,8 +132,13 @@ internal class Plugin : BaseUnityPlugin
     internal Dictionary<RelativeId, RelativeId> GirlIdToDatePhotoId;
     public void SetGirlDatePhoto(RelativeId girlId, RelativeId photoId) => GirlIdToDatePhotoId[girlId] = photoId;
 
+    public static int ModId => _modId;
+    private static int _modId;
+
     private void Awake()
     {
+        _modId = ModInterface.GetSourceId(MyPluginInfo.PLUGIN_GUID);
+        SensitivityExp._id = new RelativeId(_modId, 0);
         _instance = this;
 
         this.Config.Bind(ConfigGeneralCat, nameof(ShowSingleUpsetHunt), false, "If upset hints are shown on single dates.");
@@ -141,8 +146,6 @@ internal class Plugin : BaseUnityPlugin
         this.Config.Bind(ConfigGeneralCat, nameof(RequireLoversBeforeThreesome), true, "If both characters must reach lovers on single dates before a threesome can occur.");
         this.Config.Bind(ConfigGeneralCat, nameof(MaxSingleGirlRelationshipLevel), 3, "Maximum relationship level for single dates. Maximum level must be reached for lovers status.");
         this.Config.Bind(ConfigGeneralCat, nameof(MaxSensitivityLevel), 4, "Maximum level for sensitivity.");
-
-        State.On_Plugin_Awake();
 
         Interop.RegisterInterModValues();//add interop for providing photos and charms
 
@@ -178,7 +181,8 @@ internal class Plugin : BaseUnityPlugin
 
         UiPrefabs.InitExternals();
 
-        ModInterface.AddExp(new SensitivityExp());
+        ModInterface.Data.TryRegisterDataId(GameDataType.Affection, SensitivityExp.Id);
+        ModInterface.AddExpInfo(SensitivityExp.Id, new SensitivityExp());
 
         ModInterface.Events.PreDataMods += On_PreDataMods;
 
@@ -201,7 +205,7 @@ internal class Plugin : BaseUnityPlugin
         ModInterface.Events.PreDataMods -= On_PreDataMods;
 
         //meeting cutscenes
-        ModInterface.AddDataMod(new CutsceneDataMod(new RelativeId(State.ModId, 0), InsertStyle.replace)
+        ModInterface.AddDataMod(new CutsceneDataMod(new RelativeId(Plugin.ModId, 0), InsertStyle.replace)
         {
             CleanUpType = CutsceneCleanUpType.NONE,
             Steps = new List<IGameDefinitionInfo<CutsceneStepSubDefinition>>()
@@ -215,7 +219,7 @@ internal class Plugin : BaseUnityPlugin
             }
         });
 
-        ModInterface.AddDataMod(new CutsceneDataMod(new RelativeId(State.ModId, 1), InsertStyle.replace)
+        ModInterface.AddDataMod(new CutsceneDataMod(new RelativeId(ModId, 1), InsertStyle.replace)
         {
             CleanUpType = CutsceneCleanUpType.NONE,
             Steps = new List<IGameDefinitionInfo<CutsceneStepSubDefinition>>()
@@ -246,7 +250,7 @@ internal class Plugin : BaseUnityPlugin
             }
         });
 
-        ModInterface.AddDataMod(new CutsceneDataMod(new RelativeId(State.ModId, 2), InsertStyle.replace)
+        ModInterface.AddDataMod(new CutsceneDataMod(new RelativeId(ModId, 2), InsertStyle.replace)
         {
             CleanUpType = CutsceneCleanUpType.NONE,
             Steps = new List<IGameDefinitionInfo<CutsceneStepSubDefinition>>()
@@ -260,7 +264,7 @@ internal class Plugin : BaseUnityPlugin
             }
         });
 
-        ModInterface.AddDataMod(new CutsceneDataMod(new RelativeId(State.ModId, 3), InsertStyle.replace)
+        ModInterface.AddDataMod(new CutsceneDataMod(new RelativeId(ModId, 3), InsertStyle.replace)
         {
             CleanUpType = CutsceneCleanUpType.NONE,
             Steps = new List<IGameDefinitionInfo<CutsceneStepSubDefinition>>()
@@ -302,7 +306,7 @@ internal class Plugin : BaseUnityPlugin
                 photoId = PhotoDefault.Id;
             }
 
-            ModInterface.AddDataMod(new GirlPairDataMod(new RelativeId(State.ModId, pairCount), InsertStyle.replace)
+            ModInterface.AddDataMod(new GirlPairDataMod(new RelativeId(ModId, pairCount), InsertStyle.replace)
             {
                 GirlDefinitionOneID = GirlNobody.Id,
                 GirlDefinitionTwoID = girlId,
@@ -315,10 +319,10 @@ internal class Plugin : BaseUnityPlugin
                 MeetingLocationDefinitionID = new RelativeId(-1, 1 + (pairCount % 8)),
                 SexDayTime = ClockDaytimeType.NIGHT,
                 SexLocationDefinitionID = new RelativeId(-1, 20),//royal suite
-                IntroRelationshipCutsceneDefinitionID = new RelativeId(State.ModId, 0),
-                AttractRelationshipCutsceneDefinitionID = new RelativeId(State.ModId, 1),
-                PreSexRelationshipCutsceneDefinitionID = new RelativeId(State.ModId, 2),
-                PostSexRelationshipCutsceneDefinitionID = new RelativeId(State.ModId, 3),
+                IntroRelationshipCutsceneDefinitionID = new RelativeId(ModId, 0),
+                AttractRelationshipCutsceneDefinitionID = new RelativeId(ModId, 1),
+                PreSexRelationshipCutsceneDefinitionID = new RelativeId(ModId, 2),
+                PostSexRelationshipCutsceneDefinitionID = new RelativeId(ModId, 3),
                 Styles = defaultPairStyle,
                 FavQuestions = questions
             });
