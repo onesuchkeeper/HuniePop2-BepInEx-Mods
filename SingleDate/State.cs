@@ -13,6 +13,9 @@ public static class State
     public static Vector3 DefaultPuzzleGridPosition => _defaultPuzzleGridPosition;
     private static Vector3 _defaultPuzzleGridPosition;
 
+    public static int ModId => _modId;
+    private static int _modId;
+
     public static SingleSaveFile SaveFile
     {
         get
@@ -32,6 +35,9 @@ public static class State
     public static bool IsSingleDate => _isSingleDate;
     private static bool _isSingleDate;
 
+    public static int SensitivityExp => SaveFile.SensitivityExp;
+    public static float SensitivityPercentage => SaveFile.SensitivityExp / (Plugin.Instance.MaxSensitivityLevel * 6f);
+
     public static bool IsSingle(GirlPairDefinition def)
     {
         if (def == null || def.girlDefinitionOne == null)
@@ -44,7 +50,7 @@ public static class State
 
     public static float GetBrokenMult() => Math.Max(0.01f, _baseBrokenMult - (GetSensitivityLevel() * _deltaBrokenMult));
 
-    public static int GetSensitivityLevel() => Game.Persistence.playerFile.GetAffectionLevelExp(SensitivityExp.Id) / SensitivityExp.ExpPerLvl;
+    public static int GetSensitivityLevel() => SaveFile.SensitivityExp / 6;
 
     public static void On_UiPuzzleGrid_Start(UiPuzzleGrid uiPuzzleGrid)
     {
@@ -58,14 +64,19 @@ public static class State
         ModInterface.State.CellphoneOnLeft = _isSingleDate;
     }
 
+    public static void On_Plugin_Awake()
+    {
+        _modId = ModInterface.GetSourceId(MyPluginInfo.PLUGIN_GUID);
+    }
+
     public static void On_PreGameSave()
     {
-        ModInterface.SetSourceSave(Plugin.ModId, JsonConvert.SerializeObject(_save));
+        ModInterface.SetSourceSave(State.ModId, JsonConvert.SerializeObject(_save));
     }
 
     public static void On_PostPersistenceReset(SaveData data)
     {
-        var saveStr = ModInterface.GetSourceSave(Plugin.ModId);
+        var saveStr = ModInterface.GetSourceSave(State.ModId);
 
         if (!string.IsNullOrWhiteSpace(saveStr))
         {

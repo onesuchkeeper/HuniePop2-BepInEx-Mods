@@ -60,11 +60,11 @@ public class ExpandedUiAppFinderSlot
                 var leftDef = _girlDefinition.GetValue<GirlDefinition>(_core.headSlotLeft);
                 var leftId = ModInterface.Data.GetDataId(GameDataType.Girl, leftDef.id);
 
-                _girlSlot = leftId.SourceId == Plugin.ModId
+                _girlSlot = leftId.SourceId == State.ModId
                     ? _core.headSlotRight
                     : _core.headSlotLeft;
 
-                _nobodySlot = leftId.SourceId == Plugin.ModId
+                _nobodySlot = leftId.SourceId == State.ModId
                     ? _core.headSlotLeft
                     : _core.headSlotRight;
 
