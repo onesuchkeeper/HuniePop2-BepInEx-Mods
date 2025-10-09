@@ -1,4 +1,5 @@
-﻿using Hp2BaseMod.Utility;
+﻿using System.Collections.Generic;
+using Hp2BaseMod.Utility;
 
 namespace Hp2BaseMod.GameDataInfo.Interface
 {
@@ -14,7 +15,14 @@ namespace Hp2BaseMod.GameDataInfo.Interface
             GameDefinitionProvider gameData,
             AssetProvider assetProvider,
             InsertStyle insertStyle,
-            RelativeId girlId);
+            RelativeId girlId,
+            GirlDefinition girlDef);
+
+        /// <summary>
+        /// Returns all <see cref="IGirlPartDataMod"/> defined by this mod
+        /// </summary>
+        /// <returns></returns>
+        IEnumerable<IGirlSubDataMod<GirlPartSubDefinition>> GetPartDataMods();
 
         /// <summary>
         /// Allows the mod an opportunity to request internal assets from the assetProvider 

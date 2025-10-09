@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Hp2BaseMod.Commands;
+using Hp2BaseMod.Extension;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Save;
 using Newtonsoft.Json;
@@ -117,7 +118,6 @@ public static class ModInterface
 
     private static SetManager<int> _idPool;
     private static Dictionary<int, string> _sourceId_GUID;
-
 
     internal static void Init()
     {
@@ -403,14 +403,7 @@ public static class ModInterface
     public static void RegisterInterModValue(int modId, string name, object value)
     {
         ModInterface.Log.LogInfo($"Registering interop value with name {name}, for mod with id {modId}.");
-
-        if (!_interModValues.TryGetValue(modId, out var name_value))
-        {
-            name_value = new Dictionary<string, object>();
-            _interModValues[modId] = name_value;
-        }
-
-        name_value[name] = value;
+        _interModValues.GetOrNew(modId)[name] = value;
     }
 
     /// <summary>

@@ -29,8 +29,12 @@ namespace Hp2BaseMod.GameDataInfo
 
         public List<DialogLineExpression> Expressions;
 
-        /// <inheritdoc/>
         public DialogLineDataMod() { }
+        public DialogLineDataMod(RelativeId id, InsertStyle insertStyle = InsertStyle.append, int priority = 0)
+        : base(id, InsertStyle.replace, priority)
+        {
+
+        }
 
         internal DialogLineDataMod(DialogLine def, AssetProvider assetProvider, RelativeId id)
         : base(id, InsertStyle.replace, 0)
@@ -50,7 +54,12 @@ namespace Hp2BaseMod.GameDataInfo
         }
 
         /// <inheritdoc/>
-        public void SetData(ref DialogLine def, GameDefinitionProvider gameData, AssetProvider assetProvider, InsertStyle insertStyle, RelativeId girlId)
+        public void SetData(ref DialogLine def,
+            GameDefinitionProvider gameData,
+            AssetProvider assetProvider,
+            InsertStyle insertStyle,
+            RelativeId girlId,
+            GirlDefinition girlDef)
         {
             if (def == null)
             {
@@ -74,5 +83,8 @@ namespace Hp2BaseMod.GameDataInfo
             YuriAudioClipInfo?.RequestInternals(assetProvider);
             AudioClipInfo?.RequestInternals(assetProvider);
         }
+
+        /// <inheritdoc/>
+        public IEnumerable<IGirlSubDataMod<GirlPartSubDefinition>> GetPartDataMods() => null;
     }
 }

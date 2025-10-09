@@ -12,12 +12,11 @@ internal static partial class Styles
     private static readonly int _ashleyBodyY = 964;
     public static void AddAshleyStyles()
     {
-        var modParts = new List<IGirlSubDataMod<GirlPartSubDefinition>>();
         var modOutfits = new List<IGirlSubDataMod<GirlOutfitSubDefinition>>();
         var modHairstyles = new List<IGirlSubDataMod<GirlHairstyleSubDefinition>>();
 
-        AddOutfit(modParts, modOutfits, "bikerlaces", "Biker Laces", "ashley", _ashleyBodyX, _ashleyBodyY - 96, false, false, false, true);
-        AddPair(modParts, modOutfits, modHairstyles, "junko", "Junko", "ashley",
+        AddOutfit(modOutfits, "bikerlaces", "Biker Laces", "ashley", _ashleyBodyX, _ashleyBodyY - 96, false, false, false, true);
+        AddPair(modOutfits, modHairstyles, "junko", "Junko", "ashley",
             _ashleyBodyX - 4, _ashleyBodyY - 99,
             _ashleyBodyX + 205, _ashleyBodyY + 13,
             _ashleyBodyX + 45, _ashleyBodyY + 102,
@@ -27,9 +26,14 @@ internal static partial class Styles
 
         ModInterface.AddDataMod(new GirlDataMod(Girls.AshleyId, InsertStyle.append)
         {
-            parts = modParts,
-            outfits = modOutfits,
-            hairstyles = modHairstyles
+            bodies = new List<IGirlBodyDataMod>()
+            {
+                new GirlBodyDataMod(new RelativeId(-1,0), InsertStyle.append)
+                {
+                    outfits = modOutfits,
+                    hairstyles = modHairstyles
+                }
+            }
         });
     }
 }

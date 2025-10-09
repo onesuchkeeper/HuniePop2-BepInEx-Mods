@@ -7,7 +7,7 @@ using Hp2BaseMod.Utility;
 namespace Hp2BaseMod.Save
 {
     [Serializable]
-    public class ModSaveGirl
+    public class ModSaveGirl : IModSave<SaveFileGirl>
     {
         private static readonly int _defaultDateGiftSlotCount = 4;
 
@@ -29,6 +29,7 @@ namespace Hp2BaseMod.Save
         public List<RelativeId> UnlockedOutfits;
         public List<RelativeId> UnlockedHairstyles;
         public List<ModSaveInventorySlot> DateGiftSlots;
+        public RelativeId BodyId;
 
         public void Strip(SaveFileGirl saveFileGirl)
         {
@@ -169,13 +170,9 @@ namespace Hp2BaseMod.Save
         {
             var save = new SaveFileGirl(runtimeId)
             {
-                //girlId set in constructor
                 playerMet = PlayerMet,
                 relationshipPoints = RelationshipPoints,
                 relationshipUpCount = RelationshipUpCount,
-                //activeBaggageIndex = girl.activeBaggageIndex,
-                //hairstyleIndex = girl.hairstyleIndex,
-                //outfitIndex = girl.outfitIndex,
                 staminaFreeze = StaminaFreeze,
                 stylesOnDates = StyleOnDates,
                 learnedBaggage = new List<int>(),
@@ -201,7 +198,8 @@ namespace Hp2BaseMod.Save
 
         private void Inject(SaveFileGirl save)
         {
-            var girlExpanded = ExpandedGirlDefinition.Get(save.girlId);
+            var id = ModInterface.Data.GetDataId(GameDataType.Girl, save.girlId);
+            var girlExpanded = ExpandedGirlDefinition.Get(id);
 
             if (girlExpanded.HairstyleIdToIndex.TryGetValue(HairstyleId, out var hairstyleIndex))
             {
@@ -227,7 +225,7 @@ namespace Hp2BaseMod.Save
                 }
                 else
                 {
-                    ModInterface.Log.LogInfo($"Unlocked outfit id {unlockedOutfit} is not in data and was discarded");
+                    ModInterface.Log.LogInfo($"Discarding unlocked outfit with unregistered id {unlockedOutfit} from save for girl {id}");
                 }
             }
             save.unlockedOutfits = save.unlockedOutfits.Distinct().ToList();
@@ -240,7 +238,7 @@ namespace Hp2BaseMod.Save
                 }
                 else
                 {
-                    ModInterface.Log.LogInfo($"Unlocked hairstyle id {unlockedHairstyle} is not in data and was discarded");
+                    ModInterface.Log.LogInfo($"Discarding unlocked hairstyle with unregistered id {unlockedHairstyle} from save for girl {id}");
                 }
             }
             save.unlockedHairstyles = save.unlockedHairstyles.Distinct().ToList();

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
 
@@ -11,15 +12,13 @@ namespace Hp2BaseMod.GameDataInfo
     {
         public string Name;
 
-        public RelativeId? FrontHairPartId;
+        public IGirlSubDataMod<GirlPartSubDefinition> FrontHairPart;
 
-        public RelativeId? BackHairPartId;
+        public IGirlSubDataMod<GirlPartSubDefinition> BackHairPart;
 
         public bool? IsNSFW;
         public bool? IsCodeUnlocked;
         public bool? IsPurchased;
-
-        public bool? HideSpecials;
 
         public bool? TightlyPaired;
 
@@ -36,7 +35,7 @@ namespace Hp2BaseMod.GameDataInfo
         internal HairstyleDataMod(int index,
                                   GirlDefinition girlDef,
                                   AssetProvider assetProvider)
-            : base(new RelativeId() { SourceId = -1, LocalId = index }, InsertStyle.replace, 0)
+            : base(new RelativeId(-1, index), InsertStyle.replace, 0)
         {
             PairOutfitId = Id;
             IsNSFW = false;
@@ -46,9 +45,8 @@ namespace Hp2BaseMod.GameDataInfo
             var hairstyleDef = girlDef.hairstyles[index];
 
             Name = hairstyleDef.hairstyleName;
-            FrontHairPartId = new RelativeId(-1, hairstyleDef.partIndexFronthair);
-            BackHairPartId = new RelativeId(-1, hairstyleDef.partIndexBackhair);
-            HideSpecials = hairstyleDef.hideSpecials;
+            FrontHairPart = new GirlPartDataMod(hairstyleDef.partIndexFronthair, assetProvider, girlDef);
+            BackHairPart = new GirlPartDataMod(hairstyleDef.partIndexBackhair, assetProvider, girlDef);
             TightlyPaired = hairstyleDef.tightlyPaired;
         }
 
@@ -57,7 +55,8 @@ namespace Hp2BaseMod.GameDataInfo
                             GameDefinitionProvider gameData,
                             AssetProvider assetProvider,
                             InsertStyle insertStyle,
-                            RelativeId girlId)
+                            RelativeId girlId,
+                            GirlDefinition girlDef)
         {
             if (def == null)
             {
@@ -71,16 +70,23 @@ namespace Hp2BaseMod.GameDataInfo
             ValidatedSet.SetValue(ref expansion.IsNSFW, IsNSFW);
             ValidatedSet.SetValue(ref expansion.IsCodeUnlocked, IsCodeUnlocked);
             ValidatedSet.SetValue(ref expansion.IsPurchased, IsPurchased);
-            ValidatedSet.SetValue(ref def.hideSpecials, HideSpecials);
             ValidatedSet.SetValue(ref def.pairOutfitIndex, girlExpansion.OutfitIdToIndex, PairOutfitId);
-            ValidatedSet.SetValue(ref def.partIndexBackhair, girlExpansion.PartIdToIndex, BackHairPartId);
-            ValidatedSet.SetValue(ref def.partIndexFronthair, girlExpansion.PartIdToIndex, FrontHairPartId);
+
+            ValidatedSet.SetValue(ref def.partIndexBackhair, girlExpansion.PartIdToIndex, BackHairPart?.Id);
+            ValidatedSet.SetValue(ref def.partIndexFronthair, girlExpansion.PartIdToIndex, FrontHairPart?.Id);
         }
 
         /// <inheritdoc/>
         public void RequestInternals(AssetProvider assetProvider)
         {
-            //noop
+            FrontHairPart?.RequestInternals(assetProvider);
+            BackHairPart?.RequestInternals(assetProvider);
+        }
+
+        public IEnumerable<IGirlSubDataMod<GirlPartSubDefinition>> GetPartDataMods()
+        {
+            yield return FrontHairPart;
+            yield return BackHairPart;
         }
     }
 }

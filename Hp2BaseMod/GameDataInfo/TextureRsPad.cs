@@ -54,14 +54,8 @@ public class TextureRsPad : ITextureRenderStep
     public void Apply(ref Texture2D target)
     {
         var paddedTexture = new Texture2D(target.width + _left + _right, target.height + _top + _bottom);
-
-        if (_left >= 0
-            || _right >= 0
-            || _top >= 0
-            || _bottom >= 0)
-        {
-            paddedTexture.SetPixels(Enumerable.Repeat(_color, paddedTexture.width * paddedTexture.height).ToArray());
-        }
+        var paddedColors = Enumerable.Repeat(_color, paddedTexture.width * paddedTexture.height).ToArray();
+        var targetColors = target.GetPixels();
 
         for (int i = 0; i < target.width; i++)
         {
@@ -72,10 +66,12 @@ public class TextureRsPad : ITextureRenderStep
 
                 if (x >= 0 && y >= 0)
                 {
-                    paddedTexture.SetPixel(x, y, target.GetPixel(i, j));
+                    paddedColors[(y * paddedTexture.width) + x] = targetColors[(j * target.width) + i];
                 }
             }
         }
+
+        paddedTexture.SetPixels(paddedColors);
 
         UnityEngine.Object.Destroy(target);
         target = paddedTexture;

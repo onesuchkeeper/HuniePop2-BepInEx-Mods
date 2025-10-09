@@ -8,6 +8,8 @@ using UnityEngine;
 public class AudioClipInfoVorbis : IGameDefinitionInfo<AudioClip>
 {
     private VorbisReader _reader;
+    // private int _startPos;
+    // private int _duration;
 
     public AudioClipInfoVorbis(VorbisReader reader)
     {

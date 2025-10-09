@@ -13,20 +13,23 @@ internal static partial class Styles
     public static void AddJewnStyles()
     {
         //On Your Chest
-
-        var modParts = new List<IGirlSubDataMod<GirlPartSubDefinition>>();
         var modOutfits = new List<IGirlSubDataMod<GirlOutfitSubDefinition>>();
         var modHairstyles = new List<IGirlSubDataMod<GirlHairstyleSubDefinition>>();
 
-        AddOutfit(modParts, modOutfits, "occult", "Occult", "jewn", _jewnBodyX + 165, _jewnBodyY - 292, true, false, false, false);
+        AddOutfit(modOutfits, "occult", "Occult", "jewn", _jewnBodyX + 165, _jewnBodyY - 292, true, false, false, false);
 
         //Shoulder Boulders
 
         ModInterface.AddDataMod(new GirlDataMod(Girls.JewnId, InsertStyle.append)
         {
-            parts = modParts,
-            outfits = modOutfits,
-            hairstyles = modHairstyles
+            bodies = new List<IGirlBodyDataMod>()
+            {
+                new GirlBodyDataMod(new RelativeId(-1,0), InsertStyle.append)
+                {
+                    outfits = modOutfits,
+                    hairstyles = modHairstyles
+                }
+            }
         });
     }
 }

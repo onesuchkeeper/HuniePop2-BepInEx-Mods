@@ -63,6 +63,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
 
         private Hp2ButtonWrapper _girlsLeft;
         private Hp2ButtonWrapper _girlsRight;
+        private Image _bodySelectorBg;
 
         private int _girlsPageMax;
         private PlayerFileGirl[] _metGirls;
@@ -188,6 +189,15 @@ namespace Hp2BaseModTweaks.CellphoneApps
             ExpandedUiAppStyleSelectList.Get(_wardrobeApp.selectListOutfit).ListItemSelectedEvent += On_ListItemSelected;
             ExpandedUiAppStyleSelectList.Get(_wardrobeApp.selectListHairstyle).ListItemSelectedEvent += On_ListItemSelected;
 
+            //body selection ui
+            var bodySelector_GO = new GameObject();
+            _bodySelectorBg = bodySelector_GO.AddComponent<Image>();
+            _bodySelectorBg.rectTransform.sizeDelta = new Vector2(500, 500);
+            _bodySelectorBg.transform.SetParent(Game.Session.gameCanvas.cellphoneContainer);
+            _bodySelectorBg.transform.localPosition = new Vector3(200, 1160 - 500 - 200, 0);
+            _bodySelectorBg.transform.SetAsFirstSibling();
+            _bodySelectorBg.color = Color.red;
+
             Refresh();
         }
 
@@ -198,6 +208,9 @@ namespace Hp2BaseModTweaks.CellphoneApps
             _girlsLeft?.Destroy();
             _girlsRight?.Destroy();
             UnityEngine.Object.Destroy(_dummyFileIconSlot);
+
+            UnityEngine.Object.Destroy(_bodySelectorBg);
+            _bodySelectorBg = null;
 
             _randomizeStylesCheckBox.CheckBoxChangedEvent -= On_RandomizeStylesCheckBox_CheckBoxChangedEvent;
             _unpairRandomizeStylesCheckBox.CheckBoxChangedEvent -= On_UnpairRandomizeStylesCheckBox_CheckBoxChangedEvent;

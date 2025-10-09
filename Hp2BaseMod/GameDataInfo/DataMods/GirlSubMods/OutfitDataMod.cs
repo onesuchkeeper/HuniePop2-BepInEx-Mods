@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
 
@@ -11,7 +12,7 @@ namespace Hp2BaseMod.GameDataInfo
     {
         public string Name;
 
-        public RelativeId? OutfitPartId;
+        public IGirlSubDataMod<GirlPartSubDefinition> OutfitPart;
 
         public bool? IsNSFW;
         public bool? IsCodeUnlocked;
@@ -35,7 +36,7 @@ namespace Hp2BaseMod.GameDataInfo
         internal OutfitDataMod(int index,
                                GirlDefinition girlDef,
                                AssetProvider assetProvider)
-            : base(new RelativeId() { SourceId = -1, LocalId = index }, InsertStyle.replace, 0)
+            : base(new RelativeId(-1, index), InsertStyle.replace, 0)
         {
             PairHairstyleId = Id;
             IsNSFW = false;
@@ -45,7 +46,7 @@ namespace Hp2BaseMod.GameDataInfo
             var outfitDef = girlDef.outfits[index];
 
             Name = outfitDef.outfitName;
-            OutfitPartId = new RelativeId(-1, outfitDef.partIndexOutfit);
+            OutfitPart = new GirlPartDataMod(outfitDef.partIndexOutfit, assetProvider, girlDef);
             HideNipples = outfitDef.hideNipples;
             TightlyPaired = outfitDef.tightlyPaired;
         }
@@ -55,7 +56,8 @@ namespace Hp2BaseMod.GameDataInfo
                             GameDefinitionProvider gameData,
                             AssetProvider assetProvider,
                             InsertStyle insertStyle,
-                            RelativeId girlId)
+                            RelativeId girlId,
+                            GirlDefinition girlDef)
         {
             if (def == null)
             {
@@ -63,7 +65,7 @@ namespace Hp2BaseMod.GameDataInfo
             }
 
             var expansion = def.Expansion();
-            var girlExpansion = ExpandedGirlDefinition.Get(girlId);
+            var girlExpansion = girlDef.Expansion();
 
             ValidatedSet.SetValue(ref def.outfitName, Name, insertStyle);
             ValidatedSet.SetValue(ref expansion.IsNSFW, IsNSFW);
@@ -72,13 +74,18 @@ namespace Hp2BaseMod.GameDataInfo
             ValidatedSet.SetValue(ref def.hideNipples, HideNipples);
             ValidatedSet.SetValue(ref expansion.HideSpecial, HideSpecial);
             ValidatedSet.SetValue(ref def.pairHairstyleIndex, girlExpansion.HairstyleIdToIndex, PairHairstyleId);
-            ValidatedSet.SetValue(ref def.partIndexOutfit, girlExpansion.PartIdToIndex, OutfitPartId);
+            ValidatedSet.SetValue(ref def.partIndexOutfit, girlExpansion.PartIdToIndex, OutfitPart?.Id);
         }
 
         /// <inheritdoc/>
         public void RequestInternals(AssetProvider assetProvider)
         {
-            //noop
+            OutfitPart?.RequestInternals(assetProvider);
+        }
+
+        public IEnumerable<IGirlSubDataMod<GirlPartSubDefinition>> GetPartDataMods()
+        {
+            yield return OutfitPart;
         }
     }
 }

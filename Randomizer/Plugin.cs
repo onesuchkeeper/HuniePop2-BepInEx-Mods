@@ -29,7 +29,6 @@ public class Plugin : BaseUnityPlugin
 
     private static Dictionary<RelativeId, Action<GirlDefinition, GirlDefinition>> _swapHandlers = new Dictionary<RelativeId, Action<GirlDefinition, GirlDefinition>>();
 
-    private DialogTriggerDefinition[] _moanTriggers;
     private bool _keepSwappedWings;
 
     public static readonly string ConfigGeneralName = "General";
@@ -115,11 +114,17 @@ public class Plugin : BaseUnityPlugin
             }
         }
 
-        foreach (var dt in _moanTriggers)
+        var nymphoExpansion = nymphojinnDef.Expansion();
+        var otherGirlExpansion = otherGirlDef.Expansion();
+
+        foreach (var dt in Game.Data.DialogTriggers.GetAll())
         {
-            var hold = dt.dialogLineSets[(int)nymphojinnDef.dialogTriggerTab];
-            dt.dialogLineSets[(int)nymphojinnDef.dialogTriggerTab] = dt.dialogLineSets[(int)otherGirlDef.dialogTriggerTab];
-            dt.dialogLineSets[(int)otherGirlDef.dialogTriggerTab] = hold;
+            var kyuLines = dt.dialogLineSets[nymphoExpansion.DialogTriggerIndex];
+            if (kyuLines.dialogLines.Count != 0)
+            {
+                dt.dialogLineSets[nymphoExpansion.DialogTriggerIndex] = dt.dialogLineSets[otherGirlExpansion.DialogTriggerIndex];
+                dt.dialogLineSets[otherGirlExpansion.DialogTriggerIndex] = kyuLines;
+            }
         }
 
         nymphojinnDef.defaultHairstyleIndex = 0;
@@ -139,6 +144,21 @@ public class Plugin : BaseUnityPlugin
         if (_keepSwappedWings && otherGirlDef.specialEffectPrefab == null)
         {
             otherGirlDef.specialEffectPrefab = kyuDef.specialEffectPrefab;
+        }
+
+        HandleSpecialCharDtSwap(kyuDef.Expansion(), otherGirlDef.Expansion());
+    }
+
+    private void HandleSpecialCharDtSwap(ExpandedGirlDefinition special, ExpandedGirlDefinition other)
+    {
+        foreach (var dt in Game.Data.DialogTriggers.GetAll())
+        {
+            var kyuLines = dt.dialogLineSets[special.DialogTriggerIndex];
+            if (kyuLines.dialogLines.Count != 0)
+            {
+                dt.dialogLineSets[special.DialogTriggerIndex] = dt.dialogLineSets[other.DialogTriggerIndex];
+                dt.dialogLineSets[other.DialogTriggerIndex] = kyuLines;
+            }
         }
     }
 
@@ -174,14 +194,6 @@ public class Plugin : BaseUnityPlugin
         }
 
         _keepSwappedWings = ConfigGrab(ConfigSwappedSpecialKeepWingsName, true);
-
-        _moanTriggers = [
-            ModInterface.GameData.GetDialogTrigger(new RelativeId(-1, 43)),
-            ModInterface.GameData.GetDialogTrigger(new RelativeId(-1, 44)),
-            ModInterface.GameData.GetDialogTrigger(new RelativeId(-1, 45)),
-            ModInterface.GameData.GetDialogTrigger(new RelativeId(-1, 46)),
-            ModInterface.GameData.GetDialogTrigger(new RelativeId(-1, 47))
-        ];
 
         ModInterface.Log.LogInfo($"Randomizing, seed:{seed}");
         var random = new Random(seed);
@@ -240,10 +252,15 @@ public class Plugin : BaseUnityPlugin
             ("Nikki", null),
             ("Audrey", null),
             ("Momo", null),
+
             //hcs
             ("Marlena", null),
             ("Nadia", null),
             ("Renee", null),
+            
+            //The Named
+            ("Lily", null),//Half Baked
+            ("Tobias", null),//Tobias Thompson
         };
 
         var assignedNames = new Dictionary<GirlDefinition, (string name, string nickName)>();
@@ -259,14 +276,6 @@ public class Plugin : BaseUnityPlugin
         var randomizedNames = ConfigGrab(ConfigRandomizeNamesName, true);
 
         var canSwapCharms = ModInterface.TryGetInterModValue("OSK.BepInEx.SingleDate", "SwapCharms", out Action<RelativeId, RelativeId> m_swapCharms);
-        if (canSwapCharms)
-        {
-            ModInterface.Log.LogInfo("RANDOMIZER FOUND SWAP CHARMS FROM SINGLE DATE WOOP WOOP");
-        }
-        else
-        {
-            ModInterface.Log.LogInfo("RANDOMIZER !!!FAILED!!! TO SWAP CHARMS FROM SINGLE DATE WOMP WOMP");
-        }
 
         //special characters don't have all the stuff they need,
         //so instead I'll just swap their visuals and other bits with someone
@@ -327,13 +336,9 @@ public class Plugin : BaseUnityPlugin
             specialGirlExpanded.PartIndexToId = targetGirlExpanded.PartIndexToId;
             targetGirlExpanded.PartIndexToId = holdIndexToId;
 
-            var holdVec2 = specialGirlExpanded.HeadPosition;
-            specialGirlExpanded.HeadPosition = targetGirlExpanded.HeadPosition;
-            targetGirlExpanded.HeadPosition = holdVec2;
-
-            holdVec2 = specialGirlExpanded.BackPosition;
-            specialGirlExpanded.BackPosition = targetGirlExpanded.BackPosition;
-            targetGirlExpanded.BackPosition = holdVec2;
+            var holdBodies = specialGirlExpanded.Bodies;
+            specialGirlExpanded.Bodies = targetGirlExpanded.Bodies;
+            targetGirlExpanded.Bodies = holdBodies;
 
             var holdParts = specialGirl.parts;
             specialGirl.parts = targetGirl.parts;
@@ -399,10 +404,6 @@ public class Plugin : BaseUnityPlugin
             specialGirl.expressions = targetGirl.expressions;
             targetGirl.expressions = holdExpressions;
 
-            holdVec2 = specialGirl.specialEffectOffset;
-            specialGirl.specialEffectOffset = targetGirl.specialEffectOffset;
-            targetGirl.specialEffectOffset = holdVec2;
-
             var holdSpecialEffectPrefab = specialGirl.specialEffectPrefab;
             specialGirl.specialEffectPrefab = targetGirl.specialEffectPrefab;
             targetGirl.specialEffectPrefab = holdSpecialEffectPrefab;
@@ -430,14 +431,6 @@ public class Plugin : BaseUnityPlugin
             holdSprite = specialGirl.cellphonePortraitAlt;
             specialGirl.cellphonePortraitAlt = targetGirl.cellphonePortraitAlt;
             targetGirl.cellphonePortraitAlt = holdSprite;
-
-            holdVec2 = specialGirl.upsetEmitterPos;
-            specialGirl.upsetEmitterPos = targetGirl.upsetEmitterPos;
-            targetGirl.upsetEmitterPos = holdVec2;
-
-            holdVec2 = specialGirl.breathEmitterPos;
-            specialGirl.breathEmitterPos = targetGirl.breathEmitterPos;
-            targetGirl.breathEmitterPos = holdVec2;
 
             var holdBool = specialGirl.hasAltStyles;
             specialGirl.hasAltStyles = targetGirl.hasAltStyles;

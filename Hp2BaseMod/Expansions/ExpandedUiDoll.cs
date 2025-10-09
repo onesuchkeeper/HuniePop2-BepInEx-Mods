@@ -73,14 +73,17 @@ public class ExpandedUiDoll
             return;
         }
 
-        var expansion = ExpandedGirlDefinition.Get(_core.soulGirlDefinition);
-        if (_core.soulGirlDefinition.specialEffectPrefab.GetType() == typeof(UiDollSpecialEffectFairyWings))
+        var body = ExpandedGirlDefinition.Get(_core.soulGirlDefinition).GetBody();
+        if (body != null)
         {
-            _core.soulGirlDefinition.specialEffectOffset = expansion.BackPosition;
-        }
-        else if (_core.soulGirlDefinition.specialEffectPrefab.GetType() == typeof(UiDollSpecialEffectGloWings))
-        {
-            _core.soulGirlDefinition.specialEffectOffset = expansion.HeadPosition;
+            if (_core.soulGirlDefinition.specialEffectPrefab.GetType() == typeof(UiDollSpecialEffectFairyWings))
+            {
+                _core.soulGirlDefinition.specialEffectOffset = body.BackPos;
+            }
+            else if (_core.soulGirlDefinition.specialEffectPrefab.GetType() == typeof(UiDollSpecialEffectGloWings))
+            {
+                _core.soulGirlDefinition.specialEffectOffset = body.HeadPos;
+            }
         }
 
         if (_core.soulGirlDefinition.specialCharacter) { return; }
@@ -162,8 +165,6 @@ public class ExpandedUiDoll
         if (!Game.Persistence.playerData.uncensored && expansion.IsNSFW)
         {
             hairstyleIndex = girlDef.defaultOutfitIndex;
-            outfit = girlDef.hairstyles[hairstyleIndex];
-            expansion = outfit.Expansion();
         }
     }
 

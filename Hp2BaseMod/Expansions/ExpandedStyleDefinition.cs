@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Hp2BaseMod.Extension;
 
 namespace Hp2BaseMod;
 
@@ -24,27 +25,9 @@ public class ExpandedStyleDefinition
     private static Dictionary<GirlOutfitSubDefinition, ExpandedStyleDefinition> _outfitExpansions
         = new Dictionary<GirlOutfitSubDefinition, ExpandedStyleDefinition>();
 
-    public static ExpandedStyleDefinition Get(GirlHairstyleSubDefinition core)
-    {
-        if (!_hairstyleExpansions.TryGetValue(core, out var expansion))
-        {
-            expansion = new ExpandedStyleDefinition();
-            _hairstyleExpansions[core] = expansion;
-        }
+    public static ExpandedStyleDefinition Get(GirlHairstyleSubDefinition core) => _hairstyleExpansions.GetOrNew(core);
 
-        return expansion;
-    }
-
-    public static ExpandedStyleDefinition Get(GirlOutfitSubDefinition core)
-    {
-        if (!_outfitExpansions.TryGetValue(core, out var expansion))
-        {
-            expansion = new ExpandedStyleDefinition();
-            _outfitExpansions[core] = expansion;
-        }
-
-        return expansion;
-    }
+    public static ExpandedStyleDefinition Get(GirlOutfitSubDefinition core) => _outfitExpansions.GetOrNew(core);
 
     /// <summary>
     /// If style is unavailable when censored.

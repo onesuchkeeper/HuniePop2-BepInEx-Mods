@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Hp2BaseMod.Extension;
 using Hp2BaseMod.GameDataInfo;
 
 namespace Hp2BaseMod;
@@ -25,16 +26,7 @@ public class ExpandedLocationDefinition
     public static ExpandedLocationDefinition Get(int runtimeId)
         => Get(ModInterface.Data.GetDataId(GameDataType.Location, runtimeId));
 
-    public static ExpandedLocationDefinition Get(RelativeId id)
-    {
-        if (!_expansions.TryGetValue(id, out var expansion))
-        {
-            expansion = new ExpandedLocationDefinition();
-            _expansions[id] = expansion;
-        }
-
-        return expansion;
-    }
+    public static ExpandedLocationDefinition Get(RelativeId id) => _expansions.GetOrNew(id);
 
     /// <summary>
     /// Maps girl id to her style at the location.

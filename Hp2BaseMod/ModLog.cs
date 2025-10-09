@@ -42,7 +42,11 @@ namespace Hp2BaseMod
             BepInEx.Logging.Logger.Sources.Add(_logSource);
         }
 
-        public ModLogIndent MakeIndent() => new ModLogIndent(this);
+        public ModLogIndent MakeIndent(string title = null)
+        {
+            if (title != null) { this.LogInfo(title); }
+            return new ModLogIndent(this);
+        }
 
         /// <summary>
         /// Increases how indented the log messages will be

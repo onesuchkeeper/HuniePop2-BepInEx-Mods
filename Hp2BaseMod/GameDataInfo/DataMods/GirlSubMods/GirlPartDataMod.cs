@@ -1,6 +1,7 @@
 ﻿// Hp2BaseMod 2021, By OneSuchKeeper
 
 using System;
+using System.Collections.Generic;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
 using UnityEngine;
@@ -20,9 +21,9 @@ namespace Hp2BaseMod.GameDataInfo
 
         public int? Y;
 
-        public RelativeId? MirroredPartId;
+        public IGirlSubDataMod<GirlPartSubDefinition> MirroredPart;
 
-        public RelativeId? AltPartId;
+        public IGirlSubDataMod<GirlPartSubDefinition> AltPart;
 
         public IGameDefinitionInfo<Sprite> SpriteInfo;
 
@@ -35,7 +36,7 @@ namespace Hp2BaseMod.GameDataInfo
         }
 
         internal GirlPartDataMod(int index, AssetProvider assetProvider, GirlDefinition girlDef)
-            : base(new RelativeId() { SourceId = -1, LocalId = index }, InsertStyle.replace, 0)
+            : base(new RelativeId(-1, index), InsertStyle.replace, 0)
         {
             var partDef = girlDef.parts[index];
 
@@ -44,13 +45,20 @@ namespace Hp2BaseMod.GameDataInfo
             X = partDef.x;
             Y = partDef.y;
 
-            MirroredPartId = new RelativeId(-1, partDef.mirroredPartIndex);
-            AltPartId = new RelativeId(-1, partDef.altPartIndex);
+            if (partDef.mirroredPartIndex != -1)
+            {
+                MirroredPart = new GirlPartDataMod(partDef.mirroredPartIndex, assetProvider, girlDef);
+            }
+
+            if (partDef.altPartIndex != -1)
+            {
+                AltPart = new GirlPartDataMod(partDef.altPartIndex, assetProvider, girlDef);
+            }
 
             // Special handling, prefixes id because all the part sprites of one type have the same name
             if (partDef.sprite != null)
             {
-                var path = girlDef.id.ToString() + "_" + partDef.sprite.name;
+                var path = $"{girlDef.id}_{partDef.sprite.name}";
                 SpriteInfo = new SpriteInfoInternal(path);
 
                 assetProvider.AddAsset(typeof(Sprite), path, partDef.sprite);
@@ -62,7 +70,8 @@ namespace Hp2BaseMod.GameDataInfo
                             GameDefinitionProvider gameDataProvider,
                             AssetProvider assetProvider,
                             InsertStyle insertStyle,
-                            RelativeId girlId)
+                            RelativeId girlId,
+                            GirlDefinition girlDef)
         {
             if (def == null)
             {
@@ -76,8 +85,8 @@ namespace Hp2BaseMod.GameDataInfo
             ValidatedSet.SetValue(ref def.x, X);
             ValidatedSet.SetValue(ref def.y, Y);
 
-            ValidatedSet.SetValue(ref def.mirroredPartIndex, girlExpansion.PartIdToIndex, MirroredPartId);
-            ValidatedSet.SetValue(ref def.altPartIndex, girlExpansion.PartIdToIndex, AltPartId);
+            ValidatedSet.SetValue(ref def.mirroredPartIndex, girlExpansion.PartIdToIndex, MirroredPart?.Id);
+            ValidatedSet.SetValue(ref def.altPartIndex, girlExpansion.PartIdToIndex, AltPart?.Id);
 
             ValidatedSet.SetValue(ref def.sprite, SpriteInfo, insertStyle, gameDataProvider, assetProvider);
         }
@@ -86,6 +95,14 @@ namespace Hp2BaseMod.GameDataInfo
         public void RequestInternals(AssetProvider assetProvider)
         {
             SpriteInfo?.RequestInternals(assetProvider);
+            MirroredPart?.RequestInternals(assetProvider);
+            AltPart?.RequestInternals(assetProvider);
+        }
+
+        public IEnumerable<IGirlSubDataMod<GirlPartSubDefinition>> GetPartDataMods()
+        {
+            yield return MirroredPart;
+            yield return AltPart;
         }
     }
 }

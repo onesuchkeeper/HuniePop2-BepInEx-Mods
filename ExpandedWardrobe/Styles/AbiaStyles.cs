@@ -12,17 +12,21 @@ internal static partial class Styles
     private static readonly int _abiaBodyY = 957;
     public static void AddAbiaStyles()
     {
-        var modParts = new List<IGirlSubDataMod<GirlPartSubDefinition>>();
         var modOutfits = new List<IGirlSubDataMod<GirlOutfitSubDefinition>>();
 
-        AddOutfit(modParts, modOutfits, "jwoww", "Jwoww", "abia", _abiaBodyX + 22, _abiaBodyY - 269, false, false, false, true);
+        AddOutfit(modOutfits, "jwoww", "Jwoww", "abia", _abiaBodyX + 22, _abiaBodyY - 269, false, false, false, true);
 
         //Mammaries
 
         ModInterface.AddDataMod(new GirlDataMod(Girls.AbiaId, InsertStyle.append)
         {
-            parts = modParts,
-            outfits = modOutfits
+            bodies = new List<IGirlBodyDataMod>()
+            {
+                new GirlBodyDataMod(new RelativeId(-1,0), InsertStyle.append)
+                {
+                    outfits = modOutfits
+                }
+            }
         });
     }
 }

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using BepInEx;
-using BepInEx.Bootstrap;
 using HarmonyLib;
 using Hp2BaseMod;
 using Hp2BaseMod.GameDataInfo;
@@ -142,8 +141,18 @@ internal class Plugin : BaseUnityPlugin
 
     private void On_PreDataMods()
     {
-        var pollyNudeOutfitPartAltId = new RelativeId(_modId, 1);
+        var _partCount = 0;
+
         var emptySpriteInfo = new SpriteInfoInternal("EmptySprite");
+
+        var emptyPart = new GirlPartDataMod(new RelativeId(_modId, _partCount++), InsertStyle.replace)
+        {
+            X = 0,
+            Y = 0,
+            PartType = GirlPartType.BODY,
+            PartName = "Body",
+            SpriteInfo = emptySpriteInfo
+        };
 
         var nudeOutfitPart = new GirlPartDataMod(Constants.NudeOutfitId, InsertStyle.replace)
         {
@@ -151,9 +160,16 @@ internal class Plugin : BaseUnityPlugin
             PartName = "nudeOutfit",
             X = 0,
             Y = 0,
-            MirroredPartId = RelativeId.Default,
-            AltPartId = RelativeId.Default,
             SpriteInfo = emptySpriteInfo
+        };
+
+        var pollyNudeOutfitPartAlt = new GirlPartDataMod(new RelativeId(_modId, _partCount++), InsertStyle.replace)
+        {
+            PartType = GirlPartType.OUTFIT,
+            PartName = "nudeOutfitPollyAlt",
+            X = 604,
+            Y = 165,
+            SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Paths.PluginPath, @"RepeatThreesome\images\alt_polly_nude.png")))
         };
 
         var pollyNudeOutfitPart = new GirlPartDataMod(Constants.NudeOutfitId, InsertStyle.replace)
@@ -162,20 +178,28 @@ internal class Plugin : BaseUnityPlugin
             PartName = "nudeOutfitPolly",
             X = 0,
             Y = 0,
-            MirroredPartId = RelativeId.Default,
-            AltPartId = pollyNudeOutfitPartAltId,
+            AltPart = pollyNudeOutfitPartAlt,
             SpriteInfo = emptySpriteInfo
         };
 
-        var pollyNudeOutfitPartAlt = new GirlPartDataMod(pollyNudeOutfitPartAltId, InsertStyle.replace)
+        var nudeOutfit = new OutfitDataMod(Constants.NudeOutfitId, InsertStyle.replace)
         {
-            PartType = GirlPartType.OUTFIT,
-            PartName = "nudeOutfitPollyAlt",
-            X = 604,
-            Y = 165,
-            MirroredPartId = RelativeId.Default,
-            AltPartId = RelativeId.Default,
-            SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Paths.PluginPath, @"RepeatThreesome\images\alt_polly_nude.png")))
+            Name = "Nude",
+            OutfitPart = nudeOutfitPart,
+            IsNSFW = true,
+            HideNipples = false,
+            TightlyPaired = false,
+            PairHairstyleId = null
+        };
+
+        var nudeOutfitPolly = new OutfitDataMod(Constants.NudeOutfitId, InsertStyle.replace)
+        {
+            Name = "Nude",
+            OutfitPart = pollyNudeOutfitPart,
+            IsNSFW = true,
+            HideNipples = false,
+            TightlyPaired = false,
+            PairHairstyleId = null
         };
 
         // add nude outfits for girls
@@ -188,17 +212,12 @@ internal class Plugin : BaseUnityPlugin
 
                 ModInterface.AddDataMod(new GirlDataMod(girlId, InsertStyle.append)
                 {
-                    parts = new List<IGirlSubDataMod<GirlPartSubDefinition>>() { pollyNudeOutfitPart, pollyNudeOutfitPartAlt },
-                    outfits = new List<IGirlSubDataMod<GirlOutfitSubDefinition>>()
-                    {
-                        new OutfitDataMod(Constants.NudeOutfitId, InsertStyle.replace)
-                        {
-                            Name = "Nude",
-                            OutfitPartId = pollyNudeOutfitPart.Id,
-                            IsNSFW = true,
-                            HideNipples = false,
-                            TightlyPaired = false,
-                            PairHairstyleId = null
+                    bodies = new(){
+                        new GirlBodyDataMod(new RelativeId(-1,0), InsertStyle.append){
+                            outfits = new List<IGirlSubDataMod<GirlOutfitSubDefinition>>()
+                            {
+                                nudeOutfitPolly
+                            }
                         }
                     }
                 });
@@ -206,21 +225,16 @@ internal class Plugin : BaseUnityPlugin
             // all others
             else
             {
-                ModInterface.Log.LogInfo($"Adding nude outfit for girl {girlId}");
+                ModInterface.Log.LogInfo($"Adding nude outfits for girl {girlId}");
 
                 ModInterface.AddDataMod(new GirlDataMod(girlId, InsertStyle.append)
                 {
-                    parts = new List<IGirlSubDataMod<GirlPartSubDefinition>>() { nudeOutfitPart },
-                    outfits = new List<IGirlSubDataMod<GirlOutfitSubDefinition>>()
-                    {
-                        new OutfitDataMod(Constants.NudeOutfitId, InsertStyle.replace)
-                        {
-                            Name = "Nude",
-                            OutfitPartId = nudeOutfitPart.Id,
-                            IsNSFW = true,
-                            HideNipples = false,
-                            TightlyPaired = false,
-                            PairHairstyleId = null
+                    bodies = new(){
+                        new GirlBodyDataMod(new RelativeId(-1,0), InsertStyle.append){
+                            outfits = new List<IGirlSubDataMod<GirlOutfitSubDefinition>>()
+                            {
+                                nudeOutfit
+                            }
                         }
                     }
                 });

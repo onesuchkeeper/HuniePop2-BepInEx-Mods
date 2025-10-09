@@ -6,6 +6,7 @@ using System.Linq;
 using AssetStudio;
 using ETAR.AssetStudioPlugin.Extractor;
 using Hp2BaseMod;
+using Hp2BaseMod.Extension;
 using Hp2BaseMod.Extension.IEnumerableExtension;
 using Hp2BaseMod.Extension.OrderedDictionaryExtension;
 using Hp2BaseMod.GameDataInfo;
@@ -15,20 +16,91 @@ using NVorbis;
 using UnityEngine;
 
 namespace HuniePopUltimate;
-public class HpExtraction : BaseExtraction
+public partial class HpExtraction : BaseExtraction
 {
     public static readonly string _dataDir = "HuniePop_Data";
     public static readonly string _assemblyDir = Path.Combine(_dataDir, "Managed");
 
-    private Dictionary<SerializedFile, Dictionary<UnityAssetPath, TextureInfoRaw>> _textureInfo = new();
-    private Dictionary<SerializedFile, Dictionary<UnityAssetPath, IGameDefinitionInfo<UnityEngine.AudioClip>>> _audioInfo = new();
-    private (SerializedFile, OrderedDictionary) _thumbnailCollection;
 
-    public HpExtraction(string dir)
+    private Dictionary<SerializedFile, Dictionary<UnityAssetPath, TextureInfoRaw>> _textureInfo = new();
+    private Dictionary<SerializedFile, Dictionary<UnityAssetPath, AudioClipInfoVorbis>> _audioInfo = new();
+    private Dictionary<int, GirlDataMod> _hpGirlIdToMod = new();
+    private Dictionary<UnityAssetPath, PuzzleAffectionType> _affectionTypes = new(){
+        {new UnityAssetPath(){ FileId = 0, PathId = 9371}, PuzzleAffectionType.TALENT},
+        {new UnityAssetPath(){ FileId = 0, PathId = 9370}, PuzzleAffectionType.SEXUALITY},
+        {new UnityAssetPath(){ FileId = 0, PathId = 9368}, PuzzleAffectionType.ROMANCE},
+        {new UnityAssetPath(){ FileId = 0, PathId = 9366}, PuzzleAffectionType.FLIRTATION},
+    };
+    private GirlDataMod GetGirlMod(int nativeId)
+    {
+        if (!_hpGirlIdToMod.TryGetValue(nativeId, out var girlMod))
+        {
+            RelativeId id;
+            switch (nativeId)
+            {
+                case 1://tiffany
+                    id = new RelativeId(Plugin.ModId, 0);
+                    break;
+                case 2://aiko
+                    id = new RelativeId(Plugin.ModId, 1);
+                    break;
+                case 3://kyanna
+                    id = new RelativeId(Plugin.ModId, 2);
+                    break;
+                case 4://audrey
+                    id = new RelativeId(Plugin.ModId, 3);
+                    break;
+                case 5://lola
+                    id = Girls.LolaId;
+                    break;
+                case 6://nikki
+                    id = new RelativeId(Plugin.ModId, 4);
+                    break;
+                case 7://jessie
+                    id = Girls.JessieId;
+                    break;
+                case 8://beli
+                    id = new RelativeId(Plugin.ModId, 5);
+                    break;
+                case 9://kyu
+                    id = Girls.KyuId;
+                    break;
+                case 10://momo
+                    id = new RelativeId(Plugin.ModId, 6);
+                    break;
+                case 11://celeste
+                    id = new RelativeId(Plugin.ModId, 7);
+                    break;
+                case 12://venus
+                    id = new RelativeId(Plugin.ModId, 8);
+                    break;
+                default:
+                    ModInterface.Log.LogError($"UNHANDLED Hp1 girl id {nativeId}");
+                    return null;
+            }
+            girlMod = new GirlDataMod(id, InsertStyle.append);
+            _hpGirlIdToMod[nativeId] = girlMod;
+        }
+        return girlMod;
+    }
+
+    private (SerializedFile, OrderedDictionary) _thumbnailCollection;
+    private int _partCount = 0;
+
+    private Action<RelativeId, IEnumerable<(RelativeId, float)>> m_AddGirlDatePhotos;
+    private Action<RelativeId, IEnumerable<RelativeId>> m_AddGirlSexPhotos;
+    private Action<RelativeId, UnityEngine.Sprite> m_SetCharmSprite;
+
+    public HpExtraction(string dir,
+        Action<RelativeId, IEnumerable<(RelativeId, float)>> addGirlDatePhotos,
+        Action<RelativeId, IEnumerable<RelativeId>> addGirlSexPhotos,
+        Action<RelativeId, UnityEngine.Sprite> setCharmSprite)
         : base(Path.Combine(dir, _dataDir),
             Path.Combine(dir, _assemblyDir))
     {
-
+        m_AddGirlDatePhotos = addGirlDatePhotos;
+        m_AddGirlSexPhotos = addGirlSexPhotos;
+        m_SetCharmSprite = setCharmSprite;
     }
 
     public void Extract()
@@ -48,7 +120,13 @@ public class HpExtraction : BaseExtraction
 
         _thumbnailCollection = collectionData["AllPhotoIconsSpriteCollection"];
 
-        var girls = _extractor.ExtractMonobehaviors("GirlDefinition");
+        foreach (var file_dialogTriggers in _extractor.ExtractMonobehaviors("DialogTriggerDefinition"))
+        {
+            foreach (var dtDef in file_dialogTriggers.Value)
+            {
+                ExtractDialogTrigger(dtDef, file_dialogTriggers.Key);
+            }
+        }
 
         foreach (var file_girlDefs in _extractor.ExtractMonobehaviors("GirlDefinition"))
         {
@@ -58,7 +136,6 @@ public class HpExtraction : BaseExtraction
             }
         }
 
-
         foreach (var file_locationDef in _extractor.ExtractMonobehaviors("LocationDefinition"))
         {
             foreach (var locationDef in file_locationDef.Value)
@@ -66,103 +143,23 @@ public class HpExtraction : BaseExtraction
                 ExtractLocation(file_locationDef.Key, locationDef, collectionData);
             }
         }
+
+        foreach (var mod in _hpGirlIdToMod.Values)
+        {
+            ModInterface.AddDataMod(new LolaMod(mod));
+        }
     }
 
-    private int _locationCount = 0;
-
-    private ITextureRenderStep[] _finderIconSteps = [
-        new TextureRsCellphoneOutline(4f, 0f, 1f),
-    ];
-
-    private void ExtractLocation(SerializedFile file, OrderedDictionary locationDef, Dictionary<string, (SerializedFile, OrderedDictionary)> collectionData)
+    private bool TryExtractAudioDef(OrderedDictionary AudioDef, SerializedFile file, out AudioClipInfoVorbis clipInfo)
     {
-        var locationMod = new LocationDataMod(new RelativeId(Plugin.ModId, _locationCount++), InsertStyle.replace);
-
-        if (locationDef.TryGetValue("name", out string locationName))
+        if (AudioDef.TryGetValue("clip", out OrderedDictionary clip)
+            && UnityAssetPath.TryExtract(clip, out var unityPath)
+            && TryGetAudioClipInfo(file, unityPath, out clipInfo))
         {
-            locationMod.LocationName = locationName;
-            ModInterface.Log.LogInfo(locationName);
+            return true;
         }
-
-        if (_locationNameToIconOutlined.TryGetValue(locationName, out var iconOutlinedName))
-        {
-            locationMod.FinderLocationIcon = new SpriteInfoTexture(
-                new TextureInfoCache(
-                    Path.Combine(Plugin.RootDir, "images", $"{locationName}_icon.png"),
-                    new TextureInfoSprite(new SpriteInfoInternal(iconOutlinedName), true, _finderIconSteps)
-                )
-            );
-        }
-        else if (_locationNameToIconInternal.TryGetValue(locationName, out var iconInternalName))
-        {
-            locationMod.FinderLocationIcon = new SpriteInfoInternal(iconInternalName);
-        }
-
-        using (ModInterface.Log.MakeIndent())
-        {
-            if (locationDef.TryGetValue("type", out int locationType))
-            {
-                locationMod.LocationType = locationType == 0
-                    ? LocationType.SIM
-                    : LocationType.DATE;
-            }
-
-            if (locationDef.TryGetValue("spriteCollectionName", out string spriteCollectionName)
-                && collectionData.TryGetValue(spriteCollectionName, out var spriteCollection)
-                && TryGetSpriteLookup(spriteCollection, out var spriteLookup, out var spriteTextureInfo)
-                && locationDef.TryGetValue("backgrounds", out List<object> backgrounds))
-            {
-                var backgroundSprites = new Dictionary<ClockDaytimeType, IGameDefinitionInfo<UnityEngine.Sprite>>();
-
-                foreach (var background in backgrounds.OfType<OrderedDictionary>())
-                {
-                    if (background.TryGetValue("backgroundName", out string backgroundName)
-                        && !string.IsNullOrEmpty(backgroundName)
-                        && spriteLookup.TryGetValue(backgroundName, out var spriteDef)
-                        && TryMakeSpriteInfo(spriteDef, spriteTextureInfo, out var spriteInfo)
-                        && background.TryGetValue("daytime", out int dayTime))
-                    {
-                        backgroundSprites[(ClockDaytimeType)dayTime] = spriteInfo;
-                    }
-
-                    if (background.TryGetValue("musicDefinition", out OrderedDictionary musicDef)
-                        && background.TryGetValue("musicVolume", out float musicVolume)
-                        && musicDef.TryGetValue("clip", out OrderedDictionary clip)
-                        && UnityAssetPath.TryExtract(clip, out var unityPath)
-                        && TryGetAudioClipInfo(file, unityPath, out var clipInfo))
-                    {
-                        locationMod.BgMusic = new AudioKlipInfo()
-                        {
-                            AudioClipInfo = clipInfo,
-                            Volume = musicVolume * 1.8f //hp2 is louder
-                        };
-                    }
-                }
-
-                var defaultBg = backgroundSprites.Values.First();
-                if (locationMod.LocationType == LocationType.SIM)
-                {
-                    locationMod.Backgrounds = [
-                        backgroundSprites.TryGetValue(ClockDaytimeType.AFTERNOON, out var morningBg) ? morningBg : defaultBg,
-                        backgroundSprites.TryGetValue(ClockDaytimeType.AFTERNOON, out var afternoonBg) ? afternoonBg : defaultBg,
-                        backgroundSprites.TryGetValue(ClockDaytimeType.EVENING, out var eveningBg) ? eveningBg : defaultBg,
-                        backgroundSprites.TryGetValue(ClockDaytimeType.NIGHT, out var nightBg) ? nightBg : defaultBg
-                    ];
-                }
-                else
-                {
-                    locationMod.Backgrounds = [defaultBg, defaultBg];
-                }
-            }
-
-            locationMod.DateTimes = [
-                ClockDaytimeType.MORNING,
-                ClockDaytimeType.AFTERNOON,
-                ClockDaytimeType.EVENING,
-                ClockDaytimeType.NIGHT,
-            ];
-            ModInterface.AddDataMod(locationMod);
-        }
+        clipInfo = null;
+        return false;
     }
 
     private void LogAll(OrderedDictionary dict)
@@ -171,8 +168,7 @@ public class HpExtraction : BaseExtraction
         var vals = dict.Values.GetEnumerator();
         while (keys.MoveNext() && vals.MoveNext())
         {
-            ModInterface.Log.LogInfo(keys.Current.ToString());
-            using (ModInterface.Log.MakeIndent())
+            using (ModInterface.Log.MakeIndent(keys.Current.ToString()))
             {
                 if (vals.Current is OrderedDictionary subDict)
                 {
@@ -201,50 +197,36 @@ public class HpExtraction : BaseExtraction
         {12,[2]},//venus
     };
 
-    private Dictionary<string, string> _locationNameToIconOutlined = new Dictionary<string, string>()
-    {
-        {"Bar","item_unique_whisky"},
-        {"Beach","item_date_beach_ball"},
-        {"Cafe","item_baggage_caffeine_junkie"},
-        {"Campus","item_baggage_intellectually_challenged"},
-        {"Gym","item_baggage_abandonment_issues"},
-        {"Mall","item_baggage_brand_loyalist"},
-        {"Nightclub","item_unique_gin"},
-        {"Park","item_date_green_clover"},
-    };
-
-    private Dictionary<string, string> _locationNameToIconInternal = new Dictionary<string, string>()
-    {
-        {"Bedroom","ui_location_icon_room"},
-    };
-
     private void ExtractGirl(OrderedDictionary girlDef, Dictionary<string, (SerializedFile, OrderedDictionary)> collectionData)
     {
         var censoredIndex = -1;
         var nudeIndex = -1;
         var wetIndex = -1;
 
-        if (girlDef.TryGetValue("id", out int nativeId))
+        if (!girlDef.TryGetValue("id", out int nativeId))
         {
-            switch (nativeId)
-            {
-                case 2:
-                case 4:
-                case 3:
-                    nudeIndex = 0;
-                    wetIndex = 1;
-                    break;
-                default:
-                    censoredIndex = 0;
-                    nudeIndex = 2;
-                    wetIndex = 3;
-                    break;
-            }
+            ModInterface.Log.LogError("Hp2 girl lacks id");
+            return;
+        }
+
+        var girlMod = GetGirlMod(nativeId);
+
+        switch (nativeId)
+        {
+            case 2:
+            case 4:
+            case 3:
+                nudeIndex = 0;
+                wetIndex = 1;
+                break;
+            default:
+                censoredIndex = 0;
+                nudeIndex = 2;
+                wetIndex = 3;
+                break;
         }
 
         _uncensoredPhotos.TryGetValue(nativeId, out var censoredIndexes);
-
-        var girlMod = new GirlDataMod();
 
         if (girlDef.TryGetValue("firstName", out string firstName))
         {
@@ -252,32 +234,450 @@ public class HpExtraction : BaseExtraction
             girlMod.GirlName = firstName;
         }
 
-        // if (girlDef.TryGetValue("spriteCollectionName", out string spriteCollectionName)
-        //     && collectionData.TryGetValue(spriteCollectionName, out var spriteCollection)
-        //     && TryGetSpriteLookup(spriteCollection, out var spriteLookup, out var spriteTextureInfo)
-        //     && girlDef.TryGetValue("pieces", out List<object> pieces))
-        // {
-        //     var bodyParts = new Dictionary<int, object>();
-        //     if (TryExtractGirlPieceArtFrom(girlDef, "headPiece", _catalog.Layers.Head, spriteLookup, collectionId, out var headPart))
-        //     {
-        //         bodyParts[_catalog.Layers.Head] = headPart;
-        //     }
-        //     if (TryExtractGirlPieceArtFrom(girlDef, "bodyPiece", _catalog.Layers.Body, spriteLookup, collectionId, out var bodyPart))
-        //     {
-        //         bodyParts[_catalog.Layers.Body] = bodyPart;
-        //     }
+        if (girlDef.TryGetValue("mostDesiredTrait", out OrderedDictionary mostDesiredTrait)
+            && UnityAssetPath.TryExtract(mostDesiredTrait, out var favAffectionType)
+            && _affectionTypes.TryGetValue(favAffectionType, out var affectionType))
+        {
+            girlMod.FavoriteAffectionType = affectionType;
+        }
 
-        //     var outfits = new Dictionary<int, object>();
-        //     var hairStyles = new Dictionary<int, object>();
-        //     var eyeParts = new Dictionary<int, object>();
-        //     var browParts = new Dictionary<int, object>();
-        //     var mouthParts = new Dictionary<int, object>();
-        //     var extras = new Dictionary<int, object>();
+        if (girlDef.TryGetValue("leastDesiredTrait", out OrderedDictionary leastDesiredTrait)
+            && UnityAssetPath.TryExtract(leastDesiredTrait, out var leastFavAffectionType)
+            && _affectionTypes.TryGetValue(leastFavAffectionType, out affectionType))
+        {
+            girlMod.LeastFavoriteAffectionType = affectionType;
+        }
 
-        //     girlMod.parts = [
+        if (girlDef.TryGetValue("details", out List<object> details))
+        {
+            var asArray = details.OfType<string>().ToArray();
 
-        //     ];
-        // }
+            if (asArray.Length == 12)
+            {
+                if (int.TryParse(asArray[1], out int girlAge))
+                {
+                    girlMod.GirlAge = girlAge;
+                }
+            }
+        }
+
+        using (ModInterface.Log.MakeIndent("body"))
+        {
+            girlMod.bodies ??= new() {
+                new GirlBodyDataMod(new RelativeId(-1,0), InsertStyle.append) {
+                    Scale = 1.34f
+                }
+            };
+
+            var body = (GirlBodyDataMod)girlMod.bodies.First();
+
+            if (girlDef.TryGetValue("spriteCollectionName", out string spriteCollectionName)
+                        && collectionData.TryGetValue(spriteCollectionName, out var spriteCollection)
+                        && TryGetSpriteLookup(spriteCollection, out var spriteLookup, out var spriteTextureInfo))
+            {
+                //body
+                if (girlDef.TryGetValue("bodyPiece", out OrderedDictionary bodyPiece)
+                    && TryMakePartDataMod(GirlPartType.BODY, bodyPiece, spriteLookup, spriteTextureInfo, out var bodyPartMod, out var bodySprite))
+                {
+                    body.PartBody = bodyPartMod;
+                }
+
+                //there is no head layer, so we make the head into teeth. Yeh.
+                if (girlDef.TryGetValue("headPiece", out OrderedDictionary headPiece)
+                        && TryMakePartDataMod(GirlPartType.OUTFIT, headPiece, spriteLookup, spriteTextureInfo, out var headPartMod, out var headSprite)
+                        && !(headSprite._rect.Value.width == 64 && headSprite._rect.Value.height == 64))//there's empty ones that are 64 by 64 exactly
+                {
+                    body.specialParts ??= new();
+                    body.specialParts.Add(new GirlSpecialPartDataMod(new RelativeId(Plugin.ModId, _partCount++), InsertStyle.append)
+                    {
+                        Part = headPartMod,
+                        SortingPartType = GirlPartType.OUTFIT,
+                        AnimType = DollPartSpecialAnimType.NONE,
+                        IsToggleable = false,
+                        SpecialPartName = "head"
+                    });
+                }
+
+                //pieces
+                var outfitCount = 0;
+                var hairstyleCount = 0;
+                if (girlDef.TryGetValue("pieces", out List<object> pieces))
+                {
+                    var piecesLookup = pieces.OfType<OrderedDictionary>().ToArray();
+
+                    //outfits
+                    body.outfits ??= new();
+                    if (girlDef.TryGetValue("outfits", out List<object> outfits))
+                    {
+                        foreach (var outfit in outfits.OfType<OrderedDictionary>())
+                        {
+                            if (outfit.TryGetValue("styleName", out string outfitName)
+                                && outfit.TryGetValue("artIndex", out int artIndex)
+                                && piecesLookup.Length > artIndex
+                                && piecesLookup[artIndex].TryGetValue("art", out List<object> art)
+                                && art.Count > 0
+                                && art[0] is OrderedDictionary outfitPartDef
+                                && TryMakePartDataMod(GirlPartType.OUTFIT, outfitPartDef, spriteLookup, spriteTextureInfo,
+                                    out var outfitPart, out var outfitSpriteInfo))
+                            {
+                                body.outfits.Add(new OutfitDataMod(new RelativeId(Plugin.ModId, outfitCount++), InsertStyle.append)
+                                {
+                                    Name = outfitName,
+                                    OutfitPart = outfitPart,
+                                    IsNSFW = false,
+                                    IsCodeUnlocked = false,
+                                    IsPurchased = false,
+                                    HideNipples = true,
+                                    HideSpecial = false,
+                                    TightlyPaired = false,
+                                });
+                            }
+                        }
+                    }
+
+                    //hairstyles
+                    body.hairstyles ??= new();
+                    if (girlDef.TryGetValue("hairstyles", out List<object> hairstyles))
+                    {
+                        foreach (var hairstyle in hairstyles.OfType<OrderedDictionary>())
+                        {
+                            if (hairstyle.TryGetValue("styleName", out string hairName)
+                                && hairstyle.TryGetValue("artIndex", out int artIndex)
+                                && piecesLookup.Length > artIndex
+                                && piecesLookup[artIndex].TryGetValue("art", out List<object> art)
+                                && art.Count > 1
+                                && art[0] is OrderedDictionary frontPartDef
+                                && TryMakePartDataMod(GirlPartType.FRONTHAIR, frontPartDef, spriteLookup, spriteTextureInfo, out var frontPart, out var frontSpriteInfo))
+                            {
+                                var hairstyleMod = new HairstyleDataMod(new RelativeId(Plugin.ModId, hairstyleCount++), InsertStyle.append)
+                                {
+                                    Name = hairName,
+                                    FrontHairPart = frontPart,
+                                    IsNSFW = false,
+                                    IsCodeUnlocked = false,
+                                    IsPurchased = false,
+                                    TightlyPaired = false,
+                                };
+
+                                //they don't all have backs
+                                if (art[1] is OrderedDictionary backPartDef
+                                    && TryMakePartDataMod(GirlPartType.BACKHAIR, backPartDef, spriteLookup, spriteTextureInfo, out var backPart, out var backSpriteInfo))
+                                {
+                                    hairstyleMod.BackHairPart = backPart;
+                                }
+
+                                body.hairstyles.Add(hairstyleMod);
+                            }
+                        }
+                    }
+
+                    //misc
+                    GirlExpressionDataMod happy = null;
+                    GirlExpressionDataMod sad = null;
+                    GirlExpressionDataMod angry = null;
+                    GirlExpressionDataMod excited = null;
+                    GirlExpressionDataMod shy = null;
+                    GirlExpressionDataMod confused = null;
+                    GirlExpressionDataMod horny = null;
+                    GirlExpressionDataMod sick = null;
+                    GirlPartDataMod mouthOpen = new();
+                    HairstyleDataMod kyuDisguise = null;
+
+                    body.expressions ??= new();
+
+                    foreach (var piece in piecesLookup)
+                    {
+                        if (piece.TryGetValue("type", out int typeId))
+                        {
+                            switch (typeId)
+                            {
+                                case 0://expression
+                                    if (TryExtractExpression(piece, spriteLookup, spriteTextureInfo,
+                                        out var expression, out var brows, out var eyes, out var mouth, out var face)
+                                        && piece.TryGetValue("expressionType", out int expressionType))
+                                    {
+                                        switch (expressionType)
+                                        {
+                                            case 0://happy
+                                                happy = expression;
+                                                expression.ExpressionType = GirlExpressionType.NEUTRAL;
+                                                expression.Id = new RelativeId(-1, (int)GirlExpressionType.NEUTRAL);
+                                                body.PartMouthNeutral = mouth;
+                                                break;
+                                            case 1://sad
+                                                expression.ExpressionType = GirlExpressionType.EXHAUSTED;
+                                                sad = expression;
+                                                expression.Id = new RelativeId(-1, (int)GirlExpressionType.EXHAUSTED);
+                                                break;
+                                            case 2://angry
+                                                expression.ExpressionType = GirlExpressionType.ANNOYED;
+                                                angry = expression;
+                                                expression.Id = new RelativeId(-1, (int)GirlExpressionType.ANNOYED);
+                                                break;
+                                            case 3://excited
+                                                expression.ExpressionType = GirlExpressionType.EXCITED;
+                                                excited = expression;
+                                                expression.Id = new RelativeId(-1, (int)GirlExpressionType.EXCITED);
+                                                break;
+                                            case 4://shy
+                                                expression.ExpressionType = GirlExpressionType.SHY;
+                                                shy = expression;
+                                                expression.Id = new RelativeId(-1, (int)GirlExpressionType.SHY);
+
+                                                face.PartType = GirlPartType.BLUSHLIGHT;
+                                                body.PartBlushLight = face;
+                                                break;
+                                            case 5://confused
+                                                expression.ExpressionType = GirlExpressionType.CONFUSED;
+                                                confused = expression;
+                                                expression.Id = new RelativeId(-1, (int)GirlExpressionType.CONFUSED);
+                                                break;
+                                            case 6://horny
+                                                expression.ExpressionType = GirlExpressionType.HORNY;
+                                                horny = expression;
+                                                expression.Id = new RelativeId(-1, (int)GirlExpressionType.HORNY);
+
+                                                face.PartType = GirlPartType.BLUSHHEAVY;
+                                                body.PartBlushHeavy = face;
+                                                break;
+                                            case 7://sick
+                                                expression.ExpressionType = GirlExpressionType.UPSET;
+                                                sick = expression;
+                                                expression.Id = new RelativeId(-1, (int)GirlExpressionType.UPSET);
+                                                break;
+                                        }
+
+                                        //TODO: glow eyes
+                                        expression.PartEyesGlow = expression.PartEyes;
+                                        body.expressions.Add(expression);
+                                    }
+                                    break;
+                                case 1:
+                                case 2:
+                                case 3://footwear
+                                    //maybe use these for shoes items? It'd look a little weird but maybe
+                                    break;
+                                case 4://phomene
+                                    if (piece.TryGetValue("name", out string phomeneName)
+                                        && piece.TryGetValue("art", out List<object> phomeneArtCollection)
+                                        && TryMakePartDataMod(GirlPartType.PHONEMES, phomeneArtCollection.OfType<OrderedDictionary>().First(), spriteLookup, spriteTextureInfo, out var phonemePart, out _))
+                                    {
+                                        switch (phomeneName)
+                                        {
+                                            case "a,e,i,l":
+                                                body.Phonemes_aeil = phonemePart;
+                                                body.PhonemesTeeth_aeil = phonemePart;
+                                                mouthOpen = phonemePart;
+                                                break;
+                                            case "b,m,p":
+                                                body.Phonemes_neutral = phonemePart;
+                                                body.PhonemesTeeth_neutral = phonemePart;
+                                                break;
+                                            case "o,q,u,w":
+                                                body.Phonemes_oquw = phonemePart;
+                                                body.PhonemesTeeth_oquw = phonemePart;
+                                                break;
+                                            case "f,v":
+                                                body.Phonemes_fv = phonemePart;
+                                                body.PhonemesTeeth_fv = phonemePart;
+                                                break;
+                                            case "c,d,g,h,j,k,n,r,s,t,x,y,z":
+                                                body.Phonemes_other = phonemePart;
+                                                body.PhonemesTeeth_other = phonemePart;
+                                                break;
+                                        }
+                                    }
+                                    break;
+                                case 5://extra
+                                    if (piece.TryGetValue("name", out string extraName)
+                                        && piece.TryGetValue("limitToOutfits", out string limitToOutfits)
+                                        && piece.TryGetValue("art", out List<object> art))
+                                    {
+                                        if (!string.IsNullOrWhiteSpace(limitToOutfits))
+                                        {
+                                            ModInterface.Log.LogWarning($"{extraName} {limitToOutfits}");
+                                        }
+
+                                        body.specialParts ??= new();
+                                        switch (extraName.ToLower())
+                                        {
+                                            case "glasses":
+                                                if (TryMakePartDataMod(GirlPartType.FRONTHAIR, art.OfType<OrderedDictionary>().First(x => x != null), spriteLookup, spriteTextureInfo, out var glassesPart, out _))
+                                                {
+
+                                                    body.specialParts.Add(new GirlSpecialPartDataMod(new RelativeId(Plugin.ModId, _partCount++), InsertStyle.append)
+                                                    {
+                                                        AnimType = DollPartSpecialAnimType.NONE,
+                                                        SortingPartType = GirlPartType.FRONTHAIR,
+                                                        Part = glassesPart,
+                                                        SpecialPartName = extraName
+                                                    });
+                                                }
+                                                break;
+                                            case "earrings":
+                                                if (TryMakePartDataMod(GirlPartType.EYES, art.OfType<OrderedDictionary>().First(), spriteLookup, spriteTextureInfo, out var earringsPart, out _))
+                                                {
+                                                    body.specialParts.Add(new GirlSpecialPartDataMod(new RelativeId(Plugin.ModId, _partCount++), InsertStyle.append)
+                                                    {
+                                                        AnimType = DollPartSpecialAnimType.NONE,
+                                                        SortingPartType = GirlPartType.EYES,
+                                                        Part = earringsPart,
+                                                        SpecialPartName = extraName
+                                                    });
+                                                }
+                                                break;
+                                            case "hairclip":
+                                                if (TryMakePartDataMod(GirlPartType.FRONTHAIR, art.OfType<OrderedDictionary>().First(), spriteLookup, spriteTextureInfo, out var hairclipPart, out _))
+                                                {
+                                                    body.specialParts.Add(new GirlSpecialPartDataMod(new RelativeId(Plugin.ModId, _partCount++), InsertStyle.append)
+                                                    {
+                                                        AnimType = DollPartSpecialAnimType.NONE,
+                                                        SortingPartType = GirlPartType.FRONTHAIR,
+                                                        Part = hairclipPart,
+                                                        SpecialPartName = extraName
+                                                    });
+                                                }
+                                                break;
+                                            case "disguise front hair":
+                                                if (TryMakePartDataMod(GirlPartType.FRONTHAIR, art.OfType<OrderedDictionary>().First(), spriteLookup, spriteTextureInfo, out var disguiseFrontHair, out _))
+                                                {
+                                                    kyuDisguise ??= new();
+                                                    kyuDisguise.FrontHairPart = disguiseFrontHair;
+                                                }
+                                                break;
+                                            case "disguise back hair":
+                                                if (TryMakePartDataMod(GirlPartType.BACKHAIR, art.OfType<OrderedDictionary>().First(), spriteLookup, spriteTextureInfo, out var disguiseBackHair, out _))
+                                                {
+                                                    kyuDisguise ??= new();
+                                                    kyuDisguise.BackHairPart = disguiseBackHair;
+                                                }
+                                                break;
+                                            case "cowboy hat":
+                                                if (TryMakePartDataMod(GirlPartType.FRONTHAIR, art.OfType<OrderedDictionary>().First(), spriteLookup, spriteTextureInfo, out var cowboyHatPart, out _))
+                                                {
+                                                    body.specialParts.Add(new GirlSpecialPartDataMod(new RelativeId(Plugin.ModId, _partCount++), InsertStyle.append)
+                                                    {
+                                                        AnimType = DollPartSpecialAnimType.NONE,
+                                                        SortingPartType = GirlPartType.FRONTHAIR,
+                                                        Part = cowboyHatPart,
+                                                        SpecialPartName = extraName
+                                                    });
+                                                }
+                                                break;
+                                        }
+                                    }
+                                    break;
+                                default:
+                                    if (piece.TryGetValue("layer", out int layerId)
+                                    && piece.TryGetValue("name", out string pieceName))
+                                    {
+                                        ModInterface.Log.LogInfo($"unhandled part type {typeId}, for layer {layerId}, named {pieceName}");
+                                    }
+                                    break;
+                            }
+                        }
+                    }
+
+                    if (kyuDisguise != null)
+                    {
+                        kyuDisguise.Name = "Human Disguise";
+                        body.hairstyles.Add(kyuDisguise);
+                    }
+
+                    happy.PartMouthOpen = mouthOpen;
+                    sad.PartMouthOpen = mouthOpen;
+                    angry.PartMouthOpen = mouthOpen;
+                    excited.PartMouthOpen = mouthOpen;
+                    shy.PartMouthOpen = mouthOpen;
+                    confused.PartMouthOpen = mouthOpen;
+                    horny.PartMouthOpen = mouthOpen;
+                    sick.PartMouthOpen = mouthOpen;
+
+                    //disappointed
+                    body.expressions.Add(new GirlExpressionDataMod(new RelativeId(-1, (int)GirlExpressionType.DISAPPOINTED), InsertStyle.append)
+                    {
+                        ExpressionType = GirlExpressionType.DISAPPOINTED,
+                        PartEyebrows = sad.PartEyebrows,
+                        PartEyes = sad.PartEyes,
+                        PartEyesGlow = sad.PartEyes,
+                        PartMouthClosed = shy.PartMouthClosed,
+                        PartMouthOpen = mouthOpen
+                    });
+
+                    //inquisitive
+                    body.expressions.Add(new GirlExpressionDataMod(new RelativeId(-1, (int)GirlExpressionType.INQUISITIVE), InsertStyle.append)
+                    {
+                        ExpressionType = GirlExpressionType.INQUISITIVE,
+                        PartEyebrows = confused.PartEyebrows,
+                        PartEyes = happy.PartEyes,
+                        PartEyesGlow = happy.PartEyes,
+                        PartMouthClosed = happy.PartMouthClosed,
+                        PartMouthOpen = mouthOpen
+                    });
+
+                    //sarcastic
+                    body.expressions.Add(new GirlExpressionDataMod(new RelativeId(-1, (int)GirlExpressionType.SARCASTIC), InsertStyle.append)
+                    {
+                        ExpressionType = GirlExpressionType.SARCASTIC,
+                        PartEyebrows = confused.PartEyebrows,
+                        PartEyes = happy.PartEyes,
+                        PartEyesGlow = happy.PartEyes,
+                        PartMouthClosed = happy.PartMouthClosed,
+                        PartMouthOpen = mouthOpen
+                    });
+
+                    //blink
+                    if (girlDef.TryGetValue("blinkFullPiece", out OrderedDictionary blinkDef)
+                        && TryMakePartDataMod(GirlPartType.BLINK, blinkDef, spriteLookup, spriteTextureInfo, out var blinkPart, out _))
+                    {
+                        body.PartBlink = blinkPart;
+                    }
+                }
+
+                //underwear
+                if (girlDef.TryGetValue("braPiece", out OrderedDictionary braDef)
+                    && girlDef.TryGetValue("pantiesPiece", out OrderedDictionary pantiesDef)
+                    && TryMakePartDataMod(GirlPartType.OUTFIT, braDef, spriteLookup, spriteTextureInfo, out var braPartMod, out var braSprite)
+                    && TryMakePartDataMod(GirlPartType.OUTFIT, pantiesDef, spriteLookup, spriteTextureInfo, out var pantiesPartMod, out var pantiesSprite))
+                {
+                    var underwearPart = MergeParts(Path.Combine(Plugin.ImgDir, $"{nativeId}_underwear.png"), [
+                        (braPartMod, braSprite),
+                        (pantiesPartMod, pantiesSprite)
+                    ]);
+
+                    body.outfits.Add(new OutfitDataMod(new RelativeId(Plugin.ModId, outfitCount++), InsertStyle.append)
+                    {
+                        Name = GetUnderwearName(nativeId),
+                        OutfitPart = underwearPart,
+                        IsCodeUnlocked = false,
+                        IsPurchased = false,
+                        IsNSFW = false,
+                        HideNipples = true,
+                    });
+
+                    body.outfits.Add(new OutfitDataMod(new RelativeId(Plugin.ModId, outfitCount++), InsertStyle.append)
+                    {
+                        Name = "Topless",
+                        OutfitPart = pantiesPartMod,
+                        IsCodeUnlocked = false,
+                        IsPurchased = false,
+                        IsNSFW = false,
+                        HideNipples = true,
+                    });
+                }
+
+                //defaults
+                body.DefaultOutfitId = body.outfits.First().Id;
+                body.DefaultHairstyleId = body.hairstyles.First().Id;
+                body.DefaultExpressionIndex = 0;
+                body.FailureExpressionIndex = 10;
+
+                girlMod.VoiceVolume = 1f;
+                girlMod.SexVoiceVolume = 1f;
+
+                Tweak(girlMod, nativeId);
+            }
+        }
 
         if (girlDef.TryGetValue("photosSpriteCollectionName", out string photosSpriteCollectionName)
             && collectionData.TryGetValue(photosSpriteCollectionName, out var photoCollection)
@@ -285,11 +685,22 @@ public class HpExtraction : BaseExtraction
             && TryGetSpriteLookup(_thumbnailCollection, out var thumbLookup, out var thumbTextureInfo)
             && girlDef.TryGetValue("photos", out List<object> photos))
         {
+            var datePhotos = new List<RelativeId>();
+
             int j = -1;
             foreach (var girlPhoto in photos.OfType<OrderedDictionary>())
             {
                 j++;
                 var photoMod = new PhotoDataMod(new RelativeId(Plugin.ModId, Plugin.PhotoModCount++), Hp2BaseMod.Utility.InsertStyle.replace);
+                //single date add photos
+                if (j == 3)
+                {
+                    m_AddGirlSexPhotos(girlMod.Id, [photoMod.Id]);
+                }
+                else
+                {
+                    datePhotos.Add(photoMod.Id);
+                }
 
                 if (girlPhoto.TryGetValue("fullSpriteName", out List<object> fullSpriteName)
                     && girlPhoto.TryGetValue("thumbnailSpriteName", out List<object> thumbnailSpriteName))
@@ -354,19 +765,18 @@ public class HpExtraction : BaseExtraction
                                 photoMod.BigPhotoWet = photoInfo;
                             }
                         }
-                        else
-                        {
-                            ModInterface.Log.LogWarning("Failed to make sprite info");
-                        }
                     }
 
                     ModInterface.AddDataMod(photoMod);
                 }
             }
+
+            int datePhotoIndex = 0;
+            m_AddGirlDatePhotos?.Invoke(girlMod.Id, datePhotos.Select(x => (x, datePhotoIndex++ / 4f)));
         }
     }
 
-    private bool TryMakeSpriteInfo(OrderedDictionary spriteDef, TextureInfoRaw textureInfo, out IGameDefinitionInfo<UnityEngine.Sprite> info)
+    private bool TryMakeSpriteInfo(OrderedDictionary spriteDef, TextureInfoRaw textureInfo, out SpriteInfoTexture info)
     {
         if (spriteDef.TryGetValue("boundsData", out List<object> bounds)
             && bounds.Count == 2
@@ -374,9 +784,7 @@ public class HpExtraction : BaseExtraction
             && TryGetVector2((OrderedDictionary)bounds[1], out float sizeX, out float sizeY)
             && spriteDef.TryGetValue("uvs", out List<object> uvs)
             && spriteDef.TryGetValue("positions", out List<object> positions)
-            && spriteDef.TryGetValue("indices", out List<object> indices)
-            && spriteDef.TryGetValue("flipped", out object flipped)
-            && flipped is int flippedInt)
+            && spriteDef.TryGetValue("indices", out List<object> indices))
         {
             var uvVecs = uvs.OfType<OrderedDictionary>().Select(o => TryGetVector2(o, out float u, out float v)
                     ? new UnityEngine.Vector2(u, v)
@@ -390,29 +798,38 @@ public class HpExtraction : BaseExtraction
             var spriteSize = new UnityEngine.Vector2(sizeX, sizeY);
             var diffSizeMult = textureSize / spriteSize;
 
-            var ratioX = textureSize.x / sizeX;
-            var ratioY = textureSize.y / sizeY;
-
             var vertScaler = Mathf.Min(Mathf.Min(diffSizeMult.x, diffSizeMult.y), 1f);
 
             var positionVerts = positions.OfType<OrderedDictionary>().Select(o => TryGetVector2(o, out float x, out float y)
                     ? new UnityEngine.Vector2(x, sizeY + y) * vertScaler
                     : UnityEngine.Vector2.zero).ToArray();
 
-            var triangles = indices.OfType<int>().Select(x => (ushort)x).ToArray();
-
             //some have negative verts, so shift min to zero
-            var minPos = new UnityEngine.Vector2(positionVerts.Min(x => x.x), positionVerts.Min(x => x.y));
+            if (positionVerts.Any())
+            {
+                var minPos = new UnityEngine.Vector2(positionVerts[0].x, positionVerts[0].y);
+
+                foreach (var pos in positionVerts.Skip(1))
+                {
+                    minPos.x = Mathf.Min(minPos.x, pos.x);
+                    minPos.y = Mathf.Min(minPos.y, pos.y);
+                }
+
+                positionVerts = positionVerts.Select(x => x - minPos).ToArray();
+            }
+
+            var triangles = indices.OfType<int>().Select(x => (ushort)x).ToArray();
 
             info = new SpriteInfoTexture(textureInfo,
                 new Rect(0, 0, sizeX * vertScaler, sizeY * vertScaler),
-                positionVerts.Select(x => x - minPos).ToArray(),
+                positionVerts,
                 uvVecs,
-                indices.OfType<int>().Select(x => (ushort)x).ToArray());
+                triangles);
 
             return true;
         }
 
+        ModInterface.Log.LogInfo($"Failed to make sprite info");
         info = null;
         return false;
     }
@@ -483,25 +900,9 @@ public class HpExtraction : BaseExtraction
         return false;
     }
 
-    private static bool TryGetVector(OrderedDictionary orderedDictionary, out int x, out int y)
+    private bool TryGetAudioClipInfo(SerializedFile file, UnityAssetPath path, out AudioClipInfoVorbis clipInfo)
     {
-        if (orderedDictionary.TryGetValue("x", out x) && orderedDictionary.TryGetValue("y", out y))
-        {
-            return true;
-        }
-
-        x = default;
-        y = default;
-        return false;
-    }
-
-    private bool TryGetAudioClipInfo(SerializedFile file, UnityAssetPath path, out IGameDefinitionInfo<UnityEngine.AudioClip> clipInfo)
-    {
-        if (!_audioInfo.TryGetValue(file, out var pathToInfo))
-        {
-            pathToInfo = new Dictionary<UnityAssetPath, IGameDefinitionInfo<UnityEngine.AudioClip>>();
-            _audioInfo[file] = pathToInfo;
-        }
+        var pathToInfo = _audioInfo.GetOrNew(file);
 
         if (pathToInfo.TryGetValue(path, out clipInfo))
         {

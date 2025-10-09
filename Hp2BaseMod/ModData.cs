@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Hp2BaseMod.Extension;
 using Hp2BaseMod.GameDataInfo.Interface;
 
 namespace Hp2BaseMod
@@ -245,6 +246,8 @@ namespace Hp2BaseMod
             id = RelativeId.Default;
             return false;
         }
+
+        public bool IsRegistered(GameDataType type, RelativeId id) => _relativeIdToRuntimeId[type].ContainsKey(id);
 
         #endregion
     }

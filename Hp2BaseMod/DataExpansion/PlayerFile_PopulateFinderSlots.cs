@@ -94,6 +94,7 @@ public static class PlayerFile_PopulateFinderSlots
         simLocationPool.Remove(playerFile.locationDefinition);
         args.LocationPool = simLocationPool;
         ModInterface.Events.NotifyPreFinderSlotPopulatePairs(args);
+        args.LocationPool ??= simLocationPool;
 
         var girlPool = normalGirls.Keys.ToList();
 

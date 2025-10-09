@@ -3,6 +3,7 @@ using System.Linq;
 using System.Reflection;
 using HarmonyLib;
 using Hp2BaseMod;
+using Hp2BaseMod.Extension.IEnumerableExtension;
 using UnityEngine;
 
 namespace SingleDate;
@@ -189,30 +190,50 @@ internal static class EventHandles
             return;
         }
 
+        ModInterface.Log.LogInfo("Single Date Photo");//TODO actually unlock the photos, fix the weights on date photos
+
         var girlId = ModInterface.Data.GetDataId(playerFileGirlPair.girlPairDefinition.girlDefinitionTwo);
         var girlSave = State.SaveFile.GetGirl(girlId);
 
-        if (girlSave.RelationshipLevel == 1)
+        if (Game.Session.Puzzle.puzzleStatus.bonusRound)
         {
-            args.BigPhotoId = Plugin.Instance.GirlIdToDatePhotoId.TryGetValue(girlId, out var datePhotoId)
-                ? datePhotoId
-                : PhotoDefault.Id;
+            if (!(Plugin.Instance.GirlIdToSexPhotoId.TryGetValue(girlId, out var sexPhotos) && sexPhotos.Any()))
+            {
+                args.BigPhotoId = PhotoDefault.Id;
+                return;
+            }
 
-            ModInterface.Log.LogInfo("WAZZZZZZAUP");
+            var photoPool = sexPhotos.Except(girlSave.UnlockedPhotos).ToArray();
+            args.BigPhotoId = photoPool.Length == 0
+                ? sexPhotos.GetRandom()
+                : photoPool.GetRandom();
         }
+        else
+        {
+            var datePercentage = girlSave.RelationshipLevel / (float)Plugin.Instance.MaxSingleGirlRelationshipLevel;
+
+            if (!(Plugin.Instance.GirlIdToDatePhotoId.TryGetValue(girlId, out var datePhotos) && datePhotos.Any()))
+            {
+                args.BigPhotoId = PhotoDefault.Id;
+                return;
+            }
+
+            var validDatePhotos = datePhotos.Where(x => x.Item2 <= datePercentage).Select(x => x.Item1).ToArray();
+            var lockedDatePhotos = girlSave.UnlockedPhotos == null
+                ? validDatePhotos
+                : validDatePhotos.Except(girlSave.UnlockedPhotos).ToArray();
+
+            args.BigPhotoId = lockedDatePhotos.Length == 0
+                ? validDatePhotos.GetRandom()
+                : lockedDatePhotos.GetRandom();
+        }
+
+        girlSave.UnlockedPhotos.Add(args.BigPhotoId);
     }
 
     internal static void On_RequestUnlockedPhotos(RequestUnlockedPhotosEventArgs args)
     {
         args.UnlockedPhotos ??= new List<PhotoDefinition>();
-
-        foreach (var id_girlSave in State.SaveFile.Girls)
-        {
-            if (id_girlSave.Value.RelationshipLevel >= 1
-                && Plugin.Instance.GirlIdToDatePhotoId.TryGetValue(id_girlSave.Key, out var datePhotoId))
-            {
-                args.UnlockedPhotos.Add(ModInterface.GameData.GetPhoto(datePhotoId));
-            }
-        }
+        args.UnlockedPhotos.AddRange(State.SaveFile.Girls.Values.SelectManyNN(x => x.UnlockedPhotos).Select(ModInterface.GameData.GetPhoto));
     }
 }

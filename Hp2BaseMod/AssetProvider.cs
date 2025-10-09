@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Hp2BaseMod.Extension;
 using Hp2BaseMod.Utility;
 using UnityEngine;
 
@@ -65,13 +66,7 @@ namespace Hp2BaseMod
                 return;
             }
 
-            if (!_internalAssetRequests.TryGetValue(type, out var set))
-            {
-                set = new HashSet<string>();
-                _internalAssetRequests[type] = set;
-            }
-
-            set.Add(name);
+            _internalAssetRequests.GetOrNew(type).Add(name);
         }
 
         /// <summary>
@@ -105,11 +100,7 @@ namespace Hp2BaseMod
                 return;
             }
 
-            if (!_internalAssetRequests.TryGetValue(type, out var set))
-            {
-                set = new HashSet<string>();
-                _internalAssetRequests[type] = set;
-            }
+            var set = _internalAssetRequests.GetOrNew(type);
 
             foreach (var name in names)
             {
@@ -135,11 +126,7 @@ namespace Hp2BaseMod
 
             foreach (var type_paths in _internalAssetRequests)
             {
-                if (!_assets.TryGetValue(type_paths.Key, out var assets))
-                {
-                    assets = new Dictionary<string, UnityEngine.Object>();
-                    _assets[type_paths.Key] = assets;
-                }
+                var assets = _assets.GetOrNew(type_paths.Key);
 
                 foreach (var key in assets.Keys)
                 {
@@ -172,14 +159,7 @@ namespace Hp2BaseMod
         internal void AddAsset(Type type, string identifier, UnityEngine.Object asset)
         {
             if (string.IsNullOrWhiteSpace(identifier)) { return; }
-
-            if (!_assets.TryGetValue(type, out var assets))
-            {
-                assets = new Dictionary<string, UnityEngine.Object>();
-                _assets[type] = assets;
-            }
-
-            assets[identifier] = asset;
+            _assets.GetOrNew(type)[identifier] = asset;
         }
 
         #endregion

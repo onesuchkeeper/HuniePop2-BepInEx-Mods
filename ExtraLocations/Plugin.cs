@@ -136,7 +136,7 @@ public class Plugin : BaseUnityPlugin
                 },
                 FinderLocationIcon = new SpriteInfoTexture(new TextureInfoCache(
                     Path.Combine(ImagesDir, "hiddenWaterfall_Icon.png"),
-                    new TextureInfoSprite(new SpriteInfoInternal("item_unique_hot_stones"), true, [new TextureRsCellphoneOutline(4f, 0f, 1f)])))
+                    new TextureInfoSprite(new SpriteInfoInternal("item_unique_hot_stones"), false, true, [new TextureRsCellphoneOutline(4f, 0f, 1f)])))
             });
         }
 

@@ -1,6 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
-using AssetStudio.PInvoke;
+using System.Linq;
 using BepInEx;
 using HarmonyLib;
 using Hp2BaseMod;
@@ -13,14 +14,22 @@ namespace HuniePopUltimate;
 
 [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
 [BepInDependency("OSK.BepInEx.Hp2BaseMod", "1.0.0")]
+[BepInDependency("OSK.BepInEx.SingleDate", BepInDependency.DependencyFlags.SoftDependency)]
 public class Plugin : BaseUnityPlugin
 {
+    private static readonly string _configGeneralName = "general";
+    private static readonly string _configKyuName = "useHp1Kyu";
+    private static readonly string _configLolaName = "useHp1Lola";
+    private static readonly string _configJessieName = "useHp1Jessie";
+
     private static readonly string _dataDir = "HuniePop_Data";
     private static readonly string _dacDir = "Digital Art Collection";
     private static readonly string _assemblyDir = Path.Combine(_dataDir, "Managed");
 
     public static string RootDir => _dir;
     private static string _dir;
+
+    public static string ImgDir => Path.Combine(_dir, "images");
 
     public static int ModId => _modId;
     private static int _modId;
@@ -29,6 +38,24 @@ public class Plugin : BaseUnityPlugin
 
     private void Awake()
     {
+        if (ModInterface.TryGetInterModValue("OSK.BepInEx.SingleDate", "AddGirlDatePhotos", out Action<RelativeId, IEnumerable<(RelativeId, float)>> m_AddGirlDatePhotos)
+            && ModInterface.TryGetInterModValue("OSK.BepInEx.SingleDate", "AddGirlSexPhotos", out Action<RelativeId, IEnumerable<RelativeId>> m_AddGirlSexPhotos)
+            && ModInterface.TryGetInterModValue("OSK.BepInEx.SingleDate", "SetCharmSprite", out Action<RelativeId, Sprite> m_SetCharmSprite)
+            )
+        {
+            ModInterface.Log.LogInfo("Successfully found single date interop");
+        }
+        else
+        {
+            m_AddGirlDatePhotos = null;
+            m_AddGirlSexPhotos = null;
+            m_SetCharmSprite = null;
+        }
+
+        this.Config.Bind(_configGeneralName, _configKyuName, true, "If Kyu should use Hp1 visuals.");
+        this.Config.Bind(_configGeneralName, _configLolaName, true, "If Lola should use Hp1 visuals.");
+        this.Config.Bind(_configGeneralName, _configJessieName, true, "If Jessie should use Hp1 visuals.");
+
         _modId = ModInterface.GetSourceId(MyPluginInfo.PLUGIN_GUID);
         _dir = Path.GetDirectoryName(this.Info.Location);
 
@@ -62,7 +89,7 @@ public class Plugin : BaseUnityPlugin
 
         ModInterface.Log.LogInfo("Loading HuniePop assembly (this may take a bit)");
 
-        using (var hpExtraction = new HpExtraction(hpDirConfig.Value))
+        using (var hpExtraction = new HpExtraction(hpDirConfig.Value, m_AddGirlDatePhotos, m_AddGirlSexPhotos, m_SetCharmSprite))
         {
             ModInterface.Log.LogInfo("HuniePop assembly loaded successfully, beginning import:");
             ModInterface.Log.IncreaseIndent();
@@ -120,81 +147,40 @@ public class Plugin : BaseUnityPlugin
             });
         }
 
-        ModInterface.Events.RequestUnlockedPhotos += On_RequestUnlockedPhotos;
+        //ModInterface.Events.RequestUnlockedPhotos += On_RequestUnlockedPhotos;
+        ModInterface.Events.PreLoadPlayerFile += On_PreLoadPlayerFile;
     }
 
-    private void On_RequestUnlockedPhotos(RequestUnlockedPhotosEventArgs args)
-    {
-        args.UnlockedPhotos ??= new List<PhotoDefinition>();
+    // private void On_RequestUnlockedPhotos(RequestUnlockedPhotosEventArgs args)
+    // {
+    //     args.UnlockedPhotos ??= new List<PhotoDefinition>();
 
-        for (int i = 0; i < PhotoModCount; i++)
+    //     for (int i = 0; i < PhotoModCount; i++)
+    //     {
+    //         args.UnlockedPhotos.Add(ModInterface.GameData.GetPhoto(new RelativeId(ModId, i)));
+    //     }
+    // }
+
+    //unlock all
+    private void On_PreLoadPlayerFile(PlayerFile file)
+    {
+        using (ModInterface.Log.MakeIndent())
         {
-            args.UnlockedPhotos.Add(ModInterface.GameData.GetPhoto(new RelativeId(ModId, i)));
+            foreach (var fileGirl in file.girls)
+            {
+                var girlId = ModInterface.Data.GetDataId(GameDataType.Girl, fileGirl.girlDefinition.id);
+                var expansion = ExpandedGirlDefinition.Get(girlId);
+
+                foreach (var outfitId_Index in expansion.OutfitIdToIndex.Where(x => x.Key.SourceId == ModId))
+                {
+                    fileGirl.UnlockOutfit(outfitId_Index.Value);
+                }
+
+                foreach (var hairstyleId_index in expansion.HairstyleIdToIndex.Where(x => x.Key.SourceId == ModId))
+                {
+                    fileGirl.UnlockHairstyle(hairstyleId_index.Value);
+                }
+            }
         }
-    }
-
-    private bool TryLocalizeGirlId(int nativeId, out int localizedId)
-    {
-        localizedId = nativeId;
-        return true;
-        // switch (nativeId)
-        // {
-        //     case 1:
-        //         localizedId = _catalog.Models.Character.Tiffany;
-        //         return true;
-        //     case 2:
-        //         localizedId = _catalog.Models.Character.Aiko;
-        //         return true;
-        //     case 3:
-        //         localizedId = _catalog.Models.Character.Kyanna;
-        //         return true;
-        //     case 4:
-        //         localizedId = _catalog.Models.Character.Audrey;
-        //         return true;
-        //     case 5:
-        //         localizedId = _catalog.Models.Character.Lola;
-        //         return true;
-        //     case 6:
-        //         localizedId = _catalog.Models.Character.Nikki;
-        //         return true;
-        //     case 7:
-        //         localizedId = _catalog.Models.Character.Jessie;
-        //         return true;
-        //     case 8:
-        //         localizedId = _catalog.Models.Character.Beli;
-        //         return true;
-        //     case 9:
-        //         localizedId = _catalog.Models.Character.Kyu;
-        //         return true;
-        //     case 10:
-        //         localizedId = _catalog.Models.Character.Momo;
-        //         return true;
-        //     case 11:
-        //         localizedId = _catalog.Models.Character.Celeste;
-        //         return true;
-        //     case 12:
-        //         localizedId = _catalog.Models.Character.Venus;
-        //         return true;
-        // }
-        // localizedId = 0;
-        // return false;
-    }
-
-
-}
-
-[HarmonyPatch(typeof(DllLoader))]
-public static class Foo
-{
-    [HarmonyPatch("GetDirectedDllDirectory")]
-    [HarmonyPostfix]
-    public static void GetDirectedDllDirectory(ref string __result)
-    {
-        //__result = Path.Combine(Paths.PluginPath, MyPluginInfo.PLUGIN_NAME, Environment.Is64BitProcess ? "x64" : "x86");
-        ModInterface.Log.LogInfo(__result);
-
-        // LoadLibraryEx()
-
-        // return false;
     }
 }

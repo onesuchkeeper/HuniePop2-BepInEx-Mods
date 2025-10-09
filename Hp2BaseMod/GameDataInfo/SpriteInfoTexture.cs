@@ -10,10 +10,11 @@ namespace Hp2BaseMod.GameDataInfo
     public class SpriteInfoTexture : IGameDefinitionInfo<Sprite>
     {
         private ITextureInfo _textureInfo;
-        private Rect? _rect;
+        public Rect? _rect;
         private Vector2[] _vertices;
         private Vector2[] _uvs;
         private ushort[] _triangles;
+
         private Sprite _sprite;
 
         public SpriteInfoTexture(ITextureInfo texture,

@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Hp2BaseMod;
+using Hp2BaseMod.Extension;
+using Hp2BaseMod.Extension.IEnumerableExtension;
 
 namespace SingleDate;
 
@@ -12,7 +15,10 @@ public class SingleSaveFile
 
     public void Clean()
     {
-        Girls ??= new Dictionary<RelativeId, SingleSaveGirl>();
+        Girls ??= new();
+
+        Girls = Girls.Where(x => ModInterface.Data.IsRegistered(GameDataType.Girl, x.Key)).ToDictionary(x => x.Key, x => x.Value);
+        Girls.Values.ForEach(x => x.Clean());
     }
 
     public SingleSaveGirl GetGirl(int runtimeId)
@@ -25,12 +31,6 @@ public class SingleSaveFile
             return null;
         }
 
-        if (!Girls.TryGetValue(girlId, out var singleSaveGirl))
-        {
-            singleSaveGirl = new SingleSaveGirl();
-            Girls[girlId] = singleSaveGirl;
-        }
-
-        return singleSaveGirl;
+        return Girls.GetOrNew(girlId);
     }
 }

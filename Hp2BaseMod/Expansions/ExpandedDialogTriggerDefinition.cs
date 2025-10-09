@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Hp2BaseMod.Extension;
 using Hp2BaseMod.GameDataInfo;
 
 namespace Hp2BaseMod;
@@ -26,16 +27,7 @@ public class ExpandedDialogTriggerDefinition
     public static ExpandedDialogTriggerDefinition Get(int runtimeId)
         => Get(ModInterface.Data.GetDataId(GameDataType.DialogTrigger, runtimeId));
 
-    public static ExpandedDialogTriggerDefinition Get(RelativeId id)
-    {
-        if (!_expansions.TryGetValue(id, out var expansion))
-        {
-            expansion = new ExpandedDialogTriggerDefinition();
-            _expansions[id] = expansion;
-        }
-
-        return expansion;
-    }
+    public static ExpandedDialogTriggerDefinition Get(RelativeId id) => _expansions.GetOrNew(id);
 
     /// <summary>
     /// Maps a girl id to a map of line id to line index.

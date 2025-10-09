@@ -4,9 +4,11 @@ using System.Linq;
 using BepInEx;
 using HarmonyLib;
 using Hp2BaseMod;
+using Hp2BaseMod.Extension;
 using Hp2BaseMod.GameDataInfo;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
+using MonoMod.Utils;
 
 namespace SingleDate;
 
@@ -126,11 +128,58 @@ internal class Plugin : BaseUnityPlugin
     public static readonly string RootDir = Path.Combine(Paths.PluginPath, "SingleDate");
     public static readonly string ImagesDir = Path.Combine(RootDir, "images");
 
-    internal Dictionary<RelativeId, RelativeId> GirlIdToSexPhotoId;
-    public void SetGirlSexPhoto(RelativeId girlId, RelativeId photoId) => GirlIdToSexPhotoId[girlId] = photoId;
+    internal Dictionary<RelativeId, List<RelativeId>> GirlIdToSexPhotoId = new();
+    public void AddGirlSexPhotos(RelativeId girlId, IEnumerable<RelativeId> photoIds)
+        => GirlIdToSexPhotoId.GetOrNew(girlId).AddRange(photoIds);
 
-    internal Dictionary<RelativeId, RelativeId> GirlIdToDatePhotoId;
-    public void SetGirlDatePhoto(RelativeId girlId, RelativeId photoId) => GirlIdToDatePhotoId[girlId] = photoId;
+    internal Dictionary<RelativeId, List<(RelativeId, float)>> GirlIdToDatePhotoId = new();
+    public void AddGirlDatePhotos(RelativeId girlId, IEnumerable<(RelativeId, float)> photoIds)
+        => GirlIdToDatePhotoId.GetOrNew(girlId).AddRange(photoIds);
+
+    public void SwapPhotos(RelativeId girlAId, RelativeId girlBId)
+    {
+        var gotADate = GirlIdToDatePhotoId.TryGetValue(girlAId, out var aDatePhotos);
+        var gotBDate = GirlIdToDatePhotoId.TryGetValue(girlAId, out var bDatePhotos);
+
+        if (gotADate)
+        {
+            GirlIdToDatePhotoId[girlBId] = aDatePhotos;
+        }
+        else if (gotBDate)
+        {
+            GirlIdToDatePhotoId.Remove(girlBId);
+        }
+
+        if (gotBDate)
+        {
+            GirlIdToDatePhotoId[girlAId] = bDatePhotos;
+        }
+        else if (gotADate)
+        {
+            GirlIdToDatePhotoId.Remove(girlAId);
+        }
+
+        var gotASex = GirlIdToSexPhotoId.TryGetValue(girlAId, out var aSexPhotos);
+        var gotBSex = GirlIdToSexPhotoId.TryGetValue(girlAId, out var bSexPhotos);
+
+        if (gotASex)
+        {
+            GirlIdToSexPhotoId[girlBId] = aSexPhotos;
+        }
+        else if (gotBSex)
+        {
+            GirlIdToSexPhotoId.Remove(girlBId);
+        }
+
+        if (gotBSex)
+        {
+            GirlIdToSexPhotoId[girlAId] = bSexPhotos;
+        }
+        else if (gotASex)
+        {
+            GirlIdToSexPhotoId.Remove(girlAId);
+        }
+    }
 
     private void Awake()
     {
@@ -160,21 +209,15 @@ internal class Plugin : BaseUnityPlugin
         PhotoSarah.AddDataMods();
         PhotoZoey.AddDataMods();
 
-        GirlIdToSexPhotoId = new Dictionary<RelativeId, RelativeId>(){
-            {Girls.AbiaId, PhotoAbia.Id},
-            {Girls.BrookeId, PhotoBrooke.Id},
-            {Girls.CandaceId, PhotoCandace.Id},
-            {Girls.LailaniId, PhotoLailani.Id},
-            {Girls.LillianId, PhotoLillian.Id},
-            {Girls.NoraId, PhotoNora.Id},
-            {Girls.PollyId, PhotoPolly.Id},
-            {Girls.SarahId, PhotoSarah.Id},
-            {Girls.ZoeyId, PhotoZoey.Id},
-        };
-
-        GirlIdToDatePhotoId = new Dictionary<RelativeId, RelativeId>()
-        {
-        };
+        AddGirlSexPhotos(Girls.AbiaId, [PhotoAbia.Id]);
+        AddGirlSexPhotos(Girls.BrookeId, [PhotoBrooke.Id]);
+        AddGirlSexPhotos(Girls.CandaceId, [PhotoCandace.Id]);
+        AddGirlSexPhotos(Girls.LailaniId, [PhotoLailani.Id]);
+        AddGirlSexPhotos(Girls.LillianId, [PhotoLillian.Id]);
+        AddGirlSexPhotos(Girls.NoraId, [PhotoNora.Id]);
+        AddGirlSexPhotos(Girls.PollyId, [PhotoPolly.Id]);
+        AddGirlSexPhotos(Girls.SarahId, [PhotoSarah.Id]);
+        AddGirlSexPhotos(Girls.ZoeyId, [PhotoZoey.Id]);
 
         UiPrefabs.InitExternals();
 
@@ -297,17 +340,12 @@ internal class Plugin : BaseUnityPlugin
         var pairCount = 0;
         foreach (var girlId in ModInterface.Data.GetIds(GameDataType.Girl).Where(x => x != GirlNobody.Id || !(x.SourceId == -1 && x.LocalId > 12)))
         {
-            if (!GirlIdToSexPhotoId.TryGetValue(girlId, out var photoId))
-            {
-                photoId = PhotoDefault.Id;
-            }
-
             ModInterface.AddDataMod(new GirlPairDataMod(new RelativeId(State.ModId, pairCount), InsertStyle.replace)
             {
                 GirlDefinitionOneID = GirlNobody.Id,
                 GirlDefinitionTwoID = girlId,
                 SpecialPair = false,
-                PhotoDefinitionID = photoId,
+                PhotoDefinitionID = PhotoDefault.Id,
                 IntroductionPair = false,
                 IntroSidesFlipped = false,
                 HasMeetingStyleOne = false,

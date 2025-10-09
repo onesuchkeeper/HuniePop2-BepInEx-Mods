@@ -33,8 +33,7 @@ public class Plugin : BaseUnityPlugin
         try
         {
             // register defaults
-            ModInterface.Log.LogInfo("Registering default data");
-            using (ModInterface.Log.MakeIndent())
+            using (ModInterface.Log.MakeIndent("Registering default data"))
             {
                 foreach (var ability in DefaultData.DefaultAbilityIds)
                 {
@@ -116,8 +115,7 @@ public class Plugin : BaseUnityPlugin
 
         try
         {
-            ModInterface.Log.LogInfo("Applying Patches");
-            using (ModInterface.Log.MakeIndent())
+            using (ModInterface.Log.MakeIndent("Applying Patches"))
             {
                 new Harmony(MyPluginInfo.PLUGIN_GUID).PatchAll();
             }

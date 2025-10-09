@@ -39,7 +39,6 @@ namespace Hp2BaseMod.GameDataInfo
         public bool? AllowNonStop;
         public bool? AllowNormal;
         public bool? PostBoss;
-        public bool? IgnoreDateTime;
 
         /// <inheritdoc/>
         public LocationDataMod() { }

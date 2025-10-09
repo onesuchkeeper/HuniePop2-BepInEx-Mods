@@ -17,6 +17,7 @@ public class TextureInfoSprite : ITextureInfo
     private IEnumerable<ITextureRenderStep> _renderSteps;
     private bool _renderSprite;
     private Texture2D _texture;
+    private bool _forceTight;
 
     /// <summary>
     /// constructor
@@ -24,11 +25,12 @@ public class TextureInfoSprite : ITextureInfo
     /// <param name="spriteName">The name of the internal sprite asset.</param>
     /// <param name="renderSprite">If the sprite should be used to render a new texture using its mesh. Otherwise the sprite's texture is used.</param>
     /// <param name="renderSteps">Steps to apply to the texture.</param>
-    public TextureInfoSprite(IGameDefinitionInfo<Sprite> spriteData, bool renderSprite = true, IEnumerable<ITextureRenderStep> renderSteps = null)
+    public TextureInfoSprite(IGameDefinitionInfo<Sprite> spriteData, bool forceTight = false, bool renderSprite = true, IEnumerable<ITextureRenderStep> renderSteps = null)
     {
         _spriteData = spriteData ?? throw new ArgumentNullException(nameof(spriteData));
         _renderSprite = renderSprite;
         _renderSteps = renderSteps;
+        _forceTight = forceTight;
     }
 
     public Texture2D GetTexture()
@@ -42,17 +44,24 @@ public class TextureInfoSprite : ITextureInfo
             {
                 _texture = new Texture2D((int)sprite.rect.width, (int)sprite.rect.height);
 
-                switch (sprite.packingMode)
+                if (_forceTight)
                 {
-                    case SpritePackingMode.Tight:
-                        RenderTight(_texture, sprite);
-                        break;
-                    case SpritePackingMode.Rectangle:
-                        RenderRect(_texture, sprite);
-                        break;
-                    default:
-                        ModInterface.Log.LogInfo($"Unsupported {nameof(Sprite)} {nameof(sprite.packingMode)} {sprite.packingMode}");
-                        break;
+                    RenderTight(_texture, sprite);
+                }
+                else
+                {
+                    switch (sprite.packingMode)
+                    {
+                        case SpritePackingMode.Tight:
+                            RenderTight(_texture, sprite);
+                            break;
+                        case SpritePackingMode.Rectangle:
+                            RenderRect(_texture, sprite);
+                            break;
+                        default:
+                            ModInterface.Log.LogInfo($"Unsupported {nameof(Sprite)} {nameof(sprite.packingMode)} {sprite.packingMode}");
+                            break;
+                    }
                 }
 
                 _texture.Apply();
@@ -103,39 +112,47 @@ public class TextureInfoSprite : ITextureInfo
             var vertB = sprite.vertices[b] * sprite.pixelsPerUnit;
             var vertC = sprite.vertices[c] * sprite.pixelsPerUnit;
 
-            var uvA = sprite.uv[a] * sprite.rect.size;
-            var uvB = sprite.uv[b] * sprite.rect.size;
-            var uvC = sprite.uv[c] * sprite.rect.size;
+            var textureSize = new Vector2(sprite.texture.width, sprite.texture.height);
+            var uvA = sprite.uv[a] * textureSize;
+            var uvB = sprite.uv[b] * textureSize;
+            var uvC = sprite.uv[c] * textureSize;
 
             var minX = Mathf.FloorToInt(Mathf.Min(vertA.x, vertB.x, vertC.x));
             var maxX = Mathf.CeilToInt(Mathf.Max(vertA.x, vertB.x, vertC.x));
             var minY = Mathf.FloorToInt(Mathf.Min(vertA.y, vertB.y, vertC.y));
             var maxY = Mathf.CeilToInt(Mathf.Max(vertA.y, vertB.y, vertC.y));
 
+            //Barycentric calc
+            Vector2 v0 = vertB - vertA;
+            Vector2 v1 = vertC - vertA;
+
+            float d00 = Vector2.Dot(v0, v0);
+            float d01 = Vector2.Dot(v0, v1);
+            float d11 = Vector2.Dot(v1, v1);
+
+            float denom = d00 * d11 - d01 * d01;
+            if (Mathf.Abs(denom) < 1e-5f)
+            {
+                //bad triangle
+                continue;
+            }
+
             for (int x = minX; x <= maxX; x++)
             {
                 for (int y = minY; y <= maxY; y++)
                 {
-                    //I want weights based on vertices, and final values based on uvs
-                    var cX_bX = vertC.x - vertB.x;
-                    var bY_cY = vertB.y - vertC.y;
-                    var aX_cX = vertA.x - vertC.x;
-                    var x_cX = x - vertC.x;
-                    var y_cY = y - vertC.y;
+                    Vector2 v2 = new Vector2(x, y) - vertA;
+                    float d20 = Vector2.Dot(v2, v0);
+                    float d21 = Vector2.Dot(v2, v1);
 
-                    var denom = (bY_cY * aX_cX) + (cX_bX * aX_cX);
-
-                    var weightA = ((bY_cY * x_cX) + (cX_bX * y_cY)) / denom;
-
-                    if (weightA < 0) { continue; }
-
-                    var weightB = (((vertC.y - vertA.y) * x_cX) + (aX_cX * y_cY)) / denom;
-
+                    float weightB = (d11 * d20 - d01 * d21) / denom;
                     if (weightB < 0) { continue; }
 
-                    var weightC = 1 - weightA - weightB;
-
+                    float weightC = (d00 * d21 - d01 * d20) / denom;
                     if (weightC < 0) { continue; }
+
+                    float weightA = 1.0f - weightB - weightC;
+                    if (weightA < 0) { continue; }
 
                     var finalUv = (uvA * weightA) + (uvB * weightB) + (uvC * weightC);
                     texture.SetPixel(x, y, sprite.texture.GetPixel((int)finalUv.x, (int)finalUv.y));

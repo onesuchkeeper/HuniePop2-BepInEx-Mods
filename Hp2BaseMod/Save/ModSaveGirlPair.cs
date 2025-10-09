@@ -5,7 +5,7 @@ using System.Linq;
 namespace Hp2BaseMod.Save
 {
     [Serializable]
-    public class ModSaveGirlPair
+    public class ModSaveGirlPair : IModSave<SaveFileGirlPair>
     {
         public int RelationshipLevel;
         public List<RelativeId> LearnedFavs = new List<RelativeId>();
@@ -32,19 +32,6 @@ namespace Hp2BaseMod.Save
 
         public void SetData(SaveFileGirlPair save)
         {
-            Inject(save);
-        }
-
-        public SaveFileGirlPair Convert(int runtimeId)
-        {
-            var save = new SaveFileGirlPair(runtimeId);
-            save.relationshipLevel = RelationshipLevel;
-            Inject(save);
-            return save;
-        }
-
-        private void Inject(SaveFileGirlPair save)
-        {
             foreach (var fav in LearnedFavs)
             {
                 if (ModInterface.Data.TryGetRuntimeDataId(GameDataType.Question, fav, out var runtimeId))
@@ -62,6 +49,14 @@ namespace Hp2BaseMod.Save
                 }
             }
             save.recentFavQuestions = save.recentFavQuestions.Distinct().ToList();
+        }
+
+        public SaveFileGirlPair Convert(int runtimeId)
+        {
+            var save = new SaveFileGirlPair(runtimeId);
+            save.relationshipLevel = RelationshipLevel;
+            SetData(save);
+            return save;
         }
     }
 }

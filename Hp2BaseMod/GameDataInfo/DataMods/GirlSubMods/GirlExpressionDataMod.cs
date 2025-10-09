@@ -1,4 +1,5 @@
-﻿using Hp2BaseMod.GameDataInfo.Interface;
+﻿using System.Collections.Generic;
+using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
 
 namespace Hp2BaseMod.GameDataInfo
@@ -10,15 +11,15 @@ namespace Hp2BaseMod.GameDataInfo
     {
         public GirlExpressionType? ExpressionType;
 
-        public RelativeId? PartIdEyebrows;
+        public IGirlSubDataMod<GirlPartSubDefinition> PartEyebrows;
 
-        public RelativeId? PartIdEyes;
+        public IGirlSubDataMod<GirlPartSubDefinition> PartEyes;
 
-        public RelativeId? PartIdEyesGlow;
+        public IGirlSubDataMod<GirlPartSubDefinition> PartEyesGlow;
 
-        public RelativeId? PartIdMouthClosed;
+        public IGirlSubDataMod<GirlPartSubDefinition> PartMouthClosed;
 
-        public RelativeId? PartIdMouthOpen;
+        public IGirlSubDataMod<GirlPartSubDefinition> PartMouthOpen;
 
         public bool? EyesClosed;
 
@@ -33,7 +34,7 @@ namespace Hp2BaseMod.GameDataInfo
         }
 
         internal GirlExpressionDataMod(int index, AssetProvider assetProvider, GirlDefinition girlDef)
-            : base(new RelativeId() { SourceId = -1, LocalId = index }, InsertStyle.replace, 0)
+            : base(new RelativeId(-1, index), InsertStyle.replace, 0)
         {
             var expressionDef = girlDef.expressions[index];
 
@@ -41,15 +42,20 @@ namespace Hp2BaseMod.GameDataInfo
             EyesClosed = expressionDef.eyesClosed;
             MouthOpen = expressionDef.mouthOpen;
 
-            PartIdEyebrows = new RelativeId(-1, expressionDef.partIndexEyebrows);
-            PartIdEyes = new RelativeId(-1, expressionDef.partIndexEyes);
-            PartIdEyesGlow = new RelativeId(-1, expressionDef.partIndexEyesGlow);
-            PartIdMouthClosed = new RelativeId(-1, expressionDef.partIndexMouthClosed);
-            PartIdMouthOpen = new RelativeId(-1, expressionDef.partIndexMouthOpen);
+            PartEyebrows = new GirlPartDataMod(expressionDef.partIndexEyebrows, assetProvider, girlDef);
+            PartEyes = new GirlPartDataMod(expressionDef.partIndexEyes, assetProvider, girlDef);
+            PartEyesGlow = new GirlPartDataMod(expressionDef.partIndexEyesGlow, assetProvider, girlDef);
+            PartMouthClosed = new GirlPartDataMod(expressionDef.partIndexMouthClosed, assetProvider, girlDef);
+            PartMouthOpen = new GirlPartDataMod(expressionDef.partIndexMouthOpen, assetProvider, girlDef);
         }
 
         /// <inheritdoc/>
-        public void SetData(ref GirlExpressionSubDefinition def, GameDefinitionProvider gameData, AssetProvider assetProvider, InsertStyle insertStyle, RelativeId girlId)
+        public void SetData(ref GirlExpressionSubDefinition def,
+            GameDefinitionProvider gameData,
+            AssetProvider assetProvider,
+            InsertStyle insertStyle,
+            RelativeId girlId,
+            GirlDefinition girlDef)
         {
             var girlExpansion = ExpandedGirlDefinition.Get(girlId);
 
@@ -57,17 +63,31 @@ namespace Hp2BaseMod.GameDataInfo
             ValidatedSet.SetValue(ref def.eyesClosed, EyesClosed);
             ValidatedSet.SetValue(ref def.mouthOpen, MouthOpen);
 
-            ValidatedSet.SetValue(ref def.partIndexEyebrows, girlExpansion.PartIdToIndex, PartIdEyebrows);
-            ValidatedSet.SetValue(ref def.partIndexEyes, girlExpansion.PartIdToIndex, PartIdEyes);
-            ValidatedSet.SetValue(ref def.partIndexEyesGlow, girlExpansion.PartIdToIndex, PartIdEyesGlow);
-            ValidatedSet.SetValue(ref def.partIndexMouthClosed, girlExpansion.PartIdToIndex, PartIdMouthClosed);
-            ValidatedSet.SetValue(ref def.partIndexMouthOpen, girlExpansion.PartIdToIndex, PartIdMouthOpen);
+            ValidatedSet.SetValue(ref def.partIndexEyebrows, girlExpansion.PartIdToIndex, PartEyebrows?.Id);
+            ValidatedSet.SetValue(ref def.partIndexEyes, girlExpansion.PartIdToIndex, PartEyes?.Id);
+            ValidatedSet.SetValue(ref def.partIndexEyesGlow, girlExpansion.PartIdToIndex, PartEyesGlow?.Id);
+            ValidatedSet.SetValue(ref def.partIndexMouthClosed, girlExpansion.PartIdToIndex, PartMouthClosed?.Id);
+            ValidatedSet.SetValue(ref def.partIndexMouthOpen, girlExpansion.PartIdToIndex, PartMouthOpen?.Id);
         }
 
         /// <inheritdoc/>
         public void RequestInternals(AssetProvider assetProvider)
         {
-            //noop
+            PartEyebrows?.RequestInternals(assetProvider);
+            PartEyes?.RequestInternals(assetProvider);
+            PartEyesGlow?.RequestInternals(assetProvider);
+            PartMouthClosed?.RequestInternals(assetProvider);
+            PartMouthOpen?.RequestInternals(assetProvider);
+        }
+
+        /// <inheritdoc/>
+        public IEnumerable<IGirlSubDataMod<GirlPartSubDefinition>> GetPartDataMods()
+        {
+            yield return PartEyebrows;
+            yield return PartEyes;
+            yield return PartEyesGlow;
+            yield return PartMouthClosed;
+            yield return PartMouthOpen;
         }
     }
 }

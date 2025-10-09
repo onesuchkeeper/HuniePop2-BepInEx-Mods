@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Hp2BaseMod.Extension;
 using Hp2BaseMod.GameDataInfo;
 
 namespace Hp2BaseMod;
@@ -25,16 +26,7 @@ public class ExpandedGirlPairDefinition
     public static ExpandedGirlPairDefinition Get(int runtimeId)
         => Get(ModInterface.Data.GetDataId(GameDataType.GirlPair, runtimeId));
 
-    public static ExpandedGirlPairDefinition Get(RelativeId id)
-    {
-        if (!_expansions.TryGetValue(id, out var expansion))
-        {
-            expansion = new ExpandedGirlPairDefinition();
-            _expansions[id] = expansion;
-        }
-
-        return expansion;
-    }
+    public static ExpandedGirlPairDefinition Get(RelativeId id) => _expansions.GetOrNew(id);
 
     /// <summary>
     /// Maps a pair's id to its style info.

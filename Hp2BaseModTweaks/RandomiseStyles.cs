@@ -66,7 +66,7 @@ public static class RandomizeStyles
         }
 
         var outfitId = outfits.ElementAt(UnityEngine.Random.Range(0, outfits.Count()));
-        var outfit = girlExpansion.GetOutfit(girl, outfitId);
+        var outfit = girlExpansion.GetOutfit(outfitId);
 
         var hairStyleId = (!unpaired && outfit.pairHairstyleIndex != -1)
             ? girlExpansion.HairstyleIndexToId[outfit.pairHairstyleIndex]

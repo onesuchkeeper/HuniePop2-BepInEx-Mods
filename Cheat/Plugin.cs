@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System.Linq;
+using System.Reflection;
 using BepInEx;
 using HarmonyLib;
 using Hp2BaseMod;
@@ -14,6 +15,7 @@ public class Plugin : BaseUnityPlugin
     private void Awake()
     {
         //ModInterface.Events.PostPersistenceReset += On_PostPersistenceReset;
+        ModInterface.Events.PreLoadPlayerFile += On_PreLoadPlayerFile;
         new Harmony(MyPluginInfo.PLUGIN_GUID).PatchAll();
     }
 
@@ -21,6 +23,33 @@ public class Plugin : BaseUnityPlugin
     // {
     //     _testMode.SetValue(Game.Manager, true);
     // }
+
+    private void On_PreLoadPlayerFile(PlayerFile file)
+    {
+        using (ModInterface.Log.MakeIndent())
+        {
+            foreach (var girl in Game.Data.Girls.GetAllBySpecial(false))
+            {
+                file.GetPlayerFileGirl(girl).playerMet = true;
+            }
+
+            foreach (var fileGirl in file.girls)
+            {
+                var girlId = ModInterface.Data.GetDataId(GameDataType.Girl, fileGirl.girlDefinition.id);
+                var expansion = ExpandedGirlDefinition.Get(girlId);
+
+                foreach (var outfitId_Index in expansion.OutfitIdToIndex)
+                {
+                    fileGirl.UnlockOutfit(outfitId_Index.Value);
+                }
+
+                foreach (var hairstyleId_index in expansion.HairstyleIdToIndex)
+                {
+                    fileGirl.UnlockHairstyle(hairstyleId_index.Value);
+                }
+            }
+        }
+    }
 }
 
 [HarmonyPatch(typeof(PuzzleStatus), "AddPuzzleReward")]
@@ -30,12 +59,12 @@ public static class PuzzleSetGetMatchRewards_Patch
     {
         if (__instance.bonusRound)
         {
-            __instance.AddResourceValue(PuzzleResourceType.AFFECTION, 10000, false);
+            __instance.AddResourceValue(PuzzleResourceType.AFFECTION, 100, false);
         }
         else
         {
             __instance.AddResourceValue(PuzzleResourceType.MOVES, 1, false);
-            __instance.AddResourceValue(PuzzleResourceType.AFFECTION, 10000, false);
+            __instance.AddResourceValue(PuzzleResourceType.AFFECTION, 50000, false);
         }
     }
 }

@@ -183,131 +183,38 @@ public class Plugin : BaseUnityPlugin
     {
         ModInterface.Events.PreDataMods -= On_PreDataMods;
 
-        ModInterface.AddDataMod(new GirlDataMod(Girls.AbiaId, InsertStyle.replace)
+        void MakeBackPosMod(RelativeId girlId, int x, int y)
         {
-            BackPosition = new VectorInfo()
+            ModInterface.AddDataMod(new GirlDataMod(girlId, InsertStyle.replace)
             {
-                Xpos = 423 - 420 + 250,
-                Ypos = 957 - 24 - 460
-            }
-        });
+                bodies = new()
+                {
+                    new GirlBodyDataMod(new RelativeId(-1, 0), InsertStyle.append)
+                    {
+                        BackPosition = new VectorInfo()
+                        {
+                            Xpos = x,
+                            Ypos = y
+                        }
+                    }
+                }
+            });
+        }
 
-        ModInterface.AddDataMod(new GirlDataMod(Girls.AshleyId, InsertStyle.replace)
-        {
-            BackPosition = new VectorInfo()
-            {
-                Xpos = 387 - 420 + 260,
-                Ypos = 964 - 24 - 400
-            }
-        });
-
-        ModInterface.AddDataMod(new GirlDataMod(Girls.BrookeId, InsertStyle.replace)
-        {
-            BackPosition = new VectorInfo()
-            {
-                Xpos = 378 - 420 + 305,
-                Ypos = 960 - 24 - 440
-            }
-        });
-
-        ModInterface.AddDataMod(new GirlDataMod(Girls.CandaceId, InsertStyle.replace)
-        {
-            BackPosition = new VectorInfo()
-            {
-                Xpos = 348 - 420 + 300,
-                Ypos = 972 - 24 - 430
-            }
-        });
-
-        ModInterface.AddDataMod(new GirlDataMod(Girls.JessieId, InsertStyle.replace)
-        {
-            BackPosition = new VectorInfo()
-            {
-                Xpos = 457 - 420 + 190,
-                Ypos = 983 - 24 - 445
-            }
-        });
-
-        ModInterface.AddDataMod(new GirlDataMod(Girls.JewnId, InsertStyle.replace)
-        {
-            BackPosition = new VectorInfo()
-            {
-                Xpos = 228 - 420 + 450,
-                Ypos = 1019 - 24 - 500
-            }
-        });
-
-        ModInterface.AddDataMod(new GirlDataMod(Girls.LailaniId, InsertStyle.replace)
-        {
-            BackPosition = new VectorInfo()
-            {
-                Xpos = 345 - 420 + 350,
-                Ypos = 931 - 24 - 420
-            }
-        });
-
-        ModInterface.AddDataMod(new GirlDataMod(Girls.LillianId, InsertStyle.replace)
-        {
-            BackPosition = new VectorInfo()
-            {
-                Xpos = 435 - 420 + 248,
-                Ypos = 918 - 24 - 400
-            }
-        });
-
-        ModInterface.AddDataMod(new GirlDataMod(Girls.LolaId, InsertStyle.replace)
-        {
-            BackPosition = new VectorInfo()
-            {
-                Xpos = 414 - 420 + 270,
-                Ypos = 985 - 24 - 450
-            }
-        });
-
-        ModInterface.AddDataMod(new GirlDataMod(Girls.MoxieId, InsertStyle.replace)
-        {
-            BackPosition = new VectorInfo()
-            {
-                Xpos = 262 - 420 + 390,
-                Ypos = 956 - 24 - 450
-            }
-        });
-
-        ModInterface.AddDataMod(new GirlDataMod(Girls.NoraId, InsertStyle.replace)
-        {
-            BackPosition = new VectorInfo()
-            {
-                Xpos = 478 - 420 + 240,
-                Ypos = 966 - 24 - 420
-            }
-        });
-
-        ModInterface.AddDataMod(new GirlDataMod(Girls.PollyId, InsertStyle.replace)
-        {
-            BackPosition = new VectorInfo()
-            {
-                Xpos = 384 - 420 + 300,
-                Ypos = 949 - 24 - 420
-            }
-        });
-
-        ModInterface.AddDataMod(new GirlDataMod(Girls.SarahId, InsertStyle.replace)
-        {
-            BackPosition = new VectorInfo()
-            {
-                Xpos = 414 - 420 + 270,
-                Ypos = 917 - 24 - 420
-            }
-        });
-
-        ModInterface.AddDataMod(new GirlDataMod(Girls.ZoeyId, InsertStyle.replace)
-        {
-            BackPosition = new VectorInfo()
-            {
-                Xpos = 522 - 420 + 170,
-                Ypos = 900 - 24 - 410
-            }
-        });
+        MakeBackPosMod(Girls.AbiaId, 253, 473);
+        MakeBackPosMod(Girls.AshleyId, 227, 540);
+        MakeBackPosMod(Girls.BrookeId, 263, 496);
+        MakeBackPosMod(Girls.CandaceId, 228, 518);
+        MakeBackPosMod(Girls.JessieId, 227, 514);
+        MakeBackPosMod(Girls.JewnId, 258, 495);
+        MakeBackPosMod(Girls.LailaniId, 275, 487);
+        MakeBackPosMod(Girls.LillianId, 263, 494);
+        MakeBackPosMod(Girls.LolaId, 264, 511);
+        MakeBackPosMod(Girls.MoxieId, 232, 482);
+        MakeBackPosMod(Girls.NoraId, 298, 522);
+        MakeBackPosMod(Girls.PollyId, 264, 505);
+        MakeBackPosMod(Girls.SarahId, 264, 473);
+        MakeBackPosMod(Girls.ZoeyId, 272, 466);
 
         var kyuEyesGlowNeutralPartId = new RelativeId(ModId, 0);
         var kyuEyesGlowNeutralPart = new GirlPartDataMod(kyuEyesGlowNeutralPartId, InsertStyle.replace)
@@ -338,50 +245,51 @@ public class Plugin : BaseUnityPlugin
 
         ModInterface.AddDataMod(new GirlDataMod(Girls.KyuId, InsertStyle.append)
         {
-            parts = new List<IGirlSubDataMod<GirlPartSubDefinition>>(){
-                kyuEyesGlowNeutralPart,
-                kyuEyesGlowAnnoyedPart,
-                kyuEyesGlowHornyPart,
-            },
-            expressions = new List<IGirlSubDataMod<GirlExpressionSubDefinition>>() {
-                new GirlExpressionDataMod(GirlExpressions.Neutral, InsertStyle.replace){
-                    PartIdEyesGlow = kyuEyesGlowNeutralPartId
-                },
-                new GirlExpressionDataMod(GirlExpressions.Annoyed, InsertStyle.replace){
-                    PartIdEyesGlow = kyuEyesGlowAnnoyedPartId
-                },
-                new GirlExpressionDataMod(new RelativeId(-1, (int)GirlExpressionType.HORNY), InsertStyle.replace){
-                    PartIdEyesGlow = kyuEyesGlowHornyPartId
-                },
-                new GirlExpressionDataMod(GirlExpressions.Disappointed, InsertStyle.replace){
-                    PartIdEyesGlow = kyuEyesGlowNeutralPartId
-                },
-                new GirlExpressionDataMod(GirlExpressions.Excited, InsertStyle.replace){
-                    PartIdEyesGlow = kyuEyesGlowNeutralPartId
-                },
-                new GirlExpressionDataMod(GirlExpressions.Confused, InsertStyle.replace){
-                    PartIdEyesGlow = kyuEyesGlowNeutralPartId
-                },
-                new GirlExpressionDataMod(GirlExpressions.Inquisitive, InsertStyle.replace){
-                    PartIdEyesGlow = kyuEyesGlowNeutralPartId
-                },
-                new GirlExpressionDataMod(GirlExpressions.Sarcastic, InsertStyle.replace){
-                    PartIdEyesGlow = kyuEyesGlowNeutralPartId
-                },
-                new GirlExpressionDataMod(GirlExpressions.Shy, InsertStyle.replace){
-                    PartIdEyesGlow = kyuEyesGlowNeutralPartId
-                },
-                new GirlExpressionDataMod(GirlExpressions.Exhausted, InsertStyle.replace){
-                    PartIdEyesGlow = kyuEyesGlowAnnoyedPartId
-                },
-                new GirlExpressionDataMod(GirlExpressions.Upset, InsertStyle.replace){
-                    PartIdEyesGlow = kyuEyesGlowAnnoyedPartId
-                },
-            },
-            HeadPosition = new VectorInfo()
+            bodies = new()
             {
-                Xpos = 420 + 250 - 420,
-                Ypos = 968 - 140 - 24,
+                new GirlBodyDataMod(new RelativeId(-1, 0), InsertStyle.append)
+                {
+                    expressions = new List<IGirlSubDataMod<GirlExpressionSubDefinition>>() {
+                        new GirlExpressionDataMod(GirlExpressions.Neutral, InsertStyle.replace){
+                            PartEyesGlow = kyuEyesGlowNeutralPart
+                        },
+                        new GirlExpressionDataMod(GirlExpressions.Annoyed, InsertStyle.replace){
+                            PartEyesGlow = kyuEyesGlowAnnoyedPart
+                        },
+                        new GirlExpressionDataMod(new RelativeId(-1, (int)GirlExpressionType.HORNY), InsertStyle.replace){
+                            PartEyesGlow = kyuEyesGlowHornyPart
+                        },
+                        new GirlExpressionDataMod(GirlExpressions.Disappointed, InsertStyle.replace){
+                            PartEyesGlow = kyuEyesGlowNeutralPart
+                        },
+                        new GirlExpressionDataMod(GirlExpressions.Excited, InsertStyle.replace){
+                            PartEyesGlow = kyuEyesGlowNeutralPart
+                        },
+                        new GirlExpressionDataMod(GirlExpressions.Confused, InsertStyle.replace){
+                            PartEyesGlow = kyuEyesGlowNeutralPart
+                        },
+                        new GirlExpressionDataMod(GirlExpressions.Inquisitive, InsertStyle.replace){
+                            PartEyesGlow = kyuEyesGlowNeutralPart
+                        },
+                        new GirlExpressionDataMod(GirlExpressions.Sarcastic, InsertStyle.replace){
+                            PartEyesGlow = kyuEyesGlowNeutralPart
+                        },
+                        new GirlExpressionDataMod(GirlExpressions.Shy, InsertStyle.replace){
+                            PartEyesGlow = kyuEyesGlowNeutralPart
+                        },
+                        new GirlExpressionDataMod(GirlExpressions.Exhausted, InsertStyle.replace){
+                            PartEyesGlow = kyuEyesGlowAnnoyedPart
+                        },
+                        new GirlExpressionDataMod(GirlExpressions.Upset, InsertStyle.replace){
+                            PartEyesGlow = kyuEyesGlowAnnoyedPart
+                        },
+                    },
+                    BackPosition = new VectorInfo()
+                    {
+                        Xpos = 250,
+                        Ypos = 804,
+                    }
+                },
             },
             CellphoneMiniHead = new SpriteInfoInternal("ui_title_icon_kyu")
         });
@@ -411,6 +319,8 @@ public class Plugin : BaseUnityPlugin
             .SelectMany(x => x.expressions)
             .Where(x => x.partIndexEyesGlow == -1)
             .ForEach(x => x.partIndexEyesGlow = x.partIndexEyes);
+
+        var kyu = ModInterface.GameData.GetGirl(Girls.KyuId).Expansion();
     }
 
     private void On_PostCodeSubmitted(CodeDefinition codeDefinition)

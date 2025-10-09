@@ -9,20 +9,33 @@ namespace Hp2BaseMod.Save
     [Serializable]
     class ModSaveData
     {
-        private static int _defaultFileCount = 4;
+        private static readonly int _defaultFileCount = 4;
 
         public List<RelativeId> UnlockedCodes;
-        public List<ModSaveFile> DefaultFiles;
-        public List<ModSaveFile> AddedFiles;
+        public List<SaveFile> AdditionalFiles;
+        public List<ModSaveFile> ModFiles = new();
+
+        public ModSaveFile GetCurrentFile()
+        {
+            while (ModFiles.Count < Game.Persistence.loadedFileIndex + 1)
+            {
+                ModFiles.Add(new());
+            }
+
+            return ModFiles[Game.Persistence.loadedFileIndex];
+        }
+
         public Dictionary<string, int> SourceGUID_Id = new Dictionary<string, int>();
         public Dictionary<int, string> SourceSaves = new Dictionary<int, string>();
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Removes modded data from the saveData and updates this with it
+        /// </summary>
+        /// <param name="saveData"></param>
         public void Strip(SaveData saveData)
         {
             UnlockedCodes = null;
-            DefaultFiles = null;
-            AddedFiles = null;
+            AdditionalFiles = null;
 
             if (saveData == null) { return; }
 
@@ -48,30 +61,39 @@ namespace Hp2BaseMod.Save
 
             if (saveData.files != null)
             {
-                DefaultFiles = new List<ModSaveFile>();
-                AddedFiles = new List<ModSaveFile>();
+                AdditionalFiles = new List<SaveFile>();
 
-                foreach (var file in saveData.files.Take(_defaultFileCount))
+                var defaultFiles = saveData.files.Take(_defaultFileCount).ToList();
+                foreach (var file in defaultFiles)
                 {
                     var newModSaveFile = new ModSaveFile();
                     newModSaveFile.Strip(file);
-                    DefaultFiles.Add(newModSaveFile);
+                    ModFiles.Add(newModSaveFile);
+                }
+
+                var fileTotal = AdditionalFiles.Count + _defaultFileCount;
+                while (fileTotal > ModFiles.Count)
+                {
+                    ModFiles.Add(new());
                 }
 
                 foreach (var file in saveData.files.Skip(_defaultFileCount))
                 {
+                    AdditionalFiles.Add(file);
                     var modFile = new ModSaveFile();
                     modFile.Strip(file);
-                    AddedFiles.Add(modFile);
+                    ModFiles.Add(modFile);
                 }
 
-                saveData.files = saveData.files.Take(_defaultFileCount).ToList();
+                saveData.files = defaultFiles;
             }
         }
 
         /// <inheritdoc/>
         public void SetData(SaveData saveData)
         {
+            if (saveData == null) { throw new ArgumentNullException(nameof(saveData)); }
+
             if (UnlockedCodes != null)
             {
                 if (saveData.unlockedCodes == null)
@@ -90,31 +112,23 @@ namespace Hp2BaseMod.Save
                 }
             }
 
-            if (DefaultFiles != null && saveData.files != null)
+            if (AdditionalFiles != null)
             {
-                ModInterface.Log.LogInfo("Injecting Modded Files");
-                while (saveData.files.Count < DefaultFiles.Count)
+                saveData.files ??= new();
+
+                while (saveData.files.Count < _defaultFileCount)
                 {
-                    saveData.files.Add(new SaveFile());
+                    saveData.files.Add(new());
                 }
 
-                var saveDataIt = saveData.files.GetEnumerator();
+                saveData.files.AddRange(AdditionalFiles);
+            }
 
-                if (saveDataIt.MoveNext())
+            if (ModFiles != null && saveData.files != null)
+            {
+                foreach (var (mod, file) in ModFiles.Zip(saveData.files, (mod, file) => (mod, file)))
                 {
-                    foreach (var modSaveFile in DefaultFiles)
-                    {
-                        modSaveFile.SetData(saveDataIt.Current);
-                        saveDataIt.MoveNext();
-                    }
-                }
-
-                if (AddedFiles != null)
-                {
-                    foreach (var file in AddedFiles)
-                    {
-                        saveData.files.Add(file.Convert());
-                    }
+                    mod.SetData(file);
                 }
             }
         }

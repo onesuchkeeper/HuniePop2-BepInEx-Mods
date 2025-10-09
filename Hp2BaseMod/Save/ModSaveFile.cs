@@ -3,441 +3,214 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Hp2BaseMod.Extension;
 using Hp2BaseMod.Utility;
 
-namespace Hp2BaseMod.Save
+namespace Hp2BaseMod.Save;
+
+[Serializable]
+public class ModSaveFile
 {
-    [Serializable]
-    public class ModSaveFile
+    private const string _wardrobeGirlIdFlagName = "wardrobe_girl_id";
+    private const int _hotelRoomLocationID = 21;
+    private const int _lolaGirlID = 1;
+    private const int _defaultInventorySlotCount = 35;
+    private const int _defaultShopSlotCount = 32;
+    private const int _defaultGirlCount = 12;
+    private const int _defaultPairCount = 24;
+    private const int _defaultFruitCount = 4;
+    private const int _defaultAffectionCount = 4;
+
+    public RelativeId? WardrobeGirlId;
+    public RelativeId? LocationId;
+    public RelativeId? GirlPairId;
+    public RelativeId? FileIconGirlId;
+
+    public List<RelativeId> MetGirlPairs;
+    public List<RelativeId> CompletedGirlPairs;
+
+    public Dictionary<RelativeId, ModSaveGirl> Girls = new();
+    public Dictionary<RelativeId, ModSaveGirlPair> GirlPairs = new();
+    public Dictionary<RelativeId, ModSaveFinderSlot> FinderSlots = new();
+
+    public List<ModSaveInventorySlot> InventorySlots = new();
+    public List<ModSaveStoreProduct> StoreProducts = new();
+
+    /// <summary>
+    /// Copies the save file and strips modded data out of it
+    /// </summary>
+    /// <param name="saveFile">savefile to strip</param>
+    public void Strip(SaveFile saveFile)
     {
-        private const string _wardrobeGirlIdFlagName = "wardrobe_girl_id";
-        private const int _hotelRoomLocationID = 21;
-        private const int _lolaGirlID = 1;
-        private const int _defaultInventorySlotCount = 35;
-        private const int _defaultShopSlotCount = 32;
-        private const int _defaultGirlCount = 12;
-        private const int _defaultPairCount = 24;
-        private const int _defaultFruitCount = 4;
-        private const int _defaultAffectionCount = 4;
-
-        public bool Started;
-        public int SettingGender;
-        public int SettingDifficulty;
-        public int StoryProgress;
-        public int DayTimeElapsed;
-        public int FinderRestockTime;
-        public int StoreRestockDay;
-        public int StaminaFoodLimit;
-        public int RelationshipPoints;
-        public int AlphaDateCount;
-        public int NonstopDataCount;
-        public bool SidesFlipped;
-
-        public RelativeId? WardrobeGirlId;
-        public RelativeId? LocationId;
-        public RelativeId? GirlPairId;
-        public RelativeId? FileIconGirlId;
-
-        public List<RelativeId> MetGirlPairs;
-        public List<RelativeId> CompletedGirlPairs;
-
-        public Dictionary<RelativeId, int> FruitCounts;
-        public Dictionary<RelativeId, int> AffectionLevelExps;
-
-        public Dictionary<RelativeId, ModSaveGirl> Girls;
-        public Dictionary<RelativeId, ModSaveGirlPair> GirlPairs;
-        public Dictionary<RelativeId, ModSaveFinderSlot> FinderSlots;
-
-        public List<ModSaveInventorySlot> InventorySlots;
-        public List<ModSaveStoreProduct> StoreProducts;
-
-        public Dictionary<string, int> Flags;
-
-        private bool _isValid = true;
-
-        /// <summary>
-        /// Copies the save file and strips modded data out of it
-        /// </summary>
-        /// <param name="saveFile">savefile to strip</param>
-        public void Strip(SaveFile saveFile)
+        var wardrobeGirlIdFlag = saveFile.flags.FirstOrDefault(x => x.flagName == _wardrobeGirlIdFlagName);
+        var wardrobeGirlId = wardrobeGirlIdFlag?.flagValue;
+        if (wardrobeGirlId.HasValue)
         {
-            Started = saveFile.started;
-            SettingGender = saveFile.settingGender;
-            SettingDifficulty = saveFile.settingDifficulty;
-            StoryProgress = saveFile.storyProgress;
-            DayTimeElapsed = saveFile.daytimeElapsed;
-            FinderRestockTime = saveFile.finderRestockTime;
-            StoreRestockDay = saveFile.storeRestockDay;
-            StaminaFoodLimit = saveFile.staminaFoodLimit;
-            RelationshipPoints = saveFile.relationshipPoints;
-            AlphaDateCount = saveFile.alphaDateCount;
-            NonstopDataCount = saveFile.nonstopDateCount;
-            SidesFlipped = saveFile.sidesFlipped;
+            WardrobeGirlId = ModInterface.Data.GetDataId(GameDataType.Girl, wardrobeGirlId.Value);
 
-            //Fruit and Affection are accessed by enum, so to expand that access needs to be 
-            //circumvented entirely. So, just store mod Fruit and Affection in the mod save and only
-            //handle vanilla stuff in the main save
-            FruitCounts = new();
-
-            var i = 1;
-            foreach (var value in saveFile.fruitCounts)
+            if (WardrobeGirlId.Value.SourceId != -1)
             {
-                if (ModInterface.Data.TryGetDataId(GameDataType.Fruit, i++, out var key))
-                {
-                    FruitCounts[key] = value;
-                }
+                wardrobeGirlIdFlag.flagValue = _lolaGirlID;
             }
-
-            AffectionLevelExps = new();
-            i = 1;
-            foreach (var value in saveFile.affectionLevelExps)
-            {
-                if (ModInterface.Data.TryGetDataId(GameDataType.Affection, i++, out var key))
-                {
-                    AffectionLevelExps[key] = value;
-                }
-            }
-
-            var wardrobeGirlIdFlag = saveFile.flags.FirstOrDefault(x => x.flagName == _wardrobeGirlIdFlagName);
-            var wardrobeGirlId = wardrobeGirlIdFlag?.flagValue;
-            if (wardrobeGirlId.HasValue)
-            {
-                WardrobeGirlId = ModInterface.Data.GetDataId(GameDataType.Girl, wardrobeGirlId.Value);
-
-                if (WardrobeGirlId.Value.SourceId != -1)
-                {
-                    wardrobeGirlIdFlag.flagValue = _lolaGirlID;
-                }
-            }
-            else
-            {
-                WardrobeGirlId = null;
-            }
-
-            // flag "notification_item_id" has an error catch, so it's fine if it has a bad value
-            // and I don't think it's used right after a save anyways and it doesn't really seem like it should even belong in the save file
-            // no other flags should matter on load, and having unnecessary mod flags in there won't hurt anything,
-            // although it's not recommended to use mod flags, there's no way to validate their source. maybe add a place for mod flags in the interface
-
-            Flags = saveFile.flags.GroupBy(x => x.flagName).Select(x => x.First()).ToDictionary(x => x.flagName, x => x.flagValue);
-
-            // icon
-            FileIconGirlId = ModInterface.Data.GetDataId(GameDataType.Girl, saveFile.fileIconGirlId);
-            if (FileIconGirlId.Value.SourceId != -1)
-            {
-                saveFile.fileIconGirlId = _lolaGirlID;
-            }
-
-            // current location
-            LocationId = ModInterface.Data.GetDataId(GameDataType.Location, saveFile.locationId);
-            if (LocationId.Value.SourceId != -1)
-            {
-                saveFile.locationId = _hotelRoomLocationID;
-            }
-
-            // current pair
-            GirlPairId = ModInterface.Data.GetDataId(GameDataType.GirlPair, saveFile.girlPairId);
-            if (GirlPairId.Value.SourceId != -1)
-            {
-                // if the current pair is invalid, go back to the hub
-                saveFile.girlPairId = -1;
-                saveFile.locationId = _hotelRoomLocationID;
-            }
-
-            // Girls
-            Girls = new Dictionary<RelativeId, ModSaveGirl>();
-            foreach (var girl in saveFile.girls)
-            {
-                var id = ModInterface.Data.GetDataId(GameDataType.Girl, girl.girlId);
-                var modSave = new ModSaveGirl();
-                modSave.Strip(girl);
-                Girls[id] = modSave;
-            }
-
-            saveFile.girls = saveFile.girls.Take(_defaultGirlCount).ToList();
-
-            // Pairs
-            GirlPairs = new Dictionary<RelativeId, ModSaveGirlPair>();
-            foreach (var pair in saveFile.girlPairs)
-            {
-                var id = ModInterface.Data.GetDataId(GameDataType.GirlPair, pair.girlPairId);
-                var modSave = new ModSaveGirlPair();
-                modSave.Strip(pair);
-                GirlPairs[id] = modSave;
-            }
-
-            saveFile.girlPairs = saveFile.girlPairs.Take(_defaultPairCount).ToList();
-
-
-            //why are met and complete stored here and also in the pairs themselves?
-
-            // met pairs
-            MetGirlPairs = saveFile.metGirlPairs
-                .Select(x => ModInterface.Data.GetDataId(GameDataType.GirlPair, x))
-                .ToList();
-
-            saveFile.metGirlPairs = MetGirlPairs.Where(x => x.SourceId == -1).Select(x => x.LocalId).ToList();
-
-            // complete pairs
-            CompletedGirlPairs = saveFile.completedGirlPairs
-                .Select(x => ModInterface.Data.GetDataId(GameDataType.GirlPair, x))
-                .ToList();
-
-            saveFile.completedGirlPairs = CompletedGirlPairs.Where(x => x.SourceId == -1).Select(x => x.LocalId).ToList();
-
-            // finder slots
-            // finder slots are stored really oddly, they correspond with unique location ids but are 
-            // also identified by index. I'll handle it by location for now but this could need to be changed
-            FinderSlots = new Dictionary<RelativeId, ModSaveFinderSlot>();
-            var strippedFinderSlots = new List<SaveFileFinderSlot>();
-            foreach (var slot in saveFile.finderSlots)
-            {
-                var locationId = ModInterface.Data.GetDataId(GameDataType.Location, slot.locationId);
-                var modSave = new ModSaveFinderSlot();
-                modSave.Strip(slot);
-                FinderSlots[locationId] = modSave;
-
-                if (locationId.SourceId == -1)
-                {
-                    strippedFinderSlots.Add(slot);
-                }
-            }
-            saveFile.finderSlots = strippedFinderSlots;
-
-            // inventory
-            // inventory/product slots are also identified only by index, if a modder wants to add some to a different pool
-            // they should use a separate data structure, I won't handle it here
-            InventorySlots = new List<ModSaveInventorySlot>();
-            foreach (var slot in saveFile.inventorySlots)
-            {
-                var modInvSlot = new ModSaveInventorySlot();
-                modInvSlot.Strip(slot);
-                InventorySlots.Add(modInvSlot);
-            }
-            saveFile.inventorySlots = saveFile.inventorySlots.Take(_defaultInventorySlotCount).ToList();
-
-            // store
-            StoreProducts = new List<ModSaveStoreProduct>();
-            foreach (var slot in saveFile.storeProducts)
-            {
-                var modInvSlot = new ModSaveStoreProduct();
-                modInvSlot.Strip(slot);
-                StoreProducts.Add(modInvSlot);
-            }
-            saveFile.storeProducts = saveFile.storeProducts.Take(_defaultShopSlotCount).ToList();
-
-            _isValid = true;
+        }
+        else
+        {
+            WardrobeGirlId = null;
         }
 
-        public void SetData(SaveFile saveFile)
+        // icon
+        FileIconGirlId = ModInterface.Data.GetDataId(GameDataType.Girl, saveFile.fileIconGirlId);
+        if (FileIconGirlId.Value.SourceId != -1)
         {
-            if (!_isValid)
-            {
-                throw new Exception("Attempted to set data from invalid save");
-            }
-            _isValid = false;
-            var i = 0;
-
-            var wardrobeFlag = saveFile.flags.FirstOrDefault(x => x.flagName == _wardrobeGirlIdFlagName);
-            if (wardrobeFlag != null)
-            {
-                ValidatedSet.SetFromRelativeId(ref wardrobeFlag.flagValue, GameDataType.GirlPair, WardrobeGirlId);
-            }
-
-            ValidatedSet.SetFromRelativeId(ref saveFile.fileIconGirlId, GameDataType.Girl, FileIconGirlId);
-            ValidatedSet.SetFromRelativeId(ref saveFile.locationId, GameDataType.Location, LocationId);
-            ValidatedSet.SetFromRelativeId(ref saveFile.girlPairId, GameDataType.GirlPair, GirlPairId);
-
-            foreach (var girl in saveFile.girls)
-            {
-                if (ModInterface.Data.TryGetDataId(GameDataType.Girl, girl.girlId, out var girlId)
-                    && Girls.TryGetValue(girlId, out var girlMod))
-                {
-                    girlMod.SetData(girl);
-                    Girls.Remove(girlId);
-                }
-            }
-
-            foreach (var girlPair in saveFile.girlPairs)
-            {
-                if (ModInterface.Data.TryGetDataId(GameDataType.GirlPair, girlPair.girlPairId, out var girlPairId)
-                    && GirlPairs.TryGetValue(girlPairId, out var girlPairMod))
-                {
-                    girlPairMod.SetData(girlPair);
-                    GirlPairs.Remove(girlPairId);
-                }
-            }
-
-            foreach (var slot in saveFile.finderSlots)
-            {
-                if (ModInterface.Data.TryGetDataId(GameDataType.Location, slot.locationId, out var locationId)
-                    && FinderSlots.TryGetValue(locationId, out var finderSlotMod))
-                {
-                    finderSlotMod.SetData(slot);
-                    FinderSlots.Remove(locationId);
-                }
-            }
-
-            i = 0;
-            var invSlotEnum = InventorySlots.GetEnumerator();
-            var invSaveEnum = saveFile.inventorySlots.GetEnumerator();
-            while (invSaveEnum.MoveNext() && invSlotEnum.MoveNext())//important that save is checked first so inv slot doesn't move forward
-            {
-                invSlotEnum.Current.SetData(invSaveEnum.Current);
-                i++;
-            }
-
-            while (invSlotEnum.MoveNext())
-            {
-                saveFile.inventorySlots.Add(invSlotEnum.Current.Convert(i++));
-            }
-
-            i = 0;
-            var storeProductEnum = StoreProducts.GetEnumerator();
-            var storeProdSaveEnum = saveFile.storeProducts.GetEnumerator();
-            while (storeProdSaveEnum.MoveNext() && storeProductEnum.MoveNext())//important that save is checked first so inv slot doesn't move forward
-            {
-                storeProductEnum.Current.SetData(storeProdSaveEnum.Current);
-                i++;
-            }
-
-            while (storeProductEnum.MoveNext())
-            {
-                saveFile.storeProducts.Add(storeProductEnum.Current.Convert(i++));
-            }
-
-            Inject(saveFile);
+            saveFile.fileIconGirlId = _lolaGirlID;
         }
 
-        public SaveFile Convert()
+        // current location
+        LocationId = ModInterface.Data.GetDataId(GameDataType.Location, saveFile.locationId);
+        if (LocationId.Value.SourceId != -1)
         {
-            if (!_isValid)
-            {
-                throw new Exception("Attempted to set data from invalid save");
-            }
-            _isValid = false;
-
-            var saveFile = new SaveFile()
-            {
-                started = Started,
-                fileIconGirlId = ModInterface.Data.GetRuntimeDataId(GameDataType.Girl, GirlPairId) ?? _lolaGirlID,
-                settingGender = SettingGender,
-                settingDifficulty = SettingDifficulty,
-                storyProgress = StoryProgress,
-                daytimeElapsed = DayTimeElapsed,
-                finderRestockTime = FinderRestockTime,
-                storeRestockDay = StoreRestockDay,
-                staminaFoodLimit = StaminaFoodLimit,
-                //fruitCounts = new int[ModInterface.Data.MaxFruitIndex + 1],
-                //affectionLevelExps = new int[ModInterface.Data.MaxAffectionIndex + 1],
-                relationshipPoints = RelationshipPoints,
-                alphaDateCount = AlphaDateCount,
-                nonstopDateCount = NonstopDataCount,
-                //locationId = file.locationId,
-                //girlPairId = file.girlPairId,
-                sidesFlipped = SidesFlipped,
-                girls = new List<SaveFileGirl>(),
-                girlPairs = new List<SaveFileGirlPair>(),
-                metGirlPairs = new List<int>(),
-                completedGirlPairs = new List<int>(),
-                finderSlots = new List<SaveFileFinderSlot>(),
-                inventorySlots = new List<SaveFileInventorySlot>(),
-                storeProducts = new List<SaveFileStoreProduct>(),
-                flags = new List<SaveFileFlag>()
-            };
-
-            var i = saveFile.inventorySlots.Count;
-            foreach (var slot in InventorySlots)
-            {
-                saveFile.inventorySlots.Add(slot.Convert(i++));
-            }
-
-            i = saveFile.storeProducts.Count;
-            foreach (var slot in StoreProducts)
-            {
-                saveFile.storeProducts.Add(slot.Convert(i++));
-            }
-
-            Inject(saveFile);
-            return saveFile;
+            saveFile.locationId = _hotelRoomLocationID;
         }
 
-        private void Inject(SaveFile saveFile)
+        // current pair
+        GirlPairId = ModInterface.Data.GetDataId(GameDataType.GirlPair, saveFile.girlPairId);
+        if (GirlPairId.Value.SourceId != -1)
         {
-            foreach (var fruitCount in FruitCounts)
-            {
-                if (fruitCount.Key.SourceId == -1
-                    && ModInterface.Data.TryGetRuntimeDataId(GameDataType.Fruit, fruitCount.Key, out var fruitRuntimeId))
-                {
-                    saveFile.fruitCounts[fruitRuntimeId] = fruitCount.Value;
-                }
-            }
+            // if the current pair is invalid, go back to the hub
+            saveFile.girlPairId = -1;
+            saveFile.locationId = _hotelRoomLocationID;
+        }
 
-            foreach (var affectionLevelExp in AffectionLevelExps)
-            {
-                if (affectionLevelExp.Key.SourceId == -1
-                    && ModInterface.Data.TryGetRuntimeDataId(GameDataType.Affection, affectionLevelExp.Key, out var affectionRuntimeId))
-                {
-                    saveFile.affectionLevelExps[affectionRuntimeId] = affectionLevelExp.Value;
-                }
-            }
+        // Girls
+        var newGirls = new Dictionary<RelativeId, ModSaveGirl>();
+        foreach (var girl in saveFile.girls)
+        {
+            var id = ModInterface.Data.GetDataId(GameDataType.Girl, girl.girlId);
+            var modSave = Girls.GetOrNew(id);
+            modSave.Strip(girl);
+            newGirls[id] = modSave;
+        }
+        Girls = newGirls;
+        saveFile.girls = saveFile.girls.Take(_defaultGirlCount).ToList();
 
-            if (ModInterface.Data.TryGetRuntimeDataId(GameDataType.Location, LocationId, out var locationRuntimeId))
-            {
-                saveFile.locationId = locationRuntimeId;
-            }
-            else
-            {
-                saveFile.locationId = _hotelRoomLocationID;
-            }
+        // Pairs
+        var newPairs = new Dictionary<RelativeId, ModSaveGirlPair>();
+        foreach (var pair in saveFile.girlPairs)
+        {
+            var id = ModInterface.Data.GetDataId(GameDataType.GirlPair, pair.girlPairId);
+            var modSave = GirlPairs.GetOrNew(id);
+            modSave.Strip(pair);
+            newPairs[id] = modSave;
+        }
+        GirlPairs = newPairs;
+        saveFile.girlPairs = saveFile.girlPairs.Take(_defaultPairCount).ToList();
 
-            if (ModInterface.Data.TryGetRuntimeDataId(GameDataType.GirlPair, GirlPairId, out var girlPairRuntimeId))
-            {
-                saveFile.girlPairId = girlPairRuntimeId;
-            }
-            else
-            {
-                saveFile.locationId = _hotelRoomLocationID;
-                saveFile.girlPairId = -1;
-            }
+        // met pairs
+        MetGirlPairs = saveFile.metGirlPairs
+            .Select(x => ModInterface.Data.GetDataId(GameDataType.GirlPair, x))
+            .ToList();
+        saveFile.metGirlPairs = MetGirlPairs.Where(x => x.SourceId == -1).Select(x => x.LocalId).ToList();
 
-            foreach (var girl in Girls)
+        // complete pairs
+        CompletedGirlPairs = saveFile.completedGirlPairs
+            .Select(x => ModInterface.Data.GetDataId(GameDataType.GirlPair, x))
+            .ToList();
+        saveFile.completedGirlPairs = CompletedGirlPairs.Where(x => x.SourceId == -1).Select(x => x.LocalId).ToList();
+
+        // finder slots
+        // finder slots are stored really oddly, they correspond with unique location ids but are 
+        // also identified by index. I'll handle it by location for now but this could need to be changed
+        var newFinderSlots = new Dictionary<RelativeId, ModSaveFinderSlot>();
+        var strippedFinderSlots = new List<SaveFileFinderSlot>();
+        foreach (var slot in saveFile.finderSlots)
+        {
+            var locationId = ModInterface.Data.GetDataId(GameDataType.Location, slot.locationId);
+            var modSave = FinderSlots.GetOrNew(locationId);
+            modSave.Strip(slot);
+            newFinderSlots[locationId] = modSave;
+
+            if (locationId.SourceId == -1)
             {
-                if (ModInterface.Data.TryGetRuntimeDataId(GameDataType.Girl, girl.Key, out var runtimeId))
-                {
-                    saveFile.girls.Add(girl.Value.Convert(runtimeId));
-                }
+                strippedFinderSlots.Add(slot);
             }
+        }
+        FinderSlots = newFinderSlots;
+        saveFile.finderSlots = strippedFinderSlots;
 
-            foreach (var girlPair in GirlPairs)
-            {
-                if (ModInterface.Data.TryGetRuntimeDataId(GameDataType.GirlPair, girlPair.Key, out var runtimeId))
-                {
-                    saveFile.girlPairs.Add(girlPair.Value.Convert(runtimeId));
-                }
-            }
+        // inventory
+        // inventory/product slots are also identified only by index, if a modder wants to add some to a different pool
+        // they should use a separate data structure, I won't handle it here
+        SaveUtility.MatchListLength(saveFile.inventorySlots, InventorySlots);
+        foreach (var (save, mod) in saveFile.inventorySlots.Zip(InventorySlots, (save, mod) => (save, mod)))
+        {
+            mod.Strip(save);
+        }
+        saveFile.inventorySlots = saveFile.inventorySlots.Take(_defaultInventorySlotCount).ToList();
 
-            ValidatedSet.SetModIds(ref saveFile.metGirlPairs, MetGirlPairs, GameDataType.GirlPair);
-            ValidatedSet.SetModIds(ref saveFile.completedGirlPairs, CompletedGirlPairs, GameDataType.GirlPair);
+        // store
+        SaveUtility.MatchListLength(saveFile.storeProducts, StoreProducts);
+        foreach (var (save, mod) in saveFile.storeProducts.Zip(StoreProducts, (save, mod) => (save, mod)))
+        {
+            mod.Strip(save);
+        }
+        saveFile.storeProducts = saveFile.storeProducts.Take(_defaultShopSlotCount).ToList();
+    }
 
-            //yeah...lets handle them like they're arrays...because there could be two slots with the same location
-            // ... so I need to refactor more shit ahhh
-            //go back and do that later, I don't wanna now TODO
-            foreach (var slot in FinderSlots)
-            {
-                if (ModInterface.Data.TryGetRuntimeDataId(GameDataType.Location, slot.Key, out var runtimeId))
-                {
-                    saveFile.finderSlots.Add(slot.Value.Convert(runtimeId));
-                }
-            }
+    public void SetData(SaveFile saveFile)
+    {
+        var i = 0;
 
-            if (WardrobeGirlId.HasValue
-                && ModInterface.Data.TryGetRuntimeDataId(GameDataType.Girl, WardrobeGirlId, out var wardrobeGirlRuntimeId))
-            {
-                saveFile.flags.Add(new SaveFileFlag(_wardrobeGirlIdFlagName) { flagValue = wardrobeGirlRuntimeId });
-            }
+        var wardrobeFlag = saveFile.flags.FirstOrDefault(x => x.flagName == _wardrobeGirlIdFlagName);
+        if (wardrobeFlag != null)
+        {
+            ValidatedSet.SetFromRelativeId(ref wardrobeFlag.flagValue, GameDataType.GirlPair, WardrobeGirlId);
+        }
 
-            saveFile.flags.AddRange(Flags.Select(x => new SaveFileFlag(x.Key) { flagValue = x.Value }));
+        ValidatedSet.SetFromRelativeId(ref saveFile.fileIconGirlId, GameDataType.Girl, FileIconGirlId);
+        ValidatedSet.SetFromRelativeId(ref saveFile.locationId, GameDataType.Location, LocationId);
+        ValidatedSet.SetFromRelativeId(ref saveFile.girlPairId, GameDataType.GirlPair, GirlPairId);
+
+        ValidatedSet.SetModIds(ref saveFile.metGirlPairs, MetGirlPairs, GameDataType.GirlPair);
+        ValidatedSet.SetModIds(ref saveFile.completedGirlPairs, CompletedGirlPairs, GameDataType.GirlPair);
+
+        if (WardrobeGirlId.HasValue
+            && ModInterface.Data.TryGetRuntimeDataId(GameDataType.Girl, WardrobeGirlId, out var wardrobeGirlRuntimeId))
+        {
+            saveFile.flags.Add(new SaveFileFlag(_wardrobeGirlIdFlagName) { flagValue = wardrobeGirlRuntimeId });
+        }
+
+        SaveUtility.HandleModSaves(GameDataType.Girl, Girls, saveFile.girls, saveFile.girls.Select(x => x.girlId), "girl");
+        SaveUtility.HandleModSaves(GameDataType.GirlPair, GirlPairs, saveFile.girlPairs, saveFile.girlPairs.Select(x => x.girlPairId), "girl pair");
+        SaveUtility.HandleModSaves(GameDataType.Location, FinderSlots, saveFile.finderSlots, saveFile.finderSlots.Select(x => x.locationId), "finder slot");
+
+        i = 0;
+        var invSlotEnum = InventorySlots.GetEnumerator();
+        var invSaveEnum = saveFile.inventorySlots.GetEnumerator();
+        while (invSaveEnum.MoveNext() && invSlotEnum.MoveNext())//important that save is checked first so inv slot doesn't move forward
+        {
+            invSlotEnum.Current.SetData(invSaveEnum.Current);
+            i++;
+        }
+
+        while (invSlotEnum.MoveNext())
+        {
+            saveFile.inventorySlots.Add(invSlotEnum.Current.Convert(i++));
+        }
+
+        i = 0;
+        var storeProductEnum = StoreProducts.GetEnumerator();
+        var storeProdSaveEnum = saveFile.storeProducts.GetEnumerator();
+        while (storeProdSaveEnum.MoveNext() && storeProductEnum.MoveNext())//important that save is checked first so inv slot doesn't move forward
+        {
+            storeProductEnum.Current.SetData(storeProdSaveEnum.Current);
+            i++;
+        }
+
+        while (storeProductEnum.MoveNext())
+        {
+            saveFile.storeProducts.Add(storeProductEnum.Current.Convert(i++));
         }
     }
+
+    public ModSaveGirl GetGirl(RelativeId id) => Girls.GetOrNew(id);
 }

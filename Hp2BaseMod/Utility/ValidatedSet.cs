@@ -65,7 +65,6 @@ namespace Hp2BaseMod.Utility
             {
                 ModInterface.Log.LogError($"Threw setting value from lookup. value: \"{value}\"", e);
             }
-
         }
 
         public static void SetValue<T>(ref T target, T? value)
@@ -222,8 +221,10 @@ namespace Hp2BaseMod.Utility
 
         public static void SetFromRelativeId(ref int id, GameDataType gameDataType, RelativeId? relativeId)
         {
-            if (relativeId == null) { return; }
-            SetFromRelativeId(ref id, gameDataType, relativeId.Value);
+            if (relativeId != null)
+            {
+                SetFromRelativeId(ref id, gameDataType, relativeId.Value);
+            }
         }
 
         public static void SetFromRelativeId(ref int id, GameDataType gameDataType, RelativeId relativeId)

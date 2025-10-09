@@ -1,22 +1,14 @@
 using System;
 using System.Collections.Generic;
 using Hp2BaseMod;
+using Hp2BaseMod.Extension;
 
 [Serializable]
 internal class TweaksSaveFile
 {
     public Dictionary<RelativeId, TweaksSaveGirl> Girls;
 
-    public TweaksSaveGirl GetGirl(RelativeId id)
-    {
-        if (!Girls.TryGetValue(id, out var girl))
-        {
-            girl = new TweaksSaveGirl();
-            Girls[id] = girl;
-        }
-
-        return girl;
-    }
+    public TweaksSaveGirl GetGirl(RelativeId id) => Girls.GetOrNew(id);
 
     public void Clean()
     {

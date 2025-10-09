@@ -32,8 +32,7 @@ public static class GameDataLogUtility
             return;
         }
 
-        ModInterface.Log.LogInfo($"Type: {Enum.GetName(typeof(CutsceneStepType), step.stepType)}");
-        using (ModInterface.Log.MakeIndent())
+        using (ModInterface.Log.MakeIndent($"Type: {Enum.GetName(typeof(CutsceneStepType), step.stepType)}"))
         {
             switch (step.stepType)
             {
@@ -215,8 +214,7 @@ public static class GameDataLogUtility
         int i = 0;
         foreach (var condition in branch.conditions)
         {
-            ModInterface.Log.LogInfo($"Condition {i++}:");
-            using (ModInterface.Log.MakeIndent())
+            using (ModInterface.Log.MakeIndent($"Condition {i++}:"))
             {
                 LogLogicCondition(condition);
             }
@@ -225,8 +223,7 @@ public static class GameDataLogUtility
         i = 0;
         foreach (var step in branch.cutsceneDefinition.steps ?? branch.steps)
         {
-            ModInterface.Log.LogInfo($"Step {i++}:");
-            using (ModInterface.Log.MakeIndent())
+            using (ModInterface.Log.MakeIndent($"Step {i++}:"))
             {
                 LogCutsceneStep(step);
             }
