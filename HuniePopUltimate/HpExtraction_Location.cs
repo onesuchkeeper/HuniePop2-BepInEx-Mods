@@ -38,7 +38,10 @@ public partial class HpExtraction
 
     private void ExtractLocation(SerializedFile file, OrderedDictionary locationDef, Dictionary<string, (SerializedFile, OrderedDictionary)> collectionData)
     {
-        var locationMod = new LocationDataMod(new RelativeId(Plugin.ModId, _locationCount++), InsertStyle.replace);
+        var locationMod = new LocationDataMod(new RelativeId(Plugin.ModId, _locationCount++), InsertStyle.replace)
+        {
+            AllowNormal = true
+        };
 
         if (locationDef.TryGetValue("name", out string locationName))
         {
@@ -94,7 +97,7 @@ public partial class HpExtraction
                         locationMod.BgMusic = new AudioKlipInfo()
                         {
                             AudioClipInfo = clipInfo,
-                            Volume = musicVolume * 1.8f //hp2 is louder
+                            Volume = musicVolume * 2.2f //hp2 is louder
                         };
                     }
                 }

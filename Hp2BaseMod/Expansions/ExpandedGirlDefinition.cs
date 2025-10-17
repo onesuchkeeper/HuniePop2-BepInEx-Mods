@@ -1,6 +1,6 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 
 namespace Hp2BaseMod;
 
@@ -47,15 +47,76 @@ public class ExpandedGirlDefinition
 
     public Dictionary<RelativeId, GirlBodySubDefinition> Bodies = new();
 
-    public GirlBodySubDefinition GetBody()
-        => Bodies.TryGetValue(ModInterface.Save.GetCurrentFile().GetGirl(_id).BodyId, out var body)
-            ? body
-            : Bodies.Values.FirstOrDefault();
+    public GirlBodySubDefinition GetCurrentBody()
+    {
+        var save = ModInterface.Save.GetCurrentFile().GetGirl(_id);
+        if (!Bodies.TryGetValue(save.BodyId, out var body))
+        {
+            save.BodyId = Bodies.First().Key;
+            body = Bodies[save.BodyId];
+        }
+
+        return body;
+    }
+
+    public void SetBody(RelativeId id)
+    {
+        if (Bodies.TryGetValue(id, out var body))
+        {
+            ModInterface.Save.GetCurrentFile().GetGirl(_id).BodyId = id;
+            var baseFile = Game.Persistence.playerFile.GetPlayerFileGirl(_def);
+            body.Apply(_def);
+            baseFile.outfitIndex = _def.defaultOutfitIndex;
+            baseFile.hairstyleIndex = _def.defaultHairstyleIndex;
+        }
+        else
+        {
+            ModInterface.Log.LogWarning($"Failed to set body of girl {_id} to {id}");
+        }
+    }
 
     /// <summary>
     /// The girl's index within a <see cref="DialogTriggerDefinition"/>.
     /// </summary>
     public int DialogTriggerIndex = -1;
+
+    /// <summary>
+    /// Maps an expression id to its index within the def. 
+    /// Use <see cref="GetExpression"/> unless you must access the full collection.
+    /// </summary>
+    public Dictionary<RelativeId, int> ExpressionIdToIndex = new Dictionary<RelativeId, int>()
+    {
+        {RelativeId.Default, -1}
+    };
+
+    /// <summary>
+    /// Maps an expression index to its id within the def. 
+    /// Use <see cref="GetExpression"/> unless you must access the full collection.
+    /// </summary>
+    public Dictionary<int, RelativeId> ExpressionIndexToId = new Dictionary<int, RelativeId>()
+    {
+        {-1, RelativeId.Default}
+    };
+
+    /// <summary>
+    /// Given an id, returns the associated expression.
+    /// </summary>
+    public GirlExpressionSubDefinition GetExpression(RelativeId expressionId) => GetExpression(GetCurrentBody(), expressionId);
+
+    /// <summary>
+    /// Given an id, returns the associated expression.
+    /// </summary>
+    public GirlExpressionSubDefinition GetExpression(RelativeId bodyId, RelativeId expressionId) => GetExpression(Bodies[bodyId], expressionId);
+
+    public GirlExpressionSubDefinition GetExpression(GirlBodySubDefinition body, RelativeId expressionId)
+    {
+        if (body.Expressions.TryGet(ExpressionIdToIndex[expressionId], out var expression))
+        {
+            return expression;
+        }
+
+        return body.Expressions[body.DefaultExpressionIndex];
+    }
 
     /// <summary>
     /// Maps an outfit id to its index within the def. 
@@ -78,16 +139,20 @@ public class ExpandedGirlDefinition
     /// <summary>
     /// Given an id, returns the associated outfit.
     /// </summary>
-    public GirlOutfitSubDefinition GetOutfit(RelativeId id)
-    {
-        var index = OutfitIdToIndex[id];
+    public GirlOutfitSubDefinition GetOutfit(RelativeId outfitId) => GetOutfit(GetCurrentBody(), outfitId);
+    public GirlOutfitSubDefinition GetOutfit(RelativeId bodyId, RelativeId outfitId) => GetOutfit(Bodies[bodyId], outfitId);
 
-        if (index == -1)
+    /// <summary>
+    /// Given an id, returns the associated outfit.
+    /// </summary>
+    public GirlOutfitSubDefinition GetOutfit(GirlBodySubDefinition body, RelativeId id)
+    {
+        if (!body.Outfits.TryGet(OutfitIdToIndex[id], out var outfit))
         {
-            index = _def.defaultOutfitIndex;
+            outfit = body.Outfits[body.DefaultOutfitIndex];
         }
 
-        return _def.outfits[index];
+        return outfit;
     }
 
     /// <summary>
@@ -111,87 +176,16 @@ public class ExpandedGirlDefinition
     /// <summary>
     /// Given an id, returns the associated hairstyle.
     /// </summary>
-    public GirlHairstyleSubDefinition GetHairstyle(RelativeId id)
-    {
-        var index = HairstyleIdToIndex[id];
+    public GirlHairstyleSubDefinition GetHairstyle(RelativeId hairstyleId) => GetHairstyle(GetCurrentBody(), hairstyleId);
+    public GirlHairstyleSubDefinition GetHairstyle(RelativeId bodyId, RelativeId hairstyleId) => GetHairstyle(Bodies[bodyId], hairstyleId);
 
-        if (index == -1)
+    public GirlHairstyleSubDefinition GetHairstyle(GirlBodySubDefinition body, RelativeId id)
+    {
+        if (body.Hairstyles.TryGet(HairstyleIdToIndex[id], out var hairstyle))
         {
-            index = _def.defaultHairstyleIndex;
+            return hairstyle;
         }
 
-        return _def.hairstyles[index];
+        return body.Hairstyles[body.DefaultHairstyleIndex];
     }
-
-    /// <summary>
-    /// Maps a part id to its index within the def. 
-    /// Use <see cref="GetPart"/> unless you must access the full collection.
-    /// </summary>
-    public Dictionary<RelativeId, int> PartIdToIndex = new Dictionary<RelativeId, int>()
-    {
-        {RelativeId.Default, -1}
-    };
-
-    /// <summary>
-    /// Maps a part index to its id within the def. 
-    /// Use <see cref="GetPart"/> unless you must access the full collection.
-    /// </summary>
-    public Dictionary<int, RelativeId> PartIndexToId = new Dictionary<int, RelativeId>()
-    {
-        {-1, RelativeId.Default}
-    };
-
-    /// <summary>
-    /// Given an id, returns the associated part.
-    /// </summary>
-    public GirlPartSubDefinition GetPart(RelativeId id)
-        => _def.parts[PartIdToIndex[id]];
-
-    /// <summary>
-    /// Maps an expression id to its index within the def. 
-    /// Use <see cref="GetExpression"/> unless you must access the full collection.
-    /// </summary>
-    public Dictionary<RelativeId, int> ExpressionIdToIndex = new Dictionary<RelativeId, int>()
-    {
-        {RelativeId.Default, -1}
-    };
-
-    /// <summary>
-    /// Maps an expression index to its id within the def. 
-    /// Use <see cref="GetExpression"/> unless you must access the full collection.
-    /// </summary>
-    public Dictionary<int, RelativeId> ExpressionIndexToId = new Dictionary<int, RelativeId>()
-    {
-        {-1, RelativeId.Default}
-    };
-
-    /// <summary>
-    /// Given an id, returns the associated expression.
-    /// </summary>
-    public GirlExpressionSubDefinition GetExpression(RelativeId id)
-        => _def.expressions[ExpressionIdToIndex[id]];
-
-    /// <summary>
-    /// Maps a hairstyle id to its index within the def. 
-    /// Use <see cref="GetHairstyle"/> unless you must access the full collection.
-    /// </summary>
-    public Dictionary<RelativeId, int> SpecialPartIdToIndex = new Dictionary<RelativeId, int>()
-    {
-        {RelativeId.Default, -1}
-    };
-
-    /// <summary>
-    /// Maps a hairstyle index to its id within the def. 
-    /// Use <see cref="GetHairstyle"/> unless you must access the full collection
-    /// </summary>
-    public Dictionary<int, RelativeId> SpecialPartIndexToId = new Dictionary<int, RelativeId>()
-    {
-        {-1, RelativeId.Default}
-    };
-
-    /// <summary>
-    /// Given an id, returns the associated hairstyle.
-    /// </summary>
-    public GirlSpecialPartSubDefinition GetSpecialPart(RelativeId id)
-        => _def.specialParts[SpecialPartIdToIndex[id]];
 }

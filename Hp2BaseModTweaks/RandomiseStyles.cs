@@ -11,22 +11,29 @@ public static class RandomizeStyles
     {
         var girlSave = Plugin.Save.GetCurrentFile().GetGirl(ModInterface.Data.GetDataId(GameDataType.Girl, args.Def.id));
 
-        if (girlSave.RandomizeStyles
-            && (args.Loc.locationType != LocationType.DATE || (Game.Persistence.playerFile.GetPlayerFileGirl(args.Def)?.stylesOnDates ?? false)))
+        if (girlSave.RandomizeStyles)
         {
-            args.ApplyChance = 1;
-            RandomizeStyle(args.Def, girlSave.UnpairRandomStyles, args.Loc.locationType == LocationType.HUB, out args.Style);
+            var playerFileGirl = Game.Persistence.playerFile.GetPlayerFileGirl(args.Def);
+
+            if (args.Loc.locationType != LocationType.DATE
+                || (playerFileGirl != null && playerFileGirl.stylesOnDates))
+            {
+                args.ApplyChance = 1;
+                RandomizeStyle(args.Def.Expansion(),
+                    playerFileGirl,
+                    girlSave.UnpairRandomStyles,
+                    girlSave.AllowNsfwRandomStyles && (!Game.Persistence.playerData.censoredMode),
+                    out args.Style);
+            }
         }
     }
 
-    private static void RandomizeStyle(GirlDefinition girl, bool unpaired, bool anyOutfit, out GirlStyleInfo style)
+    private static void RandomizeStyle(ExpandedGirlDefinition girlExpansion, PlayerFileGirl playerFileGirl, bool unpaired, bool nsfw, out GirlStyleInfo style)
     {
-        var playerFileGirl = Game.Persistence.playerFile.GetPlayerFileGirl(girl);
-        var girlExpansion = girl.Expansion();
         ICollection<RelativeId> hairstyles;
         ICollection<RelativeId> outfits;
 
-        if (playerFileGirl == null || anyOutfit)
+        if (playerFileGirl == null)
         {
             outfits = girlExpansion.OutfitIdToIndex.Keys;
             hairstyles = girlExpansion.HairstyleIdToIndex.Keys;
@@ -55,6 +62,11 @@ public static class RandomizeStyles
             }
         }
 
+        if (!nsfw)
+        {
+            outfits = outfits.Where(x => !girlExpansion.GetOutfit(x).Expansion().IsNSFW).ToArray();
+        }
+
         if (!outfits.Any())
         {
             outfits = [RelativeId.Default];
@@ -66,10 +78,10 @@ public static class RandomizeStyles
         }
 
         var outfitId = outfits.ElementAt(UnityEngine.Random.Range(0, outfits.Count()));
-        var outfit = girlExpansion.GetOutfit(outfitId);
+        var selectedOutfit = girlExpansion.GetOutfit(outfitId);
 
-        var hairStyleId = (!unpaired && outfit.pairHairstyleIndex != -1)
-            ? girlExpansion.HairstyleIndexToId[outfit.pairHairstyleIndex]
+        var hairStyleId = (!unpaired && selectedOutfit.pairHairstyleIndex != -1)
+            ? girlExpansion.HairstyleIndexToId[selectedOutfit.pairHairstyleIndex]
             : hairstyles.ElementAt(UnityEngine.Random.Range(0, hairstyles.Count()));
 
         style = new GirlStyleInfo()

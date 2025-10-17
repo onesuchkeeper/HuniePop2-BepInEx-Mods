@@ -12,8 +12,8 @@ internal static partial class Styles
     private static readonly int _moxieBodyY = 956;
     public static void AddMoxieStyles()
     {
-        var modOutfits = new List<IGirlSubDataMod<GirlOutfitSubDefinition>>();
-        var modHairstyles = new List<IGirlSubDataMod<GirlHairstyleSubDefinition>>();
+        var modOutfits = new List<IBodySubDataMod<GirlOutfitSubDefinition>>();
+        var modHairstyles = new List<IBodySubDataMod<GirlHairstyleSubDefinition>>();
 
         AddOutfit(modOutfits, "roost", "Roost", "moxie", _moxieBodyX + 105, _moxieBodyY - 247, true, false, false, false);
 

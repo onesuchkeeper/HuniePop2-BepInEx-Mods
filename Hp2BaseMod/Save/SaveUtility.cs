@@ -1,13 +1,24 @@
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 namespace Hp2BaseMod;
 
 public static class SaveUtility
 {
-    public static void MatchListLength<TSource, TTarget>(List<TSource> source, List<TTarget> target)
+    /// <summary>
+    /// Creates or removes from target to match the length of source
+    /// </summary>
+    public static void MatchListLength<TTarget>(IList source, List<TTarget> target)
+        where TTarget : new()
+        => MatchListLength(source.Count, target);
+
+    /// <summary>
+    /// Adds or removes from target to match len
+    /// </summary>
+    public static void MatchListLength<TTarget>(int len, List<TTarget> target)
         where TTarget : new()
     {
-        var delta = source.Count - target.Count;
+        var delta = len - target.Count;
         if (delta > 0)
         {
             for (var i = 0; i < delta; i++)
@@ -17,7 +28,7 @@ public static class SaveUtility
         }
         else if (delta < 0)
         {
-            target.RemoveRange(source.Count - 1, -delta);
+            target.RemoveRange(len - 1, -delta);
         }
     }
 
@@ -49,6 +60,8 @@ public static class SaveUtility
                 modByRuntime.Remove(runtime);
             }
         }
+
+        //these saves don't go by index, so we can just add the extra ones
         dataList.AddRange(modByRuntime.Select(x => x.Value.Convert(x.Key)));
     }
 }

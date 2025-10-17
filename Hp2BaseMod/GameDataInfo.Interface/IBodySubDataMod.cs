@@ -3,7 +3,7 @@ using Hp2BaseMod.Utility;
 
 namespace Hp2BaseMod.GameDataInfo.Interface
 {
-    public interface IGirlSubDataMod<T>
+    public interface IBodySubDataMod<T>
     {
         RelativeId Id { get; }
         int LoadPriority { get; }
@@ -11,18 +11,17 @@ namespace Hp2BaseMod.GameDataInfo.Interface
         /// <summary>
         /// Writes to the definition this modifies
         /// </summary>
-        void SetData(ref T def,
+        void SetData(T def,
             GameDefinitionProvider gameData,
             AssetProvider assetProvider,
-            InsertStyle insertStyle,
             RelativeId girlId,
-            GirlDefinition girlDef);
+            GirlBodySubDefinition bodyDef);
 
         /// <summary>
         /// Returns all <see cref="IGirlPartDataMod"/> defined by this mod
         /// </summary>
         /// <returns></returns>
-        IEnumerable<IGirlSubDataMod<GirlPartSubDefinition>> GetPartDataMods();
+        IEnumerable<IBodySubDataMod<GirlPartSubDefinition>> GetPartDataMods();
 
         /// <summary>
         /// Allows the mod an opportunity to request internal assets from the assetProvider 

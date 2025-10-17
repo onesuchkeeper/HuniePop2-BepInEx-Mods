@@ -45,7 +45,7 @@ public class ExpandedStyleDefinition
     public bool IsPurchased;
 
     /// <summary>
-    /// If the style should hide special parts.
+    /// If the style should hide special effects.
     /// </summary>
     public bool HideSpecial;
 }

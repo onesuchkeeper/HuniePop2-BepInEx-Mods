@@ -94,8 +94,6 @@ namespace Hp2BaseModTweaks.CellphoneApps
 
             var earnedPhotosList = earnedPhotos.ToList();
 
-            ModInterface.Log.LogInfo($"Earned photo count: {earnedPhotosList.Count}");
-
             _earnedPhotos.SetValue(_photosWindow, earnedPhotosList);
 
             _pageMax = earnedPhotosList.Count > 1

@@ -11,7 +11,7 @@ namespace Hp2BaseMod.GameDataInfo
     /// <summary>
     /// Information to make a <see cref="DialogLine"/>.
     /// </summary>
-    public class DialogLineDataMod : DataMod, IGirlSubDataMod<DialogLine>
+    public class DialogLineDataMod : DataMod, IDialogLineDataMod
     {
         public string DialogText;
 
@@ -54,27 +54,21 @@ namespace Hp2BaseMod.GameDataInfo
         }
 
         /// <inheritdoc/>
-        public void SetData(ref DialogLine def,
+        public void SetData(DialogLine def,
             GameDefinitionProvider gameData,
-            AssetProvider assetProvider,
-            InsertStyle insertStyle,
-            RelativeId girlId,
-            GirlDefinition girlDef)
+            AssetProvider assetProvider)
         {
-            if (def == null)
-            {
-                def = Activator.CreateInstance<DialogLine>();
-            }
+            if (def == null) { return; }
 
-            ValidatedSet.SetValue(ref def.dialogText, DialogText, insertStyle);
+            ValidatedSet.SetValue(ref def.dialogText, DialogText, InsertStyle);
             ValidatedSet.SetValue(ref def.yuri, Yuri);
-            ValidatedSet.SetValue(ref def.yuriDialogText, YuriDialogText, insertStyle);
-            ValidatedSet.SetValue(ref def.startExpression, StartExpression, insertStyle);
-            ValidatedSet.SetValue(ref def.expressions, Expressions, insertStyle);
-            ValidatedSet.SetValue(ref def.endExpression, EndExpression, insertStyle);
+            ValidatedSet.SetValue(ref def.yuriDialogText, YuriDialogText, InsertStyle);
+            ValidatedSet.SetValue(ref def.startExpression, StartExpression, InsertStyle);
+            ValidatedSet.SetValue(ref def.expressions, Expressions, InsertStyle);
+            ValidatedSet.SetValue(ref def.endExpression, EndExpression, InsertStyle);
 
-            ValidatedSet.SetValue(ref def.yuriAudioClip, YuriAudioClipInfo, insertStyle, gameData, assetProvider);
-            ValidatedSet.SetValue(ref def.audioClip, AudioClipInfo, insertStyle, gameData, assetProvider);
+            ValidatedSet.SetValue(ref def.yuriAudioClip, YuriAudioClipInfo, InsertStyle, gameData, assetProvider);
+            ValidatedSet.SetValue(ref def.audioClip, AudioClipInfo, InsertStyle, gameData, assetProvider);
         }
 
         /// <inheritdoc/>
@@ -85,6 +79,6 @@ namespace Hp2BaseMod.GameDataInfo
         }
 
         /// <inheritdoc/>
-        public IEnumerable<IGirlSubDataMod<GirlPartSubDefinition>> GetPartDataMods() => null;
+        public IEnumerable<IBodySubDataMod<GirlPartSubDefinition>> GetPartDataMods() => null;
     }
 }

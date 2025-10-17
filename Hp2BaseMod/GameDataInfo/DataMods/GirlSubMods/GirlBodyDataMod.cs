@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Hp2BaseMod.Extension.IEnumerableExtension;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
 using UnityEngine;
@@ -11,12 +12,12 @@ namespace Hp2BaseMod.GameDataInfo
     /// </summary>
     public class GirlBodyDataMod : DataMod, IGirlBodyDataMod
     {
-        public string name;
+        public string bodyName;
 
-        public List<IGirlSubDataMod<GirlExpressionSubDefinition>> expressions;
-        public List<IGirlSubDataMod<GirlHairstyleSubDefinition>> hairstyles;
-        public List<IGirlSubDataMod<GirlOutfitSubDefinition>> outfits;
-        public List<IGirlSubDataMod<GirlSpecialPartSubDefinition>> specialParts;
+        public List<IBodySubDataMod<GirlExpressionSubDefinition>> expressions;
+        public List<IBodySubDataMod<GirlHairstyleSubDefinition>> hairstyles;
+        public List<IBodySubDataMod<GirlOutfitSubDefinition>> outfits;
+        public List<IBodySubDataMod<GirlSpecialPartSubDefinition>> specialParts;
 
         public string SpecialEffectName;
 
@@ -25,28 +26,28 @@ namespace Hp2BaseMod.GameDataInfo
         public IGameDefinitionInfo<Vector2> BreathEmitterPos;
         public IGameDefinitionInfo<Vector2> UpsetEmitterPos;
 
-        public IGirlSubDataMod<GirlPartSubDefinition> PartBody;
-        public IGirlSubDataMod<GirlPartSubDefinition> PartNipples;
-        public IGirlSubDataMod<GirlPartSubDefinition> PartBlushLight;
-        public IGirlSubDataMod<GirlPartSubDefinition> PartBlushHeavy;
-        public IGirlSubDataMod<GirlPartSubDefinition> PartBlink;
-        public IGirlSubDataMod<GirlPartSubDefinition> PartMouthNeutral;
+        public IBodySubDataMod<GirlPartSubDefinition> PartBody;
+        public IBodySubDataMod<GirlPartSubDefinition> PartNipples;
+        public IBodySubDataMod<GirlPartSubDefinition> PartBlushLight;
+        public IBodySubDataMod<GirlPartSubDefinition> PartBlushHeavy;
+        public IBodySubDataMod<GirlPartSubDefinition> PartBlink;
+        public IBodySubDataMod<GirlPartSubDefinition> PartMouthNeutral;
 
         public int? DefaultExpressionIndex;
         public int? FailureExpressionIndex;
         public RelativeId? DefaultHairstyleId;
         public RelativeId? DefaultOutfitId;
 
-        public IGirlSubDataMod<GirlPartSubDefinition> Phonemes_aeil;
-        public IGirlSubDataMod<GirlPartSubDefinition> Phonemes_neutral;
-        public IGirlSubDataMod<GirlPartSubDefinition> Phonemes_oquw;
-        public IGirlSubDataMod<GirlPartSubDefinition> Phonemes_fv;
-        public IGirlSubDataMod<GirlPartSubDefinition> Phonemes_other;
-        public IGirlSubDataMod<GirlPartSubDefinition> PhonemesTeeth_aeil;
-        public IGirlSubDataMod<GirlPartSubDefinition> PhonemesTeeth_neutral;
-        public IGirlSubDataMod<GirlPartSubDefinition> PhonemesTeeth_oquw;
-        public IGirlSubDataMod<GirlPartSubDefinition> PhonemesTeeth_fv;
-        public IGirlSubDataMod<GirlPartSubDefinition> PhonemesTeeth_other;
+        public IBodySubDataMod<GirlPartSubDefinition> Phonemes_aeil;
+        public IBodySubDataMod<GirlPartSubDefinition> Phonemes_neutral;
+        public IBodySubDataMod<GirlPartSubDefinition> Phonemes_oquw;
+        public IBodySubDataMod<GirlPartSubDefinition> Phonemes_fv;
+        public IBodySubDataMod<GirlPartSubDefinition> Phonemes_other;
+        public IBodySubDataMod<GirlPartSubDefinition> PhonemesTeeth_aeil;
+        public IBodySubDataMod<GirlPartSubDefinition> PhonemesTeeth_neutral;
+        public IBodySubDataMod<GirlPartSubDefinition> PhonemesTeeth_oquw;
+        public IBodySubDataMod<GirlPartSubDefinition> PhonemesTeeth_fv;
+        public IBodySubDataMod<GirlPartSubDefinition> PhonemesTeeth_other;
 
         public float? Scale;
 
@@ -127,7 +128,7 @@ namespace Hp2BaseMod.GameDataInfo
             {
                 i = 0;
                 expressions = def.expressions
-                    .Select(x => (IGirlSubDataMod<GirlExpressionSubDefinition>)new GirlExpressionDataMod(i++, assetProvider, def))
+                    .Select(x => (IBodySubDataMod<GirlExpressionSubDefinition>)new GirlExpressionDataMod(i++, assetProvider, def))
                     .ToList();
             }
 
@@ -135,7 +136,7 @@ namespace Hp2BaseMod.GameDataInfo
             {
                 i = 0;
                 outfits = def.outfits
-                    .Select(x => (IGirlSubDataMod<GirlOutfitSubDefinition>)new OutfitDataMod(i++, def, assetProvider))
+                    .Select(x => (IBodySubDataMod<GirlOutfitSubDefinition>)new OutfitDataMod(i++, def, assetProvider))
                     .ToList();
             }
 
@@ -143,7 +144,7 @@ namespace Hp2BaseMod.GameDataInfo
             {
                 i = 0;
                 hairstyles = def.hairstyles
-                    .Select(x => (IGirlSubDataMod<GirlHairstyleSubDefinition>)new HairstyleDataMod(i++, def, assetProvider))
+                    .Select(x => (IBodySubDataMod<GirlHairstyleSubDefinition>)new HairstyleDataMod(i++, def, assetProvider))
                     .ToList();
             }
 
@@ -151,29 +152,28 @@ namespace Hp2BaseMod.GameDataInfo
             {
                 i = 0;
                 specialParts = def.specialParts
-                    .Select(x => (IGirlSubDataMod<GirlSpecialPartSubDefinition>)new GirlSpecialPartDataMod(i++, def, assetProvider))
+                    .Select(x => (IBodySubDataMod<GirlSpecialPartSubDefinition>)new GirlSpecialPartDataMod(i++, def, assetProvider))
                     .ToList();
             }
         }
 
         /// <inheritdoc/>
-        public void SetData(ref GirlBodySubDefinition def,
+        public void SetData(GirlBodySubDefinition def,
                             GameDefinitionProvider gameData,
                             AssetProvider assetProvider,
-                            InsertStyle insertStyle,
-                            RelativeId girlId,
-                            GirlDefinition girlDef)
+                            RelativeId girlId)
         {
-            def ??= new();
-            var expansion = girlDef.Expansion();
+            if (def == null) { return; }
+            var expansion = ExpandedGirlDefinition.Get(girlId);
 
             ValidatedSet.SetValue(ref def.Scale, Scale);
-            ValidatedSet.SetValue(ref def.PartIndexBody, expansion.PartIdToIndex, PartBody?.Id);
-            ValidatedSet.SetValue(ref def.PartIndexNipples, expansion.PartIdToIndex, PartNipples?.Id);
-            ValidatedSet.SetValue(ref def.PartIndexBlushLight, expansion.PartIdToIndex, PartBlushLight?.Id);
-            ValidatedSet.SetValue(ref def.PartIndexBlushHeavy, expansion.PartIdToIndex, PartBlushHeavy?.Id);
-            ValidatedSet.SetValue(ref def.PartIndexBlink, expansion.PartIdToIndex, PartBlink?.Id);
-            ValidatedSet.SetValue(ref def.PartIndexMouthNeutral, expansion.PartIdToIndex, PartMouthNeutral?.Id);
+            ValidatedSet.SetValue(ref def.BodyName, bodyName, InsertStyle);
+            ValidatedSet.SetValue(ref def.PartIndexBody, def.PartIdToIndex, PartBody?.Id);
+            ValidatedSet.SetValue(ref def.PartIndexNipples, def.PartIdToIndex, PartNipples?.Id);
+            ValidatedSet.SetValue(ref def.PartIndexBlushLight, def.PartIdToIndex, PartBlushLight?.Id);
+            ValidatedSet.SetValue(ref def.PartIndexBlushHeavy, def.PartIdToIndex, PartBlushHeavy?.Id);
+            ValidatedSet.SetValue(ref def.PartIndexBlink, def.PartIdToIndex, PartBlink?.Id);
+            ValidatedSet.SetValue(ref def.PartIndexMouthNeutral, def.PartIdToIndex, PartMouthNeutral?.Id);
 
             ValidatedSet.SetValue(ref def.DefaultExpressionIndex, DefaultExpressionIndex);
             ValidatedSet.SetValue(ref def.FailureExpressionIndex, FailureExpressionIndex);
@@ -190,8 +190,8 @@ namespace Hp2BaseMod.GameDataInfo
                 Phonemes_other
             };
 
-            ValidatedSet.SetListValue(ref def.PartIndexesPhonemes, partIdsPhonemes?
-                .Select(x => x != null ? (int?)expansion.PartIdToIndex[x.Id] : null), InsertStyle.replace);
+            ValidatedSet.SetListValue(ref def.PartIndexesPhonemes, partIdsPhonemes
+                .Select(x => x != null ? (int?)def.PartIdToIndex[x.Id] : null), InsertStyle.replace);
 
             var partIdsPhonemesTeeth = new[]
             {
@@ -203,7 +203,7 @@ namespace Hp2BaseMod.GameDataInfo
             };
 
             ValidatedSet.SetListValue(ref def.PartIndexesPhonemesTeeth, partIdsPhonemesTeeth
-                .Select(x => x != null ? (int?)expansion.PartIdToIndex[x.Id] : null), InsertStyle.replace);
+                .Select(x => x != null ? (int?)def.PartIdToIndex[x.Id] : null), InsertStyle.replace);
 
             ValidatedSet.SetValue(ref def.BreathEmitterPos, BreathEmitterPos, InsertStyle, gameData, assetProvider);
             ValidatedSet.SetValue(ref def.UpsetEmitterPos, UpsetEmitterPos, InsertStyle, gameData, assetProvider);
@@ -245,7 +245,13 @@ namespace Hp2BaseMod.GameDataInfo
             PhonemesTeeth_other?.RequestInternals(assetProvider);
         }
 
-        public IEnumerable<IGirlSubDataMod<GirlPartSubDefinition>> GetPartDataMods()
+        public IEnumerable<IBodySubDataMod<GirlPartSubDefinition>> GetPartDataMods() => LocalPartMods()
+            .Concat(expressions.SelectManyNN(x => x.GetPartDataMods()))
+            .Concat(outfits.SelectManyNN(x => x.GetPartDataMods()))
+            .Concat(hairstyles.SelectManyNN(x => x.GetPartDataMods()))
+            .Concat(specialParts.SelectManyNN(x => x.GetPartDataMods()));
+
+        private IEnumerable<IBodySubDataMod<GirlPartSubDefinition>> LocalPartMods()
         {
             yield return PartBody;
             yield return PartNipples;
@@ -265,9 +271,9 @@ namespace Hp2BaseMod.GameDataInfo
             yield return PhonemesTeeth_other;
         }
 
-        public IEnumerable<IGirlSubDataMod<GirlExpressionSubDefinition>> GetExpressions() => expressions;
-        public IEnumerable<IGirlSubDataMod<GirlOutfitSubDefinition>> GetOutfits() => outfits;
-        public IEnumerable<IGirlSubDataMod<GirlHairstyleSubDefinition>> GetHairstyles() => hairstyles;
-        public IEnumerable<IGirlSubDataMod<GirlSpecialPartSubDefinition>> GetSpecialPartMods() => specialParts;
+        public IEnumerable<IBodySubDataMod<GirlExpressionSubDefinition>> GetExpressions() => expressions;
+        public IEnumerable<IBodySubDataMod<GirlOutfitSubDefinition>> GetOutfits() => outfits;
+        public IEnumerable<IBodySubDataMod<GirlHairstyleSubDefinition>> GetHairstyles() => hairstyles;
+        public IEnumerable<IBodySubDataMod<GirlSpecialPartSubDefinition>> GetSpecialPartMods() => specialParts;
     }
 }

@@ -11,8 +11,8 @@ internal static partial class Styles
     private static readonly int _candaceBodyY = 972;
     public static void AddCandaceStyles()
     {
-        var modOutfits = new List<IGirlSubDataMod<GirlOutfitSubDefinition>>();
-        var modHairstyles = new List<IGirlSubDataMod<GirlHairstyleSubDefinition>>();
+        var modOutfits = new List<IBodySubDataMod<GirlOutfitSubDefinition>>();
+        var modHairstyles = new List<IBodySubDataMod<GirlHairstyleSubDefinition>>();
 
         AddPair(modOutfits, modHairstyles, "hime", "Hime", "candace",
             _candaceBodyX + 107, _candaceBodyY - 184,

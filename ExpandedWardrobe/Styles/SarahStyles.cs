@@ -12,8 +12,8 @@ internal static partial class Styles
     private static readonly int _sarahBodyY = 917;
     public static void AddSarahStyles()
     {
-        var modOutfits = new List<IGirlSubDataMod<GirlOutfitSubDefinition>>();
-        var modHairstyles = new List<IGirlSubDataMod<GirlHairstyleSubDefinition>>();
+        var modOutfits = new List<IBodySubDataMod<GirlOutfitSubDefinition>>();
+        var modHairstyles = new List<IBodySubDataMod<GirlHairstyleSubDefinition>>();
 
         AddOutfit(modOutfits, "tsuyome", "Tsuyome", "sarah", _sarahBodyX, _sarahBodyY - 272, false, false, false, true);
 

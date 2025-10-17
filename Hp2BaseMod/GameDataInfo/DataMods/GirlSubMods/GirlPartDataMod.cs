@@ -11,7 +11,7 @@ namespace Hp2BaseMod.GameDataInfo
     /// <summary>
     /// Information to make a <see cref="GirlPartSubDefinition"/>.
     /// </summary>
-    public class GirlPartDataMod : DataMod, IGirlSubDataMod<GirlPartSubDefinition>
+    public class GirlPartDataMod : DataMod, IBodySubDataMod<GirlPartSubDefinition>
     {
         public GirlPartType? PartType;
 
@@ -21,9 +21,9 @@ namespace Hp2BaseMod.GameDataInfo
 
         public int? Y;
 
-        public IGirlSubDataMod<GirlPartSubDefinition> MirroredPart;
+        public IBodySubDataMod<GirlPartSubDefinition> MirroredPart;
 
-        public IGirlSubDataMod<GirlPartSubDefinition> AltPart;
+        public IBodySubDataMod<GirlPartSubDefinition> AltPart;
 
         public IGameDefinitionInfo<Sprite> SpriteInfo;
 
@@ -66,29 +66,23 @@ namespace Hp2BaseMod.GameDataInfo
         }
 
         /// <inheritdoc/>
-        public void SetData(ref GirlPartSubDefinition def,
+        public void SetData(GirlPartSubDefinition def,
                             GameDefinitionProvider gameDataProvider,
                             AssetProvider assetProvider,
-                            InsertStyle insertStyle,
                             RelativeId girlId,
-                            GirlDefinition girlDef)
+                            GirlBodySubDefinition bodyDef)
         {
-            if (def == null)
-            {
-                def = Activator.CreateInstance<GirlPartSubDefinition>();
-            }
-
-            var girlExpansion = ExpandedGirlDefinition.Get(girlId);
+            if (def == null) { return; }
 
             ValidatedSet.SetValue(ref def.partType, PartType);
-            ValidatedSet.SetValue(ref def.partName, PartName, insertStyle);
+            ValidatedSet.SetValue(ref def.partName, PartName, InsertStyle);
             ValidatedSet.SetValue(ref def.x, X);
             ValidatedSet.SetValue(ref def.y, Y);
 
-            ValidatedSet.SetValue(ref def.mirroredPartIndex, girlExpansion.PartIdToIndex, MirroredPart?.Id);
-            ValidatedSet.SetValue(ref def.altPartIndex, girlExpansion.PartIdToIndex, AltPart?.Id);
+            ValidatedSet.SetValue(ref def.mirroredPartIndex, bodyDef.PartIdToIndex, MirroredPart?.Id);
+            ValidatedSet.SetValue(ref def.altPartIndex, bodyDef.PartIdToIndex, AltPart?.Id);
 
-            ValidatedSet.SetValue(ref def.sprite, SpriteInfo, insertStyle, gameDataProvider, assetProvider);
+            ValidatedSet.SetValue(ref def.sprite, SpriteInfo, InsertStyle, gameDataProvider, assetProvider);
         }
 
         /// <inheritdoc/>
@@ -99,7 +93,7 @@ namespace Hp2BaseMod.GameDataInfo
             AltPart?.RequestInternals(assetProvider);
         }
 
-        public IEnumerable<IGirlSubDataMod<GirlPartSubDefinition>> GetPartDataMods()
+        public IEnumerable<IBodySubDataMod<GirlPartSubDefinition>> GetPartDataMods()
         {
             yield return MirroredPart;
             yield return AltPart;

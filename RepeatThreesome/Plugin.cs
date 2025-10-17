@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using BepInEx;
 using HarmonyLib;
 using Hp2BaseMod;
@@ -203,7 +204,7 @@ internal class Plugin : BaseUnityPlugin
         };
 
         // add nude outfits for girls
-        foreach (var girlId in ModInterface.Data.GetIds(GameDataType.Girl))
+        foreach (var girlId in ModInterface.Data.GetIds(GameDataType.Girl).Where(x => x.SourceId == -1))
         {
             // polly has an alt
             if (girlId == Girls.PollyId)
@@ -214,7 +215,7 @@ internal class Plugin : BaseUnityPlugin
                 {
                     bodies = new(){
                         new GirlBodyDataMod(new RelativeId(-1,0), InsertStyle.append){
-                            outfits = new List<IGirlSubDataMod<GirlOutfitSubDefinition>>()
+                            outfits = new List<IBodySubDataMod<GirlOutfitSubDefinition>>()
                             {
                                 nudeOutfitPolly
                             }
@@ -231,7 +232,7 @@ internal class Plugin : BaseUnityPlugin
                 {
                     bodies = new(){
                         new GirlBodyDataMod(new RelativeId(-1,0), InsertStyle.append){
-                            outfits = new List<IGirlSubDataMod<GirlOutfitSubDefinition>>()
+                            outfits = new List<IBodySubDataMod<GirlOutfitSubDefinition>>()
                             {
                                 nudeOutfit
                             }

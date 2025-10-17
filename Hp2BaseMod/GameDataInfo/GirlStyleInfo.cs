@@ -33,18 +33,18 @@ namespace Hp2BaseMod.GameDataInfo
                 return;
             }
 
-            var girlExpansion = ExpandedGirlDefinition.Get(girlId);
+            var expandedGirl = ExpandedGirlDefinition.Get(girlId);
 
             if (OutfitId.HasValue)
             {
-                doll.ChangeOutfit(girlExpansion.OutfitIdToIndex.TryGetValue(OutfitId.Value, out var index)
+                doll.ChangeOutfit(expandedGirl.OutfitIdToIndex.TryGetValue(OutfitId.Value, out var index)
                     ? index
                     : defaultOutfitIndex);
             }
 
             if (HairstyleId.HasValue)
             {
-                doll.ChangeHairstyle(girlExpansion.HairstyleIdToIndex.TryGetValue(HairstyleId.Value, out var index)
+                doll.ChangeHairstyle(expandedGirl.HairstyleIdToIndex.TryGetValue(HairstyleId.Value, out var index)
                     ? index
                     : defaultHairstyleIndex);
             }

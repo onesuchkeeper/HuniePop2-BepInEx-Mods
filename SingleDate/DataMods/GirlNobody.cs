@@ -46,7 +46,7 @@ internal static class GirlNobody
                     DefaultHairstyleId = emptyPartId,
                     DefaultOutfitId = emptyPartId,
 
-                    expressions = new List<IGirlSubDataMod<GirlExpressionSubDefinition>>(){
+                    expressions = new List<IBodySubDataMod<GirlExpressionSubDefinition>>(){
                         new GirlExpressionDataMod(emptyPartId, InsertStyle.replace)
                         {
                             ExpressionType = GirlExpressionType.NEUTRAL,
@@ -57,14 +57,14 @@ internal static class GirlNobody
                             PartMouthOpen = emptyPart
                         }
                     },
-                    hairstyles = new List<IGirlSubDataMod<GirlHairstyleSubDefinition>>(){
+                    hairstyles = new List<IBodySubDataMod<GirlHairstyleSubDefinition>>(){
                         new HairstyleDataMod(emptyPartId, InsertStyle.replace){
                             Name = string.Empty,
                             FrontHairPart = emptyPart,
                             BackHairPart = emptyPart
                         }
                     },
-                    outfits = new List<IGirlSubDataMod<GirlOutfitSubDefinition>>()
+                    outfits = new List<IBodySubDataMod<GirlOutfitSubDefinition>>()
                     {
                         new OutfitDataMod(emptyPartId, InsertStyle.replace)
                         {

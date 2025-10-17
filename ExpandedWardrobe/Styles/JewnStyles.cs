@@ -13,8 +13,8 @@ internal static partial class Styles
     public static void AddJewnStyles()
     {
         //On Your Chest
-        var modOutfits = new List<IGirlSubDataMod<GirlOutfitSubDefinition>>();
-        var modHairstyles = new List<IGirlSubDataMod<GirlHairstyleSubDefinition>>();
+        var modOutfits = new List<IBodySubDataMod<GirlOutfitSubDefinition>>();
+        var modHairstyles = new List<IBodySubDataMod<GirlHairstyleSubDefinition>>();
 
         AddOutfit(modOutfits, "occult", "Occult", "jewn", _jewnBodyX + 165, _jewnBodyY - 292, true, false, false, false);
 

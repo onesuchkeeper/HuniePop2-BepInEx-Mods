@@ -11,7 +11,7 @@ internal partial class Styles
 {
     private static int _partCount = 0;
 
-    public static void AddHair(List<IGirlSubDataMod<GirlHairstyleSubDefinition>> hairstyles,
+    public static void AddHair(List<IBodySubDataMod<GirlHairstyleSubDefinition>> hairstyles,
         string name, string displayName, string girlName, int frontX, int frontY, int backX, int backY, bool isNSFW, bool isCodeUnlocked, bool isPurchased)
     {
         hairstyles.Add(new HairstyleDataMod(new RelativeId(Ids.ModId, hairstyles.Count), InsertStyle.replace)
@@ -40,7 +40,7 @@ internal partial class Styles
         });
     }
 
-    public static void AddOutfit(List<IGirlSubDataMod<GirlOutfitSubDefinition>> outfits,
+    public static void AddOutfit(List<IBodySubDataMod<GirlOutfitSubDefinition>> outfits,
         string name, string displayName, string girlName, int x, int y, bool isNSFW, bool isCodeUnlocked, bool isPurchased, bool hideNipples)
     {
         outfits.Add(new OutfitDataMod(new RelativeId(Ids.ModId, outfits.Count), InsertStyle.replace)
@@ -62,8 +62,8 @@ internal partial class Styles
         });
     }
 
-    public static void AddPair(List<IGirlSubDataMod<GirlOutfitSubDefinition>> outfits,
-        List<IGirlSubDataMod<GirlHairstyleSubDefinition>> hairstyles,
+    public static void AddPair(List<IBodySubDataMod<GirlOutfitSubDefinition>> outfits,
+        List<IBodySubDataMod<GirlHairstyleSubDefinition>> hairstyles,
         string name, string displayName, string girlName,
         int outfitX, int outfitY, int frontX, int frontY, int backX, int backY,
         bool isNSFW, bool isCodeUnlocked, bool isPurchased, bool hideNipples)

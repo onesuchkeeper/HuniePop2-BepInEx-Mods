@@ -10,19 +10,15 @@ namespace Cheat;
 [BepInDependency("OSK.BepInEx.Hp2BaseMod", "1.0.0")]
 public class Plugin : BaseUnityPlugin
 {
-    private static readonly FieldInfo _testMode = AccessTools.Field(typeof(GameManager), "_testMode");
+    private static readonly FieldInfo f_testMode = AccessTools.Field(typeof(GameManager), "_testMode");
 
     private void Awake()
     {
+        ModInterface.Log.ShowDebug = true;
         //ModInterface.Events.PostPersistenceReset += On_PostPersistenceReset;
         ModInterface.Events.PreLoadPlayerFile += On_PreLoadPlayerFile;
         new Harmony(MyPluginInfo.PLUGIN_GUID).PatchAll();
     }
-
-    // private void On_PostPersistenceReset(SaveData data)
-    // {
-    //     _testMode.SetValue(Game.Manager, true);
-    // }
 
     private void On_PreLoadPlayerFile(PlayerFile file)
     {
@@ -37,15 +33,17 @@ public class Plugin : BaseUnityPlugin
             {
                 var girlId = ModInterface.Data.GetDataId(GameDataType.Girl, fileGirl.girlDefinition.id);
                 var expansion = ExpandedGirlDefinition.Get(girlId);
-
-                foreach (var outfitId_Index in expansion.OutfitIdToIndex)
+                foreach (var body in expansion.Bodies.Values)
                 {
-                    fileGirl.UnlockOutfit(outfitId_Index.Value);
-                }
+                    foreach (var outfit in expansion.OutfitIndexToId.Keys)
+                    {
+                        fileGirl.UnlockOutfit(outfit);
+                    }
 
-                foreach (var hairstyleId_index in expansion.HairstyleIdToIndex)
-                {
-                    fileGirl.UnlockHairstyle(hairstyleId_index.Value);
+                    foreach (var hairstyleId_index in expansion.HairstyleIdToIndex)
+                    {
+                        fileGirl.UnlockHairstyle(hairstyleId_index.Value);
+                    }
                 }
             }
         }
@@ -67,4 +65,11 @@ public static class PuzzleSetGetMatchRewards_Patch
             __instance.AddResourceValue(PuzzleResourceType.AFFECTION, 50000, false);
         }
     }
+}
+
+public enum TestEnum
+{
+    a,
+    b,
+    c
 }

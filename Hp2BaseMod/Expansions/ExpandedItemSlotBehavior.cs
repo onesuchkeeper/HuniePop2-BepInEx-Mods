@@ -40,10 +40,10 @@ public class ExpandedItemSlotBehavior
         return expansion;
     }
 
-    private static FieldInfo _itemDefinition = AccessTools.Field(typeof(ItemSlotBehavior), "_itemDefinition");
-    private static FieldInfo _tooltip = AccessTools.Field(typeof(ItemSlotBehavior), "_tooltip");
-    private static FieldInfo _offsetOverride = AccessTools.Field(typeof(ItemSlotBehavior), "_offsetOverride");
-    private static FieldInfo _tooltipOffset = AccessTools.Field(typeof(ItemSlotBehavior), "_tooltipOffset");
+    private static FieldInfo f_itemDefinition = AccessTools.Field(typeof(ItemSlotBehavior), "_itemDefinition");
+    private static FieldInfo f_tooltip = AccessTools.Field(typeof(ItemSlotBehavior), "_tooltip");
+    private static FieldInfo f_offsetOverride = AccessTools.Field(typeof(ItemSlotBehavior), "_offsetOverride");
+    private static FieldInfo f_tooltipOffset = AccessTools.Field(typeof(ItemSlotBehavior), "_tooltipOffset");
 
     public event Action PreShowEvent;
 
@@ -60,14 +60,14 @@ public class ExpandedItemSlotBehavior
             return true;
         }
 
-        var itemDef = _itemDefinition.GetValue<ItemDefinition>(_core);
+        var itemDef = f_itemDefinition.GetValue<ItemDefinition>(_core);
 
         if (!_core.showTooltip || itemDef == null)
         {
             return true;
         }
 
-        var tooltip = _tooltip.GetValue<UiTooltipItem>(_core);
+        var tooltip = f_tooltip.GetValue<UiTooltipItem>(_core);
 
         tooltip.Populate(itemDef, CardinalDirection.EAST);
 
@@ -75,8 +75,8 @@ public class ExpandedItemSlotBehavior
 
         tooltip.Show(_core.transform.position,
             MathUtils.DirectionToVector(CardinalDirection.EAST)
-            * (_offsetOverride.GetValue<bool>(_core)
-                ? _tooltipOffset.GetValue<float>(_core)
+            * (f_offsetOverride.GetValue<bool>(_core)
+                ? f_tooltipOffset.GetValue<float>(_core)
                 : 20f),
             false);
 

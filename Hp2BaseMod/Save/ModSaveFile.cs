@@ -11,13 +11,13 @@ namespace Hp2BaseMod.Save;
 [Serializable]
 public class ModSaveFile
 {
-    private const string _wardrobeGirlIdFlagName = "wardrobe_girl_id";
-    private const int _hotelRoomLocationID = 21;
-    private const int _lolaGirlID = 1;
-    private const int _defaultInventorySlotCount = 35;
-    private const int _defaultShopSlotCount = 32;
-    private const int _defaultGirlCount = 12;
-    private const int _defaultPairCount = 24;
+    private const string WARDROBE_GIRL_ID_FLAG = "wardrobe_girl_id";
+    private const int HOTEL_ROOM_LOC_ID = 21;
+    private const int LOLA_GIRL_ID = 1;
+    private const int DEFAULT_INV_SLOT_COUNT = 35;
+    private const int DEFAULT_SHOP_SLOT_COUNT = 32;
+    private const int DEFAULT_GIRL_COUNT = 12;
+    private const int DEFAULT_PAIR_COUNT = 24;
     private const int _defaultFruitCount = 4;
     private const int _defaultAffectionCount = 4;
 
@@ -26,8 +26,8 @@ public class ModSaveFile
     public RelativeId? GirlPairId;
     public RelativeId? FileIconGirlId;
 
-    public List<RelativeId> MetGirlPairs;
-    public List<RelativeId> CompletedGirlPairs;
+    public List<RelativeId> MetGirlPairs = new();
+    public List<RelativeId> CompletedGirlPairs = new();
 
     public Dictionary<RelativeId, ModSaveGirl> Girls = new();
     public Dictionary<RelativeId, ModSaveGirlPair> GirlPairs = new();
@@ -42,7 +42,8 @@ public class ModSaveFile
     /// <param name="saveFile">savefile to strip</param>
     public void Strip(SaveFile saveFile)
     {
-        var wardrobeGirlIdFlag = saveFile.flags.FirstOrDefault(x => x.flagName == _wardrobeGirlIdFlagName);
+        // wardrobe girl id
+        var wardrobeGirlIdFlag = saveFile.flags.FirstOrDefault(x => x.flagName == WARDROBE_GIRL_ID_FLAG);
         var wardrobeGirlId = wardrobeGirlIdFlag?.flagValue;
         if (wardrobeGirlId.HasValue)
         {
@@ -50,7 +51,7 @@ public class ModSaveFile
 
             if (WardrobeGirlId.Value.SourceId != -1)
             {
-                wardrobeGirlIdFlag.flagValue = _lolaGirlID;
+                wardrobeGirlIdFlag.flagValue = LOLA_GIRL_ID;
             }
         }
         else
@@ -59,29 +60,38 @@ public class ModSaveFile
         }
 
         // icon
+        // if invalid default to lola
         FileIconGirlId = ModInterface.Data.GetDataId(GameDataType.Girl, saveFile.fileIconGirlId);
         if (FileIconGirlId.Value.SourceId != -1)
         {
-            saveFile.fileIconGirlId = _lolaGirlID;
+            saveFile.fileIconGirlId = LOLA_GIRL_ID;
         }
 
         // current location
+        // if current location is invalid, go back to hub
         LocationId = ModInterface.Data.GetDataId(GameDataType.Location, saveFile.locationId);
         if (LocationId.Value.SourceId != -1)
         {
-            saveFile.locationId = _hotelRoomLocationID;
+            saveFile.locationId = HOTEL_ROOM_LOC_ID;
         }
 
         // current pair
+        // if the current pair is invalid, go back to the hub
         GirlPairId = ModInterface.Data.GetDataId(GameDataType.GirlPair, saveFile.girlPairId);
         if (GirlPairId.Value.SourceId != -1)
         {
-            // if the current pair is invalid, go back to the hub
             saveFile.girlPairId = -1;
-            saveFile.locationId = _hotelRoomLocationID;
+            saveFile.locationId = HOTEL_ROOM_LOC_ID;
         }
 
-        // Girls
+        // if at hub make sure there isn't a current pair
+        if (saveFile.locationId == HOTEL_ROOM_LOC_ID)
+        {
+            saveFile.girlPairId = -1;
+        }
+
+        // girls
+        // first 
         var newGirls = new Dictionary<RelativeId, ModSaveGirl>();
         foreach (var girl in saveFile.girls)
         {
@@ -91,9 +101,9 @@ public class ModSaveFile
             newGirls[id] = modSave;
         }
         Girls = newGirls;
-        saveFile.girls = saveFile.girls.Take(_defaultGirlCount).ToList();
+        saveFile.girls = saveFile.girls.Take(DEFAULT_GIRL_COUNT).ToList();
 
-        // Pairs
+        // pairs
         var newPairs = new Dictionary<RelativeId, ModSaveGirlPair>();
         foreach (var pair in saveFile.girlPairs)
         {
@@ -103,7 +113,7 @@ public class ModSaveFile
             newPairs[id] = modSave;
         }
         GirlPairs = newPairs;
-        saveFile.girlPairs = saveFile.girlPairs.Take(_defaultPairCount).ToList();
+        saveFile.girlPairs = saveFile.girlPairs.Take(DEFAULT_PAIR_COUNT).ToList();
 
         // met pairs
         MetGirlPairs = saveFile.metGirlPairs
@@ -145,7 +155,7 @@ public class ModSaveFile
         {
             mod.Strip(save);
         }
-        saveFile.inventorySlots = saveFile.inventorySlots.Take(_defaultInventorySlotCount).ToList();
+        saveFile.inventorySlots = saveFile.inventorySlots.Take(DEFAULT_INV_SLOT_COUNT).ToList();
 
         // store
         SaveUtility.MatchListLength(saveFile.storeProducts, StoreProducts);
@@ -153,14 +163,14 @@ public class ModSaveFile
         {
             mod.Strip(save);
         }
-        saveFile.storeProducts = saveFile.storeProducts.Take(_defaultShopSlotCount).ToList();
+        saveFile.storeProducts = saveFile.storeProducts.Take(DEFAULT_SHOP_SLOT_COUNT).ToList();
     }
 
     public void SetData(SaveFile saveFile)
     {
         var i = 0;
 
-        var wardrobeFlag = saveFile.flags.FirstOrDefault(x => x.flagName == _wardrobeGirlIdFlagName);
+        var wardrobeFlag = saveFile.flags.FirstOrDefault(x => x.flagName == WARDROBE_GIRL_ID_FLAG);
         if (wardrobeFlag != null)
         {
             ValidatedSet.SetFromRelativeId(ref wardrobeFlag.flagValue, GameDataType.GirlPair, WardrobeGirlId);
@@ -176,7 +186,7 @@ public class ModSaveFile
         if (WardrobeGirlId.HasValue
             && ModInterface.Data.TryGetRuntimeDataId(GameDataType.Girl, WardrobeGirlId, out var wardrobeGirlRuntimeId))
         {
-            saveFile.flags.Add(new SaveFileFlag(_wardrobeGirlIdFlagName) { flagValue = wardrobeGirlRuntimeId });
+            saveFile.flags.Add(new SaveFileFlag(WARDROBE_GIRL_ID_FLAG) { flagValue = wardrobeGirlRuntimeId });
         }
 
         SaveUtility.HandleModSaves(GameDataType.Girl, Girls, saveFile.girls, saveFile.girls.Select(x => x.girlId), "girl");

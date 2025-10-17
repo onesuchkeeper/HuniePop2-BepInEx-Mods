@@ -19,6 +19,9 @@ public static class UiPrefabs
     public static Sprite CensoredBig => _censoredBig;
     private static Sprite _censoredBig;
 
+    public static Sprite WardrobeBodiesPanel => _wardrobeBodiesPanel;
+    private static Sprite _wardrobeBodiesPanel;
+
     public static Material BgBlur => _bgBlur;
     private static Material _bgBlur;
 
@@ -28,6 +31,7 @@ public static class UiPrefabs
         _pairBG = TextureUtility.SpriteFromPng(Path.Combine(Plugin.ImagesDir, "ui_app_pair_background.png"));
         _censoredThumb = TextureUtility.SpriteFromPng(Path.Combine(Plugin.ImagesDir, "ui_photo_album_slot_censored.png"));
         _censoredBig = TextureUtility.SpriteFromPng(Path.Combine(Plugin.ImagesDir, "cg_censored.png"));
+        _wardrobeBodiesPanel = TextureUtility.SpriteFromPng(Path.Combine(Plugin.ImagesDir, "ui_phone_wardrobe_body_panel.png"));
 
         var bundlePath = Path.Combine(Plugin.RootDir, "hp2basemodtweaks_assetbundle");
         if (File.Exists(bundlePath))

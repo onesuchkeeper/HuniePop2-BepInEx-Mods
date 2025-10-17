@@ -35,10 +35,10 @@ public class ExpandedHubManager
 
         return expansion;
     }
-    private static readonly FieldInfo _hubStepType = AccessTools.Field(typeof(HubManager), "_hubStepType");
-    private static readonly FieldInfo _hubStepIndex = AccessTools.Field(typeof(HubManager), "_hubStepIndex");
-    private static readonly FieldInfo _hubBailed = AccessTools.Field(typeof(HubManager), "_hubBailed");
-    private static readonly FieldInfo _hubSequence = AccessTools.Field(typeof(HubManager), "_hubSequence");
+    private static readonly FieldInfo f_hubStepType = AccessTools.Field(typeof(HubManager), "_hubStepType");
+    private static readonly FieldInfo f_hubStepIndex = AccessTools.Field(typeof(HubManager), "_hubStepIndex");
+    private static readonly FieldInfo f_hubBailed = AccessTools.Field(typeof(HubManager), "_hubBailed");
+    private static readonly FieldInfo f_hubSequence = AccessTools.Field(typeof(HubManager), "_hubSequence");
     private static readonly MethodInfo m_onDialogSelected = AccessTools.Method(typeof(HubManager), "OnDialogSelected");
     private static readonly MethodInfo m_changeStepType = AccessTools.Method(typeof(HubManager), "ChangeStepType");
 
@@ -55,22 +55,22 @@ public class ExpandedHubManager
         //replace nonstop step 1 and 4 to expand nonstop location options
 
         //presteps
-        var hubStepIndex = _hubStepIndex.GetValue<int>(_core) + 1;
+        var hubStepIndex = f_hubStepIndex.GetValue<int>(_core) + 1;
 
-        if (_hubBailed.GetValue<bool>(_core)
-            || _hubStepType.GetValue<HubStepType>(_core) != HubStepType.NONSTOP
+        if (f_hubBailed.GetValue<bool>(_core)
+            || f_hubStepType.GetValue<HubStepType>(_core) != HubStepType.NONSTOP
             || (hubStepIndex != 1 && hubStepIndex != 4))
         {
             return true;
         }
 
-        _hubStepIndex.SetValue(_core, hubStepIndex);
+        f_hubStepIndex.SetValue(_core, hubStepIndex);
         List<DialogOptionInfo> list = new List<DialogOptionInfo>();
 
-        var hubSequence = _hubSequence.GetValue<Sequence>(_core);
+        var hubSequence = f_hubSequence.GetValue<Sequence>(_core);
         Game.Manager.Time.KillTween(hubSequence, true, true);
         hubSequence = DOTween.Sequence();
-        _hubSequence.SetValue(_core, hubSequence);
+        f_hubSequence.SetValue(_core, hubSequence);
 
         switch (hubStepIndex)
         {

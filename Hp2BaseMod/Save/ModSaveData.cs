@@ -6,10 +6,14 @@ using System.Linq;
 
 namespace Hp2BaseMod.Save
 {
+    /// <summary>
+    /// This splits mod data from default data. The goal is to keep as much valid data in the default save file as
+    /// possible so the player keeps their progress even when uninstalling mods
+    /// </summary>
     [Serializable]
     class ModSaveData
     {
-        private static readonly int _defaultFileCount = 4;
+        private static readonly int DEFAULT_FILE_COUNT = 4;
 
         public List<RelativeId> UnlockedCodes;
         public List<SaveFile> AdditionalFiles;
@@ -39,6 +43,7 @@ namespace Hp2BaseMod.Save
 
             if (saveData == null) { return; }
 
+            //codes
             if (saveData.unlockedCodes != null)
             {
                 UnlockedCodes = new List<RelativeId>();
@@ -59,33 +64,18 @@ namespace Hp2BaseMod.Save
                 saveData.unlockedCodes = defaultCodes;
             }
 
+            //save files
             if (saveData.files != null)
             {
-                AdditionalFiles = new List<SaveFile>();
+                SaveUtility.MatchListLength(saveData.files, ModFiles);
 
-                var defaultFiles = saveData.files.Take(_defaultFileCount).ToList();
-                foreach (var file in defaultFiles)
+                foreach (var (file, mod) in saveData.files.Zip(ModFiles, (x, y) => (x, y)))
                 {
-                    var newModSaveFile = new ModSaveFile();
-                    newModSaveFile.Strip(file);
-                    ModFiles.Add(newModSaveFile);
+                    mod.Strip(file);
                 }
 
-                var fileTotal = AdditionalFiles.Count + _defaultFileCount;
-                while (fileTotal > ModFiles.Count)
-                {
-                    ModFiles.Add(new());
-                }
-
-                foreach (var file in saveData.files.Skip(_defaultFileCount))
-                {
-                    AdditionalFiles.Add(file);
-                    var modFile = new ModSaveFile();
-                    modFile.Strip(file);
-                    ModFiles.Add(modFile);
-                }
-
-                saveData.files = defaultFiles;
+                AdditionalFiles = saveData.files.Skip(DEFAULT_FILE_COUNT).ToList();
+                saveData.files = saveData.files.Take(DEFAULT_FILE_COUNT).ToList();
             }
         }
 
@@ -96,13 +86,8 @@ namespace Hp2BaseMod.Save
 
             if (UnlockedCodes != null)
             {
-                if (saveData.unlockedCodes == null)
-                {
-                    saveData.unlockedCodes = new List<int>();
-                }
+                saveData.unlockedCodes ??= new();
 
-                // codes
-                ModInterface.Log.LogInfo("Injecting Modded Codes");
                 foreach (var code in UnlockedCodes)
                 {
                     if (ModInterface.Data.TryGetRuntimeDataId(GameDataType.Code, code, out var runtimeId))
@@ -116,10 +101,7 @@ namespace Hp2BaseMod.Save
             {
                 saveData.files ??= new();
 
-                while (saveData.files.Count < _defaultFileCount)
-                {
-                    saveData.files.Add(new());
-                }
+                SaveUtility.MatchListLength(DEFAULT_FILE_COUNT, saveData.files);
 
                 saveData.files.AddRange(AdditionalFiles);
             }

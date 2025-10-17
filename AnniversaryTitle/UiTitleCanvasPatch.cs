@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -22,20 +22,10 @@ internal static class TitleCanvasPatch
     public static void Start_Pre(UiTitleCanvas __instance)
         => ExpandedUiTitleCanvas.Get(__instance).StartPre();
 
-    [HarmonyPatch("Start")]
-    [HarmonyPostfix]
-    public static void Start_Post(UiTitleCanvas __instance)
-        => ExpandedUiTitleCanvas.Get(__instance).StartPost();
-
     [HarmonyPatch("OnDestroy")]
     [HarmonyPostfix]
     public static void OnDestroy(UiTitleCanvas __instance)
         => ExpandedUiTitleCanvas.Get(__instance).OnDestroy();
-
-    [HarmonyPatch("OnInitialAnimationComplete")]
-    [HarmonyPostfix]
-    public static void OnInitialAnimationComplete(UiTitleCanvas __instance)
-        => ExpandedUiTitleCanvas.Get(__instance).OnInitialAnimationComplete();
 }
 
 public class ExpandedUiTitleCanvas
@@ -54,13 +44,19 @@ public class ExpandedUiTitleCanvas
         return expansion;
     }
 
-    private static readonly FieldInfo _linkMainTheme = AccessTools.Field(typeof(UiTitleCanvas), "_linkMainTheme");
+    private static readonly FieldInfo f_linkMainTheme = AccessTools.Field(typeof(UiTitleCanvas), "_linkMainTheme");
 
     private Image _mid;
     private Image _foreground;
     private Image _front;
     private Image _overlay;
     private Image _background;
+    private Image _sunrise;
+
+    private Sprite _frontSprite;
+    private Sprite _foregroundSprite;
+    private Sprite _midSprite;
+    private Sprite _backSprite;
 
     private Sequence _animationSequence;
 
@@ -82,7 +78,7 @@ public class ExpandedUiTitleCanvas
                 request.SendWebRequest();
 
                 //with the way the resource pipeline works atm there's no great way to await this
-                while (!request.isDone) { }
+                while (!request.isDone) System.Threading.Thread.Sleep(1);
 
                 if (request.isNetworkError)
                 {
@@ -94,24 +90,26 @@ public class ExpandedUiTitleCanvas
                 }
             }
         }
+
+        _backSprite = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImagesDir, "hp_10th_anniversary_art_background.png"))).GetSprite();
+        _midSprite = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImagesDir, "hp_10th_anniversary_art_middle.png"))).GetSprite();
+        _frontSprite = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImagesDir, "hp_10th_anniversary_art_front.png"))).GetSprite();
+        _foregroundSprite = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImagesDir, "hp_10th_anniversary_art_foreground.png"))).GetSprite();
+
+        _core.StartCoroutine(BuildAnimation());
     }
 
-    public void StartPost()
+    private IEnumerator BuildAnimation()
     {
+        yield return new WaitForEndOfFrame();
+        //ModInterface.ForceUiUpdate ? could be good
+
         //change bg and fg
         _background = _core.coverArt.transform.GetChild(0).GetComponent<Image>();
-        _background.sprite
-            = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImagesDir, "hp_10th_anniversary_art_background.png"))).GetSprite();
+        _background.sprite = _backSprite;
 
-        _mid = _core.coverArt.transform.GetChild(2).GetComponent<Image>();
-        _mid.sprite = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImagesDir, "hp_10th_anniversary_art_middle.png"))).GetSprite();
-
-        _mid.rectTransform.localPosition = new Vector3(_background.rectTransform.sizeDelta.x / 2, 0, 0);
-        _mid.rectTransform.pivot = new Vector2(0.5f, 0f);
-
-        //make logo smaller
+        //make logo smaller (do this here so the normal animation isn't interrupted)
         var logoScale = 0.65f;
-
         var distFromTop = _background.rectTransform.sizeDelta.y - _core.coverArt.logo.localPosition.y;
 
         _core.coverArt.logo.localPosition = new Vector3(
@@ -119,11 +117,17 @@ public class ExpandedUiTitleCanvas
             _background.rectTransform.sizeDelta.y - (distFromTop * logoScale * 1.15f), 0);
         _core.coverArt.logo.localScale = new Vector3(logoScale, logoScale, 1);
 
+        _mid = _core.coverArt.transform.GetChild(2).GetComponent<Image>();
+        _mid.sprite = _midSprite;
+
+        _mid.rectTransform.localPosition = new Vector3(_background.rectTransform.sizeDelta.x / 2, 0, 0);
+        _mid.rectTransform.pivot = new Vector2(0.5f, 0f);
+
         //add new layers
         var front_go = new GameObject();
         _front = front_go.AddComponent<Image>();
-        _front.sprite = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImagesDir, "hp_10th_anniversary_art_front.png"))).GetSprite();
-        _front.rectTransform.SetParent(_core.coverArt.transform);
+        _front.sprite = _frontSprite;
+        _front.rectTransform.SetParent(_core.coverArt.transform, false);
 
         _front.rectTransform.sizeDelta = _background.rectTransform.sizeDelta;
         _front.rectTransform.localPosition = new Vector3(_background.rectTransform.sizeDelta.x / 2, 0, 0);
@@ -131,8 +135,8 @@ public class ExpandedUiTitleCanvas
 
         var foreground_go = new GameObject();
         _foreground = foreground_go.AddComponent<Image>();
-        _foreground.sprite = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImagesDir, "hp_10th_anniversary_art_foreground.png"))).GetSprite();
-        _foreground.rectTransform.SetParent(_core.coverArt.transform);
+        _foreground.sprite = _foregroundSprite;
+        _foreground.rectTransform.SetParent(_core.coverArt.transform, false);
 
         _foreground.rectTransform.sizeDelta = _background.rectTransform.sizeDelta;
         _foreground.rectTransform.localPosition = new Vector3(_background.rectTransform.sizeDelta.x / 2, 0, 0);
@@ -140,29 +144,37 @@ public class ExpandedUiTitleCanvas
 
         var overlay_go = new GameObject();
         _overlay = overlay_go.AddComponent<Image>();
-        _overlay.rectTransform.SetParent(_core.coverArt.transform);
+        _overlay.rectTransform.SetParent(_core.coverArt.transform, false);
 
         _overlay.rectTransform.sizeDelta = _background.rectTransform.sizeDelta;
         _overlay.rectTransform.localPosition = new Vector3(_background.rectTransform.sizeDelta.x / 2, 0, 0);
         _overlay.rectTransform.pivot = new Vector2(0.5f, 0f);
         _overlay.color = new Color(1, 1, 1, 0);
 
-        //the tweens hate me when I destroy them too early, and they don't let me stop them early, so move these off screen and delete them later I guess
-        _core.coverArt.kyu.position = new Vector3(3000, 3000);
-        _core.coverArt.sunrise.position = new Vector3(3000, 3000);
-        _core.coverArt.altAbia.rectTransform.position = new Vector3(3000, 3000);
+        //_core.coverArt.kyu?.DestroyAndKillTweens();
+        // _core.coverArt.sunrise?.DestroyAndKillTweens();
+        _core.coverArt.altAbia?.Destroy();
+        _core.coverArt.kyu.anchoredPosition = new Vector2(3000, 3000);
+        _sunrise = _core.coverArt.sunrise.GetComponent<Image>();
+        _sunrise.color = new Color(1, 1, 1, 0);
 
-        _audioSource = _linkMainTheme.GetValue<AudioLink>(_core).audioSource;
+        if (f_linkMainTheme.TryGetValue<AudioLink>(_core, out var audioLink)
+            && audioLink.audioSource != null)
+        {
+            _audioSource = audioLink.audioSource;
+            if (Plugin.InitialTitleAnimation)
+            {
+                _audioSource.time = 14.8f;
+            }
+            else
+            {
+                _overlay.color = Color.black;
+                _audioSource.time = 0f;
+            }
+        }
 
-        if (Plugin.InitialTitleAnimation)
-        {
-            _audioSource.time = 14.8f;
-        }
-        else
-        {
-            _overlay.color = Color.black;
-            _audioSource.time = 0f;
-        }
+        PlayAnimation();
+        _core.StartCoroutine(LoopAnimationWithMusic());
     }
 
     private void InsertBounces(Sequence sequence, float startingPosition, float intervalLength, float bounceDuration, float bounceScale)
@@ -204,9 +216,11 @@ public class ExpandedUiTitleCanvas
         sequence.Insert(startingPosition + timeUp + (timeDown / 4), foregroundSequence);
     }
 
-    public void PlayAnimation()
+    private void PlayAnimation()
     {
-        var sequence = DOTween.Sequence();
+        if (_animationSequence != null) TweenUtils.KillTween(_animationSequence);
+
+        _animationSequence = DOTween.Sequence();
         float intervalLength = 0f;
         float sequencePosition = 0f;
         float bounceDuration = 0;
@@ -223,12 +237,12 @@ public class ExpandedUiTitleCanvas
                     bounceScale = 0.01f;
 
                     //remove tints, fade in and out of black
-                    sequence.Insert(sequencePosition, _overlay.DOColor(new Color(0, 0, 0, 1), fadeTime));
-                    sequence.Insert(sequencePosition, _core.coverArt.flasher.DOColor(new Color(0.2f, 0.2f, 0.0f, 1), fadeTime));
-                    sequence.Insert(sequencePosition, _background.DOColor(new Color(1f, 1f, 1f, 1f), fadeTime).SetEase(Ease.InOutSine));
-                    sequence.Insert(sequencePosition, _mid.DOColor(new Color(1f, 1f, 1f, 1f), fadeTime).SetEase(Ease.InOutSine));
-                    sequence.Insert(sequencePosition + intervalLength - (0.5f * fadeTime), _overlay.DOColor(new Color(0, 0, 0, 0), fadeTime));
-                    sequence.Insert(sequencePosition, _core.coverArt.flasher.DOColor(new Color(1, 1, 1, 1), fadeTime));
+                    _animationSequence.Insert(sequencePosition, _overlay.DOColor(new Color(0, 0, 0, 1), fadeTime));
+                    _animationSequence.Insert(sequencePosition, _core.coverArt.flasher.DOColor(new Color(0.2f, 0.2f, 0.0f, 1), fadeTime));
+                    _animationSequence.Insert(sequencePosition, _background.DOColor(new Color(1f, 1f, 1f, 1f), fadeTime).SetEase(Ease.InOutSine));
+                    _animationSequence.Insert(sequencePosition, _mid.DOColor(new Color(1f, 1f, 1f, 1f), fadeTime).SetEase(Ease.InOutSine));
+                    _animationSequence.Insert(sequencePosition + intervalLength - (0.5f * fadeTime), _overlay.DOColor(new Color(0, 0, 0, 0), fadeTime));
+                    _animationSequence.Insert(sequencePosition, _core.coverArt.flasher.DOColor(new Color(1, 1, 1, 1), fadeTime));
 
                     break;
                 case 1://Theme
@@ -237,9 +251,9 @@ public class ExpandedUiTitleCanvas
                     bounceScale = 0.015f;
 
                     //no tint
-                    sequence.Insert(sequencePosition, _background.DOColor(new Color(1f, 1f, 1f, 1f), fadeTime).SetEase(Ease.InOutSine));
-                    sequence.Insert(sequencePosition, _mid.DOColor(new Color(1f, 1f, 1f, 1f), fadeTime).SetEase(Ease.InOutSine));
-                    sequence.Insert(sequencePosition, _core.coverArt.flasher.DOColor(new Color(1, 1, 1, 1), fadeTime));
+                    _animationSequence.Insert(sequencePosition, _background.DOColor(new Color(1f, 1f, 1f, 1f), fadeTime).SetEase(Ease.InOutSine));
+                    _animationSequence.Insert(sequencePosition, _mid.DOColor(new Color(1f, 1f, 1f, 1f), fadeTime).SetEase(Ease.InOutSine));
+                    _animationSequence.Insert(sequencePosition, _core.coverArt.flasher.DOColor(new Color(1, 1, 1, 1), fadeTime));
 
                     break;
                 case 2://Dawnwood Park
@@ -248,9 +262,9 @@ public class ExpandedUiTitleCanvas
                     bounceScale = 0.015f;
 
                     //green tint
-                    sequence.Insert(sequencePosition, _background.DOColor(new Color(0.8f, 1f, 0.8f, 1f), fadeTime).SetEase(Ease.InOutSine));
-                    sequence.Insert(sequencePosition, _mid.DOColor(new Color(0.95f, 1f, 0.95f, 1f), fadeTime).SetEase(Ease.InOutSine));
-                    sequence.Insert(sequencePosition, _core.coverArt.flasher.DOColor(new Color(0.8f, 1, 0.6f, 1), fadeTime));
+                    _animationSequence.Insert(sequencePosition, _background.DOColor(new Color(0.8f, 1f, 0.8f, 1f), fadeTime).SetEase(Ease.InOutSine));
+                    _animationSequence.Insert(sequencePosition, _mid.DOColor(new Color(0.95f, 1f, 0.95f, 1f), fadeTime).SetEase(Ease.InOutSine));
+                    _animationSequence.Insert(sequencePosition, _core.coverArt.flasher.DOColor(new Color(0.8f, 1, 0.6f, 1), fadeTime));
 
                     break;
                 case 3://Farmer's Market
@@ -259,9 +273,9 @@ public class ExpandedUiTitleCanvas
                     bounceScale = 0.015f;
 
                     //no tint
-                    sequence.Insert(sequencePosition, _background.DOColor(new Color(1f, 1f, 1f, 1f), fadeTime).SetEase(Ease.InOutSine));
-                    sequence.Insert(sequencePosition, _mid.DOColor(new Color(1f, 1f, 1f, 1f), fadeTime).SetEase(Ease.InOutSine));
-                    sequence.Insert(sequencePosition, _core.coverArt.flasher.DOColor(new Color(1, 1, 1, 1), fadeTime));
+                    _animationSequence.Insert(sequencePosition, _background.DOColor(new Color(1f, 1f, 1f, 1f), fadeTime).SetEase(Ease.InOutSine));
+                    _animationSequence.Insert(sequencePosition, _mid.DOColor(new Color(1f, 1f, 1f, 1f), fadeTime).SetEase(Ease.InOutSine));
+                    _animationSequence.Insert(sequencePosition, _core.coverArt.flasher.DOColor(new Color(1, 1, 1, 1), fadeTime));
 
                     break;
                 case 4://Shopping Mall
@@ -285,10 +299,10 @@ public class ExpandedUiTitleCanvas
                     bounceScale = 0.025f;
 
                     //darken bg
-                    sequence.Insert(sequencePosition, _overlay.DOColor(new Color(0.1f, 0, 0.2f, 0.3f), fadeTime).SetEase(Ease.InOutSine));
-                    sequence.Insert(sequencePosition, _core.coverArt.flasher.DOColor(new Color(0.4f, 0.2f, 0.4f, 1), fadeTime));
-                    sequence.Insert(sequencePosition, _background.DOColor(new Color(0.9f, 0.7f, 1f, 1f), fadeTime).SetEase(Ease.InOutSine));
-                    sequence.Insert(sequencePosition, _mid.DOColor(new Color(1f, 0.9f, 0.95f, 1f), fadeTime).SetEase(Ease.InOutSine));
+                    _animationSequence.Insert(sequencePosition, _overlay.DOColor(new Color(0.1f, 0, 0.2f, 0.3f), fadeTime).SetEase(Ease.InOutSine));
+                    _animationSequence.Insert(sequencePosition, _core.coverArt.flasher.DOColor(new Color(0.4f, 0.2f, 0.4f, 1), fadeTime));
+                    _animationSequence.Insert(sequencePosition, _background.DOColor(new Color(0.9f, 0.7f, 1f, 1f), fadeTime).SetEase(Ease.InOutSine));
+                    _animationSequence.Insert(sequencePosition, _mid.DOColor(new Color(1f, 0.9f, 0.95f, 1f), fadeTime).SetEase(Ease.InOutSine));
 
                     break;
                 case 8://Lustie's Nightclub intro
@@ -297,40 +311,43 @@ public class ExpandedUiTitleCanvas
                     bounceScale = 0.005f;
 
                     //dark overlay
-                    sequence.Insert(sequencePosition, _overlay.DOColor(new Color(0.1f, 0, 0.2f, 0.8f), fadeTime).SetEase(Ease.InOutSine));
-                    sequence.Insert(sequencePosition, _core.coverArt.flasher.DOColor(new Color(0.4f, 0.2f, 0.4f, 1), fadeTime));
+                    _animationSequence.Insert(sequencePosition, _overlay.DOColor(new Color(0.1f, 0, 0.2f, 0.8f), fadeTime).SetEase(Ease.InOutSine));
+                    _animationSequence.Insert(sequencePosition, _core.coverArt.flasher.DOColor(new Color(0.4f, 0.2f, 0.4f, 1), fadeTime));
                     break;
                 case 9://Lustie's Nightclub
                     intervalLength = 34f;
                     bounceDuration = 0.9f;
                     bounceScale = 0.02f;
 
+                    //sunrise
+                    _animationSequence.Insert(sequencePosition, _sunrise.DOColor(new Color(1, 1, 1, 0.3f), fadeTime).SetEase(Ease.InOutSine));
+
                     //tint red
-                    sequence.Insert(sequencePosition, _overlay.DOColor(new Color(1, 0, 0, 0.2f), fadeTime).SetEase(Ease.InOutSine));
-                    sequence.Insert(sequencePosition, _core.coverArt.flasher.DOColor(new Color(1f, 0.2f, 0.2f, 1), fadeTime));
+                    _animationSequence.Insert(sequencePosition, _overlay.DOColor(new Color(1, 0, 0, 0.2f), fadeTime).SetEase(Ease.InOutSine));
+                    _animationSequence.Insert(sequencePosition, _core.coverArt.flasher.DOColor(new Color(1f, 0.2f, 0.2f, 1), fadeTime));
 
                     //rainbow
                     var postRedPos = intervalLength - fadeTime;
                     var rainbowTime = fadeTime * 7;
                     var rainbowLoopCount = Mathf.FloorToInt(postRedPos / rainbowTime);
                     var rainbowTotal = rainbowTime * rainbowLoopCount;
-                    var raindow = DOTween.Sequence().SetLoops(rainbowLoopCount);
+                    var rainbow = DOTween.Sequence().SetLoops(rainbowLoopCount);
 
-                    raindow.Append(_overlay.DOColor(new Color(1, 0.5f, 0f, 0.2f), fadeTime).SetEase(Ease.InOutSine));//orange
-                    raindow.Append(_overlay.DOColor(new Color(1, 1, 0, 0.2f), fadeTime).SetEase(Ease.InOutSine));//yellow
-                    raindow.Append(_overlay.DOColor(new Color(0f, 1, 0f, 0.2f), fadeTime).SetEase(Ease.InOutSine));//green
-                    raindow.Append(_overlay.DOColor(new Color(0, 1, 1, 0.2f), fadeTime).SetEase(Ease.InOutSine));//L blue
-                    raindow.Append(_overlay.DOColor(new Color(0f, 0f, 1, 0.2f), fadeTime).SetEase(Ease.InOutSine));//blue
-                    raindow.Append(_overlay.DOColor(new Color(1f, 0f, 1, 0.2f), fadeTime).SetEase(Ease.InOutSine));//pink
-                    raindow.Append(_overlay.DOColor(new Color(1, 0, 0, 0.2f), fadeTime).SetEase(Ease.InOutSine));//red
+                    rainbow.Append(_overlay.DOColor(new Color(1, 0.5f, 0f, 0.2f), fadeTime).SetEase(Ease.InOutSine));//orange
+                    rainbow.Append(_overlay.DOColor(new Color(1, 1, 0, 0.2f), fadeTime).SetEase(Ease.InOutSine));//yellow
+                    rainbow.Append(_overlay.DOColor(new Color(0f, 1, 0f, 0.2f), fadeTime).SetEase(Ease.InOutSine));//green
+                    rainbow.Append(_overlay.DOColor(new Color(0, 1, 1, 0.2f), fadeTime).SetEase(Ease.InOutSine));//L blue
+                    rainbow.Append(_overlay.DOColor(new Color(0f, 0f, 1, 0.2f), fadeTime).SetEase(Ease.InOutSine));//blue
+                    rainbow.Append(_overlay.DOColor(new Color(1f, 0f, 1, 0.2f), fadeTime).SetEase(Ease.InOutSine));//pink
+                    rainbow.Append(_overlay.DOColor(new Color(1, 0, 0, 0.2f), fadeTime).SetEase(Ease.InOutSine));//red
 
-                    sequence.Insert(sequencePosition + fadeTime, raindow);
-                    sequence.Insert(sequencePosition + fadeTime, _core.coverArt.flasher.DOColor(new Color(1f, 0.5f, 0.2f, 0.5f), fadeTime));
+                    _animationSequence.Insert(sequencePosition + fadeTime, rainbow);
+                    _animationSequence.Insert(sequencePosition + fadeTime, _core.coverArt.flasher.DOColor(new Color(1f, 0.5f, 0.2f, 0.5f), fadeTime));
 
                     var remainingTime = postRedPos - rainbowTotal;
                     if (remainingTime > 0.5f)
                     {
-                        sequence.Insert(sequencePosition + fadeTime + rainbowTime, _overlay.DOColor(new Color(1, 1f, 1f, 0f), remainingTime).SetEase(Ease.InOutSine));
+                        _animationSequence.Insert(sequencePosition + fadeTime + rainbowTime, _overlay.DOColor(new Color(1, 1f, 1f, 0f), remainingTime).SetEase(Ease.InOutSine));
                     }
 
                     break;
@@ -339,57 +356,59 @@ public class ExpandedUiTitleCanvas
                     bounceDuration = 0.95f;
                     bounceScale = 0.01f;
 
+                    //turn off sunrise
+                    _animationSequence.Insert(sequencePosition, _sunrise.DOColor(new Color(1, 1, 1, 0), fadeTime).SetEase(Ease.InOutSine));
+
                     //tint pink
-                    sequence.Insert(sequencePosition, _overlay.DOColor(new Color(1, 0.95f, 0.95f, 0.05f), 0.75f).SetEase(Ease.InOutSine));
-                    sequence.Insert(sequencePosition, _core.coverArt.flasher.DOColor(new Color(1f, 0.8f, 0.5f, 1f), fadeTime));
-                    sequence.Insert(sequencePosition, _background.DOColor(new Color(1f, 0.8f, 0.85f, 1f), 0.75f).SetEase(Ease.InOutSine));
-                    sequence.Insert(sequencePosition, _mid.DOColor(new Color(1f, 0.9f, 0.95f, 1f), 0.75f).SetEase(Ease.InOutSine));
+                    _animationSequence.Insert(sequencePosition, _overlay.DOColor(new Color(1, 0.95f, 0.95f, 0.05f), 0.75f).SetEase(Ease.InOutSine));
+                    _animationSequence.Insert(sequencePosition, _core.coverArt.flasher.DOColor(new Color(1f, 0.8f, 0.5f, 1f), fadeTime));
+                    _animationSequence.Insert(sequencePosition, _background.DOColor(new Color(1f, 0.8f, 0.85f, 1f), 0.75f).SetEase(Ease.InOutSine));
+                    _animationSequence.Insert(sequencePosition, _mid.DOColor(new Color(1f, 0.9f, 0.95f, 1f), 0.75f).SetEase(Ease.InOutSine));
                     break;
             }
 
-            InsertBounces(sequence, sequencePosition, intervalLength, bounceDuration, bounceScale);
+            InsertBounces(_animationSequence, sequencePosition, intervalLength, bounceDuration, bounceScale);
             sequencePosition += intervalLength;
         }
 
-        sequence.Play();
+        _animationSequence.Play();
 
-        _animationSequence = sequence;
         Plugin.InitialTitleAnimation = false;
     }
 
-    internal void OnInitialAnimationComplete()
+    private IEnumerator<object> LoopAnimationWithMusic()
     {
-        PlayAnimation();
-
-        _core.StartCoroutine(WaitForMusicToFinish());
-    }
-
-    private IEnumerator<object> WaitForMusicToFinish()
-    {
-        var lastTime = -999f;
-        yield return new WaitUntil(() =>
+        if (_audioSource != null)
         {
-            if (lastTime > _audioSource.time)//when last time is smaller than current time, return false
+            var lastTime = -999f;
+            while (true)//coroutine will be killed on Destroy
             {
-                return true;
+                yield return new WaitUntil(() =>
+                {
+                    if (lastTime > _audioSource.time)//when last time is smaller than current time, return false
+                    {
+                        return true;
+                    }
+
+                    lastTime = _audioSource.time;
+                    return false;//when last time is bigger then or equal to current time, return true, when they equal do false
+                });
+
+                lastTime = -999f;
+                _audioSource.time = 0f;
+                _audioSource.Play();
+                PlayAnimation();
             }
-
-            lastTime = _audioSource.time;
-            return false;//when last time is bigger then or equal to current time, return true, when they equal do false
-            return _audioSource.time >= _audioSource.clip.length; //return true when time is bigger than the song's lenth
-        });
-
-        TweenUtils.KillTween(_animationSequence);
-
-        _audioSource.time = 0f;
-        _audioSource.Play();
-        PlayAnimation();
-
-        _core.StartCoroutine(WaitForMusicToFinish());
+        }
     }
 
     internal void OnDestroy()
     {
         TweenUtils.KillTween(_animationSequence);
+
+        GameObject.Destroy(_frontSprite);
+        GameObject.Destroy(_foregroundSprite);
+        GameObject.Destroy(_midSprite);
+        GameObject.Destroy(_backSprite);
     }
 }

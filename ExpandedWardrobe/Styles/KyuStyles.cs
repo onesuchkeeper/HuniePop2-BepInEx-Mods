@@ -13,8 +13,8 @@ internal static partial class Styles
     private static readonly int _kyuBodyY = 968;
     public static void AddKyuStyles()
     {
-        var modOutfits = new List<IGirlSubDataMod<GirlOutfitSubDefinition>>();
-        var modHairstyles = new List<IGirlSubDataMod<GirlHairstyleSubDefinition>>();
+        var modOutfits = new List<IBodySubDataMod<GirlOutfitSubDefinition>>();
+        var modHairstyles = new List<IBodySubDataMod<GirlHairstyleSubDefinition>>();
 
         AddPair(modOutfits, modHairstyles, "pamu", "Crushed", "kyu",
             _kyuBodyX - 38, _kyuBodyY - 383,

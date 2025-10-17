@@ -24,9 +24,7 @@ namespace Hp2BaseMod.Utility
             }
         }
 
-        public static void LogComponents(GameObject target) => LogComponents(target, new List<Component>() { });
-
-        private static void LogComponents(GameObject target, List<Component> excluded)
+        public static void LogComponents(GameObject target)
         {
             var components = target.GetComponents<Component>();
 
@@ -39,19 +37,28 @@ namespace Hp2BaseMod.Utility
                 foreach (var component in components)
                 {
                     ModInterface.Log.LogInfo($"Type: {component.GetType().Name}, Name: {component.name}");
-
-                    ModInterface.Log.IncreaseIndent();
-                    if (!excluded.Contains(component))
-                    {
-                        excluded.Add(component);
-                        LogComponents(component.gameObject, excluded.ToList());
-                    }
-                    else
-                    {
-                        ModInterface.Log.LogInfo("Has already been logged, avoiding recursion");
-                    }
-                    ModInterface.Log.DecreaseIndent();
                 }
+            }
+        }
+
+        public static void LogCanvas(GameObject gameObject)
+        {
+            var canvas = gameObject.GetComponentInParent<Canvas>();
+            if (canvas != null)
+            {
+                var scaler = canvas.GetComponent<UnityEngine.UI.CanvasScaler>();
+                if (scaler != null)
+                {
+                    ModInterface.Log.LogInfo($"CanvasScaler- scale mode: {scaler.uiScaleMode}, refResolution:{scaler.referenceResolution}, screenMatchMode:{scaler.screenMatchMode},matchWidthOrHeight:{scaler.matchWidthOrHeight}");
+                }
+                else
+                {
+                    ModInterface.Log.LogInfo($"CanvasScaler- NULL");
+                }
+            }
+            else
+            {
+                ModInterface.Log.LogInfo($"No Canvas Component");
             }
         }
     }

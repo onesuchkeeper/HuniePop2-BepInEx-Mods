@@ -15,7 +15,7 @@ namespace Hp2BaseMod.GameDataInfo
     /// </summary>
     public class GirlDataMod : DataMod, IGirlDataMod
     {
-        public List<(RelativeId, List<IGirlSubDataMod<DialogLine>>)> linesByDialogTriggerId;
+        public List<(RelativeId, List<IDialogLineDataMod>)> linesByDialogTriggerId;
 
         #region Girl Info
 
@@ -143,7 +143,7 @@ namespace Hp2BaseMod.GameDataInfo
             if (def.cellphoneMiniHead) { CellphoneMiniHead = new SpriteInfoInternal(def.cellphoneMiniHead, assetProvider); }
             if (def.cellphoneMiniHeadAlt) { CellphoneMiniHeadAlt = new SpriteInfoInternal(def.cellphoneMiniHeadAlt, assetProvider); }
 
-            linesByDialogTriggerId = new List<(RelativeId, List<IGirlSubDataMod<DialogLine>>)>();
+            linesByDialogTriggerId = new();
 
             int i;
             foreach (var dialogTrigger in dts)
@@ -154,7 +154,7 @@ namespace Hp2BaseMod.GameDataInfo
                 var lines = linesByDialogTriggerId.FirstOrDefault(x => { found = x.Item1 == dialogTriggerId; return found; });
                 if (!found)
                 {
-                    lines = (dialogTriggerId, new List<IGirlSubDataMod<DialogLine>>());
+                    lines = (dialogTriggerId, new());
                     linesByDialogTriggerId.Add(lines);
                 }
 
@@ -206,28 +206,13 @@ namespace Hp2BaseMod.GameDataInfo
             ValidatedSet.SetListValue(ref def.baggageItemDefs, BaggageItemDefIDs?.Select(gameDataProvider.GetItem), InsertStyle);
             ValidatedSet.SetListValue(ref def.uniqueItemDefs, UniqueItemDefIDs?.Select(gameDataProvider.GetItem), InsertStyle);
             ValidatedSet.SetListValue(ref def.shoesItemDefs, ShoesItemDefIDs?.Select(gameDataProvider.GetItem), InsertStyle);
-
-            var expansion = def.Expansion();
-
-            if (bodies != null)
-            {
-                foreach (var body in bodies)
-                {
-                    if (body != null)
-                    {
-                        var bodyDef = expansion.Bodies.GetOrNew(body.Id);
-                        body.SetData(ref bodyDef, gameDataProvider, assetProvider, InsertStyle, Id, def);
-                        expansion.Bodies[body.Id] = bodyDef;
-                    }
-                }
-            }
         }
 
         /// <inheritdoc/>
         public IEnumerable<IGirlBodyDataMod> GetBodyMods() => bodies;
 
         /// <inheritdoc/>
-        public IEnumerable<(RelativeId, IEnumerable<IGirlSubDataMod<DialogLine>>)> GetLinesByDialogTriggerId()
+        public IEnumerable<(RelativeId, IEnumerable<IDialogLineDataMod>)> GetLinesByDialogTriggerId()
             => linesByDialogTriggerId?.Select(x => (x.Item1, x.Item2.Select(x => x)));
 
         /// <inheritdoc/>

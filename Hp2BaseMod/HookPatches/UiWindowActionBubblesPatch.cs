@@ -93,6 +93,8 @@ internal static class UiWindowActionBubblesPatch
                         && (expansion.DateTimes?.Contains(time) ?? true);
                 });
 
+            ModInterface.Log.LogInfo($"Date Loc Pool: [{string.Join(", ", locs.Select(x => x.locationName))}]");
+
             args.Location = locs.ToList().PopRandom();
         }
 

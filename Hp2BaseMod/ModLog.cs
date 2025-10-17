@@ -27,6 +27,11 @@ namespace Hp2BaseMod
         }
 
         /// <summary>
+        /// If debug messages should be printed to the log
+        /// </summary>
+        public bool ShowDebug { get; set; } = false;
+
+        /// <summary>
         /// How indented the log messages will be
         /// </summary>
         private int _indent;
@@ -63,6 +68,11 @@ namespace Hp2BaseMod
         {
             _indent = Math.Max(0, _indent - 1);
             //LogLine("}");
+        }
+
+        public void LogDebug(string message)
+        {
+            if (ShowDebug) LogInfo(message);
         }
 
         /// <summary>
@@ -115,7 +125,6 @@ namespace Hp2BaseMod
         /// outputs to the log
         /// </summary>
         /// <param name="line"></param>
-
         public void LogInfo([System.Runtime.CompilerServices.CallerMemberName] string line = "")
         {
             if (line == null) { line = "null"; }

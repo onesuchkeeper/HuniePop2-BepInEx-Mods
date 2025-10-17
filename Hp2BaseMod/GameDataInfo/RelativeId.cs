@@ -6,7 +6,7 @@ namespace Hp2BaseMod;
 
 [Serializable]
 [TypeConverter(typeof(Converter))]
-public struct RelativeId
+public struct RelativeId : IComparable<RelativeId>
 {
     /// <summary>
     /// The id of the source that defined this.
@@ -81,6 +81,18 @@ public struct RelativeId
 
         relativeId = Default;
         return false;
+    }
+
+    public int CompareTo(RelativeId other)
+    {
+        var sourceDelta = this.SourceId - other.SourceId;
+
+        if (sourceDelta == 0)
+        {
+            return this.LocalId - other.LocalId;
+        }
+
+        return sourceDelta;
     }
 
     public class Converter : TypeConverter

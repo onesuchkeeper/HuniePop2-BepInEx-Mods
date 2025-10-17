@@ -83,13 +83,6 @@ namespace Hp2BaseMod.Save
             if ((bool)inited.GetValue(__instance))
             {
                 ModInterface.ApplyDataMods();
-
-                foreach (var girl in Game.Data.Girls.GetAll())
-                {
-                    ModInterface.Log.LogInfo($"Initializing body for {girl.girlName}");
-                    girl.Expansion().GetBody()?.Apply(girl);
-                }
-
                 ModInterface.Events.NotifyPrePersistenceReset(_saveDataAccess.GetValue(__instance) as SaveData);
             }
         }

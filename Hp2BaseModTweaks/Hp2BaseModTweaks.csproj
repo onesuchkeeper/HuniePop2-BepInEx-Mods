@@ -65,7 +65,15 @@
     <Reference Include="UnityEngine.AssetBundleModule">
       <HintPath>..\lib\UnityEngine.AssetBundleModule.dll</HintPath>
     </Reference>
-    
+    <Reference Include="DOTween">
+      <HintPath>..\lib\DOTween.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.TextMeshPro">
+      <HintPath>..\lib\Unity.TextMeshPro.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.TextRenderingModule">
+      <HintPath>..\lib\UnityEngine.TextRenderingModule.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">

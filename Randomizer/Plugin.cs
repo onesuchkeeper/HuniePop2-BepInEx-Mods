@@ -260,7 +260,9 @@ public class Plugin : BaseUnityPlugin
             
             //The Named
             ("Lily", null),//Half Baked
-            ("Tobias", null),//Tobias Thompson
+            ("Schmendolyn", null),//Mallot
+            //opted for no name
+            
         };
 
         var assignedNames = new Dictionary<GirlDefinition, (string name, string nickName)>();
@@ -316,10 +318,6 @@ public class Plugin : BaseUnityPlugin
             specialGirlExpanded.ExpressionIdToIndex = targetGirlExpanded.ExpressionIdToIndex;
             targetGirlExpanded.ExpressionIdToIndex = holdIdToIndex;
 
-            holdIdToIndex = specialGirlExpanded.PartIdToIndex;
-            specialGirlExpanded.PartIdToIndex = targetGirlExpanded.PartIdToIndex;
-            targetGirlExpanded.PartIdToIndex = holdIdToIndex;
-
             var holdIndexToId = specialGirlExpanded.OutfitIndexToId;
             specialGirlExpanded.OutfitIndexToId = targetGirlExpanded.OutfitIndexToId;
             targetGirlExpanded.OutfitIndexToId = holdIndexToId;
@@ -331,10 +329,6 @@ public class Plugin : BaseUnityPlugin
             holdIndexToId = specialGirlExpanded.ExpressionIndexToId;
             specialGirlExpanded.ExpressionIndexToId = targetGirlExpanded.ExpressionIndexToId;
             targetGirlExpanded.ExpressionIndexToId = holdIndexToId;
-
-            holdIndexToId = specialGirlExpanded.PartIndexToId;
-            specialGirlExpanded.PartIndexToId = targetGirlExpanded.PartIndexToId;
-            targetGirlExpanded.PartIndexToId = holdIndexToId;
 
             var holdBodies = specialGirlExpanded.Bodies;
             specialGirlExpanded.Bodies = targetGirlExpanded.Bodies;

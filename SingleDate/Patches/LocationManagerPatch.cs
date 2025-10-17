@@ -1,5 +1,6 @@
 using System.Reflection;
 using HarmonyLib;
+using Hp2BaseMod.Utility;
 using UnityEngine;
 
 namespace SingleDate;
@@ -7,14 +8,22 @@ namespace SingleDate;
 [HarmonyPatch(typeof(LocationManager))]
 internal static class LocationManagerPatch
 {
-    private static FieldInfo _isLocked = AccessTools.Field(typeof(LocationManager), "_isLocked");
-    private static FieldInfo _arrivalCutscene = AccessTools.Field(typeof(LocationManager), "_arrivalCutscene");
+    private static FieldInfo f_isLocked = AccessTools.Field(typeof(LocationManager), "_isLocked");
+    private static FieldInfo f_arrivalCutscene = AccessTools.Field(typeof(LocationManager), "_arrivalCutscene");
+    private static CutsceneDefinition _baseCutsceneMeeting;
+    private static CutsceneDefinition _singleCutsceneMeeting;
 
     [HarmonyPatch("Awake")]
     [HarmonyPostfix]
     public static void Awake(LocationManager __instance)
     {
         UiPrefabs.InitActionBubbles(__instance.actionBubblesWindow);
+        _baseCutsceneMeeting = __instance.cutsceneMeeting;
+        _singleCutsceneMeeting = new CutsceneDefinition()
+        {
+
+        };
+        GameDataLogUtility.LogCutscene(_baseCutsceneMeeting);
     }
 
     [HarmonyPatch(nameof(LocationManager.Depart))]

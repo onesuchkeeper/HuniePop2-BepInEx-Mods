@@ -249,42 +249,42 @@ public class Plugin : BaseUnityPlugin
             {
                 new GirlBodyDataMod(new RelativeId(-1, 0), InsertStyle.append)
                 {
-                    expressions = new List<IGirlSubDataMod<GirlExpressionSubDefinition>>() {
-                        new GirlExpressionDataMod(GirlExpressions.Neutral, InsertStyle.replace){
+                    expressions = new List<IBodySubDataMod<GirlExpressionSubDefinition>>() {
+                        new DebugExpressionMod(new GirlExpressionDataMod(GirlExpressions.Neutral, InsertStyle.append){
                             PartEyesGlow = kyuEyesGlowNeutralPart
-                        },
-                        new GirlExpressionDataMod(GirlExpressions.Annoyed, InsertStyle.replace){
+                        }),
+                        new GirlExpressionDataMod(GirlExpressions.Annoyed, InsertStyle.append){
                             PartEyesGlow = kyuEyesGlowAnnoyedPart
                         },
-                        new GirlExpressionDataMod(new RelativeId(-1, (int)GirlExpressionType.HORNY), InsertStyle.replace){
+                        new GirlExpressionDataMod(GirlExpressions.Horny, InsertStyle.append){
                             PartEyesGlow = kyuEyesGlowHornyPart
                         },
-                        new GirlExpressionDataMod(GirlExpressions.Disappointed, InsertStyle.replace){
+                        new GirlExpressionDataMod(GirlExpressions.Disappointed, InsertStyle.append){
                             PartEyesGlow = kyuEyesGlowNeutralPart
                         },
-                        new GirlExpressionDataMod(GirlExpressions.Excited, InsertStyle.replace){
+                        new GirlExpressionDataMod(GirlExpressions.Excited, InsertStyle.append){
                             PartEyesGlow = kyuEyesGlowNeutralPart
                         },
-                        new GirlExpressionDataMod(GirlExpressions.Confused, InsertStyle.replace){
+                        new GirlExpressionDataMod(GirlExpressions.Confused, InsertStyle.append){
                             PartEyesGlow = kyuEyesGlowNeutralPart
                         },
-                        new GirlExpressionDataMod(GirlExpressions.Inquisitive, InsertStyle.replace){
+                        new GirlExpressionDataMod(GirlExpressions.Inquisitive, InsertStyle.append){
                             PartEyesGlow = kyuEyesGlowNeutralPart
                         },
-                        new GirlExpressionDataMod(GirlExpressions.Sarcastic, InsertStyle.replace){
+                        new GirlExpressionDataMod(GirlExpressions.Sarcastic, InsertStyle.append){
                             PartEyesGlow = kyuEyesGlowNeutralPart
                         },
-                        new GirlExpressionDataMod(GirlExpressions.Shy, InsertStyle.replace){
+                        new GirlExpressionDataMod(GirlExpressions.Shy, InsertStyle.append){
                             PartEyesGlow = kyuEyesGlowNeutralPart
                         },
-                        new GirlExpressionDataMod(GirlExpressions.Exhausted, InsertStyle.replace){
+                        new GirlExpressionDataMod(GirlExpressions.Exhausted, InsertStyle.append){
                             PartEyesGlow = kyuEyesGlowAnnoyedPart
                         },
-                        new GirlExpressionDataMod(GirlExpressions.Upset, InsertStyle.replace){
+                        new GirlExpressionDataMod(GirlExpressions.Upset, InsertStyle.append){
                             PartEyesGlow = kyuEyesGlowAnnoyedPart
                         },
                     },
-                    BackPosition = new VectorInfo()
+                    HeadPosition = new VectorInfo()
                     {
                         Xpos = 250,
                         Ypos = 804,

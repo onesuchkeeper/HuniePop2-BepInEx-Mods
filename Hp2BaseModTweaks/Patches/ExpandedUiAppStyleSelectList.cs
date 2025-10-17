@@ -34,7 +34,6 @@ namespace Hp2BaseModTweaks
         public static void PostRefresh(UiAppStyleSelectList __instance)
             => ExpandedUiAppStyleSelectList.Get(__instance).PostRefresh();
 
-        //OnBuyButtonPressed(ButtonBehavior buttonBehavior)
         [HarmonyPatch("OnBuyButtonPressed")]
         [HarmonyPrefix]
         public static bool OnBuyButtonPressed(UiAppStyleSelectList __instance, ButtonBehavior buttonBehavior)
@@ -57,16 +56,14 @@ namespace Hp2BaseModTweaks
             return extension;
         }
 
-        private static readonly FieldInfo _origPos = AccessTools.Field(typeof(UiAppStyleSelectList), "_origPos");
-        private static readonly FieldInfo _origBgSize = AccessTools.Field(typeof(UiAppStyleSelectList), "_origBgSize");
-        private static readonly FieldInfo _playerFileGirl = AccessTools.Field(typeof(UiAppStyleSelectList), "_playerFileGirl");
-        private static readonly FieldInfo _purchaseListItem = AccessTools.Field(typeof(UiAppStyleSelectList), "_purchaseListItem");
-        private static readonly FieldInfo _selectedListItem = AccessTools.Field(typeof(UiAppStyleSelectList), "_selectedListItem");
+        private static readonly FieldInfo f_origPos = AccessTools.Field(typeof(UiAppStyleSelectList), "_origPos");
+        private static readonly FieldInfo f_origBgSize = AccessTools.Field(typeof(UiAppStyleSelectList), "_origBgSize");
+        private static readonly FieldInfo f_playerFileGirl = AccessTools.Field(typeof(UiAppStyleSelectList), "_playerFileGirl");
+        private static readonly FieldInfo f_purchaseListItem = AccessTools.Field(typeof(UiAppStyleSelectList), "_purchaseListItem");
+        private static readonly FieldInfo f_selectedListItem = AccessTools.Field(typeof(UiAppStyleSelectList), "_selectedListItem");
 
-
-        private static readonly MethodInfo _onListItemSelected = AccessTools.Method(typeof(UiAppStyleSelectList), "OnListItemSelected");
-        private static readonly MethodInfo _refresh = AccessTools.Method(typeof(UiAppStyleSelectList), "Refresh");
-        private static readonly MethodInfo _onButtonPressed = AccessTools.Method(typeof(UiAppSelectListItem), "OnButtonPressed");
+        private static readonly MethodInfo m_onListItemSelected = AccessTools.Method(typeof(UiAppStyleSelectList), "OnListItemSelected");
+        private static readonly MethodInfo m_refresh = AccessTools.Method(typeof(UiAppStyleSelectList), "Refresh");
 
         private static readonly Vector3 _itemSpacing = new Vector3(0, -33.3333f, 0);
 
@@ -77,11 +74,13 @@ namespace Hp2BaseModTweaks
         private RectTransform _paddingRectTransform;
         private RectTransform _itemContainerRectTransform;
         private List<UiAppSelectListItem> _ownedListItems = new List<UiAppSelectListItem>();
+        private Vector2 _preRefreshPos;
 
         private int _purchaseCost;
         private bool _initialized;
 
         private UiAppStyleSelectList _uiAppStyleSelectList;
+        private LayoutElement _layoutElement;
         private ExpandedUiAppStyleSelectList(UiAppStyleSelectList decorated)
         {
             _uiAppStyleSelectList = decorated;
@@ -91,18 +90,23 @@ namespace Hp2BaseModTweaks
         {
             if (_initialized) { return; }
 
+            //positions
+            var titleShift = new Vector2(0, _uiAppStyleSelectList.titleBar.rectTransform.sizeDelta.y / 2);
+
+            _uiAppStyleSelectList.titleBar.rectTransform.anchoredPosition -= titleShift;
+            _uiAppStyleSelectList.background.anchoredPosition -= titleShift;
+            _uiAppStyleSelectList.buyButton.transform.position += new Vector3(0, 64);
+
             //put a scroll rect in the same position as the list
             var scroll_GO = new GameObject($"{_uiAppStyleSelectList.name}Scroll");
-
+            scroll_GO.transform.SetParent(_uiAppStyleSelectList.transform, true);
             _scrollRectTransform = scroll_GO.AddComponent<RectTransform>();
             _scrollRectTransform.pivot = new Vector2(0.5f, 1f);
-            _scrollRectTransform.position = _uiAppStyleSelectList.background.position - new Vector3(0, 32);
+            _scrollRectTransform.position = _uiAppStyleSelectList.background.position - (2 * new Vector3(0, titleShift.y));
 
-            var image = scroll_GO.AddComponent<Image>();
+            scroll_GO.AddComponent<Image>();
             var scroll_ScrollRect = scroll_GO.AddComponent<ScrollRect>();
             var scroll_Mask = scroll_GO.AddComponent<Mask>();
-
-            scroll_GO.transform.SetParent(_uiAppStyleSelectList.transform, true);
 
             //padding
             var padding_GO = new GameObject($"{_uiAppStyleSelectList.name}Padding");
@@ -117,7 +121,10 @@ namespace Hp2BaseModTweaks
             _itemContainerRectTransform.pivot = new Vector2(0.5f, 1f);
             _itemContainerRectTransform.anchorMin = new Vector2(0.5f, 1f);
             _itemContainerRectTransform.anchorMax = new Vector2(0.5f, 1f);
-            _itemContainerRectTransform.localPosition = new Vector2(_itemContainerRectTransform.localPosition.x, -20f);
+            _itemContainerRectTransform.localPosition = new Vector2(
+                _itemContainerRectTransform.localPosition.x,
+                -20f
+            );
 
             //settings
             scroll_ScrollRect.scrollSensitivity = 18;
@@ -132,8 +139,8 @@ namespace Hp2BaseModTweaks
             _listItemTemplate = UnityEngine.Object.Instantiate(_uiAppStyleSelectList.listItems[0]);
             _listItemTemplate.transform.SetParent(null, true);
 
-            //move the buy buttons up to make room for toggles
-            _uiAppStyleSelectList.buyButton.transform.position = _uiAppStyleSelectList.buyButton.transform.position + new Vector3(0, 32);
+            //layout
+            _layoutElement = _uiAppStyleSelectList.gameObject.AddComponent<LayoutElement>();
 
             _initialized = true;
         }
@@ -153,16 +160,18 @@ namespace Hp2BaseModTweaks
 
         public void PreRefresh()
         {
+            _preRefreshPos = _uiAppStyleSelectList.rectTransform.anchoredPosition;
+
             //if the selected wardrobe is on another page, the wardrobe will populate this with a null
-            //and will throw on refresh. So manually set the playerfile girl from the flag or lola for default
+            //and will throw on refresh. So manually set the playerFile girl from the flag or lola for default
             var def = Game.Data.Girls.Get(Game.Persistence.playerFile.GetFlagValue("wardrobe_girl_id")) ?? Game.Data.Girls.Get(1);
+            var body = def.Expansion().GetCurrentBody();
 
-            _playerFileGirl.SetValue(_uiAppStyleSelectList, Game.Persistence.playerFile.GetPlayerFileGirl(def));
+            f_playerFileGirl.SetValue(_uiAppStyleSelectList, Game.Persistence.playerFile.GetPlayerFileGirl(def));
 
-            if (_initialized)
+            if (_initialized && def != null)
             {
-                if (def == null) { return; }
-
+                //create the correct number of items
                 var diff = (_uiAppStyleSelectList.alternative
                         ? def.outfits.Count
                         : def.hairstyles.Count)
@@ -171,7 +180,6 @@ namespace Hp2BaseModTweaks
                 if (diff > 0)
                 {
                     // add missing
-
                     for (var i = diff; i > 0; i--)
                     {
                         var newItem = UnityEngine.Object.Instantiate(_listItemTemplate);
@@ -202,16 +210,15 @@ namespace Hp2BaseModTweaks
 
         public void PostRefresh()
         {
-            if (!_initialized)
+            if (!_initialized
+                || !f_playerFileGirl.TryGetValue<PlayerFileGirl>(_uiAppStyleSelectList, out var playerFileGirl)
+                || playerFileGirl.girlDefinition == null)
             {
                 return;
             }
 
-            if (!_playerFileGirl.TryGetValue<PlayerFileGirl>(_uiAppStyleSelectList, out var playerFileGirl)
-                            || playerFileGirl.girlDefinition == null)
-            {
-                return;
-            }
+            //ignore anchor changes, let the layout determine position
+            _uiAppStyleSelectList.rectTransform.anchoredPosition = _preRefreshPos;
 
             var postGame = Game.Persistence.playerFile.storyProgress >= 14;
 
@@ -223,8 +230,12 @@ namespace Hp2BaseModTweaks
             var visibleItemCount = 0;
 
             var styleEnumerator = _uiAppStyleSelectList.alternative
-                ? playerFileGirl.girlDefinition.outfits.Select<GirlOutfitSubDefinition, (string Name, ExpandedStyleDefinition Expansion)>(x => (x.outfitName, x.Expansion())).GetEnumerator()
-                : playerFileGirl.girlDefinition.hairstyles.Select<GirlHairstyleSubDefinition, (string Name, ExpandedStyleDefinition Expansion)>(x => (x.hairstyleName, x.Expansion())).GetEnumerator();
+                ? playerFileGirl.girlDefinition.outfits
+                    .Select<GirlOutfitSubDefinition, (string Name, ExpandedStyleDefinition Expansion)>(x => (x.outfitName, x.Expansion()))
+                    .GetEnumerator()
+                : playerFileGirl.girlDefinition.hairstyles
+                    .Select<GirlHairstyleSubDefinition, (string Name, ExpandedStyleDefinition Expansion)>(x => (x.hairstyleName, x.Expansion()))
+                    .GetEnumerator();
 
             var listItemEnumerator = _uiAppStyleSelectList.listItems.GetEnumerator();
 
@@ -311,7 +322,7 @@ namespace Hp2BaseModTweaks
                     || (!_uiAppStyleSelectList.alternative && i == playerFileGirl.hairstyleIndex))
                 {
                     listItemEnumerator.Current.Select(true);
-                    _selectedListItem.SetValue(_uiAppStyleSelectList, listItemEnumerator.Current);
+                    f_selectedListItem.SetValue(_uiAppStyleSelectList, listItemEnumerator.Current);
                 }
                 else
                 {
@@ -321,7 +332,7 @@ namespace Hp2BaseModTweaks
                 i++;
             }
 
-            _purchaseListItem.SetValue(_uiAppStyleSelectList, purchaseItem);
+            f_purchaseListItem.SetValue(_uiAppStyleSelectList, purchaseItem);
 
             purchaseItem?.ShowCost(
                 Game.Session.Gift.GetFruitCategoryInfo(
@@ -353,44 +364,48 @@ namespace Hp2BaseModTweaks
             //fix bg
             if (postGame)
             {
-                _uiAppStyleSelectList.background.sizeDelta = _uiAppStyleSelectList.background.sizeDelta - new Vector2(0, 32);
+                _uiAppStyleSelectList.background.sizeDelta = _uiAppStyleSelectList.background.sizeDelta - new Vector2(0, 80);
             }
             else
             {
-                var origPos = _origPos.GetValue<Vector2>(_uiAppStyleSelectList);
-                var origBgSize = _origBgSize.GetValue<Vector2>(_uiAppStyleSelectList);
+                var origBgSize = f_origBgSize.GetValue<Vector2>(_uiAppStyleSelectList);
 
                 //they all have 1 code and 3 purchase items, so I'll just manually set it
                 //it'd be weird if random ones just started changing sizes
-                var num = 4;
-
-                _uiAppStyleSelectList.rectTransform.anchoredPosition = origPos + Vector2.down * (float)(26 * num);
-                _uiAppStyleSelectList.background.sizeDelta = origBgSize + Vector2.down * (float)(40 * num);
+                var postGameStyleCount = 4;
+                _uiAppStyleSelectList.background.sizeDelta = origBgSize + Vector2.down * (float)(40 * postGameStyleCount);
                 _uiAppStyleSelectList.canvasGroup.alpha = 0f;
                 _uiAppStyleSelectList.canvasGroup.blocksRaycasts = false;
+            }
+
+            _layoutElement.preferredHeight = _uiAppStyleSelectList.background.sizeDelta.y;
+
+            if (postGame)
+            {
+                _layoutElement.preferredHeight += _uiAppStyleSelectList.buyButton.rectTransform.sizeDelta.y + 16;
             }
 
             _scrollRectTransform.sizeDelta = _uiAppStyleSelectList.background.sizeDelta - new Vector2(24, 42);
 
             //for fun and to show the user that the list can scroll, move the scroll to the bottom and have it
             //scroll up
-            _paddingRectTransform.position -= new Vector3(0f, _scrollRectTransform.sizeDelta.y);
+            _paddingRectTransform.position -= new Vector3(0f, _scrollRectTransform.sizeDelta.y / 2);
         }
 
-        private void On_ListItemSelected(UiAppSelectListItem listItem) => _onListItemSelected.Invoke(_uiAppStyleSelectList, [listItem]);
+        private void On_ListItemSelected(UiAppSelectListItem listItem) => m_onListItemSelected.Invoke(_uiAppStyleSelectList, [listItem]);
 
         internal bool OnBuyButtonPressed(ButtonBehavior buttonBehavior)
         {
             //the original maps the index of the buy slot to a table of prices, which will not work for any type of expansion or
             //re-arranging of slots, so we have to overwrite it
-            var purchaseItem = _purchaseListItem.GetValue<UiAppSelectListItem>(_uiAppStyleSelectList);
+            var purchaseItem = f_purchaseListItem.GetValue<UiAppSelectListItem>(_uiAppStyleSelectList);
 
             if (purchaseItem == null)
             {
                 return true;
             }
 
-            var playerFileGirl = _playerFileGirl.GetValue<PlayerFileGirl>(_uiAppStyleSelectList);
+            var playerFileGirl = f_playerFileGirl.GetValue<PlayerFileGirl>(_uiAppStyleSelectList);
 
             var fruitCategoryInfo = Game.Session.Gift.GetFruitCategoryInfo(_uiAppStyleSelectList.alternative
                 ? playerFileGirl.girlDefinition.favoriteAffectionType
@@ -416,7 +431,7 @@ namespace Hp2BaseModTweaks
                 playerFileGirl.hairstyleIndex = itemIndex;
             }
 
-            _refresh.Invoke(_uiAppStyleSelectList, null);
+            m_refresh.Invoke(_uiAppStyleSelectList, null);
 
             ListItemSelectedEvent?.Invoke(_uiAppStyleSelectList, true);
 

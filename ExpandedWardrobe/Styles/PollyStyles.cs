@@ -12,8 +12,8 @@ internal static partial class Styles
     private static readonly int _pollyBodyY = 949;
     public static void AddPollyStyles()
     {
-        var modOutfits = new List<IGirlSubDataMod<GirlOutfitSubDefinition>>();
-        var modHairstyles = new List<IGirlSubDataMod<GirlHairstyleSubDefinition>>();
+        var modOutfits = new List<IBodySubDataMod<GirlOutfitSubDefinition>>();
+        var modHairstyles = new List<IBodySubDataMod<GirlHairstyleSubDefinition>>();
 
         AddPair(modOutfits, modHairstyles, "finalGirl", "Final Girl", "polly",
             _pollyBodyX + 53, _pollyBodyY - 245,

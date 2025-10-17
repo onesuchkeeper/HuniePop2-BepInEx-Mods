@@ -137,7 +137,7 @@ namespace Hp2BaseMod.Save
             saveFileGirl.unlockedHairstyles = UnlockedHairstyles.Where(x => x.SourceId == -1).Select(x => x.LocalId).ToList();
 
             // DateGiftSlots
-            DateGiftSlots = new List<ModSaveInventorySlot>();
+            DateGiftSlots = new();
             foreach (var slot in saveFileGirl.dateGiftSlots)
             {
                 var saveMod = new ModSaveInventorySlot();
@@ -150,17 +150,21 @@ namespace Hp2BaseMod.Save
         public void SetData(SaveFileGirl saveFileGirl)
         {
             //Inventory Slots
-            var saveEnum = saveFileGirl.dateGiftSlots.GetEnumerator();
-            var foo = DateGiftSlots.GetEnumerator();
-            while (saveEnum.MoveNext() && foo.MoveNext())
+            if (DateGiftSlots != null)
             {
-                foo.Current.SetData(saveEnum.Current);
-            }
+                var saveEnum = saveFileGirl.dateGiftSlots.GetEnumerator();
+                var dataGiftSlotsIt = DateGiftSlots.GetEnumerator();
 
-            var i = saveFileGirl.dateGiftSlots.Count;
-            while (foo.MoveNext())
-            {
-                saveFileGirl.dateGiftSlots.Add(foo.Current.Convert(i++));
+                while (saveEnum.MoveNext() && dataGiftSlotsIt.MoveNext())
+                {
+                    dataGiftSlotsIt.Current.SetData(saveEnum.Current);
+                }
+
+                var i = saveFileGirl.dateGiftSlots.Count;
+                while (dataGiftSlotsIt.MoveNext())
+                {
+                    saveFileGirl.dateGiftSlots.Add(dataGiftSlotsIt.Current.Convert(i++));
+                }
             }
 
             Inject(saveFileGirl);
@@ -185,10 +189,13 @@ namespace Hp2BaseMod.Save
                 dateGiftSlots = new List<SaveFileInventorySlot>()
             };
 
-            var i = 0;
-            foreach (var slot in DateGiftSlots)
+            if (DateGiftSlots != null)
             {
-                save.dateGiftSlots.Add(slot.Convert(i++));
+                var i = 0;
+                foreach (var slot in DateGiftSlots)
+                {
+                    save.dateGiftSlots.Add(slot.Convert(i++));
+                }
             }
 
             Inject(save);

@@ -16,6 +16,7 @@ namespace SingleDate;
 [BepInDependency("OSK.BepInEx.Hp2BaseMod", "1.0.0")]
 internal class Plugin : BaseUnityPlugin
 {
+    private readonly static string CONFIG_ERROR = "Failed to find config binding for ";
     internal static Plugin Instance => _instance;
     private static Plugin _instance;
 
@@ -34,7 +35,7 @@ internal class Plugin : BaseUnityPlugin
             }
             else
             {
-                Logger.LogWarning($"Failed to find config binding for {nameof(ShowSingleUpsetHunt)}");
+                Logger.LogWarning(CONFIG_ERROR + nameof(ShowSingleUpsetHunt));
             }
         }
     }
@@ -52,7 +53,7 @@ internal class Plugin : BaseUnityPlugin
             }
             else
             {
-                Logger.LogWarning($"Failed to find config binding for {nameof(SingleDateBaggage)}");
+                Logger.LogWarning(CONFIG_ERROR + nameof(SingleDateBaggage));
             }
         }
     }
@@ -70,7 +71,7 @@ internal class Plugin : BaseUnityPlugin
             }
             else
             {
-                Logger.LogWarning($"Failed to find config binding for {nameof(RequireLoversBeforeThreesome)}");
+                Logger.LogWarning(CONFIG_ERROR + nameof(RequireLoversBeforeThreesome));
             }
         }
     }
@@ -95,7 +96,7 @@ internal class Plugin : BaseUnityPlugin
             }
             else
             {
-                Logger.LogWarning($"Failed to find config binding for {nameof(MaxSingleGirlRelationshipLevel)}");
+                Logger.LogWarning(CONFIG_ERROR + nameof(MaxSingleGirlRelationshipLevel));
             }
         }
     }
@@ -120,7 +121,7 @@ internal class Plugin : BaseUnityPlugin
             }
             else
             {
-                Logger.LogWarning($"Failed to find config binding for {nameof(MaxSensitivityLevel)}");
+                Logger.LogWarning(CONFIG_ERROR + nameof(MaxSensitivityLevel));
             }
         }
     }

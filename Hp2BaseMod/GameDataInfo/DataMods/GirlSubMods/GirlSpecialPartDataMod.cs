@@ -10,11 +10,11 @@ namespace Hp2BaseMod.GameDataInfo
     /// <summary>
     /// Information to make a <see cref="GirlPartSubDefinition"/>.
     /// </summary>
-    public class GirlSpecialPartDataMod : DataMod, IGirlSubDataMod<GirlSpecialPartSubDefinition>
+    public class GirlSpecialPartDataMod : DataMod, IBodySubDataMod<GirlSpecialPartSubDefinition>
     {
         public string SpecialPartName;
 
-        public IGirlSubDataMod<GirlPartSubDefinition> Part;
+        public IBodySubDataMod<GirlPartSubDefinition> Part;
 
         public DollPartSpecialAnimType? AnimType;
 
@@ -47,27 +47,22 @@ namespace Hp2BaseMod.GameDataInfo
         }
 
         /// <inheritdoc/>
-        public void SetData(ref GirlSpecialPartSubDefinition def,
+        public void SetData(GirlSpecialPartSubDefinition def,
                             GameDefinitionProvider gameDataProvider,
                             AssetProvider assetProvider,
-                            InsertStyle insertStyle,
                             RelativeId girlId,
-                            GirlDefinition girlDef)
+                            GirlBodySubDefinition bodyDef)
         {
-            if (def == null)
-            {
-                def = Activator.CreateInstance<GirlSpecialPartSubDefinition>();
-            }
+            if (def == null) { return; }
 
             var expansion = def.Expansion();
 
-            ValidatedSet.SetValue(ref expansion.RequiredHairstyles, RequiredHairstyles, insertStyle);
+            ValidatedSet.SetValue(ref expansion.RequiredHairstyles, RequiredHairstyles, InsertStyle);
 
             ValidatedSet.SetValue(ref def.sortingPartType, SortingPartType);
             ValidatedSet.SetValue(ref def.animType, AnimType);
 
-            var girlExpansion = girlDef.Expansion();
-            ValidatedSet.SetValue(ref def.partIndexSpecial, girlExpansion.PartIdToIndex, Part?.Id);
+            ValidatedSet.SetValue(ref def.partIndexSpecial, bodyDef.PartIdToIndex, Part?.Id);
         }
 
         /// <inheritdoc/>
@@ -77,7 +72,7 @@ namespace Hp2BaseMod.GameDataInfo
         }
 
         /// <inheritdoc/>
-        public IEnumerable<IGirlSubDataMod<GirlPartSubDefinition>> GetPartDataMods()
+        public IEnumerable<IBodySubDataMod<GirlPartSubDefinition>> GetPartDataMods()
         {
             yield return Part;
         }

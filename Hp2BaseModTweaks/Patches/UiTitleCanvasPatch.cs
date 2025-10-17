@@ -34,18 +34,19 @@ namespace Hp2BaseModTweaks
                     return;
                 }
 
-                var LogoImage = coverArt.rectTransform.GetChild(5).GetComponent<Image>();
+                if (coverArt.logo.TryGetComponent<Image>(out var LogoImage))
+                {
+                    var logoTexture = TextureUtility.LoadFromPng(path);
 
-                var logoTexture = TextureUtility.LoadFromPng(path);
+                    LogoImage.sprite = TextureUtility.TextureToSprite(logoTexture, new Vector2(logoTexture.width / 2, logoTexture.height / 2));
 
-                LogoImage.sprite = TextureUtility.TextureToSprite(logoTexture, new Vector2(logoTexture.width / 2, logoTexture.height / 2));
+                    LogoImage.rectTransform.DOSpiral(0.7f, null, SpiralMode.Expand, 5).Play();
+                    LogoImage.rectTransform.DOShakeAnchorPos(0.7f, 40, 15, 100).Play();
 
-                LogoImage.rectTransform.DOSpiral(0.7f, null, SpiralMode.Expand, 5).Play();
-                LogoImage.rectTransform.DOShakeAnchorPos(0.7f, 40, 15, 100).Play();
-
-                Game.Manager.Audio.Play(AudioCategory.SOUND, Game.Data.Tokens.Get(9).sfxMatch);
-                Game.Manager.Audio.Play(AudioCategory.SOUND, Game.Data.Tokens.Get(7).sfxMatch);
-                Game.Manager.Audio.Play(AudioCategory.SOUND, Game.Data.Tokens.Get(5).sfxMatch);
+                    Game.Manager.Audio.Play(AudioCategory.SOUND, Game.Data.Tokens.Get(9).sfxMatch);
+                    Game.Manager.Audio.Play(AudioCategory.SOUND, Game.Data.Tokens.Get(7).sfxMatch);
+                    Game.Manager.Audio.Play(AudioCategory.SOUND, Game.Data.Tokens.Get(5).sfxMatch);
+                }
             }
         }
     }

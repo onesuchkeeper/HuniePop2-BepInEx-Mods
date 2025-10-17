@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -24,17 +25,18 @@ public class GirlBodySubDefinition : SubDefinition
     public int PartIndexBlushHeavy = -1;
     public int PartIndexBlink = -1;
     public int PartIndexMouthNeutral = -1;
-    public List<int> PartIndexesPhonemes = new List<int> { -1, -1, -1, -1, -1 };
-    public List<int> PartIndexesPhonemesTeeth = new List<int> { -1, -1, -1, -1, -1 };
+    public List<int> PartIndexesPhonemes = new() { -1, -1, -1, -1, -1 };
+    public List<int> PartIndexesPhonemesTeeth = new() { -1, -1, -1, -1, -1 };
     public int DefaultExpressionIndex = -1;
     public int FailureExpressionIndex = -1;
     public int DefaultHairstyleIndex = -1;
     public int DefaultOutfitIndex = -1;
 
-    public List<GirlExpressionSubDefinition> Expressions = new List<GirlExpressionSubDefinition>();
-    public List<GirlHairstyleSubDefinition> Hairstyles = new List<GirlHairstyleSubDefinition>();
-    public List<GirlOutfitSubDefinition> Outfits = new List<GirlOutfitSubDefinition>();
-    public List<GirlSpecialPartSubDefinition> SpecialParts = new List<GirlSpecialPartSubDefinition>();
+    public List<GirlExpressionSubDefinition> Expressions = new();
+    public List<GirlHairstyleSubDefinition> Hairstyles = new();
+    public List<GirlOutfitSubDefinition> Outfits = new();
+    public List<GirlSpecialPartSubDefinition> SpecialParts = new();
+    public List<GirlPartSubDefinition> Parts = new();
 
     /// <summary>
     /// The scale of the girl's parts and outline layers
@@ -52,7 +54,6 @@ public class GirlBodySubDefinition : SubDefinition
         UpsetEmitterPos = def.upsetEmitterPos;
 
         SpecialEffectOffset = def.specialEffectOffset;
-
         SpecialEffectPrefab = def.specialEffectPrefab;
 
         PartIndexBody = def.partIndexBody;
@@ -73,6 +74,7 @@ public class GirlBodySubDefinition : SubDefinition
         Hairstyles = def.hairstyles;
         Outfits = def.outfits;
         SpecialParts = def.specialParts;
+        Parts = def.parts;
     }
 
     public void Apply(GirlDefinition def)
@@ -100,5 +102,60 @@ public class GirlBodySubDefinition : SubDefinition
         def.hairstyles = Hairstyles;
         def.outfits = Outfits;
         def.specialParts = SpecialParts;
+        def.parts = Parts;
     }
+
+    /// <summary>
+    /// Maps a part id to its index within the def. 
+    /// Use <see cref="GetPart"/> unless you must access the full collection.
+    /// </summary>
+    public Dictionary<RelativeId, int> PartIdToIndex = new Dictionary<RelativeId, int>()
+    {
+        {RelativeId.Default, -1}
+    };
+
+    /// <summary>
+    /// Maps a part index to its id within the def. 
+    /// Use <see cref="GetPart"/> unless you must access the full collection.
+    /// </summary>
+    public Dictionary<int, RelativeId> PartIndexToId = new Dictionary<int, RelativeId>()
+    {
+        {-1, RelativeId.Default}
+    };
+
+    /// <summary>
+    /// Given an id, returns the associated part.
+    /// </summary>
+    public GirlPartSubDefinition GetPart(RelativeId id)
+    {
+        var index = PartIdToIndex[id];
+
+        return index == -1
+            ? null
+            : Parts[index];
+    }
+
+    /// <summary>
+    /// Maps a hairstyle id to its index within the def. 
+    /// Use <see cref="GetHairstyle"/> unless you must access the full collection.
+    /// </summary>
+    public Dictionary<RelativeId, int> SpecialPartIdToIndex = new Dictionary<RelativeId, int>()
+    {
+        {RelativeId.Default, -1}
+    };
+
+    /// <summary>
+    /// Maps a hairstyle index to its id within the def. 
+    /// Use <see cref="GetHairstyle"/> unless you must access the full collection
+    /// </summary>
+    public Dictionary<int, RelativeId> SpecialPartIndexToId = new Dictionary<int, RelativeId>()
+    {
+        {-1, RelativeId.Default}
+    };
+
+    /// <summary>
+    /// Given an id, returns the associated hairstyle.
+    /// </summary>
+    public GirlSpecialPartSubDefinition GetSpecialPart(RelativeId id)
+        => SpecialParts[SpecialPartIdToIndex[id]];
 }

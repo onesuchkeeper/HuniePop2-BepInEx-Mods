@@ -146,7 +146,7 @@ public partial class HpExtraction : BaseExtraction
 
         foreach (var mod in _hpGirlIdToMod.Values)
         {
-            ModInterface.AddDataMod(new LolaMod(mod));
+            ModInterface.AddDataMod(mod);
         }
     }
 
@@ -264,8 +264,9 @@ public partial class HpExtraction : BaseExtraction
         using (ModInterface.Log.MakeIndent("body"))
         {
             girlMod.bodies ??= new() {
-                new GirlBodyDataMod(new RelativeId(-1,0), InsertStyle.append) {
-                    Scale = 1.34f
+                new GirlBodyDataMod(new RelativeId(Plugin.ModId,0), InsertStyle.append) {
+                    Scale = 1.36f,
+                    bodyName = "HuniePop"
                 }
             };
 
@@ -661,7 +662,7 @@ public partial class HpExtraction : BaseExtraction
                         OutfitPart = pantiesPartMod,
                         IsCodeUnlocked = false,
                         IsPurchased = false,
-                        IsNSFW = false,
+                        IsNSFW = true,
                         HideNipples = true,
                     });
                 }

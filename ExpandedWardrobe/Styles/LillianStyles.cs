@@ -14,8 +14,8 @@ internal static partial class Styles
     private static readonly int _lillianBodyY = 918;
     public static void AddLillianStyles()
     {
-        var modOutfits = new List<IGirlSubDataMod<GirlOutfitSubDefinition>>();
-        var modHairstyles = new List<IGirlSubDataMod<GirlHairstyleSubDefinition>>();
+        var modOutfits = new List<IBodySubDataMod<GirlOutfitSubDefinition>>();
+        var modHairstyles = new List<IBodySubDataMod<GirlHairstyleSubDefinition>>();
 
         AddPair(modOutfits, modHairstyles, "sceneQueen", "Scene Queen", "lillian",
             _lillianBodyX - 17, _lillianBodyY - 208,

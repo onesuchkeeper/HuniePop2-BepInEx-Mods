@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using HarmonyLib;
 using Hp2BaseMod.Extension;
@@ -10,8 +11,8 @@ class UiDoll_ChangeStyle
 {
     [HarmonyPatch(nameof(UiDoll.LoadGirl))]
     [HarmonyPostfix]
-    private static void LoadGirl(UiDoll __instance)
-        => ExpandedUiDoll.Get(__instance).LoadGirl();
+    private static void LoadGirl(UiDoll __instance, GirlDefinition girlDef, int expressionIndex, int hairstyleIndex, int outfitIndex, GirlDefinition soulGirlDef)
+        => ExpandedUiDoll.Get(__instance).LoadGirl(girlDef);
 
     [HarmonyPatch(nameof(UiDoll.UnloadGirl))]
     [HarmonyPostfix]
@@ -25,8 +26,8 @@ class UiDoll_ChangeStyle
 
     [HarmonyPatch(nameof(UiDoll.ChangeHairstyle))]
     [HarmonyPrefix()]
-    public static void ChangeHairstyle(UiDoll __instance, ref int hairstyleIndex)
-        => ExpandedUiDoll.Get(__instance).ChangeHairstyle(ref hairstyleIndex);
+    public static bool ChangeHairstyle(UiDoll __instance, ref int hairstyleIndex)
+        => ExpandedUiDoll.Get(__instance).ChangeHairstyle(hairstyleIndex);
 
     [HarmonyPatch("OnDestroy")]
     [HarmonyPrefix()]
@@ -56,6 +57,10 @@ public class ExpandedUiDoll
     private static readonly FieldInfo f_specialEffect = AccessTools.Field(typeof(UiDoll), "_specialEffect");
     private static readonly FieldInfo f_girlDefinition = AccessTools.Field(typeof(UiDoll), "_girlDefinition");
     private static readonly FieldInfo f_currentOutfitIndex = AccessTools.Field(typeof(UiDoll), "_currentOutfitIndex");
+    private static readonly FieldInfo f_currentHairstyleIndex = AccessTools.Field(typeof(UiDoll), "_currentHairstyleIndex");
+
+    private static readonly MethodInfo m_LoadPart = AccessTools.Method(typeof(UiDoll), "LoadPart");
+    private static readonly MethodInfo m_GetDollPartByType = AccessTools.Method(typeof(UiDoll), "GetDollPartByType");
 
     protected UiDoll _core;
     private UiDollSpecialEffect _specialEffect;
@@ -64,8 +69,18 @@ public class ExpandedUiDoll
         _core = core;
     }
 
-    public void LoadGirl()
+    public void LoadGirl(GirlDefinition girlDef)
     {
+        //scale to match body
+        var body = girlDef.Expansion().GetCurrentBody();
+
+        if (body != null)
+        {
+            var vecScale = new Vector3(body.Scale, body.Scale, 1f);
+            _core.partsLayer.localScale = vecScale;
+            _core.outlineUiEffectGroup.transform.localScale = vecScale;
+        }
+
         //Non special girls wont load special effects by default
         if (_core?.soulGirlDefinition == null
             || _core.soulGirlDefinition.specialEffectPrefab == null)
@@ -73,17 +88,13 @@ public class ExpandedUiDoll
             return;
         }
 
-        var body = ExpandedGirlDefinition.Get(_core.soulGirlDefinition).GetBody();
-        if (body != null)
+        if (_core.soulGirlDefinition.specialEffectPrefab.GetType() == typeof(UiDollSpecialEffectFairyWings))
         {
-            if (_core.soulGirlDefinition.specialEffectPrefab.GetType() == typeof(UiDollSpecialEffectFairyWings))
-            {
-                _core.soulGirlDefinition.specialEffectOffset = body.BackPos;
-            }
-            else if (_core.soulGirlDefinition.specialEffectPrefab.GetType() == typeof(UiDollSpecialEffectGloWings))
-            {
-                _core.soulGirlDefinition.specialEffectOffset = body.HeadPos;
-            }
+            _core.soulGirlDefinition.specialEffectOffset = body.BackPos;
+        }
+        else if (_core.soulGirlDefinition.specialEffectPrefab.GetType() == typeof(UiDollSpecialEffectGloWings))
+        {
+            _core.soulGirlDefinition.specialEffectOffset = body.HeadPos;
         }
 
         if (_core.soulGirlDefinition.specialCharacter) { return; }
@@ -94,7 +105,7 @@ public class ExpandedUiDoll
         specialEffectInstance.rectTransform.SetParent(Game.Session.gameCanvas.dollSpecialEffectContainer, false);
         specialEffectInstance.Init(_core);
 
-        //outfit is changed before specials are set, so correct specials here
+        //outfit is changed before special effects are set, so correct specials here
         if (_core.soulGirlDefinition.outfits[f_currentOutfitIndex.GetValue<int>(_core)].Expansion().HideSpecial)
         {
             _specialEffect = f_specialEffect.GetValue<UiDollSpecialEffect>(_core);
@@ -125,6 +136,13 @@ public class ExpandedUiDoll
         index = Mathf.Clamp(index, 0, girlDef.outfits.Count - 1);
 
         var outfit = girlDef.outfits[index];
+
+        if (outfit == null)
+        {
+            index = girlDef.defaultOutfitIndex;
+            outfit = girlDef.outfits[index];
+        }
+
         var expansion = outfit.Expansion();
 
         if (!Game.Persistence.playerData.uncensored && expansion.IsNSFW)
@@ -146,26 +164,87 @@ public class ExpandedUiDoll
         }
     }
 
-    public void ChangeHairstyle(ref int hairstyleIndex)
+    public bool ChangeHairstyle(int hairstyleIndex)
     {
-        var girlDef = f_girlDefinition.GetValue(_core) as GirlDefinition;
+        if (_core.girlDefinition == null) { return true; }
 
-        if (girlDef == null) { return; }
+        var playerFileGirl = Game.Persistence.playerFile.GetPlayerFileGirl(_core.girlDefinition);
 
-        var playerFileGirl = Game.Persistence.playerFile.GetPlayerFileGirl(girlDef);
-        var index = hairstyleIndex == -1
-                ? playerFileGirl.outfitIndex
-                : hairstyleIndex;
+        // clean input
+        hairstyleIndex = hairstyleIndex == -1
+            ? playerFileGirl.outfitIndex
+            : hairstyleIndex;
 
-        index = Mathf.Clamp(index, 0, girlDef.hairstyles.Count - 1);
+        hairstyleIndex = Mathf.Clamp(hairstyleIndex, 0, _core.girlDefinition.hairstyles.Count - 1);
 
-        var outfit = girlDef.hairstyles[index];
-        var expansion = outfit.Expansion();
+        var hairstyle = _core.girlDefinition.hairstyles[hairstyleIndex];
+
+        if (hairstyle == null)
+        {
+            hairstyleIndex = _core.girlDefinition.defaultHairstyleIndex;
+            hairstyle = _core.girlDefinition.hairstyles[hairstyleIndex];
+        }
+
+        var expansion = hairstyle.Expansion();
 
         if (!Game.Persistence.playerData.uncensored && expansion.IsNSFW)
         {
-            hairstyleIndex = girlDef.defaultOutfitIndex;
+            hairstyleIndex = _core.girlDefinition.defaultHairstyleIndex;
+            hairstyle = _core.girlDefinition.hairstyles[hairstyleIndex];
         }
+
+        f_currentHairstyleIndex.SetValue(_core, hairstyleIndex);
+
+        // load hair
+        m_LoadPart.Invoke(_core, [_core.partBackhair, hairstyle.partIndexBackhair, -1f]);
+        m_LoadPart.Invoke(_core, [_core.partFronthair, hairstyle.partIndexFronthair, -1f]);
+
+        // special parts
+        // make new parts if needed
+        if (_core.girlDefinition.specialParts.Count > _core.partSpecials.Length)
+        {
+            var newParts = new List<UiDollPartSpecial>(_core.partSpecials);
+            var sample = _core.partSpecials[0];
+
+            for (int i = _core.girlDefinition.specialParts.Count - _core.partSpecials.Length; i < 0; i--)
+            {
+                newParts.Add(GameObject.Instantiate(sample));
+            }
+
+            _core.partSpecials = newParts.ToArray();
+        }
+
+        var hairId = _core.girlDefinition.Expansion().HairstyleIndexToId[_core.currentHairstyleIndex];
+
+        int j = 0;
+        foreach (var part in _core.girlDefinition.specialParts)
+        {
+            //make sure special part is allowed
+            //empty or null allows all, otherwise whitelist
+            var specialPartExpansion = part.Expansion();
+            if (specialPartExpansion.RequiredHairstyles != null
+                && specialPartExpansion.RequiredHairstyles.Any()
+                && !specialPartExpansion.RequiredHairstyles.Contains(hairId))
+            {
+                continue;
+            }
+
+            m_LoadPart.Invoke(_core, [_core.partSpecials[j].dollPart, part.partIndexSpecial, -1f]);
+
+            if (part.sortingPartType != GirlPartType.SPECIAL1
+                && part.sortingPartType != GirlPartType.SPECIAL2
+                && part.sortingPartType != GirlPartType.SPECIAL3)
+            {
+                var sibling = (UiDollPart)m_GetDollPartByType.Invoke(_core, [part.sortingPartType]);
+                _core.partSpecials[j].dollPart.rectTransform.SetSiblingIndex(sibling.rectTransform.GetSiblingIndex());
+            }
+
+            _core.partSpecials[j].StartAnimation(part.animType);
+
+            j++;
+        }
+
+        return false;
     }
 
     internal void OnDestroy()

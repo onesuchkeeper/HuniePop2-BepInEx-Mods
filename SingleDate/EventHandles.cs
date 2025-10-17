@@ -31,6 +31,8 @@ internal static class EventHandles
                 Game.Session.gameCanvas.dollRight.dropZone.transform.localPosition += new Vector3(diff.x, diff.y, 0);
             }
 
+            Game.Session.gameCanvas.dollRight.slideLayer.anchoredPosition += diff;
+
             var delta = Game.Session.gameCanvas.header.xValues.y - Game.Session.gameCanvas.header.xValues.x;
 
             Game.Session.Puzzle.puzzleGrid.transform.position = new Vector3(
@@ -228,6 +230,7 @@ internal static class EventHandles
                 : lockedDatePhotos.GetRandom();
         }
 
+        girlSave.UnlockedPhotos ??= new();
         girlSave.UnlockedPhotos.Add(args.BigPhotoId);
     }
 

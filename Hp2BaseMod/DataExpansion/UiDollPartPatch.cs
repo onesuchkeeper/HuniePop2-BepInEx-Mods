@@ -1,14 +1,12 @@
 using System.Reflection;
 using HarmonyLib;
-using Hp2BaseMod.Extension;
-using Hp2BaseMod.GameDataInfo;
 
 namespace Hp2BaseMod;
 
 [HarmonyPatch(typeof(UiDollPart))]
 public class UiDollPartPatch
 {
-    private static readonly FieldInfo _currentGirlPart = AccessTools.Field(typeof(UiDollPart), "_currentGirlPart");
+    private static readonly FieldInfo f_currentGirlPart = AccessTools.Field(typeof(UiDollPart), "_currentGirlPart");
 
     [HarmonyPatch(nameof(UiDollPart.LoadPart))]
     [HarmonyPostfix]
