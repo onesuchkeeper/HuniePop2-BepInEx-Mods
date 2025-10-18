@@ -252,6 +252,15 @@ namespace Hp2BaseMod
                                 expansion.DateTimes.Add(time);
                             }
                         }
+
+                        using (ModInterface.Log.MakeIndent("Questions"))
+                        {
+                            foreach (var def in questionDataDict.Values)
+                            {
+                                var expansion = def.Expansion();
+                                MapRelativeIdRange(expansion.AnswerIdToIndex, expansion.AnswerIndexToId, def.questionAnswers.Count);
+                            }
+                        }
                     }
 
                     ModInterface.Log.LogInfo("loading internal assets");
@@ -407,7 +416,7 @@ namespace Hp2BaseMod
                     PreProcess(questionDataDict, questionDataMods, GameDataType.Question, assetProvider);
                     PreProcess(tokenDataDict, tokenDataMods, GameDataType.Token, assetProvider);
 
-                    using (ModInterface.Log.MakeIndent("Creating and registering data for new ids for girl sub mods"))
+                    using (ModInterface.Log.MakeIndent("Creating and registering data for new ids for sub mods"))
                     {
                         foreach (var girlId_BodyToMods in GirlToBodyToMods)
                         {
@@ -547,6 +556,36 @@ namespace Hp2BaseMod
                             foreach (var location in ModInterface.Data.GetIds(GameDataType.Location).Where(x => x.SourceId != -1))
                             {
                                 //TODO: do good stuff here pls
+                            }
+                        }
+
+                        using (ModInterface.Log.MakeIndent("Favorites"))
+                        {
+                            var idToMods = new Dictionary<RelativeId, List<IQuestionDataMod>>();
+
+                            foreach (var mod in questionDataMods)
+                            {
+                                idToMods.GetOrNew(mod.Id).Add(mod);
+                            }
+
+
+                            foreach (var id_mods in idToMods)
+                            {
+                                using (ModInterface.Log.MakeIndent($"Question {id_mods.Key}"))
+                                {
+                                    var question = questionDataDict[ModInterface.Data.GetRuntimeDataId(GameDataType.Question, id_mods.Key)];
+                                    var expansion = ExpandedQuestionDefinition.Get(id_mods.Key);
+                                    var answers = id_mods.Value.SelectManyNN(x => x.GetAnswerIds()).Distinct();
+
+                                    var index = question.questionAnswers.Count;
+                                    foreach (var id in answers.Where(x => !expansion.AnswerIdToIndex.ContainsKey(x)))
+                                    {
+                                        ModInterface.Log.LogInfo($"Adding answer {id} at index {index}");
+                                        expansion.AnswerIdToIndex[id] = index;
+                                        expansion.AnswerIndexToId[index++] = id;
+                                        question.questionAnswers.Add(null);
+                                    }
+                                }
                             }
                         }
                     }
@@ -718,10 +757,40 @@ namespace Hp2BaseMod
                         ModInterface.Data.RegisterFunctionalAilments(ailmentDataMods.OfType<IFunctionalAilmentDataMod>());
                     }
                 }
+
+                using (ModInterface.Log.MakeIndent("verifying gamedata integrity"))
+                {
+                    var lailani = ModInterface.GameData.GetGirl(Girls.LailaniId);
+
+                    using (ModInterface.Log.MakeIndent("girls"))
+                    {
+                        foreach (var girl in Game.Data.Girls.GetAll())
+                        {
+                            girl.badFoodTypes ??= new();
+                            if (!girl.badFoodTypes.Any())
+                            {
+                                girl.badFoodTypes.Add((ItemFoodType)(-1));
+                            }
+
+                            if (girl.herQuestions.IsNullOrEmpty())
+                            {
+                                girl.herQuestions = lailani.herQuestions;
+                            }
+                            girl.uniqueItemDefs ??= new();
+                            girl.shoesItemDefs ??= new();
+                            girl.baggageItemDefs ??= new();
+                        }
+                    }
+                }
             }
             catch (Exception e)
             {
                 ModInterface.Log.LogError($"{e}");
+            }
+
+            foreach (var question in Game.Data.Questions.GetAll())
+            {
+                ModInterface.Log.LogInfo($"{question.id} {question.questionName} - {string.Join(", ", question.questionAnswers)}");
             }
         }
 

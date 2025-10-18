@@ -199,6 +199,12 @@ internal class Plugin : BaseUnityPlugin
         GirlNobody.AddDataMods();
         ItemSensitivitySmoothie.AddDataMods();
 
+        SingleDateMeetingCutscene.AddDataMods();
+        SingleDateAttractCutscene.AddDataMods();
+        SingleDatePreSexCutscene.AddDataMods();
+        SingleDatePostSexCutscene.AddDataMods();
+        SingleDateSuccessCutscene.AddDataMods();
+
         PhotoDefault.AddDataMods();
         PhotoAbia.AddDataMods();
         PhotoBrooke.AddDataMods();
@@ -244,72 +250,6 @@ internal class Plugin : BaseUnityPlugin
     {
         ModInterface.Events.PreDataMods -= On_PreDataMods;
 
-        //meeting cutscenes
-        ModInterface.AddDataMod(new CutsceneDataMod(new RelativeId(State.ModId, 0), InsertStyle.replace)
-        {
-            CleanUpType = CutsceneCleanUpType.NONE,
-            Steps = new List<IGameDefinitionInfo<CutsceneStepSubDefinition>>()
-            {
-                new CutsceneStepInfo(){
-                    StepType = CutsceneStepType.DIALOG_TRIGGER,
-                    ProceedType = CutsceneStepProceedType.AUTOMATIC,
-                    DollTargetType = CutsceneStepDollTargetType.RANDOM,
-                    DialogTriggerDefinitionID = new RelativeId(-1, 10)//afternoon greeting
-                }
-            }
-        });
-
-        ModInterface.AddDataMod(new CutsceneDataMod(new RelativeId(State.ModId, 1), InsertStyle.replace)
-        {
-            CleanUpType = CutsceneCleanUpType.NONE,
-            Steps = new List<IGameDefinitionInfo<CutsceneStepSubDefinition>>()
-            {
-                //big move dialogue
-                new CutsceneStepInfo(){
-                    StepType = CutsceneStepType.DIALOG_TRIGGER,
-                    ProceedType = CutsceneStepProceedType.AUTOMATIC,
-                    DollTargetType = CutsceneStepDollTargetType.RANDOM,
-                    DialogTriggerDefinitionID = new RelativeId(-1, 34)//big move
-                },
-
-                //wait 0.5 sec
-                new CutsceneStepInfo() {
-                    StepType = CutsceneStepType.NOTHING,
-                    ProceedFloat = 0.5f,
-                    ProceedType = CutsceneStepProceedType.WAIT,
-                },
-
-                //show photo, shown photo is hard coded to the pair data
-                // so instead this is handled in EventHandles.On_SinglePhotoDisplayed 
-                new CutsceneStepInfo() {
-                    StepType = CutsceneStepType.SHOW_WINDOW,
-                    BoolValue = false,
-                    WindowPrefabName = "PhotosWindow",
-                    ProceedType = CutsceneStepProceedType.AUTOMATIC,
-                },
-            }
-        });
-
-        ModInterface.AddDataMod(new CutsceneDataMod(new RelativeId(State.ModId, 2), InsertStyle.replace)
-        {
-            CleanUpType = CutsceneCleanUpType.NONE,
-            Steps = new List<IGameDefinitionInfo<CutsceneStepSubDefinition>>()
-            {
-                new CutsceneStepInfo(){
-                    StepType = CutsceneStepType.DIALOG_TRIGGER,
-                    ProceedType = CutsceneStepProceedType.AUTOMATIC,
-                    DollTargetType = CutsceneStepDollTargetType.RANDOM,
-                    DialogTriggerDefinitionID = new RelativeId(-1, 43)//moan 1
-                }
-            }
-        });
-
-        ModInterface.AddDataMod(new CutsceneDataMod(new RelativeId(State.ModId, 3), InsertStyle.replace)
-        {
-            CleanUpType = CutsceneCleanUpType.NONE,
-            Steps = new List<IGameDefinitionInfo<CutsceneStepSubDefinition>>()
-        });
-
         //styles
         var defaultGirlStyle = new GirlStyleInfo()
         {
@@ -354,10 +294,10 @@ internal class Plugin : BaseUnityPlugin
                 MeetingLocationDefinitionID = new RelativeId(-1, 1 + (pairCount % 8)),
                 SexDayTime = ClockDaytimeType.NIGHT,
                 SexLocationDefinitionID = new RelativeId(-1, 20),//royal suite
-                IntroRelationshipCutsceneDefinitionID = new RelativeId(State.ModId, 0),
-                AttractRelationshipCutsceneDefinitionID = new RelativeId(State.ModId, 1),
-                PreSexRelationshipCutsceneDefinitionID = new RelativeId(State.ModId, 2),
-                PostSexRelationshipCutsceneDefinitionID = new RelativeId(State.ModId, 3),
+                IntroRelationshipCutsceneDefinitionID = CutsceneIds.Meeting,
+                AttractRelationshipCutsceneDefinitionID = CutsceneIds.Attract,
+                PreSexRelationshipCutsceneDefinitionID = CutsceneIds.PreSex,
+                PostSexRelationshipCutsceneDefinitionID = CutsceneIds.PostSex,
                 Styles = defaultPairStyle,
                 FavQuestions = questions
             });

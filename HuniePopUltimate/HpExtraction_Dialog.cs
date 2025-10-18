@@ -170,16 +170,22 @@ public partial class HpExtraction
                 case "QueryDuplicate":
                     break;
                 case "QueryIntro":
+                    ExtractDialogLineSet(new RelativeId(-1, 4), lineSets[0], file);//favQuestionIntro
                     break;
                 case "QuestionBadChoice":
+                    ExtractDialogLineSet(new RelativeId(-1, 3), lineSets[0], file);//herQuestionBadResponse
                     break;
                 case "QuestionCorrect":
+                    ExtractDialogLineSet(new RelativeId(-1, 8), lineSets[0], file);//herQuestionGoodResponse
                     break;
                 case "QuestionIncorrect":
+                    ExtractDialogLineSet(new RelativeId(-1, 5), lineSets[0], file);//favQuestionResponse
                     break;
                 case "QuestionIntro":
+                    ExtractDialogLineSet(new RelativeId(-1, 2), lineSets[0], file);//herQuestionIntro
                     break;
                 case "QuizCorrect":
+                    ExtractDialogLineSet(new RelativeId(-1, 6), lineSets[0], file);//favQuestionAgree
                     break;
                 case "QuizIncorrect":
                     break;
@@ -207,9 +213,9 @@ public partial class HpExtraction
         {
             if (line.TryGetValue("dialogLine", out List<object> dialogLines))
             {
-                //one of these for each girl
+                //one of these for each girl, starting at 1
                 int index = 1;
-                foreach (var dialogLine in dialogLines.OfType<OrderedDictionary>())//skip 0th index which is default
+                foreach (var dialogLine in dialogLines.OfType<OrderedDictionary>())
                 {
                     var girlMod = GetGirlMod(index++);
 
@@ -222,49 +228,7 @@ public partial class HpExtraction
                         lineMods = new();
                         girlMod.linesByDialogTriggerId.Add((dtId, lineMods));
                     }
-                    lineMods.Add(lineMod);
-
-                    //the text may cause a bit of trouble here, it's formatted for the mouth movements
-                    //so we'll see how this goes...
-                    dialogLine.TryGetValue("text", out lineMod.DialogText);
-                    lineMod.DialogText = CleanText(lineMod.DialogText);
-
-                    if (dialogLine.TryGetValue("audioDefinition", out OrderedDictionary audioDefinition)
-                        && TryExtractAudioDef(audioDefinition, file, out var clipInfo))
-                    {
-                        lineMod.AudioClipInfo = clipInfo;
-                    }
-
-                    if (dialogLine.TryGetValue("secondary", out bool secondary)
-                        && secondary
-                        && dialogLine.TryGetValue("secondaryAudioDefinition", out OrderedDictionary secondaryAudioDefinition)
-                        && TryExtractAudioDef(secondaryAudioDefinition, file, out var yuriClipInfo))
-                    {
-                        dialogLine.TryGetValue("secondaryText", out lineMod.YuriDialogText);
-                        lineMod.YuriDialogText = CleanText(lineMod.YuriDialogText);
-                        lineMod.Yuri = true;
-                        lineMod.YuriAudioClipInfo = yuriClipInfo;
-                    }
-
-                    var charCount = 1f / (lineMod.DialogText?.Length ?? 100);
-
-                    if (dialogLine.TryGetValue("startExpression", out OrderedDictionary startExpressionDef))
-                    {
-                        lineMod.StartExpression = ExtractDialogLineExpression(startExpressionDef, charCount);
-                    }
-
-                    if (dialogLine.TryGetValue("endExpression", out OrderedDictionary endExpressionDef))
-                    {
-                        lineMod.EndExpression = ExtractDialogLineExpression(endExpressionDef, charCount);
-                    }
-
-                    if (dialogLine.TryGetValue("expressions", out List<object> expressions))
-                    {
-                        lineMod.Expressions = expressions
-                            .OfType<OrderedDictionary>()
-                            .Select(x => ExtractDialogLineExpression(x, charCount))
-                            .ToList();
-                    }
+                    lineMods.Add(ExtractDialogLine(dialogLine, file));
                 }
             }
         }
@@ -326,5 +290,135 @@ public partial class HpExtraction
         }
 
         return expression;
+    }
+
+    private void ExtractDialogScene(OrderedDictionary dialogSceneDef)
+    {
+        if (dialogSceneDef.TryGetValue("steps", out List<object> steps))
+        {
+            foreach (var step in steps.OfType<OrderedDictionary>())
+            {
+
+            }
+        }
+    }
+
+    private void ExtractDialogSceneStep(OrderedDictionary dialogSceneStep)
+    {
+        if (dialogSceneStep.TryGetValue("type", out int type))
+        {
+            switch (type)
+            {
+                case 0://dialog line
+
+                    break;
+                case 1://response options
+                    break;
+                case 2://branch dialog
+                    break;
+                case 3://show alt girl
+                    break;
+                case 4://hide alt girl
+                    break;
+                case 5://show girl
+                    break;
+                case 6://hide girl
+                    break;
+                case 7://insert scene
+                    break;
+                case 8://wait
+                    break;
+                case 9://set next loc
+                    break;
+                case 10://set met status
+                    break;
+                case 11://dialog trigger
+                    break;
+                case 12://know girl detail
+                    break;
+                case 13://step back
+                    break;
+                case 14://add item
+                    break;
+                case 15://remove item
+                    break;
+                case 16://wait for cellphone close
+                    break;
+                case 17://wait for token match
+                    break;
+                case 18://wait for date gift
+                    break;
+                case 19://unlock cellphone
+                    break;
+                case 20://make game pausable
+                    break;
+                case 21://particle emitter
+                    break;
+                case 22://send message
+                    break;
+            }
+        }
+    }
+
+    private CutsceneStepInfo ExtractDialogSceneLine(OrderedDictionary dialogSceneLineDef)
+    {
+        if (dialogSceneLineDef.TryGetValue("altGirl", out bool altGirl)
+            && dialogSceneLineDef.TryGetValue("dialogLine", out OrderedDictionary dialogLine))
+        {
+            var step = CutsceneStepInfo.MakeDialogLine(new RelativeId(), false, CutsceneStepProceedType.AUTOMATIC, CutsceneStepDollTargetType.ORIENTATION_TYPE);
+            step.TargetDollOrientation = altGirl ? DollOrientationType.LEFT : DollOrientationType.RIGHT;
+            return step;
+        }
+
+        return new();
+    }
+
+    private DialogLineDataMod ExtractDialogLine(OrderedDictionary dialogLine, SerializedFile file)
+    {
+        var lineMod = new DialogLineDataMod(new RelativeId(Plugin.ModId, _dialogLineCount++));
+
+        //the text may cause a bit of trouble here, it's formatted for the mouth movements
+        //so we'll see how this goes...
+        dialogLine.TryGetValue("text", out lineMod.DialogText);
+        lineMod.DialogText = CleanText(lineMod.DialogText);
+
+        if (dialogLine.TryGetValue("audioDefinition", out OrderedDictionary audioDefinition)
+            && TryExtractAudioDef(audioDefinition, file, out var clipInfo))
+        {
+            lineMod.AudioClipInfo = clipInfo;
+        }
+
+        if (dialogLine.TryGetValue("secondary", out bool secondary)
+            && secondary
+            && dialogLine.TryGetValue("secondaryAudioDefinition", out OrderedDictionary secondaryAudioDefinition)
+            && TryExtractAudioDef(secondaryAudioDefinition, file, out var yuriClipInfo))
+        {
+            dialogLine.TryGetValue("secondaryText", out lineMod.YuriDialogText);
+            lineMod.YuriDialogText = CleanText(lineMod.YuriDialogText);
+            lineMod.Yuri = true;
+            lineMod.YuriAudioClipInfo = yuriClipInfo;
+        }
+
+        var charCount = 1f / (lineMod.DialogText?.Length ?? 100);
+
+        if (dialogLine.TryGetValue("startExpression", out OrderedDictionary startExpressionDef))
+        {
+            lineMod.StartExpression = ExtractDialogLineExpression(startExpressionDef, charCount);
+        }
+
+        if (dialogLine.TryGetValue("endExpression", out OrderedDictionary endExpressionDef))
+        {
+            lineMod.EndExpression = ExtractDialogLineExpression(endExpressionDef, charCount);
+        }
+
+        if (dialogLine.TryGetValue("expressions", out List<object> expressions))
+        {
+            lineMod.Expressions = expressions
+                .OfType<OrderedDictionary>()
+                .Select(x => ExtractDialogLineExpression(x, charCount))
+                .ToList();
+        }
+
+        return lineMod;
     }
 }

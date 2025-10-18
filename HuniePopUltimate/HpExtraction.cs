@@ -35,49 +35,12 @@ public partial class HpExtraction : BaseExtraction
     {
         if (!_hpGirlIdToMod.TryGetValue(nativeId, out var girlMod))
         {
-            RelativeId id;
-            switch (nativeId)
+            var id = Girls.FromHp1Id(nativeId);
+            if (id == RelativeId.Default)
             {
-                case 1://tiffany
-                    id = new RelativeId(Plugin.ModId, 0);
-                    break;
-                case 2://aiko
-                    id = new RelativeId(Plugin.ModId, 1);
-                    break;
-                case 3://kyanna
-                    id = new RelativeId(Plugin.ModId, 2);
-                    break;
-                case 4://audrey
-                    id = new RelativeId(Plugin.ModId, 3);
-                    break;
-                case 5://lola
-                    id = Girls.LolaId;
-                    break;
-                case 6://nikki
-                    id = new RelativeId(Plugin.ModId, 4);
-                    break;
-                case 7://jessie
-                    id = Girls.JessieId;
-                    break;
-                case 8://beli
-                    id = new RelativeId(Plugin.ModId, 5);
-                    break;
-                case 9://kyu
-                    id = Girls.KyuId;
-                    break;
-                case 10://momo
-                    id = new RelativeId(Plugin.ModId, 6);
-                    break;
-                case 11://celeste
-                    id = new RelativeId(Plugin.ModId, 7);
-                    break;
-                case 12://venus
-                    id = new RelativeId(Plugin.ModId, 8);
-                    break;
-                default:
-                    ModInterface.Log.LogError($"UNHANDLED Hp1 girl id {nativeId}");
-                    return null;
+                return null;
             }
+
             girlMod = new GirlDataMod(id, InsertStyle.append);
             _hpGirlIdToMod[nativeId] = girlMod;
         }

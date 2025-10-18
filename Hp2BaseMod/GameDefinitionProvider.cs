@@ -113,6 +113,7 @@ namespace Hp2BaseMod
         public PhotoDefinition GetPhoto(RelativeId? id) => id.HasValue ? _gameData.Photos.Get(ModInterface.Data.GetRuntimeDataId(GameDataType.Photo, id.Value)) : null;
         public QuestionDefinition GetQuestion(RelativeId id) => _gameData.Questions.Get(ModInterface.Data.GetRuntimeDataId(GameDataType.Question, id));
         public QuestionDefinition GetQuestion(RelativeId? id) => id.HasValue ? _gameData.Questions.Get(ModInterface.Data.GetRuntimeDataId(GameDataType.Question, id.Value)) : null;
+        public QuestionDefinition GetQuestion(int runtimeId) => _gameData.Questions.Get(runtimeId);
         public TokenDefinition GetToken(RelativeId id) => _gameData.Tokens.Get(ModInterface.Data.GetRuntimeDataId(GameDataType.Token, id));
         public TokenDefinition GetToken(RelativeId? id) => id.HasValue ? _gameData.Tokens.Get(ModInterface.Data.GetRuntimeDataId(GameDataType.Token, id.Value)) : null;
 

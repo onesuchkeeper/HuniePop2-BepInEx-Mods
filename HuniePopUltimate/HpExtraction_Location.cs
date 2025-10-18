@@ -19,26 +19,45 @@ public partial class HpExtraction
         new TextureRsCellphoneOutline(4f, 0f, 1f),
     ];
 
-    private Dictionary<string, string> _locationNameToIconOutlined = new Dictionary<string, string>()
+    private Dictionary<RelativeId, string> _locationIdToIconOutlined = new()
     {
-        {"Bar","item_unique_whisky"},
-        {"Beach","item_date_beach_ball"},
-        {"Cafe","item_baggage_caffeine_junkie"},
-        {"Campus","item_baggage_intellectually_challenged"},
-        {"Gym","item_baggage_abandonment_issues"},
-        {"Mall","item_baggage_brand_loyalist"},
-        {"Nightclub","item_unique_gin"},
-        {"Park","item_date_green_clover"},
+        {LocationIds.Bar,"item_unique_whisky"},
+        {LocationIds.Beach,"item_date_beach_ball"},
+        {LocationIds.Cafe,"item_baggage_caffeine_junkie"},
+        {LocationIds.Campus,"item_baggage_intellectually_challenged"},
+        {LocationIds.Gym,"item_baggage_abandonment_issues"},
+        {LocationIds.Mall,"item_baggage_brand_loyalist"},
+        {LocationIds.NightClub,"item_unique_gin"},
+        {LocationIds.Park,"item_date_green_clover"},
     };
 
-    private Dictionary<string, string> _locationNameToIconInternal = new Dictionary<string, string>()
+    private Dictionary<RelativeId, string> _locationIdToIconInternal = new()
     {
-        {"Bedroom","ui_location_icon_room"},
+        {LocationIds.BedRoom,"ui_location_icon_room"},
+    };
+
+    private Dictionary<RelativeId, ClockDaytimeType> _locationIdToDateTime = new()
+    {
+        {LocationIds.BotanicalGarden, ClockDaytimeType.MORNING},
+        {LocationIds.HikingTrail, ClockDaytimeType.MORNING},
+        {LocationIds.FarmersMarket, ClockDaytimeType.MORNING},
+        {LocationIds.IceRink, ClockDaytimeType.AFTERNOON},
+        {LocationIds.WaterPark, ClockDaytimeType.AFTERNOON},
+        {LocationIds.TennisCourts, ClockDaytimeType.AFTERNOON},
+        {LocationIds.ScenicOverlook, ClockDaytimeType.EVENING},
+        {LocationIds.Casino, ClockDaytimeType.EVENING},
+        {LocationIds.HotSprings, ClockDaytimeType.EVENING},
+        {LocationIds.OutdoorLounge, ClockDaytimeType.NIGHT},
+        {LocationIds.Carnival, ClockDaytimeType.NIGHT},
+        {LocationIds.Restaurant, ClockDaytimeType.NIGHT}
     };
 
     private void ExtractLocation(SerializedFile file, OrderedDictionary locationDef, Dictionary<string, (SerializedFile, OrderedDictionary)> collectionData)
     {
-        var locationMod = new LocationDataMod(new RelativeId(Plugin.ModId, _locationCount++), InsertStyle.replace)
+        if (!locationDef.TryGetValue("id", out int hp1Id)) return;
+        var id = LocationIds.FromHp1Id(hp1Id);
+
+        var locationMod = new LocationDataMod(id, InsertStyle.replace)
         {
             AllowNormal = true
         };
@@ -46,10 +65,10 @@ public partial class HpExtraction
         if (locationDef.TryGetValue("name", out string locationName))
         {
             locationMod.LocationName = locationName;
-            ModInterface.Log.LogInfo(locationName);
+            ModInterface.Log.LogInfo($"{hp1Id} - {locationName}");
         }
 
-        if (_locationNameToIconOutlined.TryGetValue(locationName, out var iconOutlinedName))
+        if (_locationIdToIconOutlined.TryGetValue(id, out var iconOutlinedName))
         {
             locationMod.FinderLocationIcon = new SpriteInfoTexture(
                 new TextureInfoCache(
@@ -58,7 +77,7 @@ public partial class HpExtraction
                 )
             );
         }
-        else if (_locationNameToIconInternal.TryGetValue(locationName, out var iconInternalName))
+        else if (_locationIdToIconInternal.TryGetValue(id, out var iconInternalName))
         {
             locationMod.FinderLocationIcon = new SpriteInfoInternal(iconInternalName);
         }
@@ -118,12 +137,11 @@ public partial class HpExtraction
                 }
             }
 
-            locationMod.DateTimes = [
-                ClockDaytimeType.MORNING,
-                ClockDaytimeType.AFTERNOON,
-                ClockDaytimeType.EVENING,
-                ClockDaytimeType.NIGHT,
-            ];
+            if (locationMod.LocationType == LocationType.DATE && _locationIdToDateTime.TryGetValue(id, out var dateTime))
+            {
+                locationMod.DateTimes = [dateTime];
+            }
+
             ModInterface.AddDataMod(locationMod);
         }
     }

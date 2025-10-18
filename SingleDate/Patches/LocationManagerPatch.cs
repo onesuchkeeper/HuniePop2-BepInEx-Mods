@@ -19,11 +19,17 @@ internal static class LocationManagerPatch
     {
         UiPrefabs.InitActionBubbles(__instance.actionBubblesWindow);
         _baseCutsceneMeeting = __instance.cutsceneMeeting;
+
         _singleCutsceneMeeting = new CutsceneDefinition()
         {
-
+            cleanUpType = CutsceneCleanUpType.NONE,
+            steps = new(){
+                CutsceneStepUtility.MakeDollMove(DollPositionType.INNER, DollOrientationType.RIGHT, CutsceneStepProceedType.AUTOMATIC),
+                CutsceneStepUtility.MakeSubCutsceneGirlPair(GirlPairRelationshipType.UNKNOWN, CutsceneStepProceedType.AUTOMATIC),
+                _baseCutsceneMeeting.steps[5],//compat banner
+                CutsceneStepUtility.MakeTogglePhoneAndHeader(true, CutsceneStepProceedType.AUTOMATIC)
+            }
         };
-        GameDataLogUtility.LogCutscene(_baseCutsceneMeeting);
     }
 
     [HarmonyPatch(nameof(LocationManager.Depart))]
@@ -45,6 +51,17 @@ internal static class LocationManagerPatch
     bool initialArrive = false)
     {
         State.On_LocationManger_Arrive(girlPairDef);
+
+        if (State.IsSingleDate)
+        {
+            __instance.actionBubblesWindow = UiPrefabs.SingleDateBubbles;
+            __instance.cutsceneMeeting = _singleCutsceneMeeting;
+        }
+        else
+        {
+            __instance.actionBubblesWindow = UiPrefabs.DefaultDateBubbles;
+            __instance.cutsceneMeeting = _baseCutsceneMeeting;
+        }
     }
 
     [HarmonyPatch(nameof(LocationManager.Arrive))]
@@ -56,17 +73,11 @@ internal static class LocationManagerPatch
     bool initialArrive = false)
     {
         if (__instance.currentLocation.locationType == LocationType.SPECIAL
-            || __instance.currentLocation.locationType == LocationType.HUB)
+            || __instance.currentLocation.locationType == LocationType.HUB
+            || !State.IsSingleDate)
         {
             return;
         }
-
-        if (!State.IsSingleDate)
-        {
-            __instance.actionBubblesWindow = UiPrefabs.DefaultDateBubbles;
-            return;
-        }
-        __instance.actionBubblesWindow = UiPrefabs.SingleDateBubbles;
 
         if (Game.Session.gameCanvas.dollRight.girlDefinition != __instance.currentGirlPair.girlDefinitionTwo)
         {

@@ -33,6 +33,18 @@ class UiDoll_ChangeStyle
     [HarmonyPrefix()]
     public static void OnDestroy(UiDoll __instance)
         => ExpandedUiDoll.Get(__instance).OnDestroy();
+
+    [HarmonyPatch(nameof(UiDoll.ShowEnergySurge))]
+    [HarmonyPrefix]
+    public static bool ShowEnergySurge(UiDoll __instance, EnergyDefinition energyDef, float duration, bool knockback, bool negative = false, bool silent = false)
+    {
+        if (__instance.girlDefinition != null)
+        {
+            return true;
+        }
+
+        return false;
+    }
 }
 
 /// <summary>
@@ -172,7 +184,7 @@ public class ExpandedUiDoll
 
         // clean input
         hairstyleIndex = hairstyleIndex == -1
-            ? playerFileGirl.outfitIndex
+            ? playerFileGirl.hairstyleIndex
             : hairstyleIndex;
 
         hairstyleIndex = Mathf.Clamp(hairstyleIndex, 0, _core.girlDefinition.hairstyles.Count - 1);

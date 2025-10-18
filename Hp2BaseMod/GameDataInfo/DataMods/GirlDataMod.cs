@@ -45,7 +45,7 @@ namespace Hp2BaseMod.GameDataInfo
 
         public float? SexVoiceVolume;
 
-        public List<ItemFoodType> BadFoodTypes;
+        public ItemFoodType? BadFoodType;//in game it's a list, but the code literally only checks the first index...
 
         public List<RelativeId?> GirlPairDefIDs;
 
@@ -65,7 +65,7 @@ namespace Hp2BaseMod.GameDataInfo
 
         public List<GirlQuestionSubDefinition> HerQuestions;
 
-        public List<int> FavAnswers;
+        public Dictionary<RelativeId, RelativeId> FavAnswers;
 
         #endregion
 
@@ -123,11 +123,17 @@ namespace Hp2BaseMod.GameDataInfo
             ShoesAdj = def.shoesAdj;
             UniqueType = def.uniqueType;
             UniqueAdj = def.uniqueAdj;
-            BadFoodTypes = def.badFoodTypes;
+            BadFoodType = def.badFoodTypes[0];
             HasAltStyles = def.hasAltStyles;
             AltStylesFlagName = def.altStylesFlagName;
             HerQuestions = def.herQuestions;
-            FavAnswers = def.favAnswers;
+
+            FavAnswers = new();
+            int i;
+            for (i = 0; i < def.favAnswers.Count; i++)
+            {
+                FavAnswers[new RelativeId(-1, i)] = new RelativeId(-1, def.favAnswers[i]);
+            }
 
             GirlPairDefIDs = def.girlPairDefs?.Select(x => (RelativeId?)new RelativeId(x)).ToList();
             BaggageItemDefIDs = def.baggageItemDefs?.Select(x => (RelativeId?)new RelativeId(x)).ToList();
@@ -145,7 +151,7 @@ namespace Hp2BaseMod.GameDataInfo
 
             linesByDialogTriggerId = new();
 
-            int i;
+
             foreach (var dialogTrigger in dts)
             {
                 var dialogTriggerId = new RelativeId(dialogTrigger);
@@ -188,10 +194,27 @@ namespace Hp2BaseMod.GameDataInfo
             ValidatedSet.SetValue(ref def.girlNickName, GirlNickName, InsertStyle);
 
             ValidatedSet.SetListValue(ref def.herQuestions, HerQuestions, InsertStyle);
-            ValidatedSet.SetListValue(ref def.favAnswers, FavAnswers, InsertStyle);
+
+            if (FavAnswers != null)
+            {
+                def.favAnswers ??= new();
+                foreach (var answer in FavAnswers)
+                {
+                    var questionIndex = ModInterface.Data.GetRuntimeDataId(GameDataType.Question, answer.Key);
+                    var answerIndex = ModInterface.GameData.GetQuestion(questionIndex).Expansion().AnswerIdToIndex[answer.Value];
+                    def.favAnswers.FillInsert(questionIndex, answerIndex, -1);
+                }
+            }
+
             ValidatedSet.SetValue(ref def.altStylesFlagName, AltStylesFlagName, InsertStyle);
 
-            ValidatedSet.SetListValue(ref def.badFoodTypes, BadFoodTypes, InsertStyle);
+            if (BadFoodType.HasValue)
+            {
+                //the code only looks at the 0th index for some reason...
+                def.badFoodTypes ??= new();
+                def.badFoodTypes[0] = BadFoodType.Value;
+            }
+
             ValidatedSet.SetValue(ref def.shoesAdj, ShoesAdj, InsertStyle);
             ValidatedSet.SetValue(ref def.uniqueAdj, UniqueAdj, InsertStyle);
 

@@ -31,7 +31,9 @@ public class ExpandedLocationDefinition
     /// <summary>
     /// Maps girl id to her style at the location.
     /// </summary>
-    public Dictionary<RelativeId, GirlStyleInfo> GirlIdToLocationStyleInfo = new Dictionary<RelativeId, GirlStyleInfo>();
+    public Dictionary<RelativeId, GirlStyleInfo> GirlIdToLocationStyleInfo = new();
+
+
 
     /// <summary>
     /// Times when this location can be used

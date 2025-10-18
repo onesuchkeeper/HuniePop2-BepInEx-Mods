@@ -101,6 +101,22 @@ public static class GameDataLogUtility
                 case CutsceneStepType.DOLL_MOVE:
                     ModInterface.Log.LogInfo($"dollPositionType: {Enum.GetName(typeof(DollPositionType), step.dollPositionType)}");
                     ModInterface.Log.LogInfo($"Duration: {(step.floatValue > 0 ? step.floatValue : 1f)}");
+                    ModInterface.Log.LogInfo($"TargetType: {Enum.GetName(typeof(CutsceneStepDollTargetType), step.dollTargetType)}");
+                    switch (step.dollTargetType)
+                    {
+                        case CutsceneStepDollTargetType.GIRL_DEFINITION:
+                            ModInterface.Log.LogInfo($"Def: {ModInterface.Data.GetDataId(GameDataType.Girl, step.girlDefinition.id)} - {step.girlDefinition.girlName}");
+                            break;
+                        case CutsceneStepDollTargetType.ORIENTATION_TYPE:
+                            ModInterface.Log.LogInfo($"Orientation: {Enum.GetName(typeof(DollOrientationType), step.targetDollOrientation)}");
+                            break;
+                        case CutsceneStepDollTargetType.FOCUSED:
+                        case CutsceneStepDollTargetType.RANDOM:
+                            break;
+                        default:
+                            ModInterface.Log.LogInfo($"Unknown target type: {step.dollTargetType}");
+                            break;
+                    }
                     break;
                 case CutsceneStepType.LOAD_GIRL:
                     if (step.girlDefinition == null)
@@ -124,16 +140,24 @@ public static class GameDataLogUtility
                     }
                     break;
                 case CutsceneStepType.TOGGLE_PHONE:
-                    if (step.intValue != 0)
+                    if (step.intValue == 0)
                     {
-                        ModInterface.Log.LogInfo(step.intValue > 0 ? "Header" : "Cellphone");
-                        ModInterface.Log.LogInfo(step.boolValue ? "Hub position" : "Normal Position");
+                        ModInterface.Log.LogInfo("Both Header and Lower Cellphone");
                     }
+                    else
+                    {
+                        ModInterface.Log.LogInfo(step.intValue > 0 ? "Header" : "Lower Cellphone");
+                    }
+
+                    ModInterface.Log.LogInfo(step.boolValue ? "Hub position" : "Normal Position");
                     break;
                 case CutsceneStepType.REWIND:
                     ModInterface.Log.LogInfo($"Steps: {Mathf.Abs(step.intValue)}");
                     break;
                 case CutsceneStepType.PUZZLE_GRID:
+                    ModInterface.Log.LogInfo(step.boolValue ? "Show" : "Hide");
+                    break;
+                case CutsceneStepType.BANNER_TEXT:
                     ModInterface.Log.LogInfo(step.boolValue ? "Show" : "Hide");
                     if (step.boolValue)
                     {
@@ -200,6 +224,7 @@ public static class GameDataLogUtility
                     ModInterface.Log.LogInfo($"Show duration: {step.floatValue}");
                     break;
             }
+            ModInterface.Log.LogInfo($"ProceedType: {Enum.GetName(typeof(CutsceneStepProceedType), step.proceedType)}");
         }
     }
 

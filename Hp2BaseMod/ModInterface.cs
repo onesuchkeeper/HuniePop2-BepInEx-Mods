@@ -57,8 +57,8 @@ public static class ModInterface
     internal static IEnumerable<IGameDataMod<PhotoDefinition>> PhotoDataMods => _photoDataMods;
     private static List<IGameDataMod<PhotoDefinition>> _photoDataMods = new List<IGameDataMod<PhotoDefinition>>();
 
-    internal static IEnumerable<IGameDataMod<QuestionDefinition>> QuestionDataMods => _questionDataMods;
-    private static List<IGameDataMod<QuestionDefinition>> _questionDataMods = new List<IGameDataMod<QuestionDefinition>>();
+    internal static IEnumerable<IQuestionDataMod> QuestionDataMods => _questionDataMods;
+    private static List<IQuestionDataMod> _questionDataMods = new();
 
     internal static IEnumerable<IGameDataMod<TokenDefinition>> TokenDataMods => _tokenDataMods;
     private static List<IGameDataMod<TokenDefinition>> _tokenDataMods = new List<IGameDataMod<TokenDefinition>>();
@@ -384,7 +384,7 @@ public static class ModInterface
         _photoDataMods.Add(mod);
         _data.TryRegisterDataId(GameDataType.Photo, mod.Id);
     }
-    public static void AddDataMod(IGameDataMod<QuestionDefinition> mod)
+    public static void AddDataMod(IQuestionDataMod mod)
     {
         if (mod == null) { return; }
         _questionDataMods.Add(mod);

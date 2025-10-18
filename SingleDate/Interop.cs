@@ -27,5 +27,8 @@ internal static class Interop
 
         //Adds sex photos paired with their location id
         ModInterface.RegisterInterModValue(State.ModId, nameof(Plugin.AddGirlSexPhotos), (Action<RelativeId, IEnumerable<RelativeId>>)Plugin.Instance.AddGirlSexPhotos);
+
+        /// Please note, any pair with <see cref="GirlNobody"/> (LocalId 0) as girl 1 will be treated as a single date pair.
+        /// All Data mods are added with a priority of zero
     }
 }

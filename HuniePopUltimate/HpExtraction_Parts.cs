@@ -98,7 +98,7 @@ public partial class HpExtraction
                 {
                     part = new(new RelativeId(Plugin.ModId, _partCount++), InsertStyle.append);
                     part.X = x - 400;
-                    part.Y = -y + 800;
+                    part.Y = -y + 824;
                     part.SpriteInfo = spriteInfo;
                     part.PartType = partType;
 

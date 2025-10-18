@@ -3,14 +3,18 @@ using System.Linq;
 using System.Reflection;
 using HarmonyLib;
 using Hp2BaseMod;
+using Hp2BaseMod.Extension;
 using Hp2BaseMod.Extension.IEnumerableExtension;
+using Hp2BaseMod.Utility;
 using UnityEngine;
 
 namespace SingleDate;
 
 internal static class EventHandles
 {
-    private static readonly FieldInfo _altGirlFocused = AccessTools.Field(typeof(PuzzleStatus), "_altGirlFocused");
+    private static FieldInfo f_roundOverCutscene = AccessTools.Field(typeof(PuzzleManager), "_roundOverCutscene");
+    private static FieldInfo f_newRoundCutscene = AccessTools.Field(typeof(PuzzleManager), "_newRoundCutscene");
+    private static readonly FieldInfo f_altGirlFocused = AccessTools.Field(typeof(PuzzleStatus), "_altGirlFocused");
 
     private static bool _singleDropZone = false;
 
@@ -64,7 +68,7 @@ internal static class EventHandles
         args.SelectedDoll = Game.Session.gameCanvas.dollRight;
 
         //here we force the focus of the puzzle grid because the initial puzzle 'NextRound' occurs before the current pair is set
-        _altGirlFocused.SetValue(Game.Session.Puzzle.puzzleStatus, true);
+        f_altGirlFocused.SetValue(Game.Session.Puzzle.puzzleStatus, true);
     }
 
     internal static void On_FinderSlotsPopulate(FinderSlotPopulateEventArgs args)
@@ -93,8 +97,7 @@ internal static class EventHandles
     private static bool IsIncompleteAttracted(PlayerFileGirlPair filePair, int maxSingleGirlRelationshipLevel) => State.IsSingle(filePair.girlPairDefinition)
         && State.SaveFile.GetGirl(filePair.girlPairDefinition.girlDefinitionTwo.id)?.RelationshipLevel < (maxSingleGirlRelationshipLevel - 1);
 
-    private static FieldInfo _roundOverCutscene = AccessTools.Field(typeof(PuzzleManager), "_roundOverCutscene");
-    private static FieldInfo _newRoundCutscene = AccessTools.Field(typeof(PuzzleManager), "_newRoundCutscene");
+
 
     internal static void On_PreRoundOverCutscene()
     {
@@ -112,32 +115,40 @@ internal static class EventHandles
             return;
         }
 
-        var maxSingleGirlRelationshipLevel = Plugin.Instance.MaxSingleGirlRelationshipLevel;
-
-        bool validSingleLevels = false;
-        if (State.IsSingleDate)
+        ModInterface.Log.LogInfo($"bonusRound: {Game.Session.Puzzle.puzzleStatus.bonusRound}");
+        if (Game.Session.Puzzle.puzzleStatus.bonusRound)
         {
-            var girlSave = State.SaveFile.GetGirl(playerFileGirlPair.girlPairDefinition.girlDefinitionTwo.id);
+            var maxSingleGirlRelationshipLevel = Plugin.Instance.MaxSingleGirlRelationshipLevel;
 
-            //single date relationship levels are handled post round over, so girl will be at max already for bonus round
-            validSingleLevels = girlSave?.RelationshipLevel == maxSingleGirlRelationshipLevel;
+            bool validSingleLevels = false;
+            if (State.IsSingleDate)
+            {
+                var girlSave = State.SaveFile.GetGirl(playerFileGirlPair.girlPairDefinition.girlDefinitionTwo.id);
+
+                //single date relationship levels are handled post round over, so girl will be at max already for bonus round
+                validSingleLevels = girlSave?.RelationshipLevel == maxSingleGirlRelationshipLevel;
+            }
+            else if (Plugin.Instance.RequireLoversBeforeThreesome)
+            {
+                var girlSaveOne = State.SaveFile.GetGirl(playerFileGirlPair.girlPairDefinition.girlDefinitionOne.id);
+                var girlSaveTwo = State.SaveFile.GetGirl(playerFileGirlPair.girlPairDefinition.girlDefinitionTwo.id);
+
+                validSingleLevels = (girlSaveOne == null || girlSaveOne.RelationshipLevel == maxSingleGirlRelationshipLevel)
+                    && (girlSaveTwo == null || girlSaveTwo.RelationshipLevel == maxSingleGirlRelationshipLevel);
+            }
+
+            if (!validSingleLevels)
+            {
+                f_newRoundCutscene.SetValue(Game.Session.Puzzle, null);
+                f_roundOverCutscene.SetValue(Game.Session.Puzzle, State.IsSingleDate
+                    ? ModInterface.GameData.GetCutscene(CutsceneIds.Success)
+                    : Game.Session.Puzzle.cutsceneSuccess);
+            }
         }
-        else if (Plugin.Instance.RequireLoversBeforeThreesome)
+        else if (State.IsSingleDate && f_roundOverCutscene.GetValue<CutsceneDefinition>(Game.Session.Puzzle) == Game.Session.Puzzle.cutsceneSuccess)
         {
-            var girlSaveOne = State.SaveFile.GetGirl(playerFileGirlPair.girlPairDefinition.girlDefinitionOne.id);
-            var girlSaveTwo = State.SaveFile.GetGirl(playerFileGirlPair.girlPairDefinition.girlDefinitionTwo.id);
-
-            validSingleLevels = (girlSaveOne == null || girlSaveOne.RelationshipLevel == maxSingleGirlRelationshipLevel)
-                && (girlSaveTwo == null || girlSaveTwo.RelationshipLevel == maxSingleGirlRelationshipLevel);
-        }
-
-        //disable the bonus round for dates without the correct single relationship level
-        if (!validSingleLevels && Game.Session.Puzzle.puzzleStatus.bonusRound)
-        {
-            ModInterface.Log.LogInfo("Invalid single date level, changing from bonus round to cutscene success");
-            Game.Session.Puzzle.puzzleStatus.gameOver = true;
-            _roundOverCutscene.SetValue(Game.Session.Puzzle, Game.Session.Puzzle.cutsceneSuccess);
-            _newRoundCutscene.SetValue(Game.Session.Puzzle, null);
+            f_newRoundCutscene.SetValue(Game.Session.Puzzle, null);
+            f_roundOverCutscene.SetValue(Game.Session.Puzzle, ModInterface.GameData.GetCutscene(CutsceneIds.Success));
         }
     }
 
@@ -192,7 +203,7 @@ internal static class EventHandles
             return;
         }
 
-        ModInterface.Log.LogInfo("Single Date Photo");//TODO actually unlock the photos, fix the weights on date photos
+        ModInterface.Log.LogInfo("Single Date Photo");//TODO actually unlock the photos in normal file?
 
         var girlId = ModInterface.Data.GetDataId(playerFileGirlPair.girlPairDefinition.girlDefinitionTwo);
         var girlSave = State.SaveFile.GetGirl(girlId);

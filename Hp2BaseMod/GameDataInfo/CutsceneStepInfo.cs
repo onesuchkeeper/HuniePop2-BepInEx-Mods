@@ -15,6 +15,18 @@ namespace Hp2BaseMod.GameDataInfo
     /// </summary>
     public class CutsceneStepInfo : IGameDefinitionInfo<CutsceneStepSubDefinition>
     {
+        public static CutsceneStepInfo MakeDialogLine(RelativeId dialogLineId, bool isDialogBoxLocked, CutsceneStepProceedType proceedType, CutsceneStepDollTargetType dollTargetType)
+        {
+            return new CutsceneStepInfo()
+            {
+                StepType = CutsceneStepType.DIALOG_LINE,
+                BoolValue = isDialogBoxLocked,
+                ProceedType = proceedType,
+                DialogLineId = dialogLineId,
+                DollTargetType = dollTargetType
+            };
+        }
+
         public CutsceneStepType? StepType;
 
         public CutsceneStepProceedType? ProceedType;

@@ -14,6 +14,6 @@ public class SingleSaveGirl
     public void Clean()
     {
         UnlockedPhotos ??= new();
-        UnlockedPhotos = new HashSet<RelativeId>(UnlockedPhotos.Where(x => ModInterface.Data.IsRegistered(GameDataType.Photo, x)));
+        UnlockedPhotos = [.. UnlockedPhotos.Where(x => ModInterface.Data.IsRegistered(GameDataType.Photo, x))];
     }
 }

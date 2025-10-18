@@ -174,8 +174,10 @@ public class Plugin : BaseUnityPlugin
                 Volume = 0.8f
             },
             Backgrounds = new List<IGameDefinitionInfo<Sprite>>(){
+                new SpriteInfoInternal("loc_bg_hub_room_0"),
                 new SpriteInfoInternal("loc_bg_hub_room_1"),
-                new SpriteInfoInternal("loc_bg_hub_room_1")
+                new SpriteInfoInternal("loc_bg_hub_room_2"),
+                new SpriteInfoInternal("loc_bg_hub_room_3"),
             },
             AllowNonStop = true,
             AllowNormal = true,

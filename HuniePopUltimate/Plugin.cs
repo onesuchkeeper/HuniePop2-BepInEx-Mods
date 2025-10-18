@@ -147,8 +147,53 @@ public class Plugin : BaseUnityPlugin
             });
         }
 
+        //favorites
+        FavDrink.AddDataMods();
+        FavExercise.AddDataMods();
+        FavFridayNight.AddDataMods();
+        FavHoliday.AddDataMods();
+        FavIceCream.AddDataMods();
+        FavMovieGenre.AddDataMods();
+        FavMusicGenre.AddDataMods();
+        FavOnlineActivity.AddDataMods();
+        FavOutdoorActivity.AddDataMods();
+        FavOwnBodyPart.AddDataMods();
+        FavPet.AddDataMods();
+        FavPhoneApp.AddDataMods();
+        FavPornCategory.AddDataMods();
+        FavSchoolSubject.AddDataMods();
+        FavSexPos.AddDataMods();
+        FavShop.AddDataMods();
+        FavSundayMorning.AddDataMods();
+        FavThemeParkRide.AddDataMods();
+        FavTrait.AddDataMods();
+        FavWeather.AddDataMods();
+
         //ModInterface.Events.RequestUnlockedPhotos += On_RequestUnlockedPhotos;
         ModInterface.Events.PreLoadPlayerFile += On_PreLoadPlayerFile;
+
+        ModInterface.Events.FinderSlotsPopulate += On_FinderSlotsPopulate;
+    }
+
+    private void On_FinderSlotsPopulate(FinderSlotPopulateEventArgs args)
+    {
+        var time = (ClockDaytimeType)(Game.Persistence.playerFile.daytimeElapsed % 4);
+
+        switch (time)
+        {
+            case ClockDaytimeType.MORNING:
+                args.RemoveGirlFromAllPools(Girls.Nikki);
+                args.RemoveGirlFromAllPools(Girls.Celeste);
+                break;
+            case ClockDaytimeType.AFTERNOON:
+                args.RemoveGirlFromAllPools(Girls.Celeste);
+                break;
+            case ClockDaytimeType.EVENING:
+                args.RemoveGirlFromAllPools(Girls.Momo);
+                break;
+            case ClockDaytimeType.NIGHT:
+                break;
+        }
     }
 
     // private void On_RequestUnlockedPhotos(RequestUnlockedPhotosEventArgs args)

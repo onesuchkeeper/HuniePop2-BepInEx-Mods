@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Hp2BaseMod.GameDataInfo;
 using UnityEngine;
 
 namespace Hp2BaseMod.Utility;
@@ -14,6 +15,7 @@ public static class CutsceneStepUtility
             proceedType = proceedType
         };
     }
+
     public static CutsceneStepSubDefinition MakeBranch(IEnumerable<CutsceneBranchSubDefinition> branches, CutsceneStepProceedType proceedType)
     {
         return new CutsceneStepSubDefinition()
@@ -23,6 +25,7 @@ public static class CutsceneStepUtility
             proceedType = proceedType
         };
     }
+
     public static CutsceneStepSubDefinition MakeGameAction(LogicAction logicAction, CutsceneStepProceedType proceedType)
     {
         return new CutsceneStepSubDefinition()
@@ -106,6 +109,7 @@ public static class CutsceneStepUtility
             proceedType = proceedType
         };
     }
+
     public static CutsceneStepSubDefinition MakeDollMove(DollPositionType positionType, CutsceneStepDollTargetType dollTargetType, CutsceneStepProceedType proceedType, float duration = 1f)
     {
         return new CutsceneStepSubDefinition()
@@ -117,6 +121,33 @@ public static class CutsceneStepUtility
             proceedType = proceedType
         };
     }
+
+    public static CutsceneStepSubDefinition MakeDollMove(DollPositionType positionType, GirlDefinition targetDef, CutsceneStepProceedType proceedType, float duration = 1f)
+    {
+        return new CutsceneStepSubDefinition()
+        {
+            stepType = CutsceneStepType.DOLL_MOVE,
+            dollPositionType = positionType,
+            floatValue = duration,
+            dollTargetType = CutsceneStepDollTargetType.GIRL_DEFINITION,
+            targetGirlDefinition = targetDef,
+            proceedType = proceedType
+        };
+    }
+
+    public static CutsceneStepSubDefinition MakeDollMove(DollPositionType positionType, DollOrientationType targetOrientation, CutsceneStepProceedType proceedType, float duration = 1f)
+    {
+        return new CutsceneStepSubDefinition()
+        {
+            stepType = CutsceneStepType.DOLL_MOVE,
+            dollPositionType = positionType,
+            floatValue = duration,
+            dollTargetType = CutsceneStepDollTargetType.ORIENTATION_TYPE,
+            targetDollOrientation = targetOrientation,
+            proceedType = proceedType
+        };
+    }
+
     public static CutsceneStepSubDefinition MakeLoadGirl(GirlDefinition girlDefinition, CutsceneStepDollTargetType dollTargetType, CutsceneStepProceedType proceedType)
     {
         return new CutsceneStepSubDefinition()
@@ -167,6 +198,16 @@ public static class CutsceneStepUtility
         {
             stepType = CutsceneStepType.TOGGLE_PHONE,
             intValue = 1,
+            boolValue = leftPosition_centerPosition,
+            proceedType = proceedType
+        };
+    }
+    public static CutsceneStepSubDefinition MakeTogglePhoneAndHeader(bool leftPosition_centerPosition, CutsceneStepProceedType proceedType)
+    {
+        return new CutsceneStepSubDefinition()
+        {
+            stepType = CutsceneStepType.TOGGLE_PHONE,
+            intValue = 0,
             boolValue = leftPosition_centerPosition,
             proceedType = proceedType
         };
@@ -347,6 +388,24 @@ public static class CutsceneStepUtility
             floatValue = duration,
             dollTargetType = dollTargetType,
             proceedType = proceedType
+        };
+    }
+
+    public static CutsceneStepSubDefinition MakeBannerTextHide()
+    {
+        return new CutsceneStepSubDefinition()
+        {
+            boolValue = true
+        };
+    }
+
+    public static CutsceneStepSubDefinition MakeBannerText(BannerTextBehavior bannerTextBehavior, int effectsContainerIndex)
+    {
+        return new CutsceneStepSubDefinition()
+        {
+            bannerTextPrefab = bannerTextBehavior,
+            intValue = effectsContainerIndex,
+            boolValue = false
         };
     }
 }

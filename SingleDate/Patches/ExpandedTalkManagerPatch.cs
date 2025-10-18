@@ -48,50 +48,21 @@ internal class ExpandedTalkManager
         var talkStepIndex = _talkStepIndex.GetValue<int>(_talkManager);
 
         if (_talkManager.talkType != TalkWithType.FAVORITE_QUESTION
-            || !(talkStepIndex == 0 || talkStepIndex == 2)
+            || talkStepIndex != 2
             || !State.IsSingle(_girlPair.GetValue<GirlPairDefinition>(_talkManager)))
         {
             return true;
         }
 
-        //replace step 1 and 3 for single date pairs
+        //replace step 3 for single date pairs
         talkStepIndex++;
         _talkStepIndex.SetValue(_talkManager, talkStepIndex);
 
         var filePair = _fileGirlPair.GetValue<PlayerFileGirlPair>(_talkManager);
 
-        switch (talkStepIndex)
-        {
-            case 1:
-                //3 random questions
-                var questionPool = _questionPool.GetValue<List<QuestionDefinition>>(_talkManager);
-                questionPool.Clear();
-
-                var pair = _girlPair.GetValue<GirlPairDefinition>(_talkManager);
-                var favQuestionIndexes = ListUtils.GetIndexList(pair.favQuestions);
-                favQuestionIndexes.RemoveAll(filePair.recentFavQuestions.Contains);
-                ListUtils.ShuffleList(favQuestionIndexes);
-                favQuestionIndexes.RemoveRange(0, favQuestionIndexes.Count - 3);
-
-                foreach (var index in favQuestionIndexes)
-                {
-                    filePair.AddRecentFavQuestion(index);
-                    questionPool.Add(pair.favQuestions[index].questionDefinition);
-                }
-
-                Game.Session.Dialog.ShowDialogOptions(
-                    questionPool.Select(x => new DialogOptionInfo(x.questionText, _talkManager.favQuestionDefinitions.IndexOf(x))).ToList(),
-                    true,
-                    true);
-
-                Game.Session.Dialog.DialogOptionSelectedEvent += OnDialogOptionSelected;
-                break;
-            case 3:
-                //ignore response from other girl, cuz there is no other girl
-                filePair.LearnFavAnswer(_talkManager.favQuestionDefinitions[Game.Session.Dialog.selectedDialogOptionIndex]);
-                _talkStep.Invoke(_talkManager, null);
-                break;
-        }
+        //ignore response from other girl, cuz there is no other girl
+        filePair.LearnFavAnswer(_talkManager.favQuestionDefinitions[Game.Session.Dialog.selectedDialogOptionIndex]);
+        _talkStep.Invoke(_talkManager, null);
 
         return false;
     }

@@ -9,13 +9,13 @@ namespace Hp2BaseMod.GameDataInfo
     /// <summary>
     /// Serializable information to make a QuestionDefinition
     /// </summary>
-    public class QuestionDataMod : DataMod, IGameDataMod<QuestionDefinition>
+    public class QuestionDataMod : DataMod, IQuestionDataMod
     {
         public string QuestionName;
 
         public string QuestionText;
 
-        public List<string> QuestionAnswers;
+        public Dictionary<RelativeId, string> QuestionAnswers;
 
         /// <inheritdoc/>
         public QuestionDataMod() { }
@@ -39,7 +39,13 @@ namespace Hp2BaseMod.GameDataInfo
         {
             QuestionName = def.questionName;
             QuestionText = def.questionText;
-            QuestionAnswers = def.questionAnswers;
+
+            QuestionAnswers = new();
+            int i = 0;
+            foreach (var answer in def.questionAnswers)
+            {
+                QuestionAnswers[new RelativeId(-1, i++)] = answer;
+            }
         }
 
         /// <inheritdoc/>
@@ -47,8 +53,20 @@ namespace Hp2BaseMod.GameDataInfo
         {
             ValidatedSet.SetValue(ref def.questionName, QuestionName, InsertStyle);
             ValidatedSet.SetValue(ref def.questionText, QuestionText, InsertStyle);
-            ValidatedSet.SetListValue(ref def.questionAnswers, QuestionAnswers, InsertStyle);
+
+            var expansion = def.Expansion();
+
+            if (QuestionAnswers != null)
+            {
+                foreach (var id_answer in QuestionAnswers)
+                {
+                    def.questionAnswers[expansion.AnswerIdToIndex[id_answer.Key]] = id_answer.Value;
+                }
+            }
         }
+
+        /// <inheritdoc/>
+        public IEnumerable<RelativeId> GetAnswerIds() => QuestionAnswers?.Keys;
 
         /// <inheritdoc/>
         public void RequestInternals(AssetProvider assetProvider)
