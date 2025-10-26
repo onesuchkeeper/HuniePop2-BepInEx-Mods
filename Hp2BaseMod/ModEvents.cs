@@ -91,5 +91,8 @@ namespace Hp2BaseMod
 
         public event Action<SinglePhotoDisplayArgs> SinglePhotoDisplayed;
         internal void NotifySinglePhotoDisplayed(SinglePhotoDisplayArgs args) => SinglePhotoDisplayed?.Invoke(args);
+
+        public event Action<PreDateDollResetArgs> PreDateDollReset;
+        internal void NotifyPreDateDollReset(PreDateDollResetArgs args) => PreDateDollReset?.Invoke(args);
     }
 }

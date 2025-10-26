@@ -226,7 +226,7 @@ internal class Plugin : BaseUnityPlugin
             // all others
             else
             {
-                ModInterface.Log.LogInfo($"Adding nude outfits for girl {girlId}");
+                ModInterface.Log.LogInfo($"Adding nude outfit for girl {girlId}");
 
                 ModInterface.AddDataMod(new GirlDataMod(girlId, InsertStyle.append)
                 {

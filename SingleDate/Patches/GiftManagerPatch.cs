@@ -83,7 +83,7 @@ internal static class GiftManagerPatch
                 Game.Manager.Audio.Play(AudioCategory.SOUND, __instance.sfxResourceFlourish, doll.pauseDefinition);
                 Game.Session.Puzzle.puzzleStatus.CheckChanges();
 
-                // literally nothing subscribes to this...
+                // literally nothing subscribes to this...//maybe the ui does...
                 // if (this.GiftGivenEvent != null)
                 // {
                 //     this.GiftGivenEvent(itemDef);

@@ -1,53 +1,67 @@
 ﻿using System;
 using Hp2BaseMod.Utility;
 
-namespace Hp2BaseMod.GameDataInfo
+namespace Hp2BaseMod.GameDataInfo;
+public class GirlStyleInfo
 {
-    public class GirlStyleInfo
+    public RelativeId? OutfitId;
+
+    public RelativeId? HairstyleId;
+
+    public GirlStyleInfo()
     {
-        public RelativeId? OutfitId;
 
-        public RelativeId? HairstyleId;
+    }
 
-        public void SetData(ref GirlStyleInfo def)
+    public GirlStyleInfo(RelativeId styleId)
+    {
+        OutfitId = HairstyleId = styleId;
+    }
+
+    public GirlStyleInfo(RelativeId outfitId, RelativeId hairId)
+    {
+        OutfitId = outfitId;
+        HairstyleId = hairId;
+    }
+
+    public void SetData(ref GirlStyleInfo def)
+    {
+        if (def == null)
         {
-            if (def == null)
-            {
-                def = new GirlStyleInfo() { OutfitId = RelativeId.Default, HairstyleId = RelativeId.Default };
-            }
-
-            ValidatedSet.SetValue(ref def.OutfitId, OutfitId, InsertStyle.replace);
-            ValidatedSet.SetValue(ref def.HairstyleId, HairstyleId, InsertStyle.replace);
+            def = new GirlStyleInfo() { OutfitId = RelativeId.Default, HairstyleId = RelativeId.Default };
         }
 
-        public void ReplaceRelativeIds(Func<RelativeId?, RelativeId?> getNewId)
+        ValidatedSet.SetValue(ref def.OutfitId, OutfitId, InsertStyle.replace);
+        ValidatedSet.SetValue(ref def.HairstyleId, HairstyleId, InsertStyle.replace);
+    }
+
+    public void ReplaceRelativeIds(Func<RelativeId?, RelativeId?> getNewId)
+    {
+        OutfitId = getNewId(OutfitId);
+        HairstyleId = getNewId(OutfitId);
+    }
+
+    public void Apply(UiDoll doll, int defaultOutfitIndex, int defaultHairstyleIndex)
+    {
+        if (!ModInterface.Data.TryGetDataId(GameDataType.Girl, (doll.soulGirlDefinition ?? doll.girlDefinition).id, out var girlId))
         {
-            OutfitId = getNewId(OutfitId);
-            HairstyleId = getNewId(OutfitId);
+            return;
         }
 
-        public void Apply(UiDoll doll, int defaultOutfitIndex, int defaultHairstyleIndex)
+        var expandedGirl = ExpandedGirlDefinition.Get(girlId);
+
+        if (OutfitId.HasValue)
         {
-            if (!ModInterface.Data.TryGetDataId(GameDataType.Girl, (doll.soulGirlDefinition ?? doll.girlDefinition).id, out var girlId))
-            {
-                return;
-            }
+            doll.ChangeOutfit(expandedGirl.OutfitIdToIndex.TryGetValue(OutfitId.Value, out var index)
+                ? index
+                : defaultOutfitIndex);
+        }
 
-            var expandedGirl = ExpandedGirlDefinition.Get(girlId);
-
-            if (OutfitId.HasValue)
-            {
-                doll.ChangeOutfit(expandedGirl.OutfitIdToIndex.TryGetValue(OutfitId.Value, out var index)
-                    ? index
-                    : defaultOutfitIndex);
-            }
-
-            if (HairstyleId.HasValue)
-            {
-                doll.ChangeHairstyle(expandedGirl.HairstyleIdToIndex.TryGetValue(HairstyleId.Value, out var index)
-                    ? index
-                    : defaultHairstyleIndex);
-            }
+        if (HairstyleId.HasValue)
+        {
+            doll.ChangeHairstyle(expandedGirl.HairstyleIdToIndex.TryGetValue(HairstyleId.Value, out var index)
+                ? index
+                : defaultHairstyleIndex);
         }
     }
 }

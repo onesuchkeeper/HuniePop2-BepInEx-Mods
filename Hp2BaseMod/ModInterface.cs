@@ -51,8 +51,8 @@ public static class ModInterface
     internal static IEnumerable<IGameDataMod<ItemDefinition>> ItemDataMods => _itemDataMods;
     private static List<IGameDataMod<ItemDefinition>> _itemDataMods = new List<IGameDataMod<ItemDefinition>>();
 
-    internal static IEnumerable<ILocationDataMod> LocationDataMods => _locationDataMods;
-    private static List<ILocationDataMod> _locationDataMods = new List<ILocationDataMod>();
+    internal static IEnumerable<IGameDataMod<LocationDefinition>> LocationDataMods => _locationDataMods;
+    private static List<IGameDataMod<LocationDefinition>> _locationDataMods = new();
 
     internal static IEnumerable<IGameDataMod<PhotoDefinition>> PhotoDataMods => _photoDataMods;
     private static List<IGameDataMod<PhotoDefinition>> _photoDataMods = new List<IGameDataMod<PhotoDefinition>>();
@@ -372,7 +372,7 @@ public static class ModInterface
         _itemDataMods.Add(mod);
         _data.TryRegisterDataId(GameDataType.Item, mod.Id);
     }
-    public static void AddDataMod(ILocationDataMod mod)
+    public static void AddDataMod(IGameDataMod<LocationDefinition> mod)
     {
         if (mod == null) { return; }
         _locationDataMods.Add(mod);

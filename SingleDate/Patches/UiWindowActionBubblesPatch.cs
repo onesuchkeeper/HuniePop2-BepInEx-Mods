@@ -1,5 +1,6 @@
 using System.Reflection;
 using HarmonyLib;
+using Hp2BaseMod.Extension;
 using UnityEngine;
 
 namespace SingleDate;
@@ -7,8 +8,8 @@ namespace SingleDate;
 [HarmonyPatch(typeof(UiWindowActionBubbles))]
 internal static class UiWindowActionBubblesPatch
 {
-    private static FieldInfo _highlightedBubble = AccessTools.Field(typeof(UiWindowActionBubbles), "_highlightedBubble");
-    private static FieldInfo _selectedBubble = AccessTools.Field(typeof(UiWindowActionBubbles), "_selectedBubble");
+    private static FieldInfo f_highlightedBubble = AccessTools.Field(typeof(UiWindowActionBubbles), "_highlightedBubble");
+    private static FieldInfo f_tooltip = AccessTools.Field(typeof(UiWindowActionBubbles), "_tooltip");
 
     [HarmonyPatch("OnActionBubbleEnter")]
     [HarmonyPrefix]
@@ -19,11 +20,21 @@ internal static class UiWindowActionBubblesPatch
         if (State.IsSingleDate
             && (actionBubble.actionBubbleType == ActionBubbleType.DATE || actionBubble.actionBubbleType == ActionBubbleType.TALK))
         {
-            _highlightedBubble.SetValue(__instance, actionBubble);
+            f_highlightedBubble.SetValue(__instance, actionBubble);
 
             if (actionBubble.actionBubbleType == ActionBubbleType.TALK)
             {
                 Game.Session.Talk.ShowStaminaHint(2, 2);
+            }
+            else if (actionBubble.actionBubbleType == ActionBubbleType.DATE)
+            {
+                var statusGirl = Game.Session.Puzzle.puzzleStatus.GetStatusGirl(true);
+                if (statusGirl.stamina < 1)
+                {
+                    var tooltip = f_tooltip.GetValue<UiTooltipSimple>(__instance);
+                    tooltip.Populate("No Stamina!", 1, 1f, 1920f);
+                    tooltip.Show(Vector2.up * 50f);
+                }
             }
 
             Game.Manager.Audio.Play(AudioCategory.SOUND, __instance.sfxBubbleOver, null).audioSource.pitch = Random.Range(1f, 2f);
@@ -32,5 +43,15 @@ internal static class UiWindowActionBubblesPatch
         }
 
         return true;
+    }
+
+    [HarmonyPatch("OnActionBubbleExit")]
+    [HarmonyPostfix]
+    private static void OnActionBubbleExit(UiWindowActionBubbles __instance, UiActionBubble actionBubble)
+    {
+        if (actionBubble.actionBubbleType == ActionBubbleType.DATE)
+        {
+            f_tooltip.GetValue<UiTooltipSimple>(__instance).Hide();
+        }
     }
 }

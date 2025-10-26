@@ -107,6 +107,8 @@ public partial class HpExtraction : BaseExtraction
             }
         }
 
+        AddHp2GirlLocMods();
+
         foreach (var mod in _hpGirlIdToMod.Values)
         {
             ModInterface.AddDataMod(mod);
@@ -229,7 +231,7 @@ public partial class HpExtraction : BaseExtraction
             girlMod.bodies ??= new() {
                 new GirlBodyDataMod(new RelativeId(Plugin.ModId,0), InsertStyle.append) {
                     Scale = 1.36f,
-                    bodyName = "HuniePop"
+                    bodyName = "HuniePop",
                 }
             };
 
@@ -284,6 +286,8 @@ public partial class HpExtraction : BaseExtraction
                                 && TryMakePartDataMod(GirlPartType.OUTFIT, outfitPartDef, spriteLookup, spriteTextureInfo,
                                     out var outfitPart, out var outfitSpriteInfo))
                             {
+                                ModInterface.Log.LogInfo($"Outfit {outfitName} - {outfitCount}");
+
                                 body.outfits.Add(new OutfitDataMod(new RelativeId(Plugin.ModId, outfitCount++), InsertStyle.append)
                                 {
                                     Name = outfitName,

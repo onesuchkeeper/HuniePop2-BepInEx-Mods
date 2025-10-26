@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Hp2BaseMod.Extension.IEnumerableExtension;
@@ -50,6 +51,8 @@ namespace Hp2BaseMod.GameDataInfo
         public IBodySubDataMod<GirlPartSubDefinition> PhonemesTeeth_other;
 
         public float? Scale;
+
+        public Dictionary<RelativeId, GirlStyleInfo> LocationIdToStyleInfo;
 
         /// <inheritdoc/>
         public GirlBodyDataMod() { }
@@ -155,6 +158,22 @@ namespace Hp2BaseMod.GameDataInfo
                     .Select(x => (IBodySubDataMod<GirlSpecialPartSubDefinition>)new GirlSpecialPartDataMod(i++, def, assetProvider))
                     .ToList();
             }
+
+            LocationIdToStyleInfo = new(){
+                {Locations.MassageSpa, new GirlStyleInfo() { HairstyleId = Styles.Relaxing, OutfitId = Styles.Relaxing}},
+                {Locations.Aquarium, new GirlStyleInfo() { HairstyleId = Styles.Activity, OutfitId = Styles.Activity}},
+                {Locations.SecludedCabana, new GirlStyleInfo() { HairstyleId = Styles.Relaxing, OutfitId = Styles.Relaxing}},
+                {Locations.PoolsideBar, new GirlStyleInfo() { HairstyleId = Styles.Water, OutfitId = Styles.Water}},
+                {Locations.GolfCourse, new GirlStyleInfo() { HairstyleId = Styles.Activity, OutfitId = Styles.Activity}},
+                {Locations.CruiseShip, new GirlStyleInfo() { HairstyleId = Styles.Water, OutfitId = Styles.Water}},
+                {Locations.RooftopLounge, new GirlStyleInfo() { HairstyleId = Styles.Romantic, OutfitId = Styles.Romantic}},
+                {Locations.Casino, new GirlStyleInfo() { HairstyleId = Styles.Party, OutfitId = Styles.Party}},
+                {Locations.PrivateTable, new GirlStyleInfo() { HairstyleId = Styles.Romantic, OutfitId = Styles.Romantic}},
+                {Locations.SecretGrotto, new GirlStyleInfo() { HairstyleId = Styles.Water, OutfitId = Styles.Water}},
+                {Locations.RoyalSuite, new GirlStyleInfo() { HairstyleId = Styles.Sexy, OutfitId = Styles.Sexy}},
+                {Locations.AirplaneBathroom, new GirlStyleInfo() { HairstyleId = Styles.Activity, OutfitId = Styles.Activity}},
+                {Locations.OuterSpace, new GirlStyleInfo() { HairstyleId = Styles.Sexy, OutfitId = Styles.Sexy}},
+            };
         }
 
         /// <inheritdoc/>
@@ -214,6 +233,8 @@ namespace Hp2BaseMod.GameDataInfo
             ValidatedSet.SetValue(ref def.BackPos, BackPosition, InsertStyle, gameData, assetProvider);
 
             ValidatedSet.SetValue(ref def.SpecialEffectPrefab, assetProvider.GetInternalAsset<UiDollSpecialEffect>(SpecialEffectName), InsertStyle);
+
+            ValidatedSet.SetDictValue(ref def.LocationIdToOutfitId, LocationIdToStyleInfo, InsertStyle);
         }
 
         /// <inheritdoc/>

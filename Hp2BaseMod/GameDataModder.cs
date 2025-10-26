@@ -56,6 +56,8 @@ namespace Hp2BaseMod
 
         public static void Mod(GameData gameData)
         {
+            ModInterface.Log.LogInfo($"Loaded data sources: [{string.Join(", ", ModInterface.Save.SourceGUID_Id.Select(x => $"{x.Key} - {x.Value}"))}]");
+
             //okay, here's the plan
             //1) get all of the default data
             //2) register all the default data
@@ -137,7 +139,22 @@ namespace Hp2BaseMod
 
                                     var body = new GirlBodySubDefinition(girl)
                                     {
-                                        BodyName = "HuniePop 2"
+                                        BodyName = "HuniePop 2",
+                                        LocationIdToOutfitId = new(){
+                                            {Locations.MassageSpa, new GirlStyleInfo() { HairstyleId = Styles.Relaxing, OutfitId = Styles.Relaxing}},
+                                            {Locations.Aquarium, new GirlStyleInfo() { HairstyleId = Styles.Activity, OutfitId = Styles.Activity}},
+                                            {Locations.SecludedCabana, new GirlStyleInfo() { HairstyleId = Styles.Relaxing, OutfitId = Styles.Relaxing}},
+                                            {Locations.PoolsideBar, new GirlStyleInfo() { HairstyleId = Styles.Water, OutfitId = Styles.Water}},
+                                            {Locations.GolfCourse, new GirlStyleInfo() { HairstyleId = Styles.Activity, OutfitId = Styles.Activity}},
+                                            {Locations.CruiseShip, new GirlStyleInfo() { HairstyleId = Styles.Water, OutfitId = Styles.Water}},
+                                            {Locations.RooftopLounge, new GirlStyleInfo() { HairstyleId = Styles.Romantic, OutfitId = Styles.Romantic}},
+                                            {Locations.Casino, new GirlStyleInfo() { HairstyleId = Styles.Party, OutfitId = Styles.Party}},
+                                            {Locations.PrivateTable, new GirlStyleInfo() { HairstyleId = Styles.Romantic, OutfitId = Styles.Romantic}},
+                                            {Locations.SecretGrotto, new GirlStyleInfo() { HairstyleId = Styles.Water, OutfitId = Styles.Water}},
+                                            {Locations.RoyalSuite, new GirlStyleInfo() { HairstyleId = Styles.Sexy, OutfitId = Styles.Sexy}},
+                                            {Locations.AirplaneBathroom, new GirlStyleInfo() { HairstyleId = Styles.Activity, OutfitId = Styles.Activity}},
+                                            {Locations.OuterSpace, new GirlStyleInfo() { HairstyleId = Styles.Sexy, OutfitId = Styles.Sexy}},
+                                        }
                                     };
                                     expansion.Bodies.Add(new RelativeId(-1, 0), body);
 
@@ -226,18 +243,6 @@ namespace Hp2BaseMod
                         {
                             var id = new RelativeId(-1, def.id);
                             var expansion = ExpandedLocationDefinition.Get(id);
-                            expansion.GirlIdToLocationStyleInfo ??= new Dictionary<RelativeId, GirlStyleInfo>();
-
-                            foreach (var girl in girlDataDict.Values)
-                            {
-                                var girlId = new RelativeId(-1, girl.id);
-
-                                expansion.GirlIdToLocationStyleInfo[girlId] = new GirlStyleInfo()
-                                {
-                                    HairstyleId = new RelativeId(-1, (int)def.dateGirlStyleType),
-                                    OutfitId = new RelativeId(-1, (int)def.dateGirlStyleType)
-                                };
-                            }
 
                             if (def.locationType == LocationType.DATE && !_specialDateLocationIds.Contains(def.id))
                             {
@@ -301,7 +306,7 @@ namespace Hp2BaseMod
 
                             SaveDataMods(girlPairDataDict.Select(x => new KeyValuePair<string, DataMod>(x.Value.name, new GirlPairDataMod(x.Value))), nameof(GirlPairDataMod));
                             SaveDataMods(itemDataDict.Select(x => new KeyValuePair<string, DataMod>(x.Value.name, new ItemDataMod(x.Value, assetProvider))), nameof(ItemDataMod));
-                            SaveDataMods(locationDataDict.Select(x => new KeyValuePair<string, DataMod>(x.Value.name, new LocationDataMod(x.Value, girlDataDict.Values, assetProvider))), nameof(LocationDataMod));
+                            SaveDataMods(locationDataDict.Select(x => new KeyValuePair<string, DataMod>(x.Value.name, new LocationDataMod(x.Value, assetProvider))), nameof(LocationDataMod));
                             SaveDataMods(photoDataDict.Select(x => new KeyValuePair<string, DataMod>(x.Value.name, new PhotoDataMod(x.Value, assetProvider))), nameof(PhotoDataMod));
                             SaveDataMods(questionDataDict.Select(x => new KeyValuePair<string, DataMod>(x.Value.name, new QuestionDataMod(x.Value))), nameof(QuestionDataMod));
                             SaveDataMods(tokenDataDict.Select(x => new KeyValuePair<string, DataMod>(x.Value.name, new TokenDataMod(x.Value, assetProvider))), nameof(TokenDataMod));
@@ -716,23 +721,6 @@ namespace Hp2BaseMod
                         using (ModInterface.Log.MakeIndent("locations"))
                         {
                             SetData(locationDataDict, locationDataMods, gameDataProvider, assetProvider, GameDataType.Location);
-
-                            ModInterface.Log.LogInfo("styles");
-                            foreach (var locationMod in locationDataMods)
-                            {
-                                var styles = locationMod.GetStyles();
-
-                                if (styles != null)
-                                {
-                                    var expansion = ExpandedLocationDefinition.Get(locationMod.Id);
-                                    expansion.GirlIdToLocationStyleInfo ??= new Dictionary<RelativeId, GirlStyleInfo>();
-
-                                    foreach (var info in styles)
-                                    {
-                                        expansion.GirlIdToLocationStyleInfo[info.Item1] = info.Item2;
-                                    }
-                                }
-                            }
                         }
 
                         using (ModInterface.Log.MakeIndent("photos"))
@@ -788,9 +776,49 @@ namespace Hp2BaseMod
                 ModInterface.Log.LogError($"{e}");
             }
 
-            foreach (var question in Game.Data.Questions.GetAll())
+            using (ModInterface.Log.MakeIndent("-DEBUG-"))
             {
-                ModInterface.Log.LogInfo($"{question.id} {question.questionName} - {string.Join(", ", question.questionAnswers)}");
+                using (ModInterface.Log.MakeIndent("All questions:"))
+                {
+                    foreach (var question in Game.Data.Questions.GetAll())
+                    {
+                        ModInterface.Log.LogInfo($"{question.id} {question.questionName} - {string.Join(", ", question.questionAnswers)}");
+                    }
+                }
+
+                using (ModInterface.Log.MakeIndent("All NSFW outfits:"))
+                {
+                    foreach (var girl in Game.Data.Girls.GetAll())
+                    {
+                        var girlExpansion = girl.Expansion();
+                        ModInterface.Log.LogInfo($"{girl.girlName}, NSFW outfit ids: {string.Join(", ", girlExpansion.OutfitIdToIndex.Keys.Select(x => (x, girlExpansion.GetOutfit(x))).Where(x => x.Item2.Expansion().IsNSFW).Select(x => x.Item1))}");
+                    }
+                }
+
+                using (ModInterface.Log.MakeIndent("All location arrive logic:"))
+                {
+                    foreach (var location in Game.Data.Locations.GetAll())
+                    {
+                        using (ModInterface.Log.MakeIndent(location.locationName))
+                        {
+                            using (ModInterface.Log.MakeIndent("Arrival"))
+                            {
+                                foreach (var bundle in location.arriveBundleList)
+                                {
+                                    GameDataLogUtility.LogLogicBundle(bundle);
+                                }
+                            }
+
+                            using (ModInterface.Log.MakeIndent("Departure"))
+                            {
+                                foreach (var bundle in location.departBundleList)
+                                {
+                                    GameDataLogUtility.LogLogicBundle(bundle);
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
 

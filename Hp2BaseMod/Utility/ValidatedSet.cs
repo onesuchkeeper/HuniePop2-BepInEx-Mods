@@ -35,6 +35,24 @@ namespace Hp2BaseMod.Utility
             }
         }
 
+        public static void SetDictValue<Tk, Tv>(ref Dictionary<Tk, Tv> target, Dictionary<Tk, Tv> value, InsertStyle style)
+        {
+            if (value == null)
+            {
+                if (style == InsertStyle.assignNull)
+                {
+                    target = null;
+                }
+            }
+            else
+            {
+                foreach (var entry in value)
+                {
+                    target[entry.Key] = entry.Value;
+                }
+            }
+        }
+
         public static void SetValue<Tt, Tv>(ref Tt target, IDictionary<Tv, Tt> lookup, Tv value, InsertStyle style)
             where Tt : class
         {
@@ -102,7 +120,7 @@ namespace Hp2BaseMod.Utility
             }
         }
 
-        public static void SetListValue<T>(ref List<T> target, IEnumerable<Nullable<T>> value, InsertStyle style)
+        public static void SetListValue<T>(ref List<T> target, IEnumerable<T?> value, InsertStyle style)
             where T : struct
         {
             if (target == null || style == InsertStyle.assignNull)

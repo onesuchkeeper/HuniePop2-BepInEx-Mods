@@ -102,7 +102,7 @@ namespace Hp2BaseModTweaks
             scroll_GO.transform.SetParent(_uiAppStyleSelectList.transform, true);
             _scrollRectTransform = scroll_GO.AddComponent<RectTransform>();
             _scrollRectTransform.pivot = new Vector2(0.5f, 1f);
-            _scrollRectTransform.position = _uiAppStyleSelectList.background.position - (2 * new Vector3(0, titleShift.y));
+            _scrollRectTransform.position = _uiAppStyleSelectList.background.position - (2 * new Vector3(0, titleShift.y)) + new Vector3(0, 12);
 
             scroll_GO.AddComponent<Image>();
             var scroll_ScrollRect = scroll_GO.AddComponent<ScrollRect>();

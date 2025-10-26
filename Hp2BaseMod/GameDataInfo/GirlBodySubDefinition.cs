@@ -1,8 +1,7 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Hp2BaseMod;
+namespace Hp2BaseMod.GameDataInfo;
 
 /// <summary>
 /// Visual details for a girl
@@ -109,7 +108,7 @@ public class GirlBodySubDefinition : SubDefinition
     /// Maps a part id to its index within the def. 
     /// Use <see cref="GetPart"/> unless you must access the full collection.
     /// </summary>
-    public Dictionary<RelativeId, int> PartIdToIndex = new Dictionary<RelativeId, int>()
+    public Dictionary<RelativeId, int> PartIdToIndex = new()
     {
         {RelativeId.Default, -1}
     };
@@ -118,7 +117,7 @@ public class GirlBodySubDefinition : SubDefinition
     /// Maps a part index to its id within the def. 
     /// Use <see cref="GetPart"/> unless you must access the full collection.
     /// </summary>
-    public Dictionary<int, RelativeId> PartIndexToId = new Dictionary<int, RelativeId>()
+    public Dictionary<int, RelativeId> PartIndexToId = new()
     {
         {-1, RelativeId.Default}
     };
@@ -139,7 +138,7 @@ public class GirlBodySubDefinition : SubDefinition
     /// Maps a hairstyle id to its index within the def. 
     /// Use <see cref="GetHairstyle"/> unless you must access the full collection.
     /// </summary>
-    public Dictionary<RelativeId, int> SpecialPartIdToIndex = new Dictionary<RelativeId, int>()
+    public Dictionary<RelativeId, int> SpecialPartIdToIndex = new()
     {
         {RelativeId.Default, -1}
     };
@@ -148,7 +147,7 @@ public class GirlBodySubDefinition : SubDefinition
     /// Maps a hairstyle index to its id within the def. 
     /// Use <see cref="GetHairstyle"/> unless you must access the full collection
     /// </summary>
-    public Dictionary<int, RelativeId> SpecialPartIndexToId = new Dictionary<int, RelativeId>()
+    public Dictionary<int, RelativeId> SpecialPartIndexToId = new()
     {
         {-1, RelativeId.Default}
     };
@@ -158,4 +157,9 @@ public class GirlBodySubDefinition : SubDefinition
     /// </summary>
     public GirlSpecialPartSubDefinition GetSpecialPart(RelativeId id)
         => SpecialParts[SpecialPartIdToIndex[id]];
+
+    /// <summary>
+    /// Maps location ids to the default outfit
+    /// </summary>
+    public Dictionary<RelativeId, GirlStyleInfo> LocationIdToOutfitId = new();
 }

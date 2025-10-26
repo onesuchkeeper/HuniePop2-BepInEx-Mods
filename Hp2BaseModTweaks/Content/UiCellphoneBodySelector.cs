@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using DG.Tweening;
 using Hp2BaseMod;
+using Hp2BaseMod.GameDataInfo;
 using Hp2BaseMod.Ui;
 using Hp2BaseModTweaks;
 using UnityEngine;

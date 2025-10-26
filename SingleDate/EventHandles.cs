@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -97,8 +98,6 @@ internal static class EventHandles
     private static bool IsIncompleteAttracted(PlayerFileGirlPair filePair, int maxSingleGirlRelationshipLevel) => State.IsSingle(filePair.girlPairDefinition)
         && State.SaveFile.GetGirl(filePair.girlPairDefinition.girlDefinitionTwo.id)?.RelationshipLevel < (maxSingleGirlRelationshipLevel - 1);
 
-
-
     internal static void On_PreRoundOverCutscene()
     {
         if (Game.Session.Puzzle.puzzleStatus.statusType != PuzzleStatusType.NORMAL
@@ -115,12 +114,11 @@ internal static class EventHandles
             return;
         }
 
-        ModInterface.Log.LogInfo($"bonusRound: {Game.Session.Puzzle.puzzleStatus.bonusRound}");
-        if (Game.Session.Puzzle.puzzleStatus.bonusRound)
+        if (f_newRoundCutscene.GetValue<CutsceneDefinition>(Game.Session.Puzzle) == Game.Session.Puzzle.cutsceneNewroundBonus)
         {
             var maxSingleGirlRelationshipLevel = Plugin.Instance.MaxSingleGirlRelationshipLevel;
 
-            bool validSingleLevels = false;
+            var validSingleLevels = false;
             if (State.IsSingleDate)
             {
                 var girlSave = State.SaveFile.GetGirl(playerFileGirlPair.girlPairDefinition.girlDefinitionTwo.id);
@@ -139,6 +137,9 @@ internal static class EventHandles
 
             if (!validSingleLevels)
             {
+                ModInterface.Log.LogInfo("Disabling bonus round per single date requirements");
+                Game.Session.Puzzle.puzzleStatus.gameOver = true;
+
                 f_newRoundCutscene.SetValue(Game.Session.Puzzle, null);
                 f_roundOverCutscene.SetValue(Game.Session.Puzzle, State.IsSingleDate
                     ? ModInterface.GameData.GetCutscene(CutsceneIds.Success)
@@ -166,6 +167,15 @@ internal static class EventHandles
 
         if (State.IsSingleDate)
         {
+            // Deny single dates if not enough stamina
+            var statusGirl = Game.Session.Puzzle.puzzleStatus.GetStatusGirl(true);
+            if (statusGirl.stamina < 1)
+            {
+                args.DenyDate = true;
+                // TODO play too hungry audio
+                return;
+            }
+
             args.LeftStaminaGain = 0;
             args.RightStaminaGain = 0;
 
@@ -249,5 +259,25 @@ internal static class EventHandles
     {
         args.UnlockedPhotos ??= new List<PhotoDefinition>();
         args.UnlockedPhotos.AddRange(State.SaveFile.Girls.Values.SelectManyNN(x => x.UnlockedPhotos).Select(ModInterface.GameData.GetPhoto));
+    }
+
+    internal static void On_PreDateDollsRefresh(PreDateDollResetArgs args)
+    {
+        var playerFileGirlPair = Game.Persistence.playerFile.GetPlayerFileGirlPair(Game.Session.Location.currentGirlPair);
+        var maxSingleGirlRelationshipLevel = Plugin.Instance.MaxSingleGirlRelationshipLevel;
+
+        if (State.IsSingleDate)
+        {
+            var girlSave = State.SaveFile.GetGirl(playerFileGirlPair.girlPairDefinition.girlDefinitionTwo.id);
+            args.UseSexStyles = girlSave?.RelationshipLevel == maxSingleGirlRelationshipLevel - 1;
+        }
+        else if (Plugin.Instance.RequireLoversBeforeThreesome)
+        {
+            var girlSaveOne = State.SaveFile.GetGirl(playerFileGirlPair.girlPairDefinition.girlDefinitionOne.id);
+            var girlSaveTwo = State.SaveFile.GetGirl(playerFileGirlPair.girlPairDefinition.girlDefinitionTwo.id);
+
+            args.UseSexStyles = (girlSaveOne == null || girlSaveOne.RelationshipLevel == maxSingleGirlRelationshipLevel)
+                && (girlSaveTwo == null || girlSaveTwo.RelationshipLevel == maxSingleGirlRelationshipLevel);
+        }
     }
 }

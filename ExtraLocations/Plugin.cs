@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using BepInEx;
 using Hp2BaseMod;
 using Hp2BaseMod.GameDataInfo;
@@ -23,9 +24,12 @@ public class Plugin : BaseUnityPlugin
     private static readonly string ConfigDacName = "DigitalArtCollectionDir";
     private static readonly string ConfigOstName = "DoubleDateOstDir";
 
+    public static int ModId => _modId;
+    private static int _modId;
+
     private void Awake()
     {
-        var modId = ModInterface.GetSourceId(MyPluginInfo.PLUGIN_GUID);
+        _modId = ModInterface.GetSourceId(MyPluginInfo.PLUGIN_GUID);
 
         this.Config.Bind(ConfigGeneralName, ConfigDacName, Path.Combine(Paths.PluginPath, "..", "..", "Digital Art Collection"), "Directory containing the HuniePop 2 Digital Art Collection Dlc");
         this.Config.Bind(ConfigGeneralName, ConfigOstName, Path.Combine(Paths.PluginPath, "..", "..", "..", "..", "music", "HuniePop 2 - Double Date OST", "WAV"), "Directory containing the HuniePop 2 OST");
@@ -100,7 +104,7 @@ public class Plugin : BaseUnityPlugin
         {
             var waterfallImgDir = Path.Combine(DacDirConfig.Value, "Misc", "Cut Locations", "Waterfall");
 
-            ModInterface.AddDataMod(new LocationDataMod(new RelativeId(modId, 0), InsertStyle.replace)
+            ModInterface.AddDataMod(new LocationDataMod(Locations.HiddenWaterfall, InsertStyle.replace)
             {
                 LocationName = "Hidden Waterfall",
                 LocationType = LocationType.SIM,
@@ -141,7 +145,7 @@ public class Plugin : BaseUnityPlugin
         }
 
         //others
-        ModInterface.AddDataMod(new LocationDataMod(new RelativeId(modId, 1), InsertStyle.replace)
+        ModInterface.AddDataMod(new LocationDataMod(Locations.Volcano, InsertStyle.replace)
         {
             LocationName = "Volcano",
             LocationType = LocationType.DATE,
@@ -163,7 +167,7 @@ public class Plugin : BaseUnityPlugin
             }
         });
 
-        ModInterface.AddDataMod(new LocationDataMod(new RelativeId(modId, 2), InsertStyle.replace)
+        ModInterface.AddDataMod(new LocationDataMod(Locations.HotelRoom, InsertStyle.replace)
         {
             LocationName = "Hotel Room",
             LocationType = LocationType.DATE,
@@ -190,7 +194,7 @@ public class Plugin : BaseUnityPlugin
             }
         });
 
-        ModInterface.AddDataMod(new LocationDataMod(new RelativeId(modId, 3), InsertStyle.replace)
+        ModInterface.AddDataMod(new LocationDataMod(Locations.OuterSpace, InsertStyle.replace)
         {
             LocationName = "Space",
             LocationType = LocationType.DATE,
@@ -219,7 +223,7 @@ public class Plugin : BaseUnityPlugin
             }
         });
 
-        ModInterface.AddDataMod(new LocationDataMod(new RelativeId(modId, 4), InsertStyle.replace)
+        ModInterface.AddDataMod(new LocationDataMod(Locations.AirplaneBathroom, InsertStyle.replace)
         {
             LocationName = "Airplane Bathroom",
             LocationType = LocationType.DATE,
@@ -249,7 +253,7 @@ public class Plugin : BaseUnityPlugin
         });
 
         var airplaneCabinBg = new SpriteInfoInternal("loc_bg_special_airplanecabin_0");
-        ModInterface.AddDataMod(new LocationDataMod(new RelativeId(modId, 5), InsertStyle.replace)
+        ModInterface.AddDataMod(new LocationDataMod(Locations.AirplaneCabin, InsertStyle.replace)
         {
             LocationName = "Airplane Cabin",
             LocationType = LocationType.DATE,
@@ -279,7 +283,7 @@ public class Plugin : BaseUnityPlugin
         });
 
         var poolsideBg = new SpriteInfoInternal("loc_bg_special_poolside_0");
-        ModInterface.AddDataMod(new LocationDataMod(new RelativeId(modId, 6), InsertStyle.replace)
+        ModInterface.AddDataMod(new LocationDataMod(Locations.Poolside, InsertStyle.replace)
         {
             LocationName = "Poolside",
             LocationType = LocationType.DATE,
@@ -306,7 +310,7 @@ public class Plugin : BaseUnityPlugin
         });
 
         var apartmentBg = new SpriteInfoInternal("loc_bg_special_apartment_0");
-        ModInterface.AddDataMod(new LocationDataMod(new RelativeId(modId, 7), InsertStyle.replace)
+        ModInterface.AddDataMod(new LocationDataMod(Locations.Apartment, InsertStyle.replace)
         {
             LocationName = "Your Apartment",
             LocationType = LocationType.DATE,
@@ -332,5 +336,26 @@ public class Plugin : BaseUnityPlugin
                 ClockDaytimeType.NIGHT
             }
         });
+
+        foreach (var girl in Hp2BaseMod.Girls.NormalGirls.Append(Hp2BaseMod.Girls.KyuId))
+        {
+            ModInterface.AddDataMod(new GirlDataMod(girl, Hp2BaseMod.Utility.InsertStyle.append)
+            {
+                bodies = new List<IGirlBodyDataMod>(){
+                    new GirlBodyDataMod(new RelativeId(-1,0), Hp2BaseMod.Utility.InsertStyle.append){
+                        LocationIdToStyleInfo = new Dictionary<RelativeId, GirlStyleInfo>(){
+                            {Locations.HiddenWaterfall, new GirlStyleInfo() { HairstyleId = Styles.Water, OutfitId = Styles.Water }},
+                            {Locations.Volcano, new GirlStyleInfo() { HairstyleId = Styles.Activity, OutfitId = Styles.Activity }},
+                            {Locations.HotelRoom, new GirlStyleInfo() { HairstyleId = Styles.Relaxing, OutfitId = Styles.Relaxing }},
+                            {Locations.OuterSpace, new GirlStyleInfo() { HairstyleId = Styles.Activity, OutfitId = Styles.Activity }},
+                            {Locations.AirplaneBathroom, new GirlStyleInfo() { HairstyleId = Styles.Activity, OutfitId = Styles.Activity }},
+                            {Locations.AirplaneCabin, new GirlStyleInfo() { HairstyleId = Styles.Activity, OutfitId = Styles.Activity }},
+                            {Locations.Poolside, new GirlStyleInfo() { HairstyleId = Styles.Water, OutfitId = Styles.Water }},
+                            {Locations.Apartment, new GirlStyleInfo() { HairstyleId = Styles.Sexy, OutfitId = Styles.Sexy }},
+                        }
+                    }
+                }
+            });
+        }
     }
 }

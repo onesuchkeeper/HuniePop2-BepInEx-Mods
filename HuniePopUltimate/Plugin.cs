@@ -18,9 +18,8 @@ namespace HuniePopUltimate;
 public class Plugin : BaseUnityPlugin
 {
     private static readonly string _configGeneralName = "general";
-    private static readonly string _configKyuName = "useHp1Kyu";
-    private static readonly string _configLolaName = "useHp1Lola";
-    private static readonly string _configJessieName = "useHp1Jessie";
+    private static readonly string _configUnlockStylesName = "unlockStyles";
+    private static readonly string _configUnlockPhotosName = "unlockPhotos";
 
     private static readonly string _dataDir = "HuniePop_Data";
     private static readonly string _dacDir = "Digital Art Collection";
@@ -52,12 +51,11 @@ public class Plugin : BaseUnityPlugin
             m_SetCharmSprite = null;
         }
 
-        this.Config.Bind(_configGeneralName, _configKyuName, true, "If Kyu should use Hp1 visuals.");
-        this.Config.Bind(_configGeneralName, _configLolaName, true, "If Lola should use Hp1 visuals.");
-        this.Config.Bind(_configGeneralName, _configJessieName, true, "If Jessie should use Hp1 visuals.");
+        this.Config.Bind(_configGeneralName, _configUnlockStylesName, false, "If All Hp1 outfit and hairstyles should auto-unlock.");
+        this.Config.Bind(_configGeneralName, _configUnlockPhotosName, false, "If All Hp1 photos should auto-unlock.");
 
         _modId = ModInterface.GetSourceId(MyPluginInfo.PLUGIN_GUID);
-        _dir = Path.GetDirectoryName(this.Info.Location);
+        _dir = Path.GetDirectoryName(Info.Location);
 
         var imagesDir = Path.Combine(_dir, "images");
 
@@ -169,7 +167,7 @@ public class Plugin : BaseUnityPlugin
         FavTrait.AddDataMods();
         FavWeather.AddDataMods();
 
-        //ModInterface.Events.RequestUnlockedPhotos += On_RequestUnlockedPhotos;
+        ModInterface.Events.RequestUnlockedPhotos += On_RequestUnlockedPhotos;
         ModInterface.Events.PreLoadPlayerFile += On_PreLoadPlayerFile;
 
         ModInterface.Events.FinderSlotsPopulate += On_FinderSlotsPopulate;
@@ -182,7 +180,7 @@ public class Plugin : BaseUnityPlugin
         switch (time)
         {
             case ClockDaytimeType.MORNING:
-                args.RemoveGirlFromAllPools(Girls.Nikki);
+                args.RemoveGirlFromAllPools(Girls.Audrey);
                 args.RemoveGirlFromAllPools(Girls.Celeste);
                 break;
             case ClockDaytimeType.AFTERNOON:
@@ -196,19 +194,30 @@ public class Plugin : BaseUnityPlugin
         }
     }
 
-    // private void On_RequestUnlockedPhotos(RequestUnlockedPhotosEventArgs args)
-    // {
-    //     args.UnlockedPhotos ??= new List<PhotoDefinition>();
+    private void On_RequestUnlockedPhotos(RequestUnlockedPhotosEventArgs args)
+    {
+        if (!Config.TryGetEntry<bool>(_configGeneralName, _configUnlockPhotosName, out var config)
+            || !config.Value)
+        {
+            return;
+        }
 
-    //     for (int i = 0; i < PhotoModCount; i++)
-    //     {
-    //         args.UnlockedPhotos.Add(ModInterface.GameData.GetPhoto(new RelativeId(ModId, i)));
-    //     }
-    // }
+        args.UnlockedPhotos ??= new List<PhotoDefinition>();
 
-    //unlock all
+        for (int i = 0; i < PhotoModCount; i++)
+        {
+            args.UnlockedPhotos.Add(ModInterface.GameData.GetPhoto(new RelativeId(ModId, i)));
+        }
+    }
+
     private void On_PreLoadPlayerFile(PlayerFile file)
     {
+        if (!Config.TryGetEntry<bool>(_configGeneralName, _configUnlockStylesName, out var config)
+            || !config.Value)
+        {
+            return;
+        }
+
         using (ModInterface.Log.MakeIndent())
         {
             foreach (var fileGirl in file.girls)

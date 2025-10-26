@@ -29,11 +29,9 @@ public class ExpandedLocationDefinition
     public static ExpandedLocationDefinition Get(RelativeId id) => _expansions.GetOrNew(id);
 
     /// <summary>
-    /// Maps girl id to her style at the location.
+    /// Maps girl id to the greeting used at this location
     /// </summary>
-    public Dictionary<RelativeId, GirlStyleInfo> GirlIdToLocationStyleInfo = new();
-
-
+    public Dictionary<RelativeId, RelativeId> GirlIdToLocationGreetingLineId = new();
 
     /// <summary>
     /// Times when this location can be used

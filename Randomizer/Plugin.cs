@@ -273,6 +273,12 @@ public class Plugin : BaseUnityPlugin
         {
             namePool.Add((girl.girlName, girl.girlNickName));
             baggagePool.AddRange(girl.baggageItemDefs.Select(x => (girl, x)));
+
+            //add nulls to fill in missing baggage, later if a null is popped ignore it
+            if (girl.baggageItemDefs.Count < 3)
+            {
+                baggagePool.AddRange(Enumerable.Repeat((girl, (ItemDefinition)null), 3 - girl.baggageItemDefs.Count));
+            }
         }
 
         var randomizedNames = ConfigGrab(ConfigRandomizeNamesName, true);
@@ -282,6 +288,15 @@ public class Plugin : BaseUnityPlugin
         //special characters don't have all the stuff they need,
         //so instead I'll just swap their visuals and other bits with someone
         //swaps like this aren't the same odds but I don't really care
+        foreach (var id_handler in _swapHandlers)
+        {
+            var specialGirl = ModInterface.GameData.GetGirl(id_handler.Key);
+            namePool.Add((specialGirl.girlName, specialGirl.girlNickName));
+        }
+
+        // remove dupes
+        namePool = namePool.DistinctBy(x => x.name).ToList();
+
         foreach (var id_handler in _swapHandlers)
         {
             var specialGirl = ModInterface.GameData.GetGirl(id_handler.Key);
@@ -455,27 +470,29 @@ public class Plugin : BaseUnityPlugin
         //randomize girls
         foreach (var girl in normalGirls)
         {
-            var name = randomizedNames ? namePool.PopRandom(random) : (girl.name, girl.girlNickName);
+            var name = randomizedNames
+                ? namePool.PopRandom(random)
+                : (girl.name, girl.girlNickName);
+
             assignedNames[girl] = name;
 
             if (randomizedBaggage)
             {
-                var baggageA = baggagePool.PopRandom(random);
-                var baggageB = baggagePool.PopRandom(random);
-                var baggageC = baggagePool.PopRandom(random);
+                girl.baggageItemDefs = new();
 
-                girl.baggageItemDefs = new List<ItemDefinition>(){
-                baggageA.ailment,
-                baggageB.ailment,
-                baggageC.ailment
-            };
-                ReplaceCutsceneGirls(baggageA.ailment.cutsceneDefinition.steps, [(baggageA.girl, girl, assignedNames[girl])]);
-                ReplaceCutsceneGirls(baggageB.ailment.cutsceneDefinition.steps, [(baggageB.girl, girl, assignedNames[girl])]);
-                ReplaceCutsceneGirls(baggageC.ailment.cutsceneDefinition.steps, [(baggageC.girl, girl, assignedNames[girl])]);
+                void HandleBaggage((GirlDefinition girl, ItemDefinition ailment) baggage)
+                {
+                    if (baggage.ailment != null)
+                    {
+                        girl.baggageItemDefs.Add(baggage.ailment);
+                        ReplaceCutsceneGirls(baggage.ailment.cutsceneDefinition.steps, [(baggage.girl, girl, assignedNames[girl])]);
+                        handledCutscenes.Add(baggage.ailment.cutsceneDefinition);
+                    }
+                }
 
-                handledCutscenes.Add(baggageA.ailment.cutsceneDefinition);
-                handledCutscenes.Add(baggageB.ailment.cutsceneDefinition);
-                handledCutscenes.Add(baggageC.ailment.cutsceneDefinition);
+                HandleBaggage(baggagePool.PopRandom(random));
+                HandleBaggage(baggagePool.PopRandom(random));
+                HandleBaggage(baggagePool.PopRandom(random));
             }
 
             if (randomizedAffection)

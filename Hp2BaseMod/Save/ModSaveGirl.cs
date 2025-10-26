@@ -206,6 +206,7 @@ namespace Hp2BaseMod.Save
         private void Inject(SaveFileGirl save)
         {
             var id = ModInterface.Data.GetDataId(GameDataType.Girl, save.girlId);
+            var girl = ModInterface.GameData.GetGirl(id);
             var girlExpanded = ExpandedGirlDefinition.Get(id);
 
             if (girlExpanded.HairstyleIdToIndex.TryGetValue(HairstyleId, out var hairstyleIndex))
@@ -219,10 +220,19 @@ namespace Hp2BaseMod.Save
             }
 
             ValidatedSet.SetModIds(ref save.learnedBaggage, LearnedBaggage, GameDataType.Ailment);
+            save.learnedBaggage = save.learnedBaggage.Where(x => x > 0 && x < girl.baggageItemDefs.Count).ToList();
+
             ValidatedSet.SetModIds(ref save.receivedUniques, ReceivedUniques, GameDataType.Item);
+            save.receivedUniques = save.receivedUniques.Where(x => x > 0 && x < girl.uniqueItemDefs.Count).ToList();
+
             ValidatedSet.SetModIds(ref save.receivedShoes, ReceivedShoes, GameDataType.Item);
+            save.receivedShoes = save.receivedShoes.Where(x => x > 0 && x < girl.shoesItemDefs.Count).ToList();
+
             ValidatedSet.SetModIds(ref save.learnedFavs, LearnedFavs, GameDataType.Question);
+            save.learnedFavs = save.learnedFavs.Where(x => x > 0 && x < girl.favAnswers.Count).ToList();
+
             ValidatedSet.SetModIds(ref save.recentHerQuestions, RecentHerQuestions, GameDataType.Question);
+            save.recentHerQuestions = save.recentHerQuestions.Where(x => x > 0 && x < girl.herQuestions.Count).ToList();
 
             foreach (var unlockedOutfit in UnlockedOutfits.OrEmptyIfNull())
             {

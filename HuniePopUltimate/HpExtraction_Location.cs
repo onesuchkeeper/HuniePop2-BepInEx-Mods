@@ -57,6 +57,9 @@ public partial class HpExtraction
         if (!locationDef.TryGetValue("id", out int hp1Id)) return;
         var id = LocationIds.FromHp1Id(hp1Id);
 
+        var outfitOverride = -1;
+        locationDef.TryGetValue("outfitOverride", out outfitOverride);
+
         var locationMod = new LocationDataMod(id, InsertStyle.replace)
         {
             AllowNormal = true
@@ -65,7 +68,7 @@ public partial class HpExtraction
         if (locationDef.TryGetValue("name", out string locationName))
         {
             locationMod.LocationName = locationName;
-            ModInterface.Log.LogInfo($"{hp1Id} - {locationName}");
+            ModInterface.Log.LogInfo($"{hp1Id} - {locationName} - outfit override: {outfitOverride}");
         }
 
         if (_locationIdToIconOutlined.TryGetValue(id, out var iconOutlinedName))

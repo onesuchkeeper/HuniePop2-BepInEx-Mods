@@ -26,7 +26,8 @@ internal static class UiWindowActionBubblesPatch
             RightPoints = 5,
 
             LeftStaminaGain = 2,
-            RightStaminaGain = 2
+            RightStaminaGain = 2,
+            DenyDate = false
         };
 
         var playerFileGirlPair = Game.Persistence.playerFile.GetPlayerFileGirlPair(Game.Session.Location.currentGirlPair);
@@ -37,6 +38,18 @@ internal static class UiWindowActionBubblesPatch
         }
 
         ModInterface.Events.NotifyDateLocationSelected(args);
+
+        if (args.DenyDate)
+        {
+            Game.Manager.Audio.Play(AudioCategory.SOUND, Game.Manager.Ui.sfxReject, null);
+            if (Game.Manager.Windows.IsWindowActive(null, includeShowing: true, includeHiding: false))
+            {
+                Game.Manager.Windows.ShowWindow(Game.Session.Location.actionBubblesWindow, shouldQueue: true);
+                Game.Manager.Windows.HideWindow();
+            }
+
+            return false;
+        }
 
         var staminaEnergy = Game.Data.Tokens.GetByResourceType(PuzzleResourceType.STAMINA).energyDefinition;
         if (args.LeftStaminaGain != 0

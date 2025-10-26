@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using BepInEx;
@@ -129,6 +130,8 @@ internal class Plugin : BaseUnityPlugin
     public static readonly string RootDir = Path.Combine(Paths.PluginPath, "SingleDate");
     public static readonly string ImagesDir = Path.Combine(RootDir, "images");
 
+    internal Dictionary<RelativeId, List<RelativeId>> GirlIdToSingleDateData = new();
+
     internal Dictionary<RelativeId, List<RelativeId>> GirlIdToSexPhotoId = new();
     public void AddGirlSexPhotos(RelativeId girlId, IEnumerable<RelativeId> photoIds)
         => GirlIdToSexPhotoId.GetOrNew(girlId).AddRange(photoIds);
@@ -242,6 +245,7 @@ internal class Plugin : BaseUnityPlugin
         ModInterface.Events.DateLocationSelected += EventHandles.On_DateLocationSelected;
         ModInterface.Events.SinglePhotoDisplayed += EventHandles.On_SinglePhotoDisplayed;
         ModInterface.Events.RequestUnlockedPhotos += EventHandles.On_RequestUnlockedPhotos;
+        ModInterface.Events.PreDateDollReset += EventHandles.On_PreDateDollsRefresh;
 
         new Harmony(MyPluginInfo.PLUGIN_GUID).PatchAll();
     }

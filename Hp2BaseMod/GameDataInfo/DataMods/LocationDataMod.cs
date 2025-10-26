@@ -11,13 +11,11 @@ namespace Hp2BaseMod.GameDataInfo
     /// <summary>
     /// Information to make a LocationDefinition
     /// </summary>
-    public class LocationDataMod : DataMod, ILocationDataMod
+    public class LocationDataMod : DataMod, IGameDataMod<LocationDefinition>
     {
         public string LocationName;
 
         public LocationType? LocationType;
-
-        public List<(RelativeId, GirlStyleInfo)> GirlStyles;
 
         public string NonStopOptionText;
 
@@ -60,7 +58,7 @@ namespace Hp2BaseMod.GameDataInfo
         /// <param name="def">The definition.</param>
         /// <param name="def">A collection of all girl definitions.</param>
         /// <param name="assetProvider">Asset provider containing the assets referenced by the definition.</param>
-        internal LocationDataMod(LocationDefinition def, IEnumerable<GirlDefinition> girls, AssetProvider assetProvider)
+        internal LocationDataMod(LocationDefinition def, AssetProvider assetProvider)
             : base(new RelativeId(def), InsertStyle.replace, 0)
         {
             LocationName = def.locationName;
@@ -75,12 +73,6 @@ namespace Hp2BaseMod.GameDataInfo
             DepartBundleList = def.departBundleList.Select(x => (IGameDefinitionInfo<LogicBundle>)new LogicBundleInfo(x, assetProvider)).ToList();
 
             var styleId = new RelativeId(-1, (int)def.dateGirlStyleType);
-            GirlStyles = girls.Select(x => (new RelativeId(x),
-                                            new GirlStyleInfo()
-                                            {
-                                                HairstyleId = styleId,
-                                                OutfitId = styleId
-                                            })).ToList();
         }
 
         /// <inheritdoc/>
@@ -107,8 +99,6 @@ namespace Hp2BaseMod.GameDataInfo
             ValidatedSet.SetValue(ref expansion.PostBoss, PostBoss);
             ValidatedSet.SetListValue(ref expansion.DateTimes, DateTimes, InsertStyle);
         }
-
-        public IEnumerable<(RelativeId, GirlStyleInfo)> GetStyles() => GirlStyles;
 
         /// <inheritdoc/>
         public void RequestInternals(AssetProvider assetProvider)

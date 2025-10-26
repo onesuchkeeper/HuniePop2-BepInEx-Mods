@@ -79,7 +79,7 @@ internal static class LocationManagerPatch
                 hubStyle.HairstyleId = girlExpansion.HairstyleIndexToId[UnityEngine.Random.Range(0, Game.Session.Hub.hubGirlDefinition.hairstyles.Count)];
             }
 
-            var args = ModInterface.Events.NotifyRequestStyleChange(Game.Session.Hub.hubGirlDefinition, currentLocation, 0.1f, new GirlStyleInfo());
+            var args = ModInterface.Events.NotifyRequestStyleChange(Game.Session.Hub.hubGirlDefinition, currentLocation, 0.1f, hubStyle);
 
             if (UnityEngine.Random.Range(0f, 1f) <= args.ApplyChance)
             {
@@ -115,8 +115,15 @@ internal static class LocationManagerPatch
             }
             else if (currentLocation.locationType == LocationType.DATE)
             {
-                if (playerFileGirlPair.relationshipType == GirlPairRelationshipType.ATTRACTED
-                    && Game.Persistence.playerFile.daytimeElapsed % 4 == (int)playerFileGirlPair.girlPairDefinition.sexDaytime)
+                var args = new PreDateDollResetArgs()
+                {
+                    UseSexStyles = playerFileGirlPair.relationshipType == GirlPairRelationshipType.ATTRACTED
+                        && Game.Persistence.playerFile.daytimeElapsed % 4 == (int)playerFileGirlPair.girlPairDefinition.sexDaytime
+                };
+
+                ModInterface.Events.NotifyPreDateDollReset(args);
+
+                if (args.UseSexStyles)
                 {
                     var pairId = ModInterface.Data.GetDataId(GameDataType.GirlPair, currentGirlPair.id);
                     var pairStyle = ExpandedGirlPairDefinition.Get(pairId).PairStyle;
@@ -135,13 +142,15 @@ internal static class LocationManagerPatch
                     if (!Game.Session.Puzzle.puzzleStatus.girlStatusLeft.playerFileGirl.stylesOnDates)
                     {
                         var girlId = ModInterface.Data.GetDataId(GameDataType.Girl, leftGirlDef.id);
-                        ExpandedLocationDefinition.Get(locationId).GirlIdToLocationStyleInfo?.TryGetValue(girlId, out leftStyle);
+                        var girlExpansion = ExpandedGirlDefinition.Get(girlId);
+                        girlExpansion.GetCurrentBody().LocationIdToOutfitId.TryGetValue(locationId, out leftStyle);
                     }
 
                     if (!Game.Session.Puzzle.puzzleStatus.girlStatusRight.playerFileGirl.stylesOnDates)
                     {
                         var girlId = ModInterface.Data.GetDataId(GameDataType.Girl, rightGirlDef.id);
-                        ExpandedLocationDefinition.Get(locationId).GirlIdToLocationStyleInfo?.TryGetValue(girlId, out rightStyle);
+                        var girlExpansion = ExpandedGirlDefinition.Get(girlId);
+                        girlExpansion.GetCurrentBody().LocationIdToOutfitId.TryGetValue(locationId, out rightStyle);
                     }
                 }
             }
