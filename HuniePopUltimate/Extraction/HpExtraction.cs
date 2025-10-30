@@ -51,12 +51,12 @@ public partial class HpExtraction : BaseExtraction
     private int _partCount = 0;
 
     private Action<RelativeId, IEnumerable<(RelativeId, float)>> m_AddGirlDatePhotos;
-    private Action<RelativeId, IEnumerable<RelativeId>> m_AddGirlSexPhotos;
+    private Action<RelativeId, IEnumerable<(RelativeId, RelativeId)>> m_AddGirlSexPhotos;
     private Action<RelativeId, UnityEngine.Sprite> m_SetCharmSprite;
 
     public HpExtraction(string dir,
         Action<RelativeId, IEnumerable<(RelativeId, float)>> addGirlDatePhotos,
-        Action<RelativeId, IEnumerable<RelativeId>> addGirlSexPhotos,
+        Action<RelativeId, IEnumerable<(RelativeId, RelativeId)>> addGirlSexPhotos,
         Action<RelativeId, UnityEngine.Sprite> setCharmSprite)
         : base(Path.Combine(dir, _dataDir),
             Path.Combine(dir, _assemblyDir))
@@ -112,6 +112,12 @@ public partial class HpExtraction : BaseExtraction
         foreach (var mod in _hpGirlIdToMod.Values)
         {
             ModInterface.AddDataMod(mod);
+        }
+
+        // make all textures read-only now that they've been processed
+        foreach (var textureInfo in _textureInfo.Values.SelectMany(x => x.Values))
+        {
+            textureInfo.GetTexture().Apply(false, true);
         }
     }
 
@@ -613,6 +619,9 @@ public partial class HpExtraction : BaseExtraction
                         (pantiesPartMod, pantiesSprite)
                     ]);
 
+                    //pre render the sprite so that we can make the sprite sheets readonly after
+                    ((SpriteInfoTexture)underwearPart.SpriteInfo).GetSprite();
+
                     body.outfits.Add(new OutfitDataMod(new RelativeId(Plugin.ModId, outfitCount++), InsertStyle.append)
                     {
                         Name = GetUnderwearName(nativeId),
@@ -663,7 +672,7 @@ public partial class HpExtraction : BaseExtraction
                 //single date add photos
                 if (j == 3)
                 {
-                    m_AddGirlSexPhotos(girlMod.Id, [photoMod.Id]);
+                    m_AddGirlSexPhotos(girlMod.Id, [(photoMod.Id, RelativeId.Default)]);
                 }
                 else
                 {
@@ -844,7 +853,7 @@ public partial class HpExtraction : BaseExtraction
                     (UnityEngine.TextureFormat)asTexture2d.m_TextureFormat,
                     UnityEngine.FilterMode.Bilinear,
                     TextureWrapMode.Mirror,
-                    null);
+                    false);
 
                 textures[texturePath] = textureInfo;
                 return true;

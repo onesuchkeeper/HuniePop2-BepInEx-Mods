@@ -17,7 +17,7 @@ public static class SingleDatePostSexCutscene
                     StepType = CutsceneStepType.DIALOG_TRIGGER,
                     ProceedType = CutsceneStepProceedType.AUTOMATIC,
                     DollTargetType = CutsceneStepDollTargetType.RANDOM,
-                    DialogTriggerDefinitionID = new RelativeId(-1, 43)//moan 1
+                    DialogTriggerDefinitionId = new RelativeId(-1, 43)//moan 1
                 }
             }
         });

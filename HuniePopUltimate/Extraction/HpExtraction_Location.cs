@@ -57,18 +57,26 @@ public partial class HpExtraction
         if (!locationDef.TryGetValue("id", out int hp1Id)) return;
         var id = LocationIds.FromHp1Id(hp1Id);
 
-        var outfitOverride = -1;
-        locationDef.TryGetValue("outfitOverride", out outfitOverride);
+        // Ignore the hub bedroom loc, and add the date bedroom as a
+        // special location only
+        if (id == LocationIds.BedRoom)
+        {
+            return;
+        }
 
         var locationMod = new LocationDataMod(id, InsertStyle.replace)
         {
             AllowNormal = true
         };
 
+        if (id == LocationIds.BedRoomDate)
+        {
+            locationMod.AllowNormal = false;
+        }
+
         if (locationDef.TryGetValue("name", out string locationName))
         {
             locationMod.LocationName = locationName;
-            ModInterface.Log.LogInfo($"{hp1Id} - {locationName} - outfit override: {outfitOverride}");
         }
 
         if (_locationIdToIconOutlined.TryGetValue(id, out var iconOutlinedName))
@@ -76,7 +84,7 @@ public partial class HpExtraction
             locationMod.FinderLocationIcon = new SpriteInfoTexture(
                 new TextureInfoCache(
                     Path.Combine(Plugin.RootDir, "images", $"{locationName}_icon.png"),
-                    new TextureInfoSprite(new SpriteInfoInternal(iconOutlinedName), false, true, _finderIconSteps)
+                    new TextureInfoSprite(new SpriteInfoInternal(iconOutlinedName), false, false, true, _finderIconSteps)
                 )
             );
         }
@@ -93,6 +101,8 @@ public partial class HpExtraction
                     ? LocationType.SIM
                     : LocationType.DATE;
             }
+
+            ModInterface.Log.LogInfo($"{hp1Id} {locationName}, - Loc type locationType{locationType} {locationMod.LocationType}");
 
             if (locationDef.TryGetValue("spriteCollectionName", out string spriteCollectionName)
                 && collectionData.TryGetValue(spriteCollectionName, out var spriteCollection)

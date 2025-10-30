@@ -17,7 +17,7 @@ public static class SingleDateMeetingCutscene
                     StepType = CutsceneStepType.DIALOG_TRIGGER,
                     ProceedType = CutsceneStepProceedType.AUTOMATIC,
                     DollTargetType = CutsceneStepDollTargetType.RANDOM,
-                    DialogTriggerDefinitionID = new RelativeId(-1, 10)//afternoon greeting
+                    DialogTriggerDefinitionId = new RelativeId(-1, 10)//afternoon greeting
                 }
             }
         });

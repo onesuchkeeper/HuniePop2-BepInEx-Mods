@@ -19,7 +19,7 @@ public static class SingleDateAttractCutscene
                     StepType = CutsceneStepType.DIALOG_TRIGGER,
                     ProceedType = CutsceneStepProceedType.AUTOMATIC,
                     DollTargetType = CutsceneStepDollTargetType.RANDOM,
-                    DialogTriggerDefinitionID = new RelativeId(-1, 34)//big move
+                    DialogTriggerDefinitionId = new RelativeId(-1, 34)//big move
                 },
 
                 //wait 0.5 sec

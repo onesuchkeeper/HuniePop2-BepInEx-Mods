@@ -1,17 +1,16 @@
 using System.Collections.Generic;
 using Hp2BaseMod;
+using SingleDate;
 using UnityEngine;
 
 public class SingleDateGirl
 {
-    public List<SexPhotoData> SexPhotoIds = new();
-    public List<DatePhotoData> DatePhotoIds = new();
-    public RelativeId MeetingLocId;
-    public RelativeId MeetingCutsceneId;
-    public RelativeId AffectionCutsceneId;
-    public RelativeId PreSexCutsceneId;
-    public RelativeId PostSexCutsceneId;
+    public List<SexPhotoData> SexPhotos = new();
+
+    public List<DatePhotoData> DatePhotos = new();
+
     public Sprite CharmSprite;
+    //charm behaviors
 }
 
 public struct DatePhotoData

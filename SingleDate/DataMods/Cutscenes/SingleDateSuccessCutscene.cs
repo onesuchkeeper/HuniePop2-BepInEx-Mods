@@ -36,7 +36,7 @@ public static class SingleDateSuccessCutscene
                     StepType = CutsceneStepType.DIALOG_TRIGGER,
                     ProceedType = CutsceneStepProceedType.AUTOMATIC,
                     DollTargetType = CutsceneStepDollTargetType.RANDOM,
-                    DialogTriggerDefinitionID = new RelativeId(-1, 16)//date success
+                    DialogTriggerDefinitionId = new RelativeId(-1, 16)//date success
                 },
                 new CutsceneStepInfo()
                 {

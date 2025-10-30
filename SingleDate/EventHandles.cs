@@ -117,14 +117,13 @@ internal static class EventHandles
         if (f_newRoundCutscene.GetValue<CutsceneDefinition>(Game.Session.Puzzle) == Game.Session.Puzzle.cutsceneNewroundBonus)
         {
             var maxSingleGirlRelationshipLevel = Plugin.Instance.MaxSingleGirlRelationshipLevel;
+            var girlSave = State.SaveFile.GetGirl(playerFileGirlPair.girlPairDefinition.girlDefinitionTwo.id);
 
             var validSingleLevels = false;
             if (State.IsSingleDate)
             {
-                var girlSave = State.SaveFile.GetGirl(playerFileGirlPair.girlPairDefinition.girlDefinitionTwo.id);
-
                 //single date relationship levels are handled post round over, so girl will be at max already for bonus round
-                validSingleLevels = girlSave?.RelationshipLevel == maxSingleGirlRelationshipLevel;
+                validSingleLevels = girlSave?.RelationshipLevel <= maxSingleGirlRelationshipLevel;
             }
             else if (Plugin.Instance.RequireLoversBeforeThreesome)
             {
@@ -137,7 +136,7 @@ internal static class EventHandles
 
             if (!validSingleLevels)
             {
-                ModInterface.Log.LogInfo("Disabling bonus round per single date requirements");
+                ModInterface.Log.LogInfo($"Disabling bonus round per single date requirements {girlSave?.RelationshipLevel}/{maxSingleGirlRelationshipLevel}");
                 Game.Session.Puzzle.puzzleStatus.gameOver = true;
 
                 f_newRoundCutscene.SetValue(Game.Session.Puzzle, null);
@@ -163,7 +162,6 @@ internal static class EventHandles
         }
 
         var maxSingleGirlRelationshipLevel = Plugin.Instance.MaxSingleGirlRelationshipLevel;
-        bool sexDate;
 
         if (State.IsSingleDate)
         {
@@ -172,7 +170,8 @@ internal static class EventHandles
             if (statusGirl.stamina < 1)
             {
                 args.DenyDate = true;
-                // TODO play too hungry audio
+                // exhausted
+                Game.Session.gameCanvas.GetDoll(true).ReadDialogTrigger(ModInterface.GameData.GetDialogTrigger(new RelativeId(-1, 35)), DialogLineFormat.PASSIVE);
                 return;
             }
 
@@ -183,24 +182,45 @@ internal static class EventHandles
             args.LeftPoints = 0;
             args.RightPoints = 5;
 
-            var girlSave = State.SaveFile.GetGirl(playerFileGirlPair.girlPairDefinition.girlDefinitionTwo.id);
+            var girlId = ModInterface.Data.GetDataId(GameDataType.Girl, playerFileGirlPair.girlPairDefinition.girlDefinitionTwo.id);
+            var girlSave = State.SaveFile.GetGirl(girlId);
 
-            sexDate = playerFileGirlPair.relationshipType == GirlPairRelationshipType.ATTRACTED
+            if (playerFileGirlPair.relationshipType == GirlPairRelationshipType.ATTRACTED
                 && girlSave.RelationshipLevel == maxSingleGirlRelationshipLevel - 1
-                && Game.Persistence.playerFile.daytimeElapsed % 4 == (int)playerFileGirlPair.girlPairDefinition.sexDaytime;
+                && Game.Persistence.playerFile.daytimeElapsed % 4 == (int)playerFileGirlPair.girlPairDefinition.sexDaytime
+                && Plugin.Instance.SingleDateGirls.TryGetValue(girlId, out var singleDateGirl))
+            {
+                if (singleDateGirl.SexPhotos.Any()
+                    && singleDateGirl.SexPhotos.Select(x => x.LocationId).ToArray().GetRandom() is var randomLocId
+                    && randomLocId != RelativeId.Default)
+                {
+                    args.Location = ModInterface.GameData.GetLocation(randomLocId);
+                }
+                else
+                {
+                    args.Location = playerFileGirlPair.girlPairDefinition.sexLocationDefinition;
+                }
+
+                return;
+            }
         }
         else
         {
             var girlSaveOne = State.SaveFile.GetGirl(playerFileGirlPair.girlPairDefinition.girlDefinitionOne.id);
             var girlSaveTwo = State.SaveFile.GetGirl(playerFileGirlPair.girlPairDefinition.girlDefinitionTwo.id);
 
-            sexDate = girlSaveOne?.RelationshipLevel == maxSingleGirlRelationshipLevel
+            if (girlSaveOne?.RelationshipLevel == maxSingleGirlRelationshipLevel
                 && girlSaveTwo?.RelationshipLevel == maxSingleGirlRelationshipLevel
                 && playerFileGirlPair.relationshipType == GirlPairRelationshipType.ATTRACTED
-                && Game.Persistence.playerFile.daytimeElapsed % 4 == (int)playerFileGirlPair.girlPairDefinition.sexDaytime;
+                && Game.Persistence.playerFile.daytimeElapsed % 4 == (int)playerFileGirlPair.girlPairDefinition.sexDaytime)
+            {
+                args.Location = playerFileGirlPair.girlPairDefinition.sexLocationDefinition;
+                return;
+            }
         }
 
-        args.Location = sexDate ? playerFileGirlPair.girlPairDefinition.sexLocationDefinition : null;
+        //if not a sex date, set it to null to force it to re-roll
+        args.Location = null;
     }
 
     internal static void On_SinglePhotoDisplayed(SinglePhotoDisplayArgs args)
@@ -217,14 +237,19 @@ internal static class EventHandles
 
         var girlId = ModInterface.Data.GetDataId(playerFileGirlPair.girlPairDefinition.girlDefinitionTwo);
         var girlSave = State.SaveFile.GetGirl(girlId);
+        var singleDateGirl = Plugin.Instance.SingleDateGirls.GetOrNew(girlId);
 
         if (Game.Session.Puzzle.puzzleStatus.bonusRound)
         {
-            if (!(Plugin.Instance.GirlIdToSexPhotoId.TryGetValue(girlId, out var sexPhotos) && sexPhotos.Any()))
+            if (!singleDateGirl.SexPhotos.Any())
             {
                 args.BigPhotoId = PhotoDefault.Id;
                 return;
             }
+
+            var locId = ModInterface.Data.GetDataId(GameDataType.Location, Game.Session.Location.currentLocation.id);
+
+            var sexPhotos = singleDateGirl.SexPhotos.Where(x => x.LocationId == locId).Select(x => x.PhotoId).ToArray();
 
             var photoPool = sexPhotos.Except(girlSave.UnlockedPhotos).ToArray();
             args.BigPhotoId = photoPool.Length == 0
@@ -235,13 +260,13 @@ internal static class EventHandles
         {
             var datePercentage = girlSave.RelationshipLevel / (float)Plugin.Instance.MaxSingleGirlRelationshipLevel;
 
-            if (!(Plugin.Instance.GirlIdToDatePhotoId.TryGetValue(girlId, out var datePhotos) && datePhotos.Any()))
+            if (!singleDateGirl.DatePhotos.Any())
             {
                 args.BigPhotoId = PhotoDefault.Id;
                 return;
             }
 
-            var validDatePhotos = datePhotos.Where(x => x.Item2 <= datePercentage).Select(x => x.Item1).ToArray();
+            var validDatePhotos = singleDateGirl.DatePhotos.Where(x => x.RelationshipPercentage <= datePercentage).Select(x => x.PhotoId).ToArray();
             var lockedDatePhotos = girlSave.UnlockedPhotos == null
                 ? validDatePhotos
                 : validDatePhotos.Except(girlSave.UnlockedPhotos).ToArray();

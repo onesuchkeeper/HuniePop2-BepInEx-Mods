@@ -62,10 +62,10 @@ public partial class HpExtraction
 
         merged.SpriteInfo = new SpriteInfoTexture(new TextureInfoCache(cachePath,
             new TextureInfoRender(
-                new TextureInfoComposite(topRight - bottomLeft,
-                    parts.Select(x => ((ITextureInfo)new TextureInfoSprite(x.Item2), new Vector2Int(x.Item1.X.Value - 1, Mathf.FloorToInt(x.Item1.Y.Value - x.Item2._rect.Value.height) - 1) - bottomLeft))), [
-                    new TextureRsPad(1)
-                ])));
+                new TextureInfoComposite(topRight - bottomLeft, false,
+                    parts.Select(x => ((ITextureInfo)new TextureInfoSprite(x.Item2, false), new Vector2Int(x.Item1.X.Value - 1, Mathf.FloorToInt(x.Item1.Y.Value - x.Item2._rect.Value.height) - 1) - bottomLeft))),
+                false,
+                [new TextureRsPad(1)])));
 
         merged.X = bottomLeft.x;
         merged.Y = topRight.y;

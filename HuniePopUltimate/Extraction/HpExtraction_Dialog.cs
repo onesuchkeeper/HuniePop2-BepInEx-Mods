@@ -38,6 +38,7 @@ public partial class HpExtraction
                         {
                             ExtractDialogLineSet(new RelativeId(-1, 15), lineSets[i], file);
                         }
+                        ExtractDialogLineSet(DialogTriggers.PreSex, lineSets[12], file);
                     }
                     break;
                 case "DateValediction":
@@ -48,6 +49,7 @@ public partial class HpExtraction
                         //2 - goToBonus round - I'll have to repurpose this for cutscenes
                         ExtractDialogLineSet(new RelativeId(-1, 16), lineSets[0], file);//date success
                         ExtractDialogLineSet(new RelativeId(-1, 17), lineSets[1], file);//date fail
+                        ExtractDialogLineSet(DialogTriggers.PreBedroom, lineSets[2], file);
                     }
                     break;
                 case "GivenDateGift":
@@ -116,6 +118,7 @@ public partial class HpExtraction
                         ExtractDialogLineSet(new RelativeId(-1, 10), lineSets[1], file);//greeting afternoon
                         ExtractDialogLineSet(new RelativeId(-1, 11), lineSets[2], file);//greeting evening
                         ExtractDialogLineSet(new RelativeId(-1, 12), lineSets[3], file);//greeting night
+                        ExtractDialogLineSet(DialogTriggers.PostSex, lineSets[4], file);
                     }
                     break;
                 case "InventoryFull":
@@ -179,13 +182,13 @@ public partial class HpExtraction
                     ExtractDialogLineSet(new RelativeId(-1, 8), lineSets[0], file);//herQuestionGoodResponse
                     break;
                 case "QuestionIncorrect":
-                    ExtractDialogLineSet(new RelativeId(-1, 5), lineSets[0], file);//favQuestionResponse
                     break;
                 case "QuestionIntro":
                     ExtractDialogLineSet(new RelativeId(-1, 2), lineSets[0], file);//herQuestionIntro
                     break;
                 case "QuizCorrect":
                     ExtractDialogLineSet(new RelativeId(-1, 6), lineSets[0], file);//favQuestionAgree
+                    ExtractDialogLineSet(new RelativeId(-1, 5), lineSets[0], file);//favQuestionResponse
                     break;
                 case "QuizIncorrect":
                     break;

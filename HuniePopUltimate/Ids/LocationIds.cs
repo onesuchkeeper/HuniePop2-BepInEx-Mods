@@ -7,7 +7,7 @@ public static class LocationIds
 {
     //date locs
     public static RelativeId BedRoom => _bedRoom;
-    private static RelativeId _bedRoom = new RelativeId(Plugin.ModId, 1);
+    private static RelativeId _bedRoom = new RelativeId(Plugin.ModId, 22);
 
     public static RelativeId Park => _park;
     private static RelativeId _park = new RelativeId(Plugin.ModId, 2);
@@ -70,7 +70,7 @@ public static class LocationIds
     private static RelativeId _restaurant = new RelativeId(Plugin.ModId, 21);
 
     public static RelativeId BedRoomDate => _bedRoomDate;
-    private static RelativeId _bedRoomDate = new RelativeId(Plugin.ModId, 22);
+    private static RelativeId _bedRoomDate = new RelativeId(Plugin.ModId, 1);
 
     public static RelativeId FromHp1Id(int hp1LocId)
     {

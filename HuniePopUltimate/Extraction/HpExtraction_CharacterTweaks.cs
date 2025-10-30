@@ -11,10 +11,10 @@ public partial class HpExtraction
     {
         void SetImages(string name)
         {
-            girlMod.CellphonePortrait = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImgDir, $"ui_girl_portrait_{name}.png")));
-            girlMod.CellphoneHead = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImgDir, $"{name}_cellphoneHead.png")));
-            girlMod.CellphoneMiniHead = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImgDir, $"{name}_cellphoneHeadMini.png")));
-            m_SetCharmSprite?.Invoke(girlMod.Id, new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImgDir, $"charm_{name}.png"))).GetSprite());
+            girlMod.CellphonePortrait = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImgDir, $"ui_girl_portrait_{name}.png"), true));
+            girlMod.CellphoneHead = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImgDir, $"{name}_cellphoneHead.png"), true));
+            girlMod.CellphoneMiniHead = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImgDir, $"{name}_cellphoneHeadMini.png"), true));
+            m_SetCharmSprite?.Invoke(girlMod.Id, new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImgDir, $"charm_{name}.png"), true)).GetSprite());
         }
         var body = (GirlBodyDataMod)girlMod.bodies[0];
 

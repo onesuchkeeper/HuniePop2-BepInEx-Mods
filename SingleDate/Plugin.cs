@@ -9,7 +9,7 @@ using Hp2BaseMod.Extension;
 using Hp2BaseMod.GameDataInfo;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
-using MonoMod.Utils;
+using UnityEngine;
 
 namespace SingleDate;
 
@@ -130,60 +130,25 @@ internal class Plugin : BaseUnityPlugin
     public static readonly string RootDir = Path.Combine(Paths.PluginPath, "SingleDate");
     public static readonly string ImagesDir = Path.Combine(RootDir, "images");
 
-    internal Dictionary<RelativeId, List<RelativeId>> GirlIdToSingleDateData = new();
+    public void AddGirlSexPhotos(RelativeId girlId, IEnumerable<(RelativeId, RelativeId)> photoIds)
+        => SingleDateGirls.GetOrNew(girlId).SexPhotos.AddRange(photoIds.Select(x => new SexPhotoData() { PhotoId = x.Item1, LocationId = x.Item2 }));
 
-    internal Dictionary<RelativeId, List<RelativeId>> GirlIdToSexPhotoId = new();
-    public void AddGirlSexPhotos(RelativeId girlId, IEnumerable<RelativeId> photoIds)
-        => GirlIdToSexPhotoId.GetOrNew(girlId).AddRange(photoIds);
-
-    internal Dictionary<RelativeId, List<(RelativeId, float)>> GirlIdToDatePhotoId = new();
     public void AddGirlDatePhotos(RelativeId girlId, IEnumerable<(RelativeId, float)> photoIds)
-        => GirlIdToDatePhotoId.GetOrNew(girlId).AddRange(photoIds);
+            => SingleDateGirls.GetOrNew(girlId).DatePhotos.AddRange(photoIds.Select(x => new DatePhotoData() { PhotoId = x.Item1, RelationshipPercentage = x.Item2 }));
 
-    public void SwapPhotos(RelativeId girlAId, RelativeId girlBId)
+    public void SwapGirls(RelativeId girlIdA, RelativeId girlIdB)
     {
-        var gotADate = GirlIdToDatePhotoId.TryGetValue(girlAId, out var aDatePhotos);
-        var gotBDate = GirlIdToDatePhotoId.TryGetValue(girlAId, out var bDatePhotos);
+        var aData = SingleDateGirls.GetOrNew(girlIdA);
+        var bData = SingleDateGirls.GetOrNew(girlIdB);
 
-        if (gotADate)
-        {
-            GirlIdToDatePhotoId[girlBId] = aDatePhotos;
-        }
-        else if (gotBDate)
-        {
-            GirlIdToDatePhotoId.Remove(girlBId);
-        }
-
-        if (gotBDate)
-        {
-            GirlIdToDatePhotoId[girlAId] = bDatePhotos;
-        }
-        else if (gotADate)
-        {
-            GirlIdToDatePhotoId.Remove(girlAId);
-        }
-
-        var gotASex = GirlIdToSexPhotoId.TryGetValue(girlAId, out var aSexPhotos);
-        var gotBSex = GirlIdToSexPhotoId.TryGetValue(girlAId, out var bSexPhotos);
-
-        if (gotASex)
-        {
-            GirlIdToSexPhotoId[girlBId] = aSexPhotos;
-        }
-        else if (gotBSex)
-        {
-            GirlIdToSexPhotoId.Remove(girlBId);
-        }
-
-        if (gotBSex)
-        {
-            GirlIdToSexPhotoId[girlAId] = bSexPhotos;
-        }
-        else if (gotASex)
-        {
-            GirlIdToSexPhotoId.Remove(girlAId);
-        }
+        SingleDateGirls[girlIdA] = bData;
+        SingleDateGirls[girlIdB] = aData;
     }
+
+    public void SetGirlCharm(RelativeId girlId, Sprite charmSprite)
+    => SingleDateGirls.GetOrNew(girlId).CharmSprite = charmSprite;
+
+    internal Dictionary<RelativeId, SingleDateGirl> SingleDateGirls = new();
 
     private void Awake()
     {
@@ -219,15 +184,15 @@ internal class Plugin : BaseUnityPlugin
         PhotoSarah.AddDataMods();
         PhotoZoey.AddDataMods();
 
-        AddGirlSexPhotos(Girls.AbiaId, [PhotoAbia.Id]);
-        AddGirlSexPhotos(Girls.BrookeId, [PhotoBrooke.Id]);
-        AddGirlSexPhotos(Girls.CandaceId, [PhotoCandace.Id]);
-        AddGirlSexPhotos(Girls.LailaniId, [PhotoLailani.Id]);
-        AddGirlSexPhotos(Girls.LillianId, [PhotoLillian.Id]);
-        AddGirlSexPhotos(Girls.NoraId, [PhotoNora.Id]);
-        AddGirlSexPhotos(Girls.PollyId, [PhotoPolly.Id]);
-        AddGirlSexPhotos(Girls.SarahId, [PhotoSarah.Id]);
-        AddGirlSexPhotos(Girls.ZoeyId, [PhotoZoey.Id]);
+        AddGirlSexPhotos(Girls.AbiaId, [(PhotoAbia.Id, Locations.RoyalSuite)]);
+        AddGirlSexPhotos(Girls.BrookeId, [(PhotoBrooke.Id, Locations.RoyalSuite)]);
+        AddGirlSexPhotos(Girls.CandaceId, [(PhotoCandace.Id, Locations.RoyalSuite)]);
+        AddGirlSexPhotos(Girls.LailaniId, [(PhotoLailani.Id, Locations.RoyalSuite)]);
+        AddGirlSexPhotos(Girls.LillianId, [(PhotoLillian.Id, Locations.RoyalSuite)]);
+        AddGirlSexPhotos(Girls.NoraId, [(PhotoNora.Id, Locations.RoyalSuite)]);
+        AddGirlSexPhotos(Girls.PollyId, [(PhotoPolly.Id, Locations.RoyalSuite)]);
+        AddGirlSexPhotos(Girls.SarahId, [(PhotoSarah.Id, Locations.RoyalSuite)]);
+        AddGirlSexPhotos(Girls.ZoeyId, [(PhotoZoey.Id, Locations.RoyalSuite)]);
 
         UiPrefabs.InitExternals();
 
@@ -282,20 +247,19 @@ internal class Plugin : BaseUnityPlugin
         }
 
         //pairs
-        var pairCount = 0;
-        foreach (var girlId in ModInterface.Data.GetIds(GameDataType.Girl).Where(x => x != GirlNobody.Id || !(x.SourceId == -1 && x.LocalId > 12)))
+        for (int i = 1; i < 13; i++)
         {
-            ModInterface.AddDataMod(new GirlPairDataMod(new RelativeId(State.ModId, pairCount), InsertStyle.replace)
+            ModInterface.AddDataMod(new GirlPairDataMod(new RelativeId(State.ModId, i), InsertStyle.replace)
             {
                 GirlDefinitionOneID = GirlNobody.Id,
-                GirlDefinitionTwoID = girlId,
+                GirlDefinitionTwoID = new RelativeId(-1, i),
                 SpecialPair = false,
                 PhotoDefinitionID = PhotoDefault.Id,
                 IntroductionPair = false,
                 IntroSidesFlipped = false,
                 HasMeetingStyleOne = false,
                 HasMeetingStyleTwo = false,
-                MeetingLocationDefinitionID = new RelativeId(-1, 1 + (pairCount % 8)),
+                MeetingLocationDefinitionID = new RelativeId(-1, 1 + (i % 8)),
                 SexDayTime = ClockDaytimeType.NIGHT,
                 SexLocationDefinitionID = new RelativeId(-1, 20),//royal suite
                 IntroRelationshipCutsceneDefinitionID = CutsceneIds.Meeting,
@@ -305,8 +269,6 @@ internal class Plugin : BaseUnityPlugin
                 Styles = defaultPairStyle,
                 FavQuestions = questions
             });
-
-            pairCount++;
         }
     }
 }

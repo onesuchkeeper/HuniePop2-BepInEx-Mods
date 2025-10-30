@@ -31,18 +31,78 @@ public class Plugin : BaseUnityPlugin
     public static string ImgDir => Path.Combine(_dir, "images");
 
     public static int ModId => _modId;
-    private static int _modId;
+    private static int _modId = ModInterface.GetSourceId(MyPluginInfo.PLUGIN_GUID);
 
     public static int PhotoModCount = 0;
 
     private void Awake()
     {
-        if (ModInterface.TryGetInterModValue("OSK.BepInEx.SingleDate", "AddGirlDatePhotos", out Action<RelativeId, IEnumerable<(RelativeId, float)>> m_AddGirlDatePhotos)
-            && ModInterface.TryGetInterModValue("OSK.BepInEx.SingleDate", "AddGirlSexPhotos", out Action<RelativeId, IEnumerable<RelativeId>> m_AddGirlSexPhotos)
-            && ModInterface.TryGetInterModValue("OSK.BepInEx.SingleDate", "SetCharmSprite", out Action<RelativeId, Sprite> m_SetCharmSprite)
+        _dir = Path.GetDirectoryName(Info.Location);
+        var imagesDir = Path.Combine(_dir, "images");
+
+        this.Config.Bind(_configGeneralName, _configUnlockStylesName, false, "If All Hp1 outfit and hairstyles should auto-unlock.");
+        this.Config.Bind(_configGeneralName, _configUnlockPhotosName, false, "If All Hp1 photos should auto-unlock.");
+        this.Config.Bind("General", "HuniePopDir", Path.Combine(Paths.PluginPath, "..", "..", "..", "HuniePop"), "Path to the HuniePop install directory.");
+
+        var singleDateId = ModInterface.GetSourceId("OSK.BepInEx.SingleDate");
+
+        if (ModInterface.TryGetInterModValue(singleDateId, "AddGirlDatePhotos", out Action<RelativeId, IEnumerable<(RelativeId, float)>> m_AddGirlDatePhotos)
+            && ModInterface.TryGetInterModValue(singleDateId, "AddGirlSexPhotos", out Action<RelativeId, IEnumerable<(RelativeId, RelativeId)>> m_AddGirlSexPhotos)
+            && ModInterface.TryGetInterModValue(singleDateId, "SetGirlCharm", out Action<RelativeId, Sprite> m_SetCharmSprite)
             )
         {
             ModInterface.Log.LogInfo("Successfully found single date interop");
+
+            var defaultGirlStyle = new GirlStyleInfo()
+            {
+                HairstyleId = RelativeId.Default,
+                OutfitId = RelativeId.Default,
+            };
+
+            var defaultPairStyle = new PairStyleInfo()
+            {
+                MeetingGirlOne = defaultGirlStyle,
+                MeetingGirlTwo = defaultGirlStyle,
+                SexGirlOne = defaultGirlStyle,
+                SexGirlTwo = defaultGirlStyle,
+            };
+
+            var questions = new List<IGameDefinitionInfo<GirlPairFavQuestionSubDefinition>>();
+            for (int i = 1; i <= 20; i++)
+            {
+                questions.Add(new GirlPairFavQuestionInfo()
+                {
+                    GirlResponseIndexOne = 1,
+                    GirlResponseIndexTwo = 1,
+                    QuestionDefinitionID = new RelativeId(-1, i)
+                });
+            }
+
+            var defaultPhoto = new RelativeId(singleDateId, 0);
+
+            foreach (var girl in Girls.AllHp1)
+            {
+                ModInterface.AddDataMod(new GirlPairDataMod(girl, InsertStyle.replace)
+                {
+                    GirlDefinitionOneID = new RelativeId(singleDateId, 0),
+                    GirlDefinitionTwoID = girl,
+                    SpecialPair = false,
+                    PhotoDefinitionID = defaultPhoto,
+                    IntroductionPair = false,
+                    IntroSidesFlipped = false,
+                    HasMeetingStyleOne = false,
+                    HasMeetingStyleTwo = false,
+                    MeetingLocationDefinitionID = new RelativeId(-1, 1 + (girl.LocalId % 8)),//temp
+                    SexDayTime = ClockDaytimeType.NIGHT,
+                    SexLocationDefinitionID = new RelativeId(-1, 20),//royal suite
+                    IntroRelationshipCutsceneDefinitionID = new RelativeId(singleDateId, 0),
+                    AttractRelationshipCutsceneDefinitionID = new RelativeId(singleDateId, 1),
+                    PreSexRelationshipCutsceneDefinitionID = new RelativeId(ModId, 0),//new RelativeId(singleDateId, 2),
+                    PostSexRelationshipCutsceneDefinitionID = new RelativeId(singleDateId, 3),
+                    Styles = defaultPairStyle,
+                    FavQuestions = questions
+                });
+            }
         }
         else
         {
@@ -50,16 +110,6 @@ public class Plugin : BaseUnityPlugin
             m_AddGirlSexPhotos = null;
             m_SetCharmSprite = null;
         }
-
-        this.Config.Bind(_configGeneralName, _configUnlockStylesName, false, "If All Hp1 outfit and hairstyles should auto-unlock.");
-        this.Config.Bind(_configGeneralName, _configUnlockPhotosName, false, "If All Hp1 photos should auto-unlock.");
-
-        _modId = ModInterface.GetSourceId(MyPluginInfo.PLUGIN_GUID);
-        _dir = Path.GetDirectoryName(Info.Location);
-
-        var imagesDir = Path.Combine(_dir, "images");
-
-        this.Config.Bind("General", "HuniePopDir", Path.Combine(Paths.PluginPath, "..", "..", "..", "HuniePop"), "Path to the HuniePop install directory.");
 
         if (!(this.Config.TryGetEntry<string>("General", "HuniePopDir", out var hpDirConfig)
                 && !string.IsNullOrWhiteSpace(hpDirConfig.Value)
@@ -89,10 +139,10 @@ public class Plugin : BaseUnityPlugin
 
         using (var hpExtraction = new HpExtraction(hpDirConfig.Value, m_AddGirlDatePhotos, m_AddGirlSexPhotos, m_SetCharmSprite))
         {
-            ModInterface.Log.LogInfo("HuniePop assembly loaded successfully, beginning import:");
-            ModInterface.Log.IncreaseIndent();
-            hpExtraction.Extract();
-            ModInterface.Log.DecreaseIndent();
+            using (ModInterface.Log.MakeIndent("HuniePop assembly loaded successfully, beginning import:"))
+            {
+                hpExtraction.Extract();
+            }
         }
 
         var whiteVal = 248f / 255f;
@@ -111,16 +161,16 @@ public class Plugin : BaseUnityPlugin
         var kyuPhotoDir = Path.Combine(hpDirConfig.Value, _dacDir, "Photos", "Kyu");
         if (Directory.Exists(kyuPhotoDir))
         {
-            var censoredTexture = new TextureInfoExternal(Path.Combine(kyuPhotoDir, "Old Bedroom1.jpg"));
-            var wetTexture = new TextureInfoExternal(Path.Combine(kyuPhotoDir, "Old Bedroom2.jpg"));
+            var censoredTexture = new TextureInfoExternal(Path.Combine(kyuPhotoDir, "Old Bedroom1.jpg"), true);
+            var wetTexture = new TextureInfoExternal(Path.Combine(kyuPhotoDir, "Old Bedroom2.jpg"), true);
 
             ModInterface.AddDataMod(new PhotoDataMod(new RelativeId(_modId, PhotoModCount++), InsertStyle.replace)
             {
                 BigPhotoCensored = new SpriteInfoTexture(censoredTexture),
-                ThumbnailCensored = new SpriteInfoTexture(new TextureInfoCache(Path.Combine(imagesDir, "kyu_old_thumb_censored.png"), new TextureInfoRender(censoredTexture, hp1ThumbSteps))),
+                ThumbnailCensored = new SpriteInfoTexture(new TextureInfoCache(Path.Combine(imagesDir, "kyu_old_thumb_censored.png"), new TextureInfoRender(censoredTexture, false, hp1ThumbSteps))),
 
                 BigPhotoWet = new SpriteInfoTexture(wetTexture),
-                ThumbnailWet = new SpriteInfoTexture(new TextureInfoCache(Path.Combine(imagesDir, "kyu_old_thumb_wet.png"), new TextureInfoRender(wetTexture, hp1ThumbSteps))),
+                ThumbnailWet = new SpriteInfoTexture(new TextureInfoCache(Path.Combine(imagesDir, "kyu_old_thumb_wet.png"), new TextureInfoRender(wetTexture, false, hp1ThumbSteps))),
             });
         }
 
@@ -132,16 +182,16 @@ public class Plugin : BaseUnityPlugin
                 new TextureRsPad(1),
             ];
 
-            var UncensoredTexture = new TextureInfoExternal(Path.Combine(imagesDir, "hp_10th_anniversary_audrey_dry.png"));
-            var wetTexture = new TextureInfoExternal(Path.Combine(imagesDir, "hp_10th_anniversary_audrey_wet.png"));
+            var UncensoredTexture = new TextureInfoExternal(Path.Combine(imagesDir, "hp_10th_anniversary_audrey_dry.png"), true);
+            var wetTexture = new TextureInfoExternal(Path.Combine(imagesDir, "hp_10th_anniversary_audrey_wet.png"), true);
 
             ModInterface.AddDataMod(new PhotoDataMod(new RelativeId(_modId, PhotoModCount++), InsertStyle.replace)
             {
                 BigPhotoUncensored = new SpriteInfoTexture(UncensoredTexture),
-                ThumbnailUncensored = new SpriteInfoTexture(new TextureInfoCache(Path.Combine(imagesDir, "audrey_10th_thumb_uncensored.png"), new TextureInfoRender(UncensoredTexture, audreyThumbSteps))),
+                ThumbnailUncensored = new SpriteInfoTexture(new TextureInfoCache(Path.Combine(imagesDir, "audrey_10th_thumb_uncensored.png"), new TextureInfoRender(UncensoredTexture, false, audreyThumbSteps))),
 
                 BigPhotoWet = new SpriteInfoTexture(wetTexture),
-                ThumbnailWet = new SpriteInfoTexture(new TextureInfoCache(Path.Combine(imagesDir, "audrey_10th_thumb_wet.png"), new TextureInfoRender(wetTexture, audreyThumbSteps))),
+                ThumbnailWet = new SpriteInfoTexture(new TextureInfoCache(Path.Combine(imagesDir, "audrey_10th_thumb_wet.png"), new TextureInfoRender(wetTexture, false, audreyThumbSteps))),
             });
         }
 
@@ -166,6 +216,23 @@ public class Plugin : BaseUnityPlugin
         FavThemeParkRide.AddDataMods();
         FavTrait.AddDataMods();
         FavWeather.AddDataMods();
+
+        //dts
+        ModInterface.AddDataMod(new DialogTriggerDataMod(DialogTriggers.PreBedroom, InsertStyle.append)
+        {
+            ForceType = DialogTriggerForceType.NONE,
+        });
+        ModInterface.AddDataMod(new DialogTriggerDataMod(DialogTriggers.PreSex, InsertStyle.append)
+        {
+            ForceType = DialogTriggerForceType.NONE,
+        });
+        ModInterface.AddDataMod(new DialogTriggerDataMod(DialogTriggers.PostSex, InsertStyle.append)
+        {
+            ForceType = DialogTriggerForceType.NONE,
+        });
+
+        //cutscenes
+        PreSexCutscene.AddDataMods();
 
         ModInterface.Events.RequestUnlockedPhotos += On_RequestUnlockedPhotos;
         ModInterface.Events.PreLoadPlayerFile += On_PreLoadPlayerFile;
