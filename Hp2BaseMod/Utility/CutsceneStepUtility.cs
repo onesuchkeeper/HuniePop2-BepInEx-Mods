@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Hp2BaseMod.GameDataInfo;
+using Hp2BaseMod.GameDataInfo.Interface;
 using UnityEngine;
 
 namespace Hp2BaseMod.Utility;
@@ -16,6 +17,15 @@ public static class CutsceneStepUtility
         };
     }
 
+    public static CutsceneStepInfo MakeNothingInfo(CutsceneStepProceedType proceedType)
+    {
+        return new CutsceneStepInfo()
+        {
+            StepType = CutsceneStepType.NOTHING,
+            ProceedType = proceedType
+        };
+    }
+
     public static CutsceneStepSubDefinition MakeBranch(IEnumerable<CutsceneBranchSubDefinition> branches, CutsceneStepProceedType proceedType)
     {
         return new CutsceneStepSubDefinition()
@@ -23,6 +33,16 @@ public static class CutsceneStepUtility
             stepType = CutsceneStepType.BRANCH,
             branches = branches.ToList(),
             proceedType = proceedType
+        };
+    }
+
+    public static CutsceneStepInfo MakeBranchInfo(IEnumerable<IGameDefinitionInfo<CutsceneBranchSubDefinition>> branches, CutsceneStepProceedType proceedType)
+    {
+        return new CutsceneStepInfo()
+        {
+            StepType = CutsceneStepType.BRANCH,
+            BranchInfos = branches.ToList(),
+            ProceedType = proceedType
         };
     }
 
@@ -35,6 +55,17 @@ public static class CutsceneStepUtility
             proceedType = proceedType
         };
     }
+
+    public static CutsceneStepInfo MakeGameActionInfo(LogicActionInfo logicAction, CutsceneStepProceedType proceedType)
+    {
+        return new CutsceneStepInfo()
+        {
+            StepType = CutsceneStepType.GAME_ACTION,
+            LogicActionInfo = logicAction,
+            ProceedType = proceedType
+        };
+    }
+
     public static CutsceneStepSubDefinition MakeSpecialStep(CutsceneStepSpecial cutsceneStepSpecial, CutsceneStepProceedType proceedType)
     {
         return new CutsceneStepSubDefinition()
@@ -44,6 +75,17 @@ public static class CutsceneStepUtility
             proceedType = proceedType
         };
     }
+
+    public static CutsceneStepInfo MakeSpecialStepInfo(string cutsceneStepSpecialName, CutsceneStepProceedType proceedType)
+    {
+        return new CutsceneStepInfo()
+        {
+            StepType = CutsceneStepType.SPECIAL_STEP,
+            SpecialStepPrefabName = cutsceneStepSpecialName,
+            ProceedType = proceedType
+        };
+    }
+
     public static CutsceneStepSubDefinition MakeChangeExpression(GirlExpressionType girlExpressionType, float breathSpeed, CutsceneStepDollTargetType dollTargetType, CutsceneStepProceedType proceedType)
     {
         return new CutsceneStepSubDefinition()
@@ -56,6 +98,20 @@ public static class CutsceneStepUtility
             proceedType = proceedType
         };
     }
+
+    public static CutsceneStepInfo MakeChangeExpressionInfo(GirlExpressionType girlExpressionType, float breathSpeed, CutsceneStepDollTargetType dollTargetType, CutsceneStepProceedType proceedType)
+    {
+        return new CutsceneStepInfo()
+        {
+            StepType = CutsceneStepType.CHANGE_EXPRESSION,
+            FloatValue = breathSpeed,
+            ExpressionType = girlExpressionType,
+            SetMood = false,
+            DollTargetType = dollTargetType,
+            ProceedType = proceedType
+        };
+    }
+
     public static CutsceneStepSubDefinition MakeSetMood(GirlExpressionType girlExpressionType, bool eyesClosed, CutsceneStepProceedType proceedType)
     {
         return new CutsceneStepSubDefinition()
@@ -67,6 +123,19 @@ public static class CutsceneStepUtility
             proceedType = proceedType
         };
     }
+
+    public static CutsceneStepInfo MakeSetMoodInfo(GirlExpressionType girlExpressionType, bool eyesClosed, CutsceneStepProceedType proceedType)
+    {
+        return new CutsceneStepInfo()
+        {
+            StepType = CutsceneStepType.CHANGE_EXPRESSION,
+            BoolValue = eyesClosed,
+            ExpressionType = girlExpressionType,
+            SetMood = true,
+            ProceedType = proceedType
+        };
+    }
+
     public static CutsceneStepSubDefinition MakeDialogLine(DialogLine dialogLine, bool isDialogBoxLocked, CutsceneStepProceedType proceedType, CutsceneStepDollTargetType dollTargetType)
     {
         return new CutsceneStepSubDefinition()
@@ -78,6 +147,19 @@ public static class CutsceneStepUtility
             dollTargetType = dollTargetType
         };
     }
+
+    public static CutsceneStepInfo MakeDialogLineInfo(RelativeId dialogLineId, bool isDialogBoxLocked, CutsceneStepProceedType proceedType, CutsceneStepDollTargetType dollTargetType)
+    {
+        return new CutsceneStepInfo()
+        {
+            StepType = CutsceneStepType.DIALOG_LINE,
+            BoolValue = isDialogBoxLocked,
+            ProceedType = proceedType,
+            DialogLineId = dialogLineId,
+            DollTargetType = dollTargetType
+        };
+    }
+
     public static CutsceneStepSubDefinition MakeDialogTrigger(DialogTriggerDefinition dialogTriggerDefinition, CutsceneStepProceedType proceedType, CutsceneStepDollTargetType dollTargetType)
     {
         return new CutsceneStepSubDefinition()
@@ -88,6 +170,18 @@ public static class CutsceneStepUtility
             dollTargetType = dollTargetType
         };
     }
+
+    public static CutsceneStepInfo MakeDialogTriggerInfo(RelativeId dialogTriggerDefinitionId, CutsceneStepProceedType proceedType, CutsceneStepDollTargetType dollTargetType)
+    {
+        return new CutsceneStepInfo()
+        {
+            StepType = CutsceneStepType.DIALOG_TRIGGER,
+            DialogTriggerDefinitionId = dialogTriggerDefinitionId,
+            ProceedType = proceedType,
+            DollTargetType = dollTargetType
+        };
+    }
+
     public static CutsceneStepSubDefinition MakeDoubleTrigger(bool usePuzzleFocus, DialogTriggerDefinition dialogTrigger, bool toHidden, CutsceneStepProceedType proceedType)
     {
         return new CutsceneStepSubDefinition()
@@ -99,6 +193,19 @@ public static class CutsceneStepUtility
             proceedType = proceedType
         };
     }
+
+    public static CutsceneStepInfo MakeDoubleTriggerInfo(bool usePuzzleFocus, RelativeId dialogTriggerId, bool toHidden, CutsceneStepProceedType proceedType)
+    {
+        return new CutsceneStepInfo()
+        {
+            StepType = CutsceneStepType.DIALOG_TRIGGER,
+            DialogTriggerDefinitionId = dialogTriggerId,
+            BoolValue = usePuzzleFocus,
+            ProceedBool = toHidden,
+            ProceedType = proceedType
+        };
+    }
+
     public static CutsceneStepSubDefinition MakeDialogOptions(IEnumerable<CutsceneDialogOptionSubDefinition> options, bool shuffle, CutsceneStepProceedType proceedType)
     {
         return new CutsceneStepSubDefinition()
@@ -107,6 +214,17 @@ public static class CutsceneStepUtility
             dialogOptions = options.ToList(),
             boolValue = shuffle,
             proceedType = proceedType
+        };
+    }
+
+    public static CutsceneStepInfo MakeDialogOptionsInfo(IEnumerable<IGameDefinitionInfo<CutsceneDialogOptionSubDefinition>> options, bool shuffle, CutsceneStepProceedType proceedType)
+    {
+        return new CutsceneStepInfo()
+        {
+            StepType = CutsceneStepType.DIALOG_OPTIONS,
+            DialogOptionInfos = options.ToList(),
+            BoolValue = shuffle,
+            ProceedType = proceedType
         };
     }
 
@@ -119,6 +237,18 @@ public static class CutsceneStepUtility
             floatValue = duration,
             dollTargetType = dollTargetType,
             proceedType = proceedType
+        };
+    }
+
+    public static CutsceneStepInfo MakeDollMoveInfo(DollPositionType positionType, CutsceneStepDollTargetType dollTargetType, CutsceneStepProceedType proceedType, float duration = 1f)
+    {
+        return new CutsceneStepInfo()
+        {
+            StepType = CutsceneStepType.DOLL_MOVE,
+            DollPositionType = positionType,
+            FloatValue = duration,
+            DollTargetType = dollTargetType,
+            ProceedType = proceedType
         };
     }
 
@@ -135,6 +265,19 @@ public static class CutsceneStepUtility
         };
     }
 
+    public static CutsceneStepInfo MakeDollMoveInfo(DollPositionType positionType, RelativeId targetDefId, CutsceneStepProceedType proceedType, float duration = 1f)
+    {
+        return new CutsceneStepInfo()
+        {
+            StepType = CutsceneStepType.DOLL_MOVE,
+            DollPositionType = positionType,
+            FloatValue = duration,
+            DollTargetType = CutsceneStepDollTargetType.GIRL_DEFINITION,
+            TargetGirlDefinitionId = targetDefId,
+            ProceedType = proceedType
+        };
+    }
+
     public static CutsceneStepSubDefinition MakeDollMove(DollPositionType positionType, DollOrientationType targetOrientation, CutsceneStepProceedType proceedType, float duration = 1f)
     {
         return new CutsceneStepSubDefinition()
@@ -145,6 +288,19 @@ public static class CutsceneStepUtility
             dollTargetType = CutsceneStepDollTargetType.ORIENTATION_TYPE,
             targetDollOrientation = targetOrientation,
             proceedType = proceedType
+        };
+    }
+
+    public static CutsceneStepInfo MakeDollMoveInfo(DollPositionType positionType, DollOrientationType targetOrientation, CutsceneStepProceedType proceedType, float duration = 1f)
+    {
+        return new CutsceneStepInfo()
+        {
+            StepType = CutsceneStepType.DOLL_MOVE,
+            DollPositionType = positionType,
+            FloatValue = duration,
+            DollTargetType = CutsceneStepDollTargetType.ORIENTATION_TYPE,
+            TargetDollOrientation = targetOrientation,
+            ProceedType = proceedType
         };
     }
 
@@ -159,6 +315,19 @@ public static class CutsceneStepUtility
             proceedType = proceedType
         };
     }
+
+    public static CutsceneStepInfo MakeLoadGirlInfo(RelativeId girlDefinitionId, CutsceneStepDollTargetType dollTargetType, CutsceneStepProceedType proceedType)
+    {
+        return new CutsceneStepInfo()
+        {
+            StepType = CutsceneStepType.LOAD_GIRL,
+            GirlDefinitionId = girlDefinitionId,
+            BoolValue = true,
+            DollTargetType = dollTargetType,
+            ProceedType = proceedType
+        };
+    }
+
     public static CutsceneStepSubDefinition MakeLoadGirl(GirlDefinition girlDefinition, int expression, int hairstyle, int outfit, CutsceneStepDollTargetType dollTargetType, CutsceneStepProceedType proceedType)
     {
         return new CutsceneStepSubDefinition()
@@ -173,6 +342,22 @@ public static class CutsceneStepUtility
             proceedType = proceedType
         };
     }
+
+    public static CutsceneStepInfo MakeLoadGirlInfo(RelativeId girlDefinitionId, int expression, RelativeId hairstyle, RelativeId outfit, CutsceneStepDollTargetType dollTargetType, CutsceneStepProceedType proceedType)
+    {
+        return new CutsceneStepInfo()
+        {
+            StepType = CutsceneStepType.LOAD_GIRL,
+            GirlDefinitionId = girlDefinitionId,
+            BoolValue = false,
+            ExpressionIndex = expression,
+            HairstyleId = hairstyle,
+            OutfitId = outfit,
+            DollTargetType = dollTargetType,
+            ProceedType = proceedType
+        };
+    }
+
     public static CutsceneStepSubDefinition MakeUnloadGirl(CutsceneStepDollTargetType dollTargetType, CutsceneStepProceedType proceedType)
     {
         return new CutsceneStepSubDefinition()
@@ -182,6 +367,17 @@ public static class CutsceneStepUtility
             proceedType = proceedType
         };
     }
+
+    public static CutsceneStepInfo MakeUnloadGirlInfo(CutsceneStepDollTargetType dollTargetType, CutsceneStepProceedType proceedType)
+    {
+        return new CutsceneStepInfo()
+        {
+            StepType = CutsceneStepType.LOAD_GIRL,
+            DollTargetType = dollTargetType,
+            ProceedType = proceedType
+        };
+    }
+
     public static CutsceneStepSubDefinition MakeTogglePhone(bool leftPosition_centerPosition, CutsceneStepProceedType proceedType)
     {
         return new CutsceneStepSubDefinition()
@@ -192,6 +388,18 @@ public static class CutsceneStepUtility
             proceedType = proceedType
         };
     }
+
+    public static CutsceneStepInfo MakeTogglePhoneInfo(bool leftPosition_centerPosition, CutsceneStepProceedType proceedType)
+    {
+        return new CutsceneStepInfo()
+        {
+            StepType = CutsceneStepType.TOGGLE_PHONE,
+            IntValue = -1,
+            BoolValue = leftPosition_centerPosition,
+            ProceedType = proceedType
+        };
+    }
+
     public static CutsceneStepSubDefinition MakeToggleHeader(bool leftPosition_centerPosition, CutsceneStepProceedType proceedType)
     {
         return new CutsceneStepSubDefinition()
@@ -202,6 +410,18 @@ public static class CutsceneStepUtility
             proceedType = proceedType
         };
     }
+
+    public static CutsceneStepInfo MakeToggleHeaderInfo(bool leftPosition_centerPosition, CutsceneStepProceedType proceedType)
+    {
+        return new CutsceneStepInfo()
+        {
+            StepType = CutsceneStepType.TOGGLE_PHONE,
+            IntValue = 1,
+            BoolValue = leftPosition_centerPosition,
+            ProceedType = proceedType
+        };
+    }
+
     public static CutsceneStepSubDefinition MakeTogglePhoneAndHeader(bool leftPosition_centerPosition, CutsceneStepProceedType proceedType)
     {
         return new CutsceneStepSubDefinition()
@@ -212,6 +432,18 @@ public static class CutsceneStepUtility
             proceedType = proceedType
         };
     }
+
+    public static CutsceneStepInfo MakeTogglePhoneAndHeaderInfo(bool leftPosition_centerPosition, CutsceneStepProceedType proceedType)
+    {
+        return new CutsceneStepInfo()
+        {
+            StepType = CutsceneStepType.TOGGLE_PHONE,
+            IntValue = 0,
+            BoolValue = leftPosition_centerPosition,
+            ProceedType = proceedType
+        };
+    }
+
     public static CutsceneStepSubDefinition MakeRewind(int steps, CutsceneStepProceedType proceedType)
     {
         return new CutsceneStepSubDefinition()
@@ -221,6 +453,17 @@ public static class CutsceneStepUtility
             proceedType = proceedType
         };
     }
+
+    public static CutsceneStepInfo MakeRewindInfo(int steps, CutsceneStepProceedType proceedType)
+    {
+        return new CutsceneStepInfo()
+        {
+            StepType = CutsceneStepType.REWIND,
+            IntValue = steps,
+            ProceedType = proceedType
+        };
+    }
+
     public static CutsceneStepSubDefinition MakeShowPuzzleGrid(BannerTextBehavior banner, int effectIndex, CutsceneStepProceedType proceedType)
     {
         return new CutsceneStepSubDefinition()
@@ -232,6 +475,19 @@ public static class CutsceneStepUtility
             proceedType = proceedType
         };
     }
+
+    public static CutsceneStepInfo MakeShowPuzzleGridInfo(string banner, int effectIndex, CutsceneStepProceedType proceedType)
+    {
+        return new CutsceneStepInfo()
+        {
+            StepType = CutsceneStepType.PUZZLE_GRID,
+            BoolValue = true,
+            BannerTextPrefabName = banner,
+            IntValue = effectIndex,
+            ProceedType = proceedType
+        };
+    }
+
     public static CutsceneStepSubDefinition MakeHidePuzzleGrid(CutsceneStepProceedType proceedType)
     {
         return new CutsceneStepSubDefinition()
@@ -241,6 +497,17 @@ public static class CutsceneStepUtility
             proceedType = proceedType
         };
     }
+
+    public static CutsceneStepInfo MakeHidePuzzleGridInfo(CutsceneStepProceedType proceedType)
+    {
+        return new CutsceneStepInfo()
+        {
+            StepType = CutsceneStepType.PUZZLE_GRID,
+            BoolValue = false,
+            ProceedType = proceedType
+        };
+    }
+
     public static CutsceneStepSubDefinition MakePuzzleRefocus(bool expressFailure, CutsceneStepProceedType proceedType)
     {
         return new CutsceneStepSubDefinition()
@@ -250,6 +517,17 @@ public static class CutsceneStepUtility
             proceedType = proceedType
         };
     }
+
+    public static CutsceneStepInfo MakePuzzleRefocusInfo(bool expressFailure, CutsceneStepProceedType proceedType)
+    {
+        return new CutsceneStepInfo()
+        {
+            StepType = CutsceneStepType.PUZZLE_REFOCUS,
+            BoolValue = expressFailure,
+            ProceedType = proceedType
+        };
+    }
+
     public static CutsceneStepSubDefinition MakeSetExhaustion(bool exhausted, CutsceneStepDollTargetType dollTargetType, CutsceneStepProceedType proceedType)
     {
         return new CutsceneStepSubDefinition()
@@ -260,6 +538,18 @@ public static class CutsceneStepUtility
             proceedType = proceedType
         };
     }
+
+    public static CutsceneStepInfo MakeSetExhaustionInfo(bool exhausted, CutsceneStepDollTargetType dollTargetType, CutsceneStepProceedType proceedType)
+    {
+        return new CutsceneStepInfo()
+        {
+            StepType = CutsceneStepType.SET_EXHAUSTION,
+            BoolValue = exhausted,
+            DollTargetType = dollTargetType,
+            ProceedType = proceedType
+        };
+    }
+
     public static CutsceneStepSubDefinition MakeSubCutsceneStraight(CutsceneDefinition cutsceneDefinition, CutsceneStepProceedType proceedType)
     {
         return new CutsceneStepSubDefinition()
@@ -270,6 +560,18 @@ public static class CutsceneStepUtility
             proceedType = proceedType
         };
     }
+
+    public static CutsceneStepInfo MakeSubCutsceneStraight(RelativeId cutsceneDefinitionId, CutsceneStepProceedType proceedType)
+    {
+        return new CutsceneStepInfo()
+        {
+            StepType = CutsceneStepType.SUB_CUTSCENE,
+            SubCutsceneType = CutsceneStepSubCutsceneType.STRAIGHT,
+            SubCutsceneDefinitionId = cutsceneDefinitionId,
+            ProceedType = proceedType
+        };
+    }
+
     public static CutsceneStepSubDefinition MakeSubCutsceneGirlPair(GirlPairRelationshipType relationshipType, CutsceneStepProceedType proceedType)
     {
         return new CutsceneStepSubDefinition()
@@ -280,6 +582,18 @@ public static class CutsceneStepUtility
             proceedType = proceedType
         };
     }
+
+    public static CutsceneStepInfo MakeSubCutsceneGirlPairInfo(GirlPairRelationshipType relationshipType, CutsceneStepProceedType proceedType)
+    {
+        return new CutsceneStepInfo()
+        {
+            StepType = CutsceneStepType.SUB_CUTSCENE,
+            SubCutsceneType = CutsceneStepSubCutsceneType.GIRL_PAIR,
+            GirlPairRelationshipType = relationshipType,
+            ProceedType = proceedType
+        };
+    }
+
     public static CutsceneStepSubDefinition MakeSubCutsceneGirlPairRound(CutsceneStepProceedType proceedType)
     {
         return new CutsceneStepSubDefinition()
@@ -289,6 +603,17 @@ public static class CutsceneStepUtility
             proceedType = proceedType
         };
     }
+
+    public static CutsceneStepInfo MakeSubCutsceneGirlPairRoundInfo(CutsceneStepProceedType proceedType)
+    {
+        return new CutsceneStepInfo()
+        {
+            StepType = CutsceneStepType.SUB_CUTSCENE,
+            SubCutsceneType = CutsceneStepSubCutsceneType.GIRL_PAIR_ROUND,
+            ProceedType = proceedType
+        };
+    }
+
     public static CutsceneStepSubDefinition MakeSubCutsceneInner(CutsceneStepProceedType proceedType)
     {
         return new CutsceneStepSubDefinition()
@@ -298,6 +623,17 @@ public static class CutsceneStepUtility
             proceedType = proceedType
         };
     }
+
+    public static CutsceneStepInfo MakeSubCutsceneInnerInfo(CutsceneStepProceedType proceedType)
+    {
+        return new CutsceneStepInfo()
+        {
+            StepType = CutsceneStepType.SUB_CUTSCENE,
+            SubCutsceneType = CutsceneStepSubCutsceneType.INNER,
+            ProceedType = proceedType
+        };
+    }
+
     public static CutsceneStepSubDefinition MakeShowWindow(bool queue, UiWindow windowPrefab, CutsceneStepProceedType proceedType)
     {
         return new CutsceneStepSubDefinition()
@@ -308,6 +644,18 @@ public static class CutsceneStepUtility
             proceedType = proceedType
         };
     }
+
+    public static CutsceneStepInfo MakeShowWindowInfo(bool queue, string windowPrefabName, CutsceneStepProceedType proceedType)
+    {
+        return new CutsceneStepInfo()
+        {
+            StepType = CutsceneStepType.SHOW_WINDOW,
+            BoolValue = !queue,
+            WindowPrefabName = windowPrefabName,
+            ProceedType = proceedType
+        };
+    }
+
     public static CutsceneStepSubDefinition MakeUseCellphone(IEnumerable<int> freezeButtonIndexes, CutsceneStepProceedType proceedType)
     {
         return new CutsceneStepSubDefinition()
@@ -319,6 +667,19 @@ public static class CutsceneStepUtility
             proceedType = proceedType
         };
     }
+
+    public static CutsceneStepInfo MakeUseCellphoneInfo(IEnumerable<int> freezeButtonIndexes, CutsceneStepProceedType proceedType)
+    {
+        return new CutsceneStepInfo()
+        {
+            StepType = CutsceneStepType.USE_CELLPHONE,
+            StringValue = freezeButtonIndexes == null
+                ? null
+                : string.Join(",", freezeButtonIndexes),
+            ProceedType = proceedType
+        };
+    }
+
     public static CutsceneStepSubDefinition MakeShakeScreen(float duration, int strength, bool fadeOut, CutsceneStepProceedType proceedType)
     {
         return new CutsceneStepSubDefinition()
@@ -330,6 +691,19 @@ public static class CutsceneStepUtility
             proceedType = proceedType
         };
     }
+
+    public static CutsceneStepInfo MakeShakeScreenInfo(float duration, int strength, bool fadeOut, CutsceneStepProceedType proceedType)
+    {
+        return new CutsceneStepInfo()
+        {
+            StepType = CutsceneStepType.SHAKE_SCREEN,
+            FloatValue = duration,
+            IntValue = strength,
+            BoolValue = fadeOut,
+            ProceedType = proceedType
+        };
+    }
+
     public static CutsceneStepSubDefinition MakeResetDolls(CutsceneStepProceedType proceedType)
     {
         return new CutsceneStepSubDefinition()
@@ -338,6 +712,16 @@ public static class CutsceneStepUtility
             proceedType = proceedType
         };
     }
+
+    public static CutsceneStepInfo MakeResetDollsInfo(CutsceneStepProceedType proceedType)
+    {
+        return new CutsceneStepInfo()
+        {
+            StepType = CutsceneStepType.RESET_DOLLS,
+            ProceedType = proceedType
+        };
+    }
+
     public static CutsceneStepSubDefinition MakeToggleOverlay(bool off_on, float duration, CutsceneStepProceedType proceedType)
     {
         return new CutsceneStepSubDefinition()
@@ -348,6 +732,18 @@ public static class CutsceneStepUtility
             proceedType = proceedType
         };
     }
+
+    public static CutsceneStepInfo MakeToggleOverlayInfo(bool off_on, float duration, CutsceneStepProceedType proceedType)
+    {
+        return new CutsceneStepInfo()
+        {
+            StepType = CutsceneStepType.TOGGLE_OVERLAY,
+            BoolValue = off_on,
+            FloatValue = duration,
+            ProceedType = proceedType
+        };
+    }
+
     public static CutsceneStepSubDefinition MakeSoundEffect(bool sound_voice, AudioKlip audioKlip, CutsceneStepProceedType proceedType)
     {
         return new CutsceneStepSubDefinition()
@@ -358,6 +754,18 @@ public static class CutsceneStepUtility
             proceedType = proceedType
         };
     }
+
+    public static CutsceneStepInfo MakeSoundEffectInfo(bool sound_voice, AudioKlipInfo audioKlip, CutsceneStepProceedType proceedType)
+    {
+        return new CutsceneStepInfo()
+        {
+            StepType = CutsceneStepType.SOUND_EFFECT,
+            BoolValue = sound_voice,
+            AudioKlipInfo = audioKlip,
+            ProceedType = proceedType
+        };
+    }
+
     public static CutsceneStepSubDefinition MakeClearMood(CutsceneStepDollTargetType dollTargetType, CutsceneStepProceedType proceedType)
     {
         return new CutsceneStepSubDefinition()
@@ -367,6 +775,17 @@ public static class CutsceneStepUtility
             proceedType = proceedType
         };
     }
+
+    public static CutsceneStepInfo MakeClearMoodInfo(CutsceneStepDollTargetType dollTargetType, CutsceneStepProceedType proceedType)
+    {
+        return new CutsceneStepInfo()
+        {
+            StepType = CutsceneStepType.CLEAR_MOOD,
+            DollTargetType = dollTargetType,
+            ProceedType = proceedType
+        };
+    }
+
     public static CutsceneStepSubDefinition MakeParticleEmitter(EmitterBehavior emitter, int effectContainer, Vector2 position, CutsceneStepProceedType proceedType)
     {
         return new CutsceneStepSubDefinition()
@@ -378,6 +797,19 @@ public static class CutsceneStepUtility
             proceedType = proceedType
         };
     }
+
+    public static CutsceneStepInfo MakeParticleEmitterInfo(string emitterName, int effectContainer, IGameDefinitionInfo<Vector2> position, CutsceneStepProceedType proceedType)
+    {
+        return new CutsceneStepInfo()
+        {
+            StepType = CutsceneStepType.PARTICLE_EMITTER,
+            EmitterBehaviorName = emitterName,
+            IntValue = effectContainer,
+            PositionInfo = position,
+            ProceedType = proceedType
+        };
+    }
+
     public static CutsceneStepSubDefinition MakeShowNotification(string text, CutsceneStepNotificationType type, float duration, CutsceneStepDollTargetType dollTargetType, CutsceneStepProceedType proceedType)
     {
         return new CutsceneStepSubDefinition()
@@ -391,11 +823,32 @@ public static class CutsceneStepUtility
         };
     }
 
+    public static CutsceneStepInfo MakeShowNotificationInfo(string text, CutsceneStepNotificationType type, float duration, CutsceneStepDollTargetType dollTargetType, CutsceneStepProceedType proceedType)
+    {
+        return new CutsceneStepInfo()
+        {
+            StepType = CutsceneStepType.SHOW_NOTIFICATION,
+            StringValue = text,
+            NotificationType = type,
+            FloatValue = duration,
+            DollTargetType = dollTargetType,
+            ProceedType = proceedType
+        };
+    }
+
     public static CutsceneStepSubDefinition MakeBannerTextHide()
     {
         return new CutsceneStepSubDefinition()
         {
             boolValue = true
+        };
+    }
+
+    public static CutsceneStepInfo MakeBannerTextHideInfo()
+    {
+        return new CutsceneStepInfo()
+        {
+            BoolValue = true
         };
     }
 
@@ -406,6 +859,16 @@ public static class CutsceneStepUtility
             bannerTextPrefab = bannerTextBehavior,
             intValue = effectsContainerIndex,
             boolValue = false
+        };
+    }
+
+    public static CutsceneStepInfo MakeBannerTextInfo(string bannerTextBehaviorName, int effectsContainerIndex)
+    {
+        return new CutsceneStepInfo()
+        {
+            BannerTextPrefabName = bannerTextBehaviorName,
+            IntValue = effectsContainerIndex,
+            BoolValue = false
         };
     }
 }

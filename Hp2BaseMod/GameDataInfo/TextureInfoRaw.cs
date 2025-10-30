@@ -9,17 +9,18 @@ namespace Hp2BaseMod.GameDataInfo;
 
 public class TextureInfoRaw : ITextureInfo
 {
-    private byte[] _data;
-    private TextureFormat _format = TextureFormat.ARGB32;
-    private int _width;
-    private int _height;
-    private IEnumerable<ITextureRenderStep> _renderSteps;
-    private FilterMode _filterMode;
-    private TextureWrapMode _wrapMode;
+    private readonly byte[] _data;
+    private readonly TextureFormat _format = TextureFormat.ARGB32;
+    private readonly int _width;
+    private readonly int _height;
+    private readonly IEnumerable<ITextureRenderStep> _renderSteps;
+    private readonly FilterMode _filterMode;
+    private readonly TextureWrapMode _wrapMode;
+    private readonly bool _readOnly;
 
     private Texture2D _texture;
 
-    public TextureInfoRaw(int width, int height, byte[] data, TextureFormat format, FilterMode filterMode, TextureWrapMode wrapMode, IEnumerable<ITextureRenderStep> renderSteps)
+    public TextureInfoRaw(int width, int height, byte[] data, TextureFormat format, FilterMode filterMode, TextureWrapMode wrapMode, bool readOnly, IEnumerable<ITextureRenderStep> renderSteps = null)
     {
         _data = data ?? throw new ArgumentNullException(nameof(data));
         _width = width;
@@ -28,13 +29,14 @@ public class TextureInfoRaw : ITextureInfo
         _filterMode = filterMode;
         _wrapMode = wrapMode;
         _renderSteps = renderSteps;
+        _readOnly = readOnly;
     }
 
     public Texture2D GetTexture()
     {
         if (_texture == null)
         {
-            _texture = TextureUtility.LoadFromRaw(_data, _width, _height, _format);
+            _texture = TextureUtility.LoadFromRaw(_data, _width, _height, _format, _readOnly);
             _texture.filterMode = _filterMode;
             _texture.wrapMode = _wrapMode;
 

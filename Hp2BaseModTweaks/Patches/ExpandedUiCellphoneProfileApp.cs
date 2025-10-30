@@ -77,7 +77,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
             var activeContainer = _profileApp.transform.Find("ActiveContainer");
 
             var backgroundImage = _profileApp.transform.Find("Background").GetComponent<Image>();
-            backgroundImage.sprite = TextureUtility.SpriteFromPng(_profileBackgroundPath);
+            backgroundImage.sprite = TextureUtility.SpriteFromPng(_profileBackgroundPath, true);
             backgroundImage.SetNativeSize();
 
             // pairs
@@ -146,7 +146,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
             var favoritesPanelBG_GO = new GameObject("FavoritesBG");
             favoritesPanelBG_GO.transform.SetParent(favAnswersPanel_GO.transform, false);
 
-            var favoritesPanelBG_Texture = TextureUtility.LoadFromPng(_profileFavoritesBackgroundPath);
+            var favoritesPanelBG_Texture = TextureUtility.LoadFromPng(_profileFavoritesBackgroundPath, true);
             favoritesPanelBG_Texture.wrapMode = TextureWrapMode.Repeat;
 
             var favoritesPanelBG_Image = favoritesPanelBG_GO.AddComponent<Image>();

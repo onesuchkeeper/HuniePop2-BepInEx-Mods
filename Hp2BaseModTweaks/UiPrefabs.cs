@@ -27,11 +27,11 @@ public static class UiPrefabs
 
     internal static void Init()
     {
-        _creditsBG = TextureUtility.SpriteFromPng(Path.Combine(Plugin.ImagesDir, "ui_app_credits_modded_background.png"));
-        _pairBG = TextureUtility.SpriteFromPng(Path.Combine(Plugin.ImagesDir, "ui_app_pair_background.png"));
-        _censoredThumb = TextureUtility.SpriteFromPng(Path.Combine(Plugin.ImagesDir, "ui_photo_album_slot_censored.png"));
-        _censoredBig = TextureUtility.SpriteFromPng(Path.Combine(Plugin.ImagesDir, "cg_censored.png"));
-        _wardrobeBodiesPanel = TextureUtility.SpriteFromPng(Path.Combine(Plugin.ImagesDir, "ui_phone_wardrobe_body_panel.png"));
+        _creditsBG = TextureUtility.SpriteFromPng(Path.Combine(Plugin.ImagesDir, "ui_app_credits_modded_background.png"), true);
+        _pairBG = TextureUtility.SpriteFromPng(Path.Combine(Plugin.ImagesDir, "ui_app_pair_background.png"), true);
+        _censoredThumb = TextureUtility.SpriteFromPng(Path.Combine(Plugin.ImagesDir, "ui_photo_album_slot_censored.png"), true);
+        _censoredBig = TextureUtility.SpriteFromPng(Path.Combine(Plugin.ImagesDir, "cg_censored.png"), true);
+        _wardrobeBodiesPanel = TextureUtility.SpriteFromPng(Path.Combine(Plugin.ImagesDir, "ui_phone_wardrobe_body_panel.png"), true);
 
         var bundlePath = Path.Combine(Plugin.RootDir, "hp2basemodtweaks_assetbundle");
         if (File.Exists(bundlePath))

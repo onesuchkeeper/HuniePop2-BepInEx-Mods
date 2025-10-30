@@ -13,24 +13,21 @@ namespace Hp2BaseMod.GameDataInfo;
 /// </summary>
 public class TextureInfoSprite : ITextureInfo
 {
-    private IGameDefinitionInfo<Sprite> _spriteData;
-    private IEnumerable<ITextureRenderStep> _renderSteps;
-    private bool _renderSprite;
-    private Texture2D _texture;
-    private bool _forceTight;
+    private readonly IGameDefinitionInfo<Sprite> _spriteData;
+    private readonly IEnumerable<ITextureRenderStep> _renderSteps;
+    private readonly bool _renderSprite;
+    private readonly bool _forceTight;
+    private readonly bool _readOnly;
 
-    /// <summary>
-    /// constructor
-    /// </summary>
-    /// <param name="spriteName">The name of the internal sprite asset.</param>
-    /// <param name="renderSprite">If the sprite should be used to render a new texture using its mesh. Otherwise the sprite's texture is used.</param>
-    /// <param name="renderSteps">Steps to apply to the texture.</param>
-    public TextureInfoSprite(IGameDefinitionInfo<Sprite> spriteData, bool forceTight = false, bool renderSprite = true, IEnumerable<ITextureRenderStep> renderSteps = null)
+    private Texture2D _texture;
+
+    public TextureInfoSprite(IGameDefinitionInfo<Sprite> spriteData, bool readOnly, bool forceTight = false, bool renderSprite = true, IEnumerable<ITextureRenderStep> renderSteps = null)
     {
         _spriteData = spriteData ?? throw new ArgumentNullException(nameof(spriteData));
         _renderSprite = renderSprite;
         _renderSteps = renderSteps;
         _forceTight = forceTight;
+        _readOnly = readOnly;
     }
 
     public Texture2D GetTexture()
@@ -64,14 +61,19 @@ public class TextureInfoSprite : ITextureInfo
                     }
                 }
 
-                _texture.Apply();
+                // if there are render steps, don't make readOnly until after
+                _texture.Apply(false, _renderSteps == null && _readOnly);
             }
             else
             {
                 _texture = sprite.texture;
             }
 
-            _renderSteps?.ForEach(x => x.Apply(ref _texture));
+            if (_renderSteps != null)
+            {
+                _renderSteps?.ForEach(x => x.Apply(ref _texture));
+                _texture.Apply(false, _readOnly);
+            }
         }
 
         return _texture;
@@ -79,8 +81,6 @@ public class TextureInfoSprite : ITextureInfo
 
     private void RenderRect(Texture2D texture, Sprite sprite)
     {
-        texture.SetPixels(Enumerable.Repeat(Color.clear, texture.width * texture.height).ToArray());
-
         var textureSize = new Vector2(sprite.texture.width, sprite.texture.height);
         var scale = sprite.textureRect.size / textureSize;
         var offset = sprite.textureRect.position / textureSize;
@@ -102,64 +102,100 @@ public class TextureInfoSprite : ITextureInfo
             return;
         }
 
-        for (int i = 0; i < sprite.triangles.Length; i += 3)
+        int texWidth = texture.width;
+        int texHeight = texture.height;
+        var outputPixels = new Color[texWidth * texHeight];
+        for (int i = 0; i < outputPixels.Length; i++)
         {
-            var a = sprite.triangles[i];
-            var b = sprite.triangles[i + 1];
-            var c = sprite.triangles[i + 2];
+            outputPixels[i] = Color.clear;
+        }
 
-            var vertA = sprite.vertices[a] * sprite.pixelsPerUnit;
-            var vertB = sprite.vertices[b] * sprite.pixelsPerUnit;
-            var vertC = sprite.vertices[c] * sprite.pixelsPerUnit;
+        var sourceTex = sprite.texture;
+        var sourcePixels = sourceTex.GetPixels();
+        int srcWidth = sourceTex.width;
+        int srcHeight = sourceTex.height;
+        var srcSize = new Vector2(srcWidth, srcHeight);
 
-            var textureSize = new Vector2(sprite.texture.width, sprite.texture.height);
-            var uvA = sprite.uv[a] * textureSize;
-            var uvB = sprite.uv[b] * textureSize;
-            var uvC = sprite.uv[c] * textureSize;
+        var verts = sprite.vertices;
+        var uvs = sprite.uv;
+        var tris = sprite.triangles;
+        float ppu = sprite.pixelsPerUnit;
 
-            var minX = Mathf.FloorToInt(Mathf.Min(vertA.x, vertB.x, vertC.x));
-            var maxX = Mathf.CeilToInt(Mathf.Max(vertA.x, vertB.x, vertC.x));
-            var minY = Mathf.FloorToInt(Mathf.Min(vertA.y, vertB.y, vertC.y));
-            var maxY = Mathf.CeilToInt(Mathf.Max(vertA.y, vertB.y, vertC.y));
+        for (int i = 0; i < tris.Length; i += 3)
+        {
+            int a = tris[i];
+            int b = tris[i + 1];
+            int c = tris[i + 2];
 
-            //Barycentric calc
-            Vector2 v0 = vertB - vertA;
-            Vector2 v1 = vertC - vertA;
+            Vector2 vertA = verts[a] * ppu;
+            Vector2 vertB = verts[b] * ppu;
+            Vector2 vertC = verts[c] * ppu;
 
-            float d00 = Vector2.Dot(v0, v0);
-            float d01 = Vector2.Dot(v0, v1);
-            float d11 = Vector2.Dot(v1, v1);
+            Vector2 uvA = uvs[a] * srcSize;
+            Vector2 uvB = uvs[b] * srcSize;
+            Vector2 uvC = uvs[c] * srcSize;
 
-            float denom = d00 * d11 - d01 * d01;
-            if (Mathf.Abs(denom) < 1e-5f)
+            int minX = Mathf.FloorToInt(Mathf.Min(vertA.x, vertB.x, vertC.x));
+            int maxX = Mathf.CeilToInt(Mathf.Max(vertA.x, vertB.x, vertC.x));
+            int minY = Mathf.FloorToInt(Mathf.Min(vertA.y, vertB.y, vertC.y));
+            int maxY = Mathf.CeilToInt(Mathf.Max(vertA.y, vertB.y, vertC.y));
+
+            if (maxX < 0 || maxY < 0 || minX >= texWidth || minY >= texHeight)
             {
-                //bad triangle
                 continue;
             }
 
-            for (int x = minX; x <= maxX; x++)
+            // Clamp to valid region
+            minX = Mathf.Max(minX, 0);
+            minY = Mathf.Max(minY, 0);
+            maxX = Mathf.Min(maxX, texWidth - 1);
+            maxY = Mathf.Min(maxY, texHeight - 1);
+
+            // Precompute barycentric basis
+            Vector2 v0 = vertB - vertA;
+            Vector2 v1 = vertC - vertA;
+            float d00 = Vector2.Dot(v0, v0);
+            float d01 = Vector2.Dot(v0, v1);
+            float d11 = Vector2.Dot(v1, v1);
+            float denom = d00 * d11 - d01 * d01;
+            if (Mathf.Abs(denom) < 1e-5f)
             {
-                for (int y = minY; y <= maxY; y++)
+                continue; // degenerate triangle
+            }
+
+            for (int y = minY; y <= maxY; y++)
+            {
+                int rowOffset = y * texWidth;
+                for (int x = minX; x <= maxX; x++)
                 {
                     Vector2 v2 = new Vector2(x, y) - vertA;
                     float d20 = Vector2.Dot(v2, v0);
                     float d21 = Vector2.Dot(v2, v1);
 
                     float weightB = (d11 * d20 - d01 * d21) / denom;
-                    if (weightB < 0) { continue; }
-
                     float weightC = (d00 * d21 - d01 * d20) / denom;
-                    if (weightC < 0) { continue; }
+                    float weightA = 1f - weightB - weightC;
 
-                    float weightA = 1.0f - weightB - weightC;
-                    if (weightA < 0) { continue; }
+                    if (weightA < 0f || weightB < 0f || weightC < 0f)
+                    {
+                        continue; // outside triangle
+                    }
 
-                    var finalUv = (uvA * weightA) + (uvB * weightB) + (uvC * weightC);
-                    texture.SetPixel(x, y, sprite.texture.GetPixel((int)finalUv.x, (int)finalUv.y));
+                    // Interpolate UVs
+                    Vector2 finalUV = uvA * weightA + uvB * weightB + uvC * weightC;
+
+                    int srcX = Mathf.Clamp((int)finalUV.x, 0, srcWidth - 1);
+                    int srcY = Mathf.Clamp((int)finalUV.y, 0, srcHeight - 1);
+                    Color srcColor = sourcePixels[srcY * srcWidth + srcX];
+
+                    outputPixels[rowOffset + x] = srcColor;
                 }
             }
         }
+
+        texture.SetPixels(outputPixels);
     }
+
 
     public void RequestInternals(AssetProvider assetProvider)
     {

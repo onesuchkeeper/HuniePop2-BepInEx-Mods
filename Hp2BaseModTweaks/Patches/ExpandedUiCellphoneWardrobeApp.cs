@@ -221,8 +221,6 @@ namespace Hp2BaseModTweaks.CellphoneApps
             _bodySelector.transform.SetAsFirstSibling();
             _bodySelector.RectTransform.anchoredPosition = new Vector2(195, 616);
 
-            UnityExplorationUtility.LogCanvas(bodySelectParent.gameObject);
-
             _started = true;
             Refresh();
         }

@@ -36,7 +36,7 @@ namespace Hp2BaseModTweaks
 
                 if (coverArt.logo.TryGetComponent<Image>(out var LogoImage))
                 {
-                    var logoTexture = TextureUtility.LoadFromPng(path);
+                    var logoTexture = TextureUtility.LoadFromPng(path, true);
 
                     LogoImage.sprite = TextureUtility.TextureToSprite(logoTexture, new Vector2(logoTexture.width / 2, logoTexture.height / 2));
 

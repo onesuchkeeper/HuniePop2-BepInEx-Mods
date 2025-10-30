@@ -105,6 +105,8 @@ public class Plugin : BaseUnityPlugin
                 ModInterface.Data.RegisterDefaultData(GameDataType.SpecialPart, SpecialParts.KyuWingId.LocalId);
                 ModInterface.Data.RegisterDefaultData(GameDataType.SpecialPart, SpecialParts.MoxieWingId.LocalId);
                 ModInterface.Data.RegisterDefaultData(GameDataType.SpecialPart, SpecialParts.JewnWingId.LocalId);
+
+                ModInterface.Assets.RequestInternal<Material>("UIDefault");
             }
         }
         catch (Exception e)

@@ -116,31 +116,31 @@ public class Plugin : BaseUnityPlugin
                 Backgrounds = new List<IGameDefinitionInfo<Sprite>>(){
                     new SpriteInfoTexture(new TextureInfoCache(
                         Path.Combine(ImagesDir, "hiddenWaterfall_Morning.png"),
-                        new TextureInfoExternal(Path.Combine(waterfallImgDir, "Morning.jpg"),
+                        new TextureInfoExternal(Path.Combine(waterfallImgDir, "Morning.jpg"), false,
                             FilterMode.Bilinear,
                             [dacBgScaleRs]))),
 
                     new SpriteInfoTexture(new TextureInfoCache(
                         Path.Combine(ImagesDir, "hiddenWaterfall_Afternoon.png"),
-                        new TextureInfoExternal(Path.Combine(waterfallImgDir, "Afternoon.jpg"),
+                        new TextureInfoExternal(Path.Combine(waterfallImgDir, "Afternoon.jpg"), false,
                             FilterMode.Bilinear,
                             [dacBgScaleRs]))),
 
                     new SpriteInfoTexture(new TextureInfoCache(
                         Path.Combine(ImagesDir, "hiddenWaterfall_Evening.png"),
-                        new TextureInfoExternal(Path.Combine(waterfallImgDir, "Evening.jpg"),
+                        new TextureInfoExternal(Path.Combine(waterfallImgDir, "Evening.jpg"), false,
                             FilterMode.Bilinear,
                             [dacBgScaleRs]))),
 
                     new SpriteInfoTexture(new TextureInfoCache(
                         Path.Combine(ImagesDir, "hiddenWaterfall_Night.png"),
-                        new TextureInfoExternal(Path.Combine(waterfallImgDir, "Night.jpg"),
+                        new TextureInfoExternal(Path.Combine(waterfallImgDir, "Night.jpg"), false,
                             FilterMode.Bilinear,
                             [dacBgScaleRs])))
                 },
                 FinderLocationIcon = new SpriteInfoTexture(new TextureInfoCache(
                     Path.Combine(ImagesDir, "hiddenWaterfall_Icon.png"),
-                    new TextureInfoSprite(new SpriteInfoInternal("item_unique_hot_stones"), false, true, [new TextureRsCellphoneOutline(4f, 0f, 1f)])))
+                    new TextureInfoSprite(new SpriteInfoInternal("item_unique_hot_stones"), false, false, true, [new TextureRsCellphoneOutline(4f, 0f, 1f)]), true))
             });
         }
 

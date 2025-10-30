@@ -9,14 +9,17 @@ namespace Hp2BaseMod.GameDataInfo;
 
 public class TextureInfoRender : ITextureInfo
 {
-    private Texture2D _texture;
-
     private ITextureInfo _decorated;
     private IEnumerable<ITextureRenderStep> _renderSteps;
-    public TextureInfoRender(ITextureInfo decorated, IEnumerable<ITextureRenderStep> renderSteps)
+    private bool _readOnly;
+
+    private Texture2D _texture;
+
+    public TextureInfoRender(ITextureInfo decorated, bool readOnly, IEnumerable<ITextureRenderStep> renderSteps)
     {
         _decorated = decorated ?? throw new ArgumentNullException(nameof(decorated));
         _renderSteps = renderSteps ?? throw new ArgumentNullException(nameof(renderSteps));
+        _readOnly = readOnly;
     }
 
     public Texture2D GetTexture()
@@ -25,6 +28,7 @@ public class TextureInfoRender : ITextureInfo
         {
             _texture = TextureUtility.Duplicate(_decorated.GetTexture());
             _renderSteps.ForEach(x => x.Apply(ref _texture));
+            _texture.Apply(false, _readOnly);
         }
 
         return _texture;

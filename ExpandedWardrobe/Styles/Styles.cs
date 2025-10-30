@@ -23,7 +23,7 @@ internal partial class Styles
                 PartName = $"{name}Fronthair{girlName}",
                 X = frontX,
                 Y = frontY,
-                SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImageDir, $"{girlName}_fronthair_{name}.png")))
+                SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImageDir, $"{girlName}_fronthair_{name}.png"), true))
             },
             BackHairPart = new GirlPartDataMod(new RelativeId(Ids.ModId, _partCount++), InsertStyle.replace)
             {
@@ -31,7 +31,7 @@ internal partial class Styles
                 PartName = $"{name}Backhair{girlName}",
                 X = backX,
                 Y = backY,
-                SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImageDir, $"{girlName}_backhair_{name}.png")))
+                SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImageDir, $"{girlName}_backhair_{name}.png"), true))
             },
             IsNSFW = isNSFW,
             IsCodeUnlocked = isCodeUnlocked,
@@ -52,7 +52,7 @@ internal partial class Styles
                 PartName = $"{name}Outfit{girlName}",
                 X = x,
                 Y = y,
-                SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImageDir, $"{girlName}_outfit_{name}.png")))
+                SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImageDir, $"{girlName}_outfit_{name}.png"), true))
             },
             IsNSFW = isNSFW,
             HideNipples = hideNipples,
@@ -80,7 +80,7 @@ internal partial class Styles
                 PartName = $"{name}Fronthair{girlName}",
                 X = frontX,
                 Y = frontY,
-                SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImageDir, $"{girlName}_fronthair_{name}.png")))
+                SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImageDir, $"{girlName}_fronthair_{name}.png"), true))
             },
             BackHairPart = new GirlPartDataMod(new RelativeId(Ids.ModId, _partCount++), InsertStyle.replace)
             {
@@ -88,7 +88,7 @@ internal partial class Styles
                 PartName = $"{name}Backhair{girlName}",
                 X = backX,
                 Y = backY,
-                SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImageDir, $"{girlName}_backhair_{name}.png")))
+                SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImageDir, $"{girlName}_backhair_{name}.png"), true))
             },
             IsNSFW = isNSFW,
             IsCodeUnlocked = isCodeUnlocked,
@@ -106,7 +106,7 @@ internal partial class Styles
                 PartName = $"{name}Outfit{girlName}",
                 X = outfitX,
                 Y = outfitY,
-                SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImageDir, $"{girlName}_outfit_{name}.png")))
+                SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImageDir, $"{girlName}_outfit_{name}.png"), true))
             },
             IsNSFW = isNSFW,
             HideNipples = hideNipples,

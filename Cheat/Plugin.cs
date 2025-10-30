@@ -57,7 +57,7 @@ public static class PuzzleSetGetMatchRewards_Patch
     {
         if (__instance.bonusRound)
         {
-            __instance.AddResourceValue(PuzzleResourceType.AFFECTION, 100, false);
+            __instance.AddResourceValue(PuzzleResourceType.AFFECTION, 5, false);
         }
         else
         {

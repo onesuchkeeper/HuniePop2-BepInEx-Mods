@@ -61,15 +61,15 @@ namespace Hp2BaseMod.GameDataInfo
 
         public float? ProceedFloat;
 
-        public RelativeId? TargetGirlDefinitionID;
+        public RelativeId? TargetGirlDefinitionId;
 
         public int? IntValue;
 
         public int? EaseType;
 
-        public RelativeId? DialogTriggerDefinitionID;
+        public RelativeId? DialogTriggerDefinitionId;
 
-        public RelativeId? GirlDefinitionID;
+        public RelativeId? GirlDefinitionId;
 
         public int? ExpressionIndex;
 
@@ -77,7 +77,7 @@ namespace Hp2BaseMod.GameDataInfo
 
         public RelativeId? OutfitId;
 
-        public RelativeId? SubCutsceneDefinitionID;
+        public RelativeId? SubCutsceneDefinitionId;
 
         public bool? SkipStep;
 
@@ -148,10 +148,10 @@ namespace Hp2BaseMod.GameDataInfo
             ProceedBool = def.proceedBool;
             ProceedFloat = def.proceedFloat;
 
-            SubCutsceneDefinitionID = new RelativeId(def.subCutsceneDefinition);
-            DialogTriggerDefinitionID = new RelativeId(def.dialogTriggerDefinition);
-            GirlDefinitionID = new RelativeId(def.girlDefinition);
-            TargetGirlDefinitionID = new RelativeId(def.targetGirlDefinition);
+            SubCutsceneDefinitionId = new RelativeId(def.subCutsceneDefinition);
+            DialogTriggerDefinitionId = new RelativeId(def.dialogTriggerDefinition);
+            GirlDefinitionId = new RelativeId(def.girlDefinition);
+            TargetGirlDefinitionId = new RelativeId(def.targetGirlDefinition);
 
             assetProvider.NameAndAddAsset(ref SpecialStepPrefabName, def.specialStepPrefab);
             assetProvider.NameAndAddAsset(ref WindowPrefabName, def.windowPrefab);
@@ -212,9 +212,9 @@ namespace Hp2BaseMod.GameDataInfo
             ValidatedSet.SetValue(ref def.dollPositionType, DollPositionType);
             ValidatedSet.SetValue(ref def.expressionIndex, ExpressionIndex);
 
-            if (GirlDefinitionID.HasValue)
+            if (GirlDefinitionId.HasValue)
             {
-                var girlExpansion = ExpandedGirlDefinition.Get(GirlDefinitionID.Value);
+                var girlExpansion = ExpandedGirlDefinition.Get(GirlDefinitionId.Value);
 
                 if (HairstyleId.HasValue)
                 {
@@ -234,10 +234,10 @@ namespace Hp2BaseMod.GameDataInfo
             ValidatedSet.SetValue(ref def.proceedBool, ProceedBool);
             ValidatedSet.SetValue(ref def.proceedFloat, ProceedFloat);
 
-            ValidatedSet.SetValue(ref def.targetGirlDefinition, gameDataProvider.GetGirl(TargetGirlDefinitionID), insertStyle);
-            ValidatedSet.SetValue(ref def.girlDefinition, gameDataProvider.GetGirl(GirlDefinitionID), insertStyle);
-            ValidatedSet.SetValue(ref def.dialogTriggerDefinition, gameDataProvider.GetDialogTrigger(DialogTriggerDefinitionID), insertStyle);
-            ValidatedSet.SetValue(ref def.subCutsceneDefinition, gameDataProvider.GetCutscene(SubCutsceneDefinitionID), insertStyle);
+            ValidatedSet.SetValue(ref def.targetGirlDefinition, gameDataProvider.GetGirl(TargetGirlDefinitionId), insertStyle);
+            ValidatedSet.SetValue(ref def.girlDefinition, gameDataProvider.GetGirl(GirlDefinitionId), insertStyle);
+            ValidatedSet.SetValue(ref def.dialogTriggerDefinition, gameDataProvider.GetDialogTrigger(DialogTriggerDefinitionId), insertStyle);
+            ValidatedSet.SetValue(ref def.subCutsceneDefinition, gameDataProvider.GetCutscene(SubCutsceneDefinitionId), insertStyle);
 
             ValidatedSet.SetValue(ref def.windowPrefab, assetProvider.GetInternalAsset<UiWindow>(WindowPrefabName), insertStyle);
             ValidatedSet.SetValue(ref def.emitterBehavior, assetProvider.GetInternalAsset<EmitterBehavior>(EmitterBehaviorName), insertStyle);

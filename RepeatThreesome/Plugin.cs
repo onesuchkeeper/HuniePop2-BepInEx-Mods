@@ -170,7 +170,7 @@ internal class Plugin : BaseUnityPlugin
             PartName = "nudeOutfitPollyAlt",
             X = 604,
             Y = 165,
-            SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Paths.PluginPath, @"RepeatThreesome\images\alt_polly_nude.png")))
+            SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Paths.PluginPath, @"RepeatThreesome\images\alt_polly_nude.png"), transform))
         };
 
         var pollyNudeOutfitPart = new GirlPartDataMod(Constants.NudeOutfitId, InsertStyle.replace)

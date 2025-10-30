@@ -9,14 +9,17 @@ namespace Hp2BaseMod;
 
 public class TextureInfoComposite : ITextureInfo
 {
-    private IEnumerable<(ITextureInfo texture, Vector2Int offset)> _textures;
-    private Vector2Int _size;
+    private readonly IEnumerable<(ITextureInfo texture, Vector2Int offset)> _textures;
+    private readonly Vector2Int _size;
+    private readonly bool _readOnly;
+
     private Texture2D _texture;
 
-    public TextureInfoComposite(Vector2Int size, IEnumerable<(ITextureInfo texture, Vector2Int offset)> textures)
+    public TextureInfoComposite(Vector2Int size, bool readOnly, IEnumerable<(ITextureInfo texture, Vector2Int offset)> textures)
     {
         _size = size;
         _textures = textures ?? throw new ArgumentNullException(nameof(textures));
+        _readOnly = readOnly;
     }
 
     public Texture2D GetTexture()
@@ -28,7 +31,7 @@ public class TextureInfoComposite : ITextureInfo
 
         _texture = new Texture2D(_size.x, _size.y);
         var clear = new Color(1f, 1f, 1f, 0f);
-        Color[] outputPixels = new Color[_size.x * _size.y];
+        var outputPixels = new Color[_size.x * _size.y];
         for (int i = 0; i < outputPixels.Length; i++)
         {
             outputPixels[i] = clear;
@@ -47,14 +50,16 @@ public class TextureInfoComposite : ITextureInfo
                 int outputY = offset.y + y;
                 if (outputY < 0 || outputY >= _size.y) { continue; }
 
+                var rowOffset = outputY * _size.x;
+                var yShift = y * texWidth;
                 for (int x = 0; x < texWidth; x++)
                 {
                     int outputX = offset.x + x;
                     if (outputX < 0 || outputX >= _size.x) { continue; }
 
-                    int outputIndex = outputY * _size.x + outputX;
+                    int outputIndex = rowOffset + outputX;
                     Color dstColor = outputPixels[outputIndex];
-                    Color srcColor = sourcePixels[y * texWidth + x];
+                    Color srcColor = sourcePixels[yShift + x];
 
                     if (dstColor.a == 0f)
                     {
@@ -64,17 +69,26 @@ public class TextureInfoComposite : ITextureInfo
                     {
                         // Alpha blend srcColor over dstColor:
                         float srcAlpha = srcColor.a;
-                        Color blended = srcColor * srcAlpha + dstColor * (1f - srcAlpha);
-                        blended.a = srcAlpha + dstColor.a * (1f - srcAlpha);
-
-                        outputPixels[outputIndex] = blended;
+                        if (srcAlpha == 1f)
+                        {
+                            outputPixels[outputIndex] = srcColor;
+                        }
+                        else
+                        {
+                            outputPixels[outputIndex] = new Color(
+                                srcColor.r * srcAlpha + dstColor.r * (1f - srcAlpha),
+                                srcColor.g * srcAlpha + dstColor.g * (1f - srcAlpha),
+                                srcColor.b * srcAlpha + dstColor.b * (1f - srcAlpha),
+                                srcAlpha + dstColor.a * (1f - srcAlpha)
+                            ); ;
+                        }
                     }
                 }
             }
         }
 
         _texture.SetPixels(outputPixels);
-        _texture.Apply();
+        _texture.Apply(updateMipmaps: false, makeNoLongerReadable: _readOnly);
         return _texture;
     }
 

@@ -222,7 +222,7 @@ public class Plugin : BaseUnityPlugin
             X = 590,
             Y = 854,
             PartType = GirlPartType.EYESGLOW,
-            SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(ImagesDir, "kyu_eyesglow_neutral.png")))
+            SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(ImagesDir, "kyu_eyesglow_neutral.png"), true))
         };
 
         var kyuEyesGlowAnnoyedPartId = new RelativeId(ModId, 1);
@@ -231,7 +231,7 @@ public class Plugin : BaseUnityPlugin
             X = 592,
             Y = 852,
             PartType = GirlPartType.EYESGLOW,
-            SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(ImagesDir, "kyu_eyesglow_annoyed.png")))
+            SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(ImagesDir, "kyu_eyesglow_annoyed.png"), true))
         };
 
         var kyuEyesGlowHornyPartId = new RelativeId(ModId, 2);
@@ -240,7 +240,7 @@ public class Plugin : BaseUnityPlugin
             X = 590,
             Y = 851,
             PartType = GirlPartType.EYESGLOW,
-            SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(ImagesDir, "kyu_eyesglow_horny.png")))
+            SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(ImagesDir, "kyu_eyesglow_horny.png"), true))
         };
 
         ModInterface.AddDataMod(new GirlDataMod(Girls.KyuId, InsertStyle.append)

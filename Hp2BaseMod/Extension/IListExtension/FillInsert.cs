@@ -9,7 +9,6 @@ public static partial class IListExtension
     /// </summary>
     public static void FillInsert<T>(this IList<T> source, int index, T value, T defaultValue)
     {
-        ModInterface.Log.LogInfo();
         var delta = index - (source.Count - 1);
         if (delta > 0)
         {
