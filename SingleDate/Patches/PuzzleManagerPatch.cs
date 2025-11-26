@@ -27,7 +27,7 @@ internal static class PuzzleManagerPatch
         if (puzzleStatus.statusType == PuzzleStatusType.NORMAL
             && puzzleGrid.roundState == PuzzleRoundState.SUCCESS)
         {
-            var maxSingleGirlRelationshipLevel = Plugin.Instance.MaxSingleGirlRelationshipLevel;
+            var maxSingleGirlRelationshipLevel = Plugin.MaxSingleGirlRelationshipLevel;
             var girlSave = State.SaveFile.GetGirl(Game.Session.Location.currentGirlPair.girlDefinitionTwo.id);
 
             girlSave.RelationshipLevel = puzzleStatus.bonusRound

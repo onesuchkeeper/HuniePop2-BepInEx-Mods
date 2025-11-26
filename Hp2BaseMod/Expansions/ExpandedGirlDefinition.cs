@@ -1,7 +1,7 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Hp2BaseMod.GameDataInfo;
+using Hp2BaseMod.ModGameData;
 
 namespace Hp2BaseMod;
 
@@ -142,6 +142,8 @@ public class ExpandedGirlDefinition
     /// </summary>
     public GirlOutfitSubDefinition GetOutfit(RelativeId outfitId) => GetOutfit(GetCurrentBody(), outfitId);
     public GirlOutfitSubDefinition GetOutfit(RelativeId bodyId, RelativeId outfitId) => GetOutfit(Bodies[bodyId], outfitId);
+
+    public int GetOutfitIndex(RelativeId outfitId) => OutfitIdToIndex[outfitId];
 
     /// <summary>
     /// Given an id, returns the associated outfit.

@@ -29,7 +29,7 @@ internal static partial class Styles
             PartName = "sceneQueenOutfitLillianMirror",
             X = _lillianBodyX - 17,
             Y = _lillianBodyY - 208,
-            SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImageDir, "lillian_outfit_sceneQueen_mirror.png"), true))
+            SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.IMAGES_DIR, "lillian_outfit_sceneQueen_mirror.png"), true))
         };
 
         AddPair(modOutfits, modHairstyles, "lolita", "Lolita", "lillian",

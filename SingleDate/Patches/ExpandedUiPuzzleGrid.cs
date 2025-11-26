@@ -289,7 +289,7 @@ internal class ExpandedUiPuzzleGrid
                 || moveMatchSet.HasMatchWithTokenDef(status.girlStatusFocused.extraNoSpawnMatchTokenDefs))
                 && !status.girlStatusFocused.HasAilment(Game.Session.Puzzle.brokenProtectionAilmentDefinition, true))
             {
-                if (!Plugin.Instance.ShowSingleUpsetHunt)
+                if (!Plugin.ShowSingleUpsetHunt)
                 {
                     _warningCheck.SetValue(_uiPuzzleGrid, false);
                 }

@@ -12,10 +12,10 @@ using Hp2BaseMod.Extension.OrderedDictionaryExtension;
 using Hp2BaseMod.GameDataInfo;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
-using NVorbis;
 using UnityEngine;
 
 namespace HuniePopUltimate;
+
 public partial class HpExtraction : BaseExtraction
 {
     public static readonly string _dataDir = "HuniePop_Data";
@@ -53,17 +53,20 @@ public partial class HpExtraction : BaseExtraction
     private Action<RelativeId, IEnumerable<(RelativeId, float)>> m_AddGirlDatePhotos;
     private Action<RelativeId, IEnumerable<(RelativeId, RelativeId)>> m_AddGirlSexPhotos;
     private Action<RelativeId, UnityEngine.Sprite> m_SetCharmSprite;
+    private IBodySubDataMod<GirlPartSubDefinition> _nudeOutfitPart;
 
     public HpExtraction(string dir,
         Action<RelativeId, IEnumerable<(RelativeId, float)>> addGirlDatePhotos,
         Action<RelativeId, IEnumerable<(RelativeId, RelativeId)>> addGirlSexPhotos,
-        Action<RelativeId, UnityEngine.Sprite> setCharmSprite)
+        Action<RelativeId, UnityEngine.Sprite> setCharmSprite,
+        IBodySubDataMod<GirlPartSubDefinition> nudeOutfitPart)
         : base(Path.Combine(dir, _dataDir),
             Path.Combine(dir, _assemblyDir))
     {
         m_AddGirlDatePhotos = addGirlDatePhotos;
         m_AddGirlSexPhotos = addGirlSexPhotos;
         m_SetCharmSprite = setCharmSprite;
+        _nudeOutfitPart = nudeOutfitPart;
     }
 
     public void Extract()
@@ -236,7 +239,7 @@ public partial class HpExtraction : BaseExtraction
         {
             girlMod.bodies ??= new() {
                 new GirlBodyDataMod(new RelativeId(Plugin.ModId,0), InsertStyle.append) {
-                    Scale = 1.36f,
+                    Scale = 1.32f,
                     bodyName = "HuniePop",
                 }
             };
@@ -476,13 +479,13 @@ public partial class HpExtraction : BaseExtraction
                                         switch (extraName.ToLower())
                                         {
                                             case "glasses":
-                                                if (TryMakePartDataMod(GirlPartType.FRONTHAIR, art.OfType<OrderedDictionary>().First(x => x != null), spriteLookup, spriteTextureInfo, out var glassesPart, out _))
+                                                if (TryMakePartDataMod(GirlPartType.EYEBROWS, art.OfType<OrderedDictionary>().First(x => x != null), spriteLookup, spriteTextureInfo, out var glassesPart, out _))
                                                 {
 
                                                     body.specialParts.Add(new GirlSpecialPartDataMod(new RelativeId(Plugin.ModId, _partCount++), InsertStyle.append)
                                                     {
                                                         AnimType = DollPartSpecialAnimType.NONE,
-                                                        SortingPartType = GirlPartType.FRONTHAIR,
+                                                        SortingPartType = GirlPartType.EYEBROWS,
                                                         Part = glassesPart,
                                                         SpecialPartName = extraName
                                                     });
@@ -501,12 +504,12 @@ public partial class HpExtraction : BaseExtraction
                                                 }
                                                 break;
                                             case "hairclip":
-                                                if (TryMakePartDataMod(GirlPartType.FRONTHAIR, art.OfType<OrderedDictionary>().First(), spriteLookup, spriteTextureInfo, out var hairclipPart, out _))
+                                                if (TryMakePartDataMod(GirlPartType.EYEBROWS, art.OfType<OrderedDictionary>().First(), spriteLookup, spriteTextureInfo, out var hairclipPart, out _))
                                                 {
                                                     body.specialParts.Add(new GirlSpecialPartDataMod(new RelativeId(Plugin.ModId, _partCount++), InsertStyle.append)
                                                     {
                                                         AnimType = DollPartSpecialAnimType.NONE,
-                                                        SortingPartType = GirlPartType.FRONTHAIR,
+                                                        SortingPartType = GirlPartType.EYEBROWS,
                                                         Part = hairclipPart,
                                                         SpecialPartName = extraName
                                                     });
@@ -527,12 +530,12 @@ public partial class HpExtraction : BaseExtraction
                                                 }
                                                 break;
                                             case "cowboy hat":
-                                                if (TryMakePartDataMod(GirlPartType.FRONTHAIR, art.OfType<OrderedDictionary>().First(), spriteLookup, spriteTextureInfo, out var cowboyHatPart, out _))
+                                                if (TryMakePartDataMod(GirlPartType.EYEBROWS, art.OfType<OrderedDictionary>().First(), spriteLookup, spriteTextureInfo, out var cowboyHatPart, out _))
                                                 {
                                                     body.specialParts.Add(new GirlSpecialPartDataMod(new RelativeId(Plugin.ModId, _partCount++), InsertStyle.append)
                                                     {
                                                         AnimType = DollPartSpecialAnimType.NONE,
-                                                        SortingPartType = GirlPartType.FRONTHAIR,
+                                                        SortingPartType = GirlPartType.EYEBROWS,
                                                         Part = cowboyHatPart,
                                                         SpecialPartName = extraName
                                                     });
@@ -614,7 +617,7 @@ public partial class HpExtraction : BaseExtraction
                     && TryMakePartDataMod(GirlPartType.OUTFIT, braDef, spriteLookup, spriteTextureInfo, out var braPartMod, out var braSprite)
                     && TryMakePartDataMod(GirlPartType.OUTFIT, pantiesDef, spriteLookup, spriteTextureInfo, out var pantiesPartMod, out var pantiesSprite))
                 {
-                    var underwearPart = MergeParts(Path.Combine(Plugin.ImgDir, $"{nativeId}_underwear.png"), [
+                    var underwearPart = MergeParts(Path.Combine(Plugin.IMAGES_DIR, $"{nativeId}_underwear.png"), [
                         (braPartMod, braSprite),
                         (pantiesPartMod, pantiesSprite)
                     ]);
@@ -636,6 +639,20 @@ public partial class HpExtraction : BaseExtraction
                     {
                         Name = "Topless",
                         OutfitPart = pantiesPartMod,
+                        IsCodeUnlocked = false,
+                        IsPurchased = false,
+                        IsNSFW = true,
+                        HideNipples = true,
+                    });
+                }
+
+                //nude
+                if (_nudeOutfitPart != null)
+                {
+                    body.outfits.Add(new OutfitDataMod(_nudeOutfitPart.Id, InsertStyle.append)
+                    {
+                        Name = "Nude",
+                        OutfitPart = _nudeOutfitPart,
                         IsCodeUnlocked = false,
                         IsPurchased = false,
                         IsNSFW = true,
@@ -668,11 +685,11 @@ public partial class HpExtraction : BaseExtraction
             foreach (var girlPhoto in photos.OfType<OrderedDictionary>())
             {
                 j++;
-                var photoMod = new PhotoDataMod(new RelativeId(Plugin.ModId, Plugin.PhotoModCount++), Hp2BaseMod.Utility.InsertStyle.replace);
+                var photoMod = new PhotoDataMod(new RelativeId(Plugin.ModId, Plugin._photoModCount++), Hp2BaseMod.Utility.InsertStyle.replace);
                 //single date add photos
                 if (j == 3)
                 {
-                    m_AddGirlSexPhotos(girlMod.Id, [(photoMod.Id, RelativeId.Default)]);
+                    m_AddGirlSexPhotos?.Invoke(girlMod.Id, [(photoMod.Id, RelativeId.Default)]);
                 }
                 else
                 {
@@ -890,7 +907,7 @@ public partial class HpExtraction : BaseExtraction
 
         if (audioClip.m_Type == FMODSoundType.OGGVORBIS)
         {
-            clipInfo = new AudioClipInfoVorbis(new VorbisReader(new MemoryStream(audioClip.m_AudioData.GetData()), true));
+            clipInfo = new AudioClipInfoVorbis(audioClip.m_AudioData);
             return true;
         }
 

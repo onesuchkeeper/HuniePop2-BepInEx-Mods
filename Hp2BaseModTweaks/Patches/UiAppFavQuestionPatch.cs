@@ -1,6 +1,5 @@
 using System.Reflection;
 using HarmonyLib;
-using Hp2BaseMod.Extension;
 
 namespace Hp2BaseModTweaks;
 

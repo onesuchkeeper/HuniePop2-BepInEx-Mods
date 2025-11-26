@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Hp2BaseMod;
 
 namespace HuniePopUltimate;
@@ -64,23 +63,5 @@ public static class Girls
                 ModInterface.Log.LogError($"UNHANDLED Hp1 girl id {hp1Id}");
                 return RelativeId.Default;
         }
-    }
-
-    public static IEnumerable<RelativeId> AllHp1
-    {
-        get
-        {
-            yield return Tiffany;
-            yield return Aiko;
-            yield return Kyanna;
-            yield return Audrey;
-            yield return Nikki;
-            yield return Beli;
-            yield return Hp2BaseMod.Girls.KyuId;
-            yield return Momo;
-            yield return Celeste;
-            yield return Venus;
-        }
-
     }
 }

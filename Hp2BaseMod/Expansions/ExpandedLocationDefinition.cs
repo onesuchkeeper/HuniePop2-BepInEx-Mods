@@ -52,4 +52,17 @@ public class ExpandedLocationDefinition
     /// If this location is only available after defeating the nymphojinn
     /// </summary>
     public bool PostBoss;
+
+    /// <summary>
+    /// If the location can be used for a normal date at the current time with the current story progress
+    /// </summary>
+    public bool IsValidForNormalDate() => IsValidForNormalDate((ClockDaytimeType)(Game.Persistence.playerFile.daytimeElapsed % 4));
+
+    /// <summary>
+    /// If the location can be used for a normal date at the specified time with the current story progress
+    /// </summary>
+    public bool IsValidForNormalDate(ClockDaytimeType time)
+        => AllowNormal
+            && (!PostBoss || Game.Persistence.playerFile.storyProgress >= 12)
+            && DateTimes.Contains(time);
 }

@@ -30,7 +30,6 @@ internal static class UiWindowPhotosPatch
         };
 
         ModInterface.Events.NotifySinglePhotoDisplayed(args);
-        ModInterface.Log.LogInfo($"Single photo with id {args.BigPhotoId} being displayed");
 
         var photo = ModInterface.GameData.GetPhoto(args.BigPhotoId);
         if (photo != null)

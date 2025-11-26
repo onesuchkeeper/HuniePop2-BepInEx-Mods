@@ -1,4 +1,4 @@
-﻿// Hp2Sample 2021, By OneSuchKeeper
+﻿// RepeatThreesome 2021, By OneSuchKeeper
 
 using Hp2BaseMod;
 namespace RepeatThreesome;

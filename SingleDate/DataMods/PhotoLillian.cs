@@ -14,9 +14,9 @@ internal static class PhotoLillian
     {
         _id = new RelativeId(State.ModId, 4);
 
-        var photoInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImagesDir, "photo_lillian_1.png"), true));
+        var photoInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.IMAGES_DIR, "photo_lillian_1.png"), true));
 
-        var thumbInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImagesDir, "photo_lillian_1_thumb.png"), true));
+        var thumbInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.IMAGES_DIR, "photo_lillian_1_thumb.png"), true));
 
         ModInterface.AddDataMod(new PhotoDataMod(_id, InsertStyle.replace)
         {

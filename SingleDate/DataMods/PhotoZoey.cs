@@ -14,9 +14,9 @@ internal static class PhotoZoey
     {
         _id = new RelativeId(State.ModId, 8);
 
-        var photoInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImagesDir, "photo_zoey_1.png"), true));
+        var photoInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.IMAGES_DIR, "photo_zoey_1.png"), true));
 
-        var thumbInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImagesDir, "photo_zoey_1_thumb.png"), true));
+        var thumbInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.IMAGES_DIR, "photo_zoey_1_thumb.png"), true));
 
         ModInterface.AddDataMod(new PhotoDataMod(_id, InsertStyle.replace)
         {

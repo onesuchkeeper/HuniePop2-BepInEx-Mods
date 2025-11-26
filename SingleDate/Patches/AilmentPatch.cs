@@ -23,7 +23,7 @@ internal static class AilmentPatch
             return true;
         }
 
-        if (!Plugin.Instance.SingleDateBaggage)
+        if (!Plugin.SingleDateBaggage)
         {
             return false;
         }

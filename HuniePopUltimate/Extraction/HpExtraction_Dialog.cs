@@ -5,6 +5,7 @@ using AssetStudio;
 using Hp2BaseMod;
 using Hp2BaseMod.Extension.OrderedDictionaryExtension;
 using Hp2BaseMod.GameDataInfo;
+using Hp2BaseMod.Utility;
 
 namespace HuniePopUltimate;
 
@@ -368,7 +369,7 @@ public partial class HpExtraction
         if (dialogSceneLineDef.TryGetValue("altGirl", out bool altGirl)
             && dialogSceneLineDef.TryGetValue("dialogLine", out OrderedDictionary dialogLine))
         {
-            var step = CutsceneStepInfo.MakeDialogLine(new RelativeId(), false, CutsceneStepProceedType.AUTOMATIC, CutsceneStepDollTargetType.ORIENTATION_TYPE);
+            var step = CutsceneStepUtility.MakeDialogLineInfo(new RelativeId(), false, CutsceneStepProceedType.AUTOMATIC, CutsceneStepDollTargetType.ORIENTATION_TYPE);
             step.TargetDollOrientation = altGirl ? DollOrientationType.LEFT : DollOrientationType.RIGHT;
             return step;
         }

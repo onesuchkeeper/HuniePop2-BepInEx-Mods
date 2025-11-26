@@ -1,7 +1,5 @@
 ﻿// Hp2BaseMod 2022, By OneSuchKeeper
 
-using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 namespace Hp2BaseMod.Utility

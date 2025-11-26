@@ -115,15 +115,26 @@ internal static class LocationManagerPatch
             }
             else if (currentLocation.locationType == LocationType.DATE)
             {
-                var args = new PreDateDollResetArgs()
+                var args = new PreDateDollResetArgs();
+
+                if (playerFileGirlPair.relationshipType == GirlPairRelationshipType.ATTRACTED
+                    && Game.Persistence.playerFile.daytimeElapsed % 4 == (int)playerFileGirlPair.girlPairDefinition.sexDaytime)
                 {
-                    UseSexStyles = playerFileGirlPair.relationshipType == GirlPairRelationshipType.ATTRACTED
-                        && Game.Persistence.playerFile.daytimeElapsed % 4 == (int)playerFileGirlPair.girlPairDefinition.sexDaytime
-                };
+                    args.Style = PreDateDollResetArgs.StyleType.Sex;
+                }
+                else if (!Game.Session.Puzzle.puzzleStatus.isEmpty
+                    && currentLocation != Game.Session.Puzzle.bossLocationDefinition)
+                {
+                    args.Style = PreDateDollResetArgs.StyleType.Location;
+                }
+                else
+                {
+                    args.Style = PreDateDollResetArgs.StyleType.File;
+                }
 
                 ModInterface.Events.NotifyPreDateDollReset(args);
 
-                if (args.UseSexStyles)
+                if (args.Style == PreDateDollResetArgs.StyleType.Sex)
                 {
                     var pairId = ModInterface.Data.GetDataId(GameDataType.GirlPair, currentGirlPair.id);
                     var pairStyle = ExpandedGirlPairDefinition.Get(pairId).PairStyle;
@@ -134,8 +145,7 @@ internal static class LocationManagerPatch
                         rightStyle = pairStyle.SexGirlTwo;
                     }
                 }
-                else if (!Game.Session.Puzzle.puzzleStatus.isEmpty
-                    && currentLocation != Game.Session.Puzzle.bossLocationDefinition)
+                else if (args.Style == PreDateDollResetArgs.StyleType.Location)
                 {
                     var locationId = ModInterface.Data.GetDataId(GameDataType.Location, currentLocation.id);
 

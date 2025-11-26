@@ -15,40 +15,44 @@ namespace Hp2BaseModTweaks;
 
 [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
 [BepInDependency("OSK.BepInEx.Hp2BaseMod", "1.0.0")]
-public class Plugin : BaseUnityPlugin
+public class Plugin : Hp2BaseModPlugin
 {
-    public static Plugin Instance => _instance;
-    private static Plugin _instance;
-
     internal static readonly string RootDir = Path.Combine(Paths.PluginPath, MyPluginInfo.PLUGIN_NAME);
     internal static readonly string ImagesDir = Path.Combine(RootDir, "images");
 
-    private static readonly string ConfigGeneralName = "General";
-
-    public string DigitalArtCollectionDir => this.Config.TryGetEntry<string>(ConfigGeneralName, nameof(DigitalArtCollectionDir), out var config)
+    public static string DigitalArtCollectionDir => _instance.Config.TryGetEntry<string>(Hp2BaseModPlugin.CONFIG_GENERAL, nameof(DigitalArtCollectionDir), out var config)
         ? config.Value
         : string.Empty;
 
-    public bool UseModLogo => this.Config.TryGetEntry<bool>(ConfigGeneralName, nameof(UseModLogo), out var config)
-        ? config.Value
-        : true;
+    [ConfigProperty(true, "If the \"HuneiePop 2: Modded\" logo should be included in logo rotation. You may want to disable this if you've installed a mod with another custom logo.")]
+    public bool UseModLogo
+    {
+        get => GetConfigProperty<bool>();
+        set => SetConfigProperty(value);
+    }
 
-    internal static TweaksSaveData Save => _save;
-    private static TweaksSaveData _save;
+    internal static TweaksSaveData Save => _instance._save;
+    private TweaksSaveData _save;
 
-    internal static List<CreditEntry> ModCredits;
-    internal static List<string> LogoPaths;
+    internal static List<CreditEntry> ModCredits => _instance._modCredits;
+    private List<CreditEntry> _modCredits;
 
-    public static readonly int ModId = ModInterface.GetSourceId(MyPluginInfo.PLUGIN_GUID);
+    internal static List<string> LogoPaths => _instance._logoPaths;
+    private List<string> _logoPaths;
+
+    public static new int ModId => ((Hp2BaseModPlugin)_instance).ModId;
+
+    private static Plugin _instance;
+
+    public Plugin() : base(MyPluginInfo.PLUGIN_GUID) { }
 
     private void Awake()
     {
         _instance = this;
         Config.SaveOnConfigSet = false;
-        this.Config.Bind(ConfigGeneralName, nameof(DigitalArtCollectionDir), Path.Combine(Paths.PluginPath, "..", "..", "Digital Art Collection"), "Directory containing the HuniePop 2 Digital Art Collection Dlc");
-        this.Config.Bind(ConfigGeneralName, nameof(UseModLogo), true, "If the \"HuneiePop 2: Modded\" logo should be included in logo rotation. You may want to disable this if you've installed a mod with another custom logo.");
+        this.Config.Bind(Hp2BaseModPlugin.CONFIG_GENERAL, nameof(DigitalArtCollectionDir), Path.Combine(Paths.PluginPath, "..", "..", "Digital Art Collection"), "Directory containing the HuniePop 2 Digital Art Collection Dlc");
 
-        ModCredits = new List<CreditEntry>()
+        _modCredits = new List<CreditEntry>()
         {
             new CreditEntry(Path.Combine(ImagesDir, "CreditsLogo.png"),
             [
@@ -58,11 +62,10 @@ public class Plugin : BaseUnityPlugin
             ])
         };
 
-        LogoPaths = UseModLogo
+        _logoPaths = UseModLogo
             ? new List<string> { Path.Combine(ImagesDir, "logo.png") }
             : new();
 
-        Interop.RegisterInterModValues();
         UiPrefabs.Init();
         ToggleCodeMods.AddMods(ModId);
 
@@ -93,6 +96,22 @@ public class Plugin : BaseUnityPlugin
 
         new Harmony(MyPluginInfo.PLUGIN_GUID).PatchAll();
     }
+
+    /// <summary>
+    /// Adds a logo to the title logo pool.
+    /// </summary>
+    /// <param name="value"></param>
+    [InteropMethod]
+    public void AddLogoPath(string value) => LogoPaths.Add(value);
+
+    /// <summary>
+    /// Adds a credit entry.
+    /// </summary>
+    /// <param name="logoPath"></param>
+    /// <param name="creditEntries"></param>
+    [InteropMethod]
+    public void AddModCredit(string logoPath, IEnumerable<(string creditButtonPath, string creditButtonOverPath, string redirectLink)> creditEntries)
+        => ModCredits.Add(new CreditEntry(logoPath, creditEntries.Select(x => new CreditMember(x.creditButtonPath, x.creditButtonOverPath, x.redirectLink))));
 
     private void On_PrePersistenceReset(SaveData data)
     {
@@ -250,9 +269,9 @@ public class Plugin : BaseUnityPlugin
                 new GirlBodyDataMod(new RelativeId(-1, 0), InsertStyle.append)
                 {
                     expressions = new List<IBodySubDataMod<GirlExpressionSubDefinition>>() {
-                        new DebugExpressionMod(new GirlExpressionDataMod(GirlExpressions.Neutral, InsertStyle.append){
+                        new GirlExpressionDataMod(GirlExpressions.Neutral, InsertStyle.append){
                             PartEyesGlow = kyuEyesGlowNeutralPart
-                        }),
+                        },
                         new GirlExpressionDataMod(GirlExpressions.Annoyed, InsertStyle.append){
                             PartEyesGlow = kyuEyesGlowAnnoyedPart
                         },

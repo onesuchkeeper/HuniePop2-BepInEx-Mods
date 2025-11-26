@@ -50,7 +50,7 @@ public static class SingleDateSuccessCutscene
                     ProceedType = CutsceneStepProceedType.WAIT,
                 },
                 /// show photo, shown photo is hard coded to the pair data
-                /// so instead this is handled in <see cref="EventHandles.On_SinglePhotoDisplayed"/>
+                /// so instead this is handled in <see cref="ModEventHandles.On_SinglePhotoDisplayed"/>
                 new CutsceneStepInfo()
                 {
                     StepType = CutsceneStepType.SHOW_WINDOW,

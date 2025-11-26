@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using System.Reflection;
+﻿using System.Reflection;
 using BepInEx;
 using HarmonyLib;
 using Hp2BaseMod;
@@ -57,7 +56,7 @@ public static class PuzzleSetGetMatchRewards_Patch
     {
         if (__instance.bonusRound)
         {
-            __instance.AddResourceValue(PuzzleResourceType.AFFECTION, 5, false);
+            __instance.AddResourceValue(PuzzleResourceType.AFFECTION, 50, false);
         }
         else
         {

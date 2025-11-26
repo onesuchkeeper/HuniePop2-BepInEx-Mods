@@ -83,7 +83,7 @@ public partial class HpExtraction
         {
             locationMod.FinderLocationIcon = new SpriteInfoTexture(
                 new TextureInfoCache(
-                    Path.Combine(Plugin.RootDir, "images", $"{locationName}_icon.png"),
+                    Path.Combine(Plugin.IMAGES_DIR, $"{locationName}_icon.png"),
                     new TextureInfoSprite(new SpriteInfoInternal(iconOutlinedName), false, false, true, _finderIconSteps)
                 )
             );
@@ -97,9 +97,11 @@ public partial class HpExtraction
         {
             if (locationDef.TryGetValue("type", out int locationType))
             {
-                locationMod.LocationType = locationType == 0
-                    ? LocationType.SIM
-                    : LocationType.DATE;
+                locationMod.LocationType = locationMod.Id == LocationIds.BedRoomDate
+                    ? LocationType.SPECIAL
+                    : (locationType == 0
+                        ? LocationType.SIM
+                        : LocationType.DATE);
             }
 
             ModInterface.Log.LogInfo($"{hp1Id} {locationName}, - Loc type locationType{locationType} {locationMod.LocationType}");
@@ -129,7 +131,7 @@ public partial class HpExtraction
                         locationMod.BgMusic = new AudioKlipInfo()
                         {
                             AudioClipInfo = clipInfo,
-                            Volume = musicVolume * 2.2f //hp2 is louder
+                            Volume = musicVolume * 2.5f //hp2 is louder
                         };
                     }
                 }

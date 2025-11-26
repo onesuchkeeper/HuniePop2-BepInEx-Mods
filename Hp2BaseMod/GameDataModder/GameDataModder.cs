@@ -10,6 +10,7 @@ using Hp2BaseMod.Extension;
 using Hp2BaseMod.Extension.IEnumerableExtension;
 using Hp2BaseMod.GameDataInfo;
 using Hp2BaseMod.GameDataInfo.Interface;
+using Hp2BaseMod.ModGameData;
 using Hp2BaseMod.Utility;
 using Newtonsoft.Json;
 using UnityEngine;

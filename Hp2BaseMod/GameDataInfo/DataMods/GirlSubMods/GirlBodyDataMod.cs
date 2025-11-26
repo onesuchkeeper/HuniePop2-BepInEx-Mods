@@ -1,8 +1,8 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Hp2BaseMod.Extension.IEnumerableExtension;
 using Hp2BaseMod.GameDataInfo.Interface;
+using Hp2BaseMod.ModGameData;
 using Hp2BaseMod.Utility;
 using UnityEngine;
 

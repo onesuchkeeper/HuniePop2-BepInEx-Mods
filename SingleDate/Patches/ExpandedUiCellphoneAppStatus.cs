@@ -113,7 +113,7 @@ internal class ExpandedUiCellphoneAppStatus
         //single relationship progress
         var saveGirl = State.SaveFile.GetGirl(_girlId);
 
-        var maxSingleGirlRelationshipLevel = Plugin.Instance.MaxSingleGirlRelationshipLevel;
+        var maxSingleGirlRelationshipLevel = Plugin.MaxSingleGirlRelationshipLevel;
 
         var radAllotment = Mathf.PI / maxSingleGirlRelationshipLevel;
 

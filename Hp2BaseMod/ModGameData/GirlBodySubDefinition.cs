@@ -1,7 +1,8 @@
 using System.Collections.Generic;
+using Hp2BaseMod.GameDataInfo;
 using UnityEngine;
 
-namespace Hp2BaseMod.GameDataInfo;
+namespace Hp2BaseMod.ModGameData;
 
 /// <summary>
 /// Visual details for a girl

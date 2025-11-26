@@ -5,6 +5,7 @@ using System.Linq;
 using BepInEx;
 using HarmonyLib;
 using Hp2BaseMod;
+using Hp2BaseMod.Extension;
 using Hp2BaseMod.GameDataInfo;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
@@ -14,75 +15,50 @@ namespace RepeatThreesome;
 [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
 [BepInDependency("OSK.BepInEx.Hp2BaseMod", "1.0.0")]
 [BepInDependency("OSK.BepInEx.Hp2BaseModTweaks", BepInDependency.DependencyFlags.SoftDependency)]
-internal class Plugin : BaseUnityPlugin
+internal class Plugin : Hp2BaseModPlugin
 {
-    public static Plugin Instance => _instance;
-    private static Plugin _instance;
+    private static string PLUGIN_DIR = Path.Combine(Paths.PluginPath, MyPluginInfo.PLUGIN_NAME);
+    private static string IMAGES_DIR = Path.Combine(PLUGIN_DIR, "images");
 
-    private static string _pluginDir = Path.Combine(Paths.PluginPath, "RepeatThreesome");
-    private static string _imagesDir = Path.Combine(_pluginDir, "images");
-    private static string ConfigGeneral = "General";
-
-    public bool LoversLocationRequirement
+    [ConfigProperty(true, "If threesomes can only take place at the location their photo occurs at.")]
+    public static bool LoversLocationRequirement
     {
-        get => this.Config.TryGetEntry<bool>(ConfigGeneral, nameof(LoversLocationRequirement), out var config)
-            ? config.Value
-            : true;
-        set
-        {
-            if (this.Config.TryGetEntry<bool>(ConfigGeneral, nameof(LoversLocationRequirement), out var config))
-            {
-                config.Value = value;
-            }
-            else
-            {
-                Logger.LogWarning($"Failed to find binding for config value {nameof(LoversLocationRequirement)}");
-            }
-        }
+        get => _instance.GetConfigProperty<bool>();
+        set => _instance.SetConfigProperty(value);
     }
 
+    [ConfigProperty(true, "If characters will change to nude outfits during bonus rounds.")]
     public bool IsBonusRoundNude
     {
-        get => this.Config.TryGetEntry<bool>(ConfigGeneral, nameof(IsBonusRoundNude), out var config)
-            ? config.Value
-            : true;
-        set
-        {
-            if (this.Config.TryGetEntry<bool>(ConfigGeneral, nameof(IsBonusRoundNude), out var config))
-            {
-                config.Value = value;
-            }
-            else
-            {
-                Logger.LogWarning($"Failed to find binding for config value {nameof(IsBonusRoundNude)}");
-            }
-        }
+        get => _instance.GetConfigProperty<bool>();
+        set => _instance.SetConfigProperty(value);
     }
 
-    private int _modId;
+    private Dictionary<RelativeId, RtPair> _rtPairs = new();
+
+    public static new int ModId { get { return ((Hp2BaseModPlugin)_instance).ModId; } }
+    private static Plugin _instance;
+
+    public Plugin() : base(MyPluginInfo.PLUGIN_GUID) { }
 
     private void Awake()
     {
         _instance = this;
 
-        this.Config.Bind(ConfigGeneral, nameof(LoversLocationRequirement), true, "If threesomes can only take place at the location their photo occurs at.");
-        this.Config.Bind(ConfigGeneral, nameof(IsBonusRoundNude), true, "If characters will change to nude outfits during bonus rounds.");
-
         if (ModInterface.TryGetInterModValue("OSK.BepInEx.Hp2BaseModTweaks", "AddModCredit",
                 out Action<string, IEnumerable<(string creditButtonPath, string creditButtonOverPath, string redirectLink)>> m_addModCredit))
         {
-            m_addModCredit(Path.Combine(_imagesDir, "CreditsLogo.png"),
+            m_addModCredit(Path.Combine(IMAGES_DIR, "CreditsLogo.png"),
             [
                 (
-                    Path.Combine(_imagesDir, "onesuchkeeper_credits.png"),
-                    Path.Combine(_imagesDir, "onesuchkeeper_credits_over.png"),
+                    Path.Combine(IMAGES_DIR, "onesuchkeeper_credits.png"),
+                    Path.Combine(IMAGES_DIR, "onesuchkeeper_credits_over.png"),
                     "https://www.youtube.com/@onesuchkeeper8389"
                 )
             ]);
         }
 
-        _modId = ModInterface.GetSourceId(MyPluginInfo.PLUGIN_GUID);
-        Constants.Init(_modId);
+        Constants.Init(ModId);
 
         ModInterface.AddDataMod(new CodeDataMod(Constants.LocalCodeId, InsertStyle.replace)
         {
@@ -107,26 +83,18 @@ internal class Plugin : BaseUnityPlugin
         new Harmony(MyPluginInfo.PLUGIN_GUID).PatchAll();
     }
 
-    private void On_PostPersistenceReset(SaveData data)
+    [InteropMethod]
+    public void SetPairCutscenes(RelativeId girlId, RelativeId cutsceneAttractedSuccessId, RelativeId cutsceneBonusNewroundId)
     {
-        ValidateCode(data, Constants.LocalCodeId, LoversLocationRequirement);
-        ValidateCode(data, Constants.NudeCodeId, IsBonusRoundNude);
+        var rtPair = _rtPairs.GetOrNew(girlId);
+        rtPair.CutsceneAttractedSuccessId = cutsceneAttractedSuccessId;
+        rtPair.CutsceneBonusNewRoundId = cutsceneBonusNewroundId;
     }
 
-    private void ValidateCode(SaveData data, RelativeId codeId, bool isUnlocked)
+    private void On_PostPersistenceReset(SaveData data)
     {
-        var runtimeId = ModInterface.Data.GetRuntimeDataId(GameDataType.Code, codeId);
-        if (isUnlocked)
-        {
-            if (!data.unlockedCodes.Contains(runtimeId))
-            {
-                data.unlockedCodes.Add(runtimeId);
-            }
-        }
-        else
-        {
-            data.unlockedCodes.Remove(runtimeId);
-        }
+        CodeUtility.ValidateCode(data, Constants.LocalCodeId, LoversLocationRequirement);
+        CodeUtility.ValidateCode(data, Constants.NudeCodeId, IsBonusRoundNude);
     }
 
     private void On_PostCodeSubmitted(CodeDefinition codeDefinition)
@@ -146,15 +114,6 @@ internal class Plugin : BaseUnityPlugin
 
         var emptySpriteInfo = new SpriteInfoInternal("EmptySprite");
 
-        var emptyPart = new GirlPartDataMod(new RelativeId(_modId, _partCount++), InsertStyle.replace)
-        {
-            X = 0,
-            Y = 0,
-            PartType = GirlPartType.BODY,
-            PartName = "Body",
-            SpriteInfo = emptySpriteInfo
-        };
-
         var nudeOutfitPart = new GirlPartDataMod(Constants.NudeOutfitId, InsertStyle.replace)
         {
             PartType = GirlPartType.OUTFIT,
@@ -164,7 +123,7 @@ internal class Plugin : BaseUnityPlugin
             SpriteInfo = emptySpriteInfo
         };
 
-        var pollyNudeOutfitPartAlt = new GirlPartDataMod(new RelativeId(_modId, _partCount++), InsertStyle.replace)
+        var pollyNudeOutfitPartAlt = new GirlPartDataMod(new RelativeId(ModId, _partCount++), InsertStyle.replace)
         {
             PartType = GirlPartType.OUTFIT,
             PartName = "nudeOutfitPollyAlt",

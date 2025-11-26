@@ -1,4 +1,3 @@
-using System.Reflection;
 using HarmonyLib;
 
 namespace Hp2BaseMod;
@@ -8,7 +7,8 @@ public static class UiTitleCanvasPatch_LoadGame
 {
     public static void Prefix(UiTitleCanvas __instance, int saveFileIndex, string loadSceneName = "MainScene")
     {
-        ModInterface.Events.NotifyPreLoadSaveFile(Game.Persistence.playerData.files[saveFileIndex]);
+        var file = Game.Persistence.playerData.files[saveFileIndex];
+        ModInterface.Events.NotifyPreLoadSaveFile(file);
 
         Game.Persistence.loadedFileIndex = saveFileIndex;
         foreach (var girl in Game.Data.Girls.GetAll())
@@ -21,6 +21,12 @@ public static class UiTitleCanvasPatch_LoadGame
 
             ModInterface.Log.LogInfo($"Initializing body {bodyName} for {girl.girlName}");
             body?.Apply(girl);
+        }
+
+        if (file.locationDefinition.locationType == LocationType.SPECIAL)
+        {
+            file.locationDefinition = ModInterface.GameData.GetLocation(Locations.HotelRoom);
+            file.girlPairDefinition = null;
         }
     }
 }

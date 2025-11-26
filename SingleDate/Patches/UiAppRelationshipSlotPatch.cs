@@ -37,7 +37,7 @@ internal static class UiAppRelationshipSlotPatch
 
         if (playerFileGirlPair != null)
         {
-            var maxSingleGirlRelationshipLevel = Plugin.Instance.MaxSingleGirlRelationshipLevel;
+            var maxSingleGirlRelationshipLevel = Plugin.MaxSingleGirlRelationshipLevel;
 
             if (playerFileGirlPair.relationshipType == GirlPairRelationshipType.ATTRACTED
                 && girlSave?.RelationshipLevel == (maxSingleGirlRelationshipLevel - 1)
@@ -119,7 +119,7 @@ internal static class UiAppRelationshipSlotPatch
         var daytimeOffset = _daytimeOffset.GetValue<int>(__instance);
 
         //when not horny
-        var maxSingleGirlRelationshipLevel = Plugin.Instance.MaxSingleGirlRelationshipLevel;
+        var maxSingleGirlRelationshipLevel = Plugin.MaxSingleGirlRelationshipLevel;
         if (!(girlSave.RelationshipLevel == maxSingleGirlRelationshipLevel - 1
                 && (Game.Persistence.playerFile.daytimeElapsed + daytimeOffset) % 4 == (int)playerFileGirlPair.girlPairDefinition.sexDaytime)
         //and attracted or compatible

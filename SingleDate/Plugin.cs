@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using BepInEx;
@@ -13,156 +12,65 @@ using UnityEngine;
 
 namespace SingleDate;
 
+/// <summary>
+/// Please note, any pair with <see cref="GirlNobody"/> (LocalId 0) as girl 1 will be treated as a single date pair.
+/// The sex location will be chosen from the locations of the girls sex photos set by <see cref="AddGirlSexPhotos"/>.
+/// If the location for the sex photo is <see cref="RelativeId.Default"/>, the sex location for the pair will be used instead.
+/// If the pair's sex location is <see cref="RelativeId.Default"/> it will be randomized. 
+/// Use <see cref="AddSexLocationBlackList"/> to limit the pool if needed. (maybe add multiple loc support to the base mod? Could be cool)
+/// All Data mods are added with a priority of zero
+/// </summary>
 [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
 [BepInDependency("OSK.BepInEx.Hp2BaseMod", "1.0.0")]
-internal class Plugin : BaseUnityPlugin
+internal class Plugin : Hp2BaseModPlugin
 {
-    private readonly static string CONFIG_ERROR = "Failed to find config binding for ";
-    internal static Plugin Instance => _instance;
+    public static readonly string ROOT_DIR = Path.Combine(Paths.PluginPath, MyPluginInfo.PLUGIN_NAME);
+    public static readonly string IMAGES_DIR = Path.Combine(ROOT_DIR, "images");
+
+    [ConfigProperty(false, "If upset hints are shown on single dates.")]
+    public static bool ShowSingleUpsetHunt
+    {
+        get => _instance.GetConfigProperty<bool>();
+        set => _instance.SetConfigProperty(value);
+    }
+
+    [ConfigProperty(true, "If baggage is active on single dates.")]
+    public static bool SingleDateBaggage
+    {
+        get => _instance.GetConfigProperty<bool>();
+        set => _instance.SetConfigProperty(value);
+    }
+
+    [ConfigProperty(false, "If both characters must reach lovers on single dates before a threesome can occur.")]
+    public static bool RequireLoversBeforeThreesome
+    {
+        get => _instance.GetConfigProperty<bool>();
+        set => _instance.SetConfigProperty(value);
+    }
+
+    [ConfigProperty(3, "Maximum relationship level for single dates. Maximum level must be reached for lovers status.")]
+    public static int MaxSingleGirlRelationshipLevel
+    {
+        get => _instance.GetConfigProperty<int>();
+        set => _instance.SetConfigProperty(value);
+    }
+
+    [ConfigProperty(4, "Maximum level for sensitivity.")]
+    public static int MaxSensitivityLevel
+    {
+        get => _instance.GetConfigProperty<int>();
+        set => _instance.SetConfigProperty(value);
+    }
+
+    private Dictionary<RelativeId, SingleDateGirl> _singleDateGirls = new();
     private static Plugin _instance;
-
-    private static string ConfigGeneralCat = "General";
-
-    internal bool ShowSingleUpsetHunt
-    {
-        get => this.Config.TryGetEntry<bool>(ConfigGeneralCat, nameof(ShowSingleUpsetHunt), out var config)
-            ? config.Value
-            : false;
-        set
-        {
-            if (this.Config.TryGetEntry<bool>(ConfigGeneralCat, nameof(ShowSingleUpsetHunt), out var config))
-            {
-                config.Value = value;
-            }
-            else
-            {
-                Logger.LogWarning(CONFIG_ERROR + nameof(ShowSingleUpsetHunt));
-            }
-        }
-    }
-
-    internal bool SingleDateBaggage
-    {
-        get => this.Config.TryGetEntry<bool>(ConfigGeneralCat, nameof(SingleDateBaggage), out var config)
-            ? config.Value
-            : false;
-        set
-        {
-            if (this.Config.TryGetEntry<bool>(ConfigGeneralCat, nameof(SingleDateBaggage), out var config))
-            {
-                config.Value = value;
-            }
-            else
-            {
-                Logger.LogWarning(CONFIG_ERROR + nameof(SingleDateBaggage));
-            }
-        }
-    }
-
-    internal bool RequireLoversBeforeThreesome
-    {
-        get => this.Config.TryGetEntry<bool>(ConfigGeneralCat, nameof(RequireLoversBeforeThreesome), out var config)
-            ? config.Value
-            : false;
-        set
-        {
-            if (this.Config.TryGetEntry<bool>(ConfigGeneralCat, nameof(RequireLoversBeforeThreesome), out var config))
-            {
-                config.Value = value;
-            }
-            else
-            {
-                Logger.LogWarning(CONFIG_ERROR + nameof(RequireLoversBeforeThreesome));
-            }
-        }
-    }
-
-    internal int MaxSingleGirlRelationshipLevel
-    {
-        get
-        {
-            if (this.Config.TryGetEntry<int>(ConfigGeneralCat, nameof(MaxSingleGirlRelationshipLevel), out var config)
-                && config.Value > 0)
-            {
-                return config.Value;
-            }
-
-            return 3;
-        }
-        set
-        {
-            if (this.Config.TryGetEntry<int>(ConfigGeneralCat, nameof(MaxSingleGirlRelationshipLevel), out var config))
-            {
-                config.Value = value;
-            }
-            else
-            {
-                Logger.LogWarning(CONFIG_ERROR + nameof(MaxSingleGirlRelationshipLevel));
-            }
-        }
-    }
-
-    internal int MaxSensitivityLevel
-    {
-        get
-        {
-            if (this.Config.TryGetEntry<int>(ConfigGeneralCat, nameof(MaxSensitivityLevel), out var config)
-                && config.Value > 0)
-            {
-                return config.Value;
-            }
-
-            return 4;
-        }
-        set
-        {
-            if (this.Config.TryGetEntry<int>(ConfigGeneralCat, nameof(MaxSensitivityLevel), out var config))
-            {
-                config.Value = value;
-            }
-            else
-            {
-                Logger.LogWarning(CONFIG_ERROR + nameof(MaxSensitivityLevel));
-            }
-        }
-    }
-
-    public static readonly string RootDir = Path.Combine(Paths.PluginPath, "SingleDate");
-    public static readonly string ImagesDir = Path.Combine(RootDir, "images");
-
-    public void AddGirlSexPhotos(RelativeId girlId, IEnumerable<(RelativeId, RelativeId)> photoIds)
-        => SingleDateGirls.GetOrNew(girlId).SexPhotos.AddRange(photoIds.Select(x => new SexPhotoData() { PhotoId = x.Item1, LocationId = x.Item2 }));
-
-    public void AddGirlDatePhotos(RelativeId girlId, IEnumerable<(RelativeId, float)> photoIds)
-            => SingleDateGirls.GetOrNew(girlId).DatePhotos.AddRange(photoIds.Select(x => new DatePhotoData() { PhotoId = x.Item1, RelationshipPercentage = x.Item2 }));
-
-    public void SwapGirls(RelativeId girlIdA, RelativeId girlIdB)
-    {
-        var aData = SingleDateGirls.GetOrNew(girlIdA);
-        var bData = SingleDateGirls.GetOrNew(girlIdB);
-
-        SingleDateGirls[girlIdA] = bData;
-        SingleDateGirls[girlIdB] = aData;
-    }
-
-    public void SetGirlCharm(RelativeId girlId, Sprite charmSprite)
-    => SingleDateGirls.GetOrNew(girlId).CharmSprite = charmSprite;
-
-    internal Dictionary<RelativeId, SingleDateGirl> SingleDateGirls = new();
+    public Plugin() : base(MyPluginInfo.PLUGIN_GUID) { }
 
     private void Awake()
     {
         _instance = this;
 
-        this.Config.Bind(ConfigGeneralCat, nameof(ShowSingleUpsetHunt), false, "If upset hints are shown on single dates.");
-        this.Config.Bind(ConfigGeneralCat, nameof(SingleDateBaggage), true, "If baggage is active on single dates.");
-        this.Config.Bind(ConfigGeneralCat, nameof(RequireLoversBeforeThreesome), true, "If both characters must reach lovers on single dates before a threesome can occur.");
-        this.Config.Bind(ConfigGeneralCat, nameof(MaxSingleGirlRelationshipLevel), 3, "Maximum relationship level for single dates. Maximum level must be reached for lovers status.");
-        this.Config.Bind(ConfigGeneralCat, nameof(MaxSensitivityLevel), 4, "Maximum level for sensitivity.");
-
         State.On_Plugin_Awake();
-
-        Interop.RegisterInterModValues();//add interop for providing photos and charms
 
         GirlNobody.AddDataMods();
         ItemSensitivitySmoothie.AddDataMods();
@@ -203,17 +111,63 @@ internal class Plugin : BaseUnityPlugin
         ModInterface.Events.PreGameSave += State.On_PreGameSave;
         ModInterface.Events.PostPersistenceReset += State.On_PostPersistenceReset;
 
-        ModInterface.Events.PreRoundOverCutscene += EventHandles.On_PreRoundOverCutscene;
-        ModInterface.Events.FinderSlotsPopulate += EventHandles.On_FinderSlotsPopulate;
-        ModInterface.Events.LocationArriveSequence += EventHandles.On_LocationArriveSequence;
-        ModInterface.Events.RandomDollSelected += EventHandles.On_RandomDollSelected;
-        ModInterface.Events.DateLocationSelected += EventHandles.On_DateLocationSelected;
-        ModInterface.Events.SinglePhotoDisplayed += EventHandles.On_SinglePhotoDisplayed;
-        ModInterface.Events.RequestUnlockedPhotos += EventHandles.On_RequestUnlockedPhotos;
-        ModInterface.Events.PreDateDollReset += EventHandles.On_PreDateDollsRefresh;
+        ModInterface.Events.PreRoundOverCutscene += ModEventHandles.On_PreRoundOverCutscene;
+        ModInterface.Events.FinderSlotsPopulate += ModEventHandles.On_FinderSlotsPopulate;
+        ModInterface.Events.LocationArriveSequence += ModEventHandles.On_LocationArriveSequence;
+        ModInterface.Events.RandomDollSelected += ModEventHandles.On_RandomDollSelected;
+        ModInterface.Events.DateLocationSelected += ModEventHandles.On_DateLocationSelected;
+        ModInterface.Events.SinglePhotoDisplayed += ModEventHandles.On_SinglePhotoDisplayed;
+        ModInterface.Events.RequestUnlockedPhotos += ModEventHandles.On_RequestUnlockedPhotos;
+        ModInterface.Events.PreDateDollReset += ModEventHandles.On_PreDateDollsRefresh;
 
         new Harmony(MyPluginInfo.PLUGIN_GUID).PatchAll();
     }
+
+    [InteropMethod]
+    public static void AddGirlSexPhotos(RelativeId girlId, IEnumerable<(RelativeId, RelativeId)> photoIds)
+        => _instance._singleDateGirls.GetOrNew(girlId).SexPhotos.AddRange(photoIds.Select(x => new SexPhotoData() { PhotoId = x.Item1, LocationId = x.Item2 }));
+
+    [InteropMethod]
+    public static void AddGirlDatePhotos(RelativeId girlId, IEnumerable<(RelativeId, float)> photoIds)
+            => _instance._singleDateGirls.GetOrNew(girlId).DatePhotos.AddRange(photoIds.Select(x => new DatePhotoData() { PhotoId = x.Item1, RelationshipPercentage = x.Item2 }));
+
+    [InteropMethod]
+    public static void AddSexLocationBlackList(RelativeId girlId, IEnumerable<RelativeId> photoIds)
+    {
+        var singleDateGirl = _instance._singleDateGirls.GetOrNew(girlId);
+        singleDateGirl.SexLocBlackList.UnionWith(photoIds);
+    }
+
+    [InteropMethod]
+    public static void SetCutsceneSuccessAttracted(RelativeId girlId, RelativeId CutsceneId)
+        => _instance._singleDateGirls.GetOrNew(girlId).CutsceneSuccessAttracted = CutsceneId;
+
+    [InteropMethod]
+    public static void SetBonusRoundSuccessCutscene(RelativeId girlId, RelativeId CutsceneId)
+        => _instance._singleDateGirls.GetOrNew(girlId).CutsceneSuccessBonus = CutsceneId;
+
+    [InteropMethod]
+    public static void SwapGirls(RelativeId girlIdA, RelativeId girlIdB)
+    {
+        var aData = _instance._singleDateGirls.GetOrNew(girlIdA);
+        var bData = _instance._singleDateGirls.GetOrNew(girlIdB);
+
+        _instance._singleDateGirls[girlIdA] = bData;
+        _instance._singleDateGirls[girlIdB] = aData;
+    }
+
+    [InteropMethod]
+    public static void SetGirlCharm(RelativeId girlId, Sprite charmSprite)
+        => _instance._singleDateGirls.GetOrNew(girlId).CharmSprite = charmSprite;
+
+    [InteropMethod]
+    public static bool IsSexDateValid(RelativeId girlId) => State.SaveFile.GetGirl(girlId).RelationshipLevel >= (MaxSensitivityLevel - 1);
+
+    public static SingleDateGirl GetSingleDateGirl(RelativeId girlId)
+            => _instance._singleDateGirls.GetOrNew(girlId);
+
+    public static bool TryGetSingleDateGirl(RelativeId girlId, out SingleDateGirl singleDateGirl)
+        => _instance._singleDateGirls.TryGetValue(girlId, out singleDateGirl);
 
     private void On_PreDataMods()
     {

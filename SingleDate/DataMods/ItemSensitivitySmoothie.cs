@@ -22,7 +22,7 @@ internal static class ItemSensitivitySmoothie
         _expId = new RelativeId(State.ModId, 1);
         _levelId = new RelativeId(State.ModId, 2);
 
-        var smoothieTexture = new TextureInfoExternal(Path.Combine(Plugin.ImagesDir, "item_smoothie_sensitivity.png"), true);
+        var smoothieTexture = new TextureInfoExternal(Path.Combine(Plugin.IMAGES_DIR, "item_smoothie_sensitivity.png"), true);
 
         ModInterface.AddDataMod(new ItemDataMod(_smoothieId, InsertStyle.replace)
         {

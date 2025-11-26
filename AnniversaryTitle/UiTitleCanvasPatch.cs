@@ -70,7 +70,7 @@ public class ExpandedUiTitleCanvas
 
     public void StartPre()
     {
-        var sloppieBoppiePath = Path.Combine(Plugin.AudioDir, "Sloppie Boppie.wav");
+        var sloppieBoppiePath = Path.Combine(Plugin.AUDIO_DIR, "Sloppie Boppie.wav");
         if (File.Exists(sloppieBoppiePath))
         {
             using (var request = UnityWebRequestMultimedia.GetAudioClip("file://" + System.IO.Path.GetFullPath(sloppieBoppiePath), AudioType.WAV))
@@ -91,10 +91,10 @@ public class ExpandedUiTitleCanvas
             }
         }
 
-        _backSprite = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImagesDir, "hp_10th_anniversary_art_background.png"), true)).GetSprite();
-        _midSprite = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImagesDir, "hp_10th_anniversary_art_middle.png"), true)).GetSprite();
-        _frontSprite = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImagesDir, "hp_10th_anniversary_art_front.png"), true)).GetSprite();
-        _foregroundSprite = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImagesDir, "hp_10th_anniversary_art_foreground.png"), true)).GetSprite();
+        _backSprite = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.IMAGES_DIR, "hp_10th_anniversary_art_background.png"), true)).GetSprite();
+        _midSprite = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.IMAGES_DIR, "hp_10th_anniversary_art_middle.png"), true)).GetSprite();
+        _frontSprite = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.IMAGES_DIR, "hp_10th_anniversary_art_front.png"), true)).GetSprite();
+        _foregroundSprite = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.IMAGES_DIR, "hp_10th_anniversary_art_foreground.png"), true)).GetSprite();
 
         _core.StartCoroutine(BuildAnimation());
     }

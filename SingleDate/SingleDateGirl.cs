@@ -1,7 +1,8 @@
 using System.Collections.Generic;
 using Hp2BaseMod;
-using SingleDate;
 using UnityEngine;
+
+namespace SingleDate;
 
 public class SingleDateGirl
 {
@@ -11,6 +12,11 @@ public class SingleDateGirl
 
     public Sprite CharmSprite;
     //charm behaviors
+
+    public HashSet<RelativeId> SexLocBlackList = new();
+
+    public RelativeId CutsceneSuccessAttracted = RelativeId.Default;
+    public RelativeId CutsceneSuccessBonus = RelativeId.Default;
 }
 
 public struct DatePhotoData

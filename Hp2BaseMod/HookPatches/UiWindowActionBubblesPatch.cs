@@ -97,16 +97,9 @@ internal static class UiWindowActionBubblesPatch
             var time = (ClockDaytimeType)(Game.Persistence.playerFile.daytimeElapsed % 4);
 
             var locs = Game.Data.Locations.GetAllByLocationType(LocationType.DATE)
-                .Where(x =>
-                {
-                    var expansion = x.Expansion();
+                .Where(x => x.Expansion().IsValidForNormalDate());
 
-                    return expansion.AllowNormal
-                        && (Game.Persistence.playerFile.storyProgress >= 12 || !expansion.PostBoss)
-                        && (expansion.DateTimes?.Contains(time) ?? true);
-                });
-
-            ModInterface.Log.LogInfo($"Date Loc Pool: [{string.Join(", ", locs.Select(x => x.locationName))}]");
+            ModInterface.Log.LogInfo($"Choosing normal date Loc from pool: [{string.Join(", ", locs.Select(x => x.locationName))}]");
 
             args.Location = locs.ToList().PopRandom();
         }

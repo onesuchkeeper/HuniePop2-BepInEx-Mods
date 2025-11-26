@@ -36,7 +36,7 @@ public static class State
     private static bool _isSingleDate;
 
     public static int SensitivityExp => SaveFile.SensitivityExp;
-    public static float SensitivityPercentage => SaveFile.SensitivityExp / (Plugin.Instance.MaxSensitivityLevel * 6f);
+    public static float SensitivityPercentage => SaveFile.SensitivityExp / (Plugin.MaxSensitivityLevel * 6f);
 
     public static bool IsSingle(GirlPairDefinition def)
     {

@@ -18,7 +18,7 @@ public static class CellphoneSprites
     {
         var mod = new GirlDataMod(girlId, InsertStyle.replace);
 
-        var digitalArtCollectionDir = Plugin.Instance.DigitalArtCollectionDir;
+        var digitalArtCollectionDir = Plugin.DigitalArtCollectionDir;
 
         var texturePath = Path.Combine(digitalArtCollectionDir, "Heads", $"{name}.png");
         if (File.Exists(texturePath))

@@ -14,9 +14,9 @@ internal static class PhotoSarah
     {
         _id = new RelativeId(State.ModId, 7);
 
-        var photoInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImagesDir, "photo_sarah_1.png"), true));
+        var photoInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.IMAGES_DIR, "photo_sarah_1.png"), true));
 
-        var thumbInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.ImagesDir, "photo_sarah_1_thumb.png"), true));
+        var thumbInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.IMAGES_DIR, "photo_sarah_1_thumb.png"), true));
 
         ModInterface.AddDataMod(new PhotoDataMod(_id, InsertStyle.replace)
         {

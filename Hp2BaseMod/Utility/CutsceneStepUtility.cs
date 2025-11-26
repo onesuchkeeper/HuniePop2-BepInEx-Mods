@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Hp2BaseMod.GameDataInfo;
 using Hp2BaseMod.GameDataInfo.Interface;
+using Hp2BaseMod.ModGameData;
 using UnityEngine;
 
 namespace Hp2BaseMod.Utility;
@@ -13,7 +14,7 @@ public static class CutsceneStepUtility
         return new CutsceneStepSubDefinition()
         {
             stepType = CutsceneStepType.NOTHING,
-            proceedType = proceedType
+            proceedType = proceedType,
         };
     }
 
@@ -23,6 +24,26 @@ public static class CutsceneStepUtility
         {
             StepType = CutsceneStepType.NOTHING,
             ProceedType = proceedType
+        };
+    }
+
+    public static CutsceneStepSubDefinition MakeWait(float duration)
+    {
+        return new CutsceneStepSubDefinition()
+        {
+            stepType = CutsceneStepType.NOTHING,
+            proceedType = CutsceneStepProceedType.WAIT,
+            proceedFloat = duration
+        };
+    }
+
+    public static CutsceneStepInfo MakeWaitInfo(float duration)
+    {
+        return new CutsceneStepInfo()
+        {
+            StepType = CutsceneStepType.NOTHING,
+            ProceedType = CutsceneStepProceedType.WAIT,
+            ProceedFloat = duration
         };
     }
 
@@ -112,7 +133,7 @@ public static class CutsceneStepUtility
         };
     }
 
-    public static CutsceneStepSubDefinition MakeSetMood(GirlExpressionType girlExpressionType, bool eyesClosed, CutsceneStepProceedType proceedType)
+    public static CutsceneStepSubDefinition MakeSetMood(GirlExpressionType girlExpressionType, bool eyesClosed, CutsceneStepDollTargetType dollTargetType, CutsceneStepProceedType proceedType)
     {
         return new CutsceneStepSubDefinition()
         {
@@ -120,11 +141,12 @@ public static class CutsceneStepUtility
             boolValue = eyesClosed,
             expressionType = girlExpressionType,
             setMood = true,
-            proceedType = proceedType
+            proceedType = proceedType,
+            dollTargetType = dollTargetType
         };
     }
 
-    public static CutsceneStepInfo MakeSetMoodInfo(GirlExpressionType girlExpressionType, bool eyesClosed, CutsceneStepProceedType proceedType)
+    public static CutsceneStepInfo MakeSetMoodInfo(GirlExpressionType girlExpressionType, bool eyesClosed, CutsceneStepDollTargetType dollTargetType, CutsceneStepProceedType proceedType)
     {
         return new CutsceneStepInfo()
         {
@@ -132,7 +154,8 @@ public static class CutsceneStepUtility
             BoolValue = eyesClosed,
             ExpressionType = girlExpressionType,
             SetMood = true,
-            ProceedType = proceedType
+            ProceedType = proceedType,
+            DollTargetType = dollTargetType
         };
     }
 
@@ -464,26 +487,22 @@ public static class CutsceneStepUtility
         };
     }
 
-    public static CutsceneStepSubDefinition MakeShowPuzzleGrid(BannerTextBehavior banner, int effectIndex, CutsceneStepProceedType proceedType)
+    public static CutsceneStepSubDefinition MakeShowPuzzleGrid(CutsceneStepProceedType proceedType)
     {
         return new CutsceneStepSubDefinition()
         {
             stepType = CutsceneStepType.PUZZLE_GRID,
             boolValue = true,
-            bannerTextPrefab = banner,
-            intValue = effectIndex,
             proceedType = proceedType
         };
     }
 
-    public static CutsceneStepInfo MakeShowPuzzleGridInfo(string banner, int effectIndex, CutsceneStepProceedType proceedType)
+    public static CutsceneStepInfo MakeShowPuzzleGridInfo(CutsceneStepProceedType proceedType)
     {
         return new CutsceneStepInfo()
         {
             StepType = CutsceneStepType.PUZZLE_GRID,
             BoolValue = true,
-            BannerTextPrefabName = banner,
-            IntValue = effectIndex,
             ProceedType = proceedType
         };
     }
@@ -836,39 +855,57 @@ public static class CutsceneStepUtility
         };
     }
 
-    public static CutsceneStepSubDefinition MakeBannerTextHide()
+    public static CutsceneStepSubDefinition MakeBannerTextHide(CutsceneStepProceedType proceedType)
     {
         return new CutsceneStepSubDefinition()
         {
-            boolValue = true
+            stepType = CutsceneStepType.BANNER_TEXT,
+            boolValue = false,
+            proceedType = proceedType
         };
     }
 
-    public static CutsceneStepInfo MakeBannerTextHideInfo()
+    public static CutsceneStepInfo MakeBannerTextHideInfo(CutsceneStepProceedType proceedType)
     {
         return new CutsceneStepInfo()
         {
-            BoolValue = true
+            StepType = CutsceneStepType.BANNER_TEXT,
+            BoolValue = false,
+            ProceedType = proceedType
         };
     }
 
-    public static CutsceneStepSubDefinition MakeBannerText(BannerTextBehavior bannerTextBehavior, int effectsContainerIndex)
+    public static CutsceneStepSubDefinition MakeBannerText(BannerTextBehavior bannerTextBehavior, int effectsContainerIndex, CutsceneStepProceedType proceedType)
     {
         return new CutsceneStepSubDefinition()
         {
+            stepType = CutsceneStepType.BANNER_TEXT,
             bannerTextPrefab = bannerTextBehavior,
             intValue = effectsContainerIndex,
-            boolValue = false
+            boolValue = true,
+            proceedType = proceedType
         };
     }
 
-    public static CutsceneStepInfo MakeBannerTextInfo(string bannerTextBehaviorName, int effectsContainerIndex)
+    public static CutsceneStepInfo MakeBannerTextInfo(string bannerTextBehaviorName, int effectsContainerIndex, CutsceneStepProceedType proceedType)
     {
         return new CutsceneStepInfo()
         {
+            StepType = CutsceneStepType.BANNER_TEXT,
             BannerTextPrefabName = bannerTextBehaviorName,
             IntValue = effectsContainerIndex,
-            BoolValue = false
+            BoolValue = true,
+            ProceedType = proceedType
         };
+    }
+
+    public static CutsceneStepSubDefinition MakeChangeLocation(params RelativeId[] locationIdPool)
+    {
+        return new ChangeLocationCutsceneStep(locationIdPool);
+    }
+
+    public static ChangeLocationCutsceneStep.Info MakeChangeLocationInfo(params RelativeId[] locationIdPool)
+    {
+        return new ChangeLocationCutsceneStep.Info(locationIdPool);
     }
 }

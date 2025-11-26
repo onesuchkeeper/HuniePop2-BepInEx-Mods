@@ -34,6 +34,11 @@ namespace Hp2BaseModTweaks.CellphoneApps
         [HarmonyPostfix]
         public static void RefreshBigPhoto(UiWindowPhotos __instance)
             => ExpandedUiWindowPhotos.Get(__instance).RefreshBigPhoto();
+
+        [HarmonyPatch("OnCloseButtonPressed")]
+        [HarmonyPostfix]
+        public static void OnCloseButtonPressed(UiWindowPhotos __instance, ButtonBehavior buttonBehavior)
+            => ExpandedUiWindowPhotos.Get(__instance).OnCloseButtonPressed();
     }
 
     internal class ExpandedUiWindowPhotos
@@ -55,6 +60,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
         private static readonly FieldInfo _photoDefinition = AccessTools.Field(typeof(UiPhotoSlot), "_photoDefinition");
         private static readonly FieldInfo _photoViewMode = AccessTools.Field(typeof(UiWindowPhotos), "_photoViewMode");
         private static readonly FieldInfo _singlePhoto = AccessTools.Field(typeof(UiWindowPhotos), "_singlePhoto");
+        private static readonly FieldInfo _nextPhotos = AccessTools.Field(typeof(UiWindowPhotos), "_nextPhotos");
         private static readonly FieldInfo _earnedPhotos = AccessTools.Field(typeof(UiWindowPhotos), "_earnedPhotos");
         private static readonly FieldInfo _bigPhotoDefinition = AccessTools.Field(typeof(UiWindowPhotos), "_bigPhotoDefinition");
         private static readonly int _photosPerPage = 29;
@@ -304,6 +310,21 @@ namespace Hp2BaseModTweaks.CellphoneApps
                 }
 
                 index++;
+            }
+        }
+
+        internal void OnCloseButtonPressed()
+        {
+            if (_singlePhoto.GetValue<bool>(_photosWindow)
+                && _nextPhotos.GetValue<List<PhotoDefinition>>(_photosWindow).Count <= 0)
+            {
+                var mat = _bg_image.material;
+                DOTween.To(
+                    () => mat.GetFloat("_BlurSize"),
+                    x => mat.SetFloat("_BlurSize", x),
+                    0f,
+                    0.5f
+                );
             }
         }
     }

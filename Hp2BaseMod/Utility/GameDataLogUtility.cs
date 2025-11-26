@@ -67,7 +67,7 @@ public static class GameDataLogUtility
                     }
                     break;
                 case CutsceneStepType.DIALOG_LINE:
-                    ModInterface.Log.LogInfo($"DialogLine: {step.dialogLine}");//fix this
+                    ModInterface.Log.LogInfo($"DialogLine: {step.dialogLine?.dialogText ?? "null"}");//fix this
                     ModInterface.Log.LogInfo($"ProceedType: {Enum.GetName(typeof(CutsceneStepProceedType), step.proceedType)}");
                     ModInterface.Log.LogInfo($"isDialogBoxLocked: {step.boolValue}");
                     break;
@@ -105,7 +105,14 @@ public static class GameDataLogUtility
                     switch (step.dollTargetType)
                     {
                         case CutsceneStepDollTargetType.GIRL_DEFINITION:
-                            ModInterface.Log.LogInfo($"Def: {ModInterface.Data.GetDataId(GameDataType.Girl, step.girlDefinition.id)} - {step.girlDefinition.girlName}");
+                            if (step.girlDefinition == null)
+                            {
+                                ModInterface.Log.LogInfo($"Def: null");
+                            }
+                            else
+                            {
+                                ModInterface.Log.LogInfo($"Def: {ModInterface.Data.GetDataId(GameDataType.Girl, step.girlDefinition.id)} - {step.girlDefinition.girlName}");
+                            }
                             break;
                         case CutsceneStepDollTargetType.ORIENTATION_TYPE:
                             ModInterface.Log.LogInfo($"Orientation: {Enum.GetName(typeof(DollOrientationType), step.targetDollOrientation)}");
@@ -224,7 +231,7 @@ public static class GameDataLogUtility
                     ModInterface.Log.LogInfo($"Show duration: {step.floatValue}");
                     break;
             }
-            ModInterface.Log.LogInfo($"ProceedType: {Enum.GetName(typeof(CutsceneStepProceedType), step.proceedType)}");
+            ModInterface.Log.LogInfo($"ProceedType: {Enum.GetName(typeof(CutsceneStepProceedType), step.proceedType)}, Proceed Float: {step.proceedFloat}");
         }
     }
 
@@ -246,7 +253,7 @@ public static class GameDataLogUtility
         }
 
         i = 0;
-        foreach (var step in branch.cutsceneDefinition.steps ?? branch.steps)
+        foreach (var step in branch.cutsceneDefinition?.steps ?? branch.steps)
         {
             using (ModInterface.Log.MakeIndent($"Step {i++}:"))
             {

@@ -11,28 +11,28 @@ namespace HiraganaLogo;
 [BepInDependency("OSK.BepInEx.Hp2BaseModTweaks", BepInDependency.DependencyFlags.HardDependency)]
 public class Plugin : BaseUnityPlugin
 {
-    private static string _pluginDir = Path.Combine(Paths.PluginPath, MyPluginInfo.PLUGIN_NAME);
-    private static string ImageDir = Path.Combine(_pluginDir, "images");
-    private static readonly string TweaksGuid = "OSK.BepInEx.Hp2BaseModTweaks";
+    private static readonly string PLUGIN_DIR = Path.Combine(Paths.PluginPath, MyPluginInfo.PLUGIN_NAME);
+    private static readonly string IMAGES_DIR = Path.Combine(PLUGIN_DIR, "images");
+    private static readonly string TWEAKS_GUID = "OSK.BepInEx.Hp2BaseModTweaks";
 
     private void Awake()
     {
-        if (ModInterface.TryGetInterModValue(TweaksGuid, "AddModCredit",
+        if (ModInterface.TryGetInterModValue(TWEAKS_GUID, "AddModCredit",
                 out Action<string, IEnumerable<(string creditButtonPath, string creditButtonOverPath, string redirectLink)>> m_addModConfig))
         {
-            m_addModConfig(Path.Combine(ImageDir, "CreditsLogo.png"), [
+            m_addModConfig(Path.Combine(IMAGES_DIR, "CreditsLogo.png"), [
                 (
-                        Path.Combine(ImageDir, "silverwoodwork_credits.png"),
-                        Path.Combine(ImageDir, "silverwoodwork_credits_over.png"),
+                        Path.Combine(IMAGES_DIR, "silverwoodwork_credits.png"),
+                        Path.Combine(IMAGES_DIR, "silverwoodwork_credits_over.png"),
                         "https://twitter.com/silverwoodwork"
                 )
             ]);
         }
 
-        if (ModInterface.TryGetInterModValue(TweaksGuid, "AddLogoPath",
-                out Action<string> m_addLogoPath))
+        if (ModInterface.TryGetInterModValue(TWEAKS_GUID, "AddLogoPath",
+            out Action<string> m_addLogoPath))
         {
-            m_addLogoPath(Path.Combine(ImageDir, "logo.png"));
+            m_addLogoPath(Path.Combine(IMAGES_DIR, "logo.png"));
         }
     }
 }
