@@ -63,20 +63,20 @@ internal class ExpandedUiPuzzleGrid
         return expansion;
     }
 
-    private static readonly FieldInfo _status = AccessTools.Field(typeof(UiPuzzleGrid), "_status");
-    private static readonly FieldInfo _state = AccessTools.Field(typeof(UiPuzzleGrid), "_state");
-    private static readonly FieldInfo _moveMatchSet = AccessTools.Field(typeof(UiPuzzleGrid), "_moveMatchSet");
-    private static readonly FieldInfo _warningCheck = AccessTools.Field(typeof(UiPuzzleGrid), "_warningCheck");
-    private static readonly FieldInfo _moveSlotFrom = AccessTools.Field(typeof(UiPuzzleGrid), "_moveSlotFrom");
-    private static readonly FieldInfo _moveSlotTo = AccessTools.Field(typeof(UiPuzzleGrid), "_moveSlotTo");
-    private static readonly FieldInfo _moveSlots = AccessTools.Field(typeof(UiPuzzleGrid), "_moveSlots");
-    private static readonly FieldInfo _moveHasBeenMade = AccessTools.Field(typeof(UiPuzzleGrid), "_moveHasBeenMade");
-    private static readonly FieldInfo _resetTweener = AccessTools.Field(typeof(UiPuzzleGrid), "_resetTweener");
-    private static readonly FieldInfo _isResetting = AccessTools.Field(typeof(UiPuzzleGrid), "_isResetting");
+    private static readonly FieldInfo f_status = AccessTools.Field(typeof(UiPuzzleGrid), "_status");
+    private static readonly FieldInfo f_state = AccessTools.Field(typeof(UiPuzzleGrid), "_state");
+    private static readonly FieldInfo f_moveMatchSet = AccessTools.Field(typeof(UiPuzzleGrid), "_moveMatchSet");
+    private static readonly FieldInfo f_warningCheck = AccessTools.Field(typeof(UiPuzzleGrid), "_warningCheck");
+    private static readonly FieldInfo f_moveSlotFrom = AccessTools.Field(typeof(UiPuzzleGrid), "_moveSlotFrom");
+    private static readonly FieldInfo f_moveSlotTo = AccessTools.Field(typeof(UiPuzzleGrid), "_moveSlotTo");
+    private static readonly FieldInfo f_moveSlots = AccessTools.Field(typeof(UiPuzzleGrid), "_moveSlots");
+    private static readonly FieldInfo f_moveHasBeenMade = AccessTools.Field(typeof(UiPuzzleGrid), "_moveHasBeenMade");
+    private static readonly FieldInfo f_resetTweener = AccessTools.Field(typeof(UiPuzzleGrid), "_resetTweener");
+    private static readonly FieldInfo f_isResetting = AccessTools.Field(typeof(UiPuzzleGrid), "_isResetting");
 
-    private static readonly FieldInfo _stamina = AccessTools.Field(typeof(PuzzleStatusGirl), "_stamina");
-    private static readonly FieldInfo _exhausted = AccessTools.Field(typeof(PuzzleStatusGirl), "_exhausted");
-    private static readonly FieldInfo _upset = AccessTools.Field(typeof(PuzzleStatusGirl), "_upset");
+    private static readonly FieldInfo f_stamina = AccessTools.Field(typeof(PuzzleStatusGirl), "_stamina");
+    private static readonly FieldInfo f_exhausted = AccessTools.Field(typeof(PuzzleStatusGirl), "_exhausted");
+    private static readonly FieldInfo f_upset = AccessTools.Field(typeof(PuzzleStatusGirl), "_upset");
 
     private static readonly MethodInfo m_warningTooltip = AccessTools.Method(typeof(UiPuzzleGrid), "WarningTooltip");
     private static readonly MethodInfo m_clearMoveSlots = AccessTools.Method(typeof(UiPuzzleGrid), "ClearMoveSlots");
@@ -103,7 +103,7 @@ internal class ExpandedUiPuzzleGrid
             return true;
         }
 
-        var state = _state.GetValue<PuzzleGameState>(_uiPuzzleGrid);
+        var state = f_state.GetValue<PuzzleGameState>(_uiPuzzleGrid);
 
         if (state != PuzzleGameState.MOVING)
         {
@@ -116,15 +116,15 @@ internal class ExpandedUiPuzzleGrid
         _uiPuzzleGrid.guideContainer.HideMovementGuides();
         m_warningTooltip.Invoke(_uiPuzzleGrid, [null]);
 
-        var status = _status.GetValue<PuzzleStatus>(_uiPuzzleGrid);
+        var status = f_status.GetValue<PuzzleStatus>(_uiPuzzleGrid);
 
         var girlStatusFocused = status.girlStatusFocused;
         var girlStatusUnfocused = status.girlStatusUnfocused;
 
-        var moveMatchSet = _moveMatchSet.GetValue(_uiPuzzleGrid) as PuzzleSet;
+        var moveMatchSet = f_moveMatchSet.GetValue(_uiPuzzleGrid) as PuzzleSet;
 
-        var moveSlotFrom = _moveSlotFrom.GetValue<UiPuzzleSlot>(_uiPuzzleGrid);
-        var moveSlotTo = _moveSlotTo.GetValue<UiPuzzleSlot>(_uiPuzzleGrid);
+        var moveSlotFrom = f_moveSlotFrom.GetValue<UiPuzzleSlot>(_uiPuzzleGrid);
+        var moveSlotTo = f_moveSlotTo.GetValue<UiPuzzleSlot>(_uiPuzzleGrid);
 
         //preform valid move
         if (moveMatchSet != null
@@ -138,9 +138,9 @@ internal class ExpandedUiPuzzleGrid
 
             moveSlotFrom.token.Show();
             moveSlotFrom = null;
-            _moveSlotFrom.SetValue(_uiPuzzleGrid, moveSlotFrom);
+            f_moveSlotFrom.SetValue(_uiPuzzleGrid, moveSlotFrom);
 
-            var moveSlots = _moveSlots.GetValue<List<UiPuzzleSlot>>(_uiPuzzleGrid);
+            var moveSlots = f_moveSlots.GetValue<List<UiPuzzleSlot>>(_uiPuzzleGrid);
 
             for (int i = 0; i < moveSlots.Count; i++)
             {
@@ -149,7 +149,7 @@ internal class ExpandedUiPuzzleGrid
 
             var moveModifier = Game.Session.Ailment.Trigger(moveMatchSet);
 
-            _moveHasBeenMade.SetValue(_uiPuzzleGrid, true);
+            f_moveHasBeenMade.SetValue(_uiPuzzleGrid, true);
 
             var isBigMatch = (bool)m_consumePuzzleSet.Invoke(_uiPuzzleGrid, [moveMatchSet, true]);
 
@@ -179,7 +179,7 @@ internal class ExpandedUiPuzzleGrid
             }
 
             moveMatchSet = null;
-            _moveMatchSet.SetValue(_uiPuzzleGrid, moveMatchSet);
+            f_moveMatchSet.SetValue(_uiPuzzleGrid, moveMatchSet);
 
             m_clearMoveSlots.Invoke(_uiPuzzleGrid, []);
         }
@@ -201,7 +201,7 @@ internal class ExpandedUiPuzzleGrid
             }
 
             moveMatchSet = null;
-            _moveMatchSet.SetValue(_uiPuzzleGrid, moveMatchSet);
+            f_moveMatchSet.SetValue(_uiPuzzleGrid, moveMatchSet);
 
             m_clearMoveSlots.Invoke(_uiPuzzleGrid, []);
 
@@ -212,10 +212,10 @@ internal class ExpandedUiPuzzleGrid
                 .SetEase(Ease.OutSine)
                 .OnComplete(new TweenCallback(OnResetAnimationComplete));
 
-            _resetTweener.SetValue(_uiPuzzleGrid, resetTweener);
+            f_resetTweener.SetValue(_uiPuzzleGrid, resetTweener);
 
             Game.Manager.Time.Play(resetTweener, _uiPuzzleGrid.pauseDefinition, 0f);
-            _isResetting.SetValue(_uiPuzzleGrid, true);
+            f_isResetting.SetValue(_uiPuzzleGrid, true);
 
             m_changeState.Invoke(_uiPuzzleGrid, [PuzzleGameState.RESETTING]);
         }
@@ -234,7 +234,7 @@ internal class ExpandedUiPuzzleGrid
         }
 
         //no stamina tokens
-        var status = _status.GetValue<PuzzleStatus>(_uiPuzzleGrid);
+        var status = f_status.GetValue<PuzzleStatus>(_uiPuzzleGrid);
         status.girlStatusRight.invalidTokenDefs.Add(Game.Data.Tokens.GetByResourceType(PuzzleResourceType.STAMINA));
     }
 
@@ -268,7 +268,7 @@ internal class ExpandedUiPuzzleGrid
             return;
         }
 
-        var state = _state.GetValue<PuzzleGameState>(_uiPuzzleGrid);
+        var state = f_state.GetValue<PuzzleGameState>(_uiPuzzleGrid);
 
         if (state != PuzzleGameState.MOVING)
         {
@@ -276,14 +276,14 @@ internal class ExpandedUiPuzzleGrid
         }
 
         //disable warning tooltips
-        var moveMatchSet = _moveMatchSet.GetValue<PuzzleSet>(_uiPuzzleGrid);
+        var moveMatchSet = f_moveMatchSet.GetValue<PuzzleSet>(_uiPuzzleGrid);
         if (moveMatchSet != null)
         {
-            var status = _status.GetValue<PuzzleStatus>(_uiPuzzleGrid);
+            var status = f_status.GetValue<PuzzleStatus>(_uiPuzzleGrid);
 
             if (status.girlStatusFocused.stamina < moveMatchSet.GetStaminaCost(false, false))
             {
-                _warningCheck.SetValue(_uiPuzzleGrid, false);
+                f_warningCheck.SetValue(_uiPuzzleGrid, false);
             }
             else if ((moveMatchSet.HasMatchWithTokenDef(status.girlStatusFocused.noSpawnMatchTokenDef)
                 || moveMatchSet.HasMatchWithTokenDef(status.girlStatusFocused.extraNoSpawnMatchTokenDefs))
@@ -291,12 +291,12 @@ internal class ExpandedUiPuzzleGrid
             {
                 if (!Plugin.ShowSingleUpsetHunt)
                 {
-                    _warningCheck.SetValue(_uiPuzzleGrid, false);
+                    f_warningCheck.SetValue(_uiPuzzleGrid, false);
                 }
             }
             else if (status.girlStatusFocused.stamina == moveMatchSet.GetStaminaCost(false, false))
             {
-                _warningCheck.SetValue(_uiPuzzleGrid, false);
+                f_warningCheck.SetValue(_uiPuzzleGrid, false);
             }
         }
     }
@@ -308,7 +308,7 @@ internal class ExpandedUiPuzzleGrid
             return;
         }
 
-        var status = _status.GetValue<PuzzleStatus>(_uiPuzzleGrid);
+        var status = f_status.GetValue<PuzzleStatus>(_uiPuzzleGrid);
 
         //I still want baggage for upset to trigger, so let girl get exhausted/upset 
         //then silently revert it
@@ -316,9 +316,9 @@ internal class ExpandedUiPuzzleGrid
         //set exhaustion must be in a different trigger?
         if (status.girlStatusRight.exhausted || status.girlStatusRight.upset)
         {
-            _stamina.SetValue(status.girlStatusRight, 6);
-            _upset.SetValue(status.girlStatusRight, false);
-            _exhausted.SetValue(status.girlStatusRight, false);
+            f_stamina.SetValue(status.girlStatusRight, 6);
+            f_upset.SetValue(status.girlStatusRight, false);
+            f_exhausted.SetValue(status.girlStatusRight, false);
             Game.Session.gameCanvas.dollRight.SetExhaustion(false, false, true);
         }
     }

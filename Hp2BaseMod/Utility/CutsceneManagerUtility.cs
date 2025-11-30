@@ -9,22 +9,22 @@ namespace Hp2BaseMod.Utility;
 
 public static class CutsceneManagerUtility
 {
-    private static FieldInfo _specialStep = AccessTools.Field(typeof(CutsceneManager), "_specialStep");
-    private static FieldInfo _bannerText = AccessTools.Field(typeof(CutsceneManager), "_bannerText");
-    private static FieldInfo _innerCutsceneDefinition = AccessTools.Field(typeof(CutsceneManager), "_innerCutsceneDefinition");
-    private static FieldInfo _emitterBehavior = AccessTools.Field(typeof(CutsceneManager), "_emitterBehavior");
-    private static FieldInfo _targetDoll = AccessTools.Field(typeof(CutsceneManager), "_targetDoll");
-    private static FieldInfo _isWaiting = AccessTools.Field(typeof(CutsceneManager), "_isWaiting");
-    private static FieldInfo _waitDuration = AccessTools.Field(typeof(CutsceneManager), "_waitDuration");
-    private static FieldInfo _waitTimestamp = AccessTools.Field(typeof(CutsceneManager), "_waitTimestamp");
-    private static FieldInfo _isOnStandby = AccessTools.Field(typeof(CutsceneManager), "_isOnStandby");
-    private static FieldInfo _standbyProceed = AccessTools.Field(typeof(CutsceneManager), "_standbyProceed");
-    private static FieldInfo _checkStepProceed = AccessTools.Field(typeof(CutsceneManager), "_checkStepProceed");
-    private static FieldInfo _audioLink = AccessTools.Field(typeof(CutsceneManager), "_audioLink");
-    private static FieldInfo _currentStep = AccessTools.Field(typeof(CutsceneManager), "_currentStep");
-    private static FieldInfo _branchStepIndices = AccessTools.Field(typeof(CutsceneManager), "_branchStepIndices");
-    private static FieldInfo _branches = AccessTools.Field(typeof(CutsceneManager), "_branches");
-    private static MethodInfo _nextStep = AccessTools.Method(typeof(CutsceneManager), "NextStep");
+    private static FieldInfo f_specialStep = AccessTools.Field(typeof(CutsceneManager), "_specialStep");
+    private static FieldInfo f_bannerText = AccessTools.Field(typeof(CutsceneManager), "_bannerText");
+    private static FieldInfo f_innerCutsceneDefinition = AccessTools.Field(typeof(CutsceneManager), "_innerCutsceneDefinition");
+    private static FieldInfo f_emitterBehavior = AccessTools.Field(typeof(CutsceneManager), "_emitterBehavior");
+    private static FieldInfo f_targetDoll = AccessTools.Field(typeof(CutsceneManager), "_targetDoll");
+    private static FieldInfo f_isWaiting = AccessTools.Field(typeof(CutsceneManager), "_isWaiting");
+    private static FieldInfo f_waitDuration = AccessTools.Field(typeof(CutsceneManager), "_waitDuration");
+    private static FieldInfo f_waitTimestamp = AccessTools.Field(typeof(CutsceneManager), "_waitTimestamp");
+    private static FieldInfo f_isOnStandby = AccessTools.Field(typeof(CutsceneManager), "_isOnStandby");
+    private static FieldInfo f_standbyProceed = AccessTools.Field(typeof(CutsceneManager), "_standbyProceed");
+    private static FieldInfo f_checkStepProceed = AccessTools.Field(typeof(CutsceneManager), "_checkStepProceed");
+    private static FieldInfo f_audioLink = AccessTools.Field(typeof(CutsceneManager), "_audioLink");
+    private static FieldInfo f_currentStep = AccessTools.Field(typeof(CutsceneManager), "_currentStep");
+    private static FieldInfo f_branchStepIndices = AccessTools.Field(typeof(CutsceneManager), "_branchStepIndices");
+    private static FieldInfo f_branches = AccessTools.Field(typeof(CutsceneManager), "_branches");
+    private static MethodInfo m_nextStep = AccessTools.Method(typeof(CutsceneManager), "NextStep");
 
     /// <summary>
     /// Handles the function of CutsceneManager.NextStep() 
@@ -75,7 +75,7 @@ public static class CutsceneManagerUtility
                 Game.Session.Logic.PerformAction(currentStep.logicAction);
                 break;
             case CutsceneStepType.SPECIAL_STEP:
-                _specialStep.SetValue(_cutsceneManager, UnityEngine.Object.Instantiate(currentStep.specialStepPrefab));
+                f_specialStep.SetValue(_cutsceneManager, UnityEngine.Object.Instantiate(currentStep.specialStepPrefab));
                 break;
             case CutsceneStepType.CHANGE_EXPRESSION:
                 if (!currentStep.setMood)
@@ -223,14 +223,14 @@ public static class CutsceneManagerUtility
                 stepSequence.Insert(currentStep.boolValue ? 0.5f : 0f, Game.Session.Puzzle.puzzleGrid.dateGiftsContainer.canvasGroup.DOFade(currentStep.boolValue ? 1 : 0, 0f).SetEase(Ease.Linear));
                 break;
             case CutsceneStepType.BANNER_TEXT:
-                var bannerText = _bannerText.GetValue<BannerTextBehavior>(_cutsceneManager);
+                var bannerText = f_bannerText.GetValue<BannerTextBehavior>(_cutsceneManager);
 
                 if (currentStep.boolValue)
                 {
                     if (bannerText == null)
                     {
                         bannerText = UnityEngine.Object.Instantiate(currentStep.bannerTextPrefab);
-                        _bannerText.SetValue(_cutsceneManager, bannerText);
+                        f_bannerText.SetValue(_cutsceneManager, bannerText);
 
                         bannerText.Init(stepSequence, currentStep.intValue);
                         if (!bannerText.autoHide)
@@ -298,7 +298,7 @@ public static class CutsceneManagerUtility
                             }
                             break;
                         case CutsceneStepSubCutsceneType.INNER:
-                            cutsceneDefinition = _innerCutsceneDefinition.GetValue<CutsceneDefinition>(_cutsceneManager);
+                            cutsceneDefinition = f_innerCutsceneDefinition.GetValue<CutsceneDefinition>(_cutsceneManager);
                             break;
                     }
                     if (cutsceneDefinition != null && cutsceneDefinition.steps.Count > 0)
@@ -342,14 +342,14 @@ public static class CutsceneManagerUtility
                 stepSequence.Insert(0f, Game.Session.gameCanvas.overlayCanvasGroup.DOFade(currentStep.boolValue ? 1 : 0, currentStep.floatValue).SetEase(Ease.Linear));
                 break;
             case CutsceneStepType.SOUND_EFFECT:
-                _audioLink.SetValue(_cutsceneManager, Game.Manager.Audio.Play((!currentStep.boolValue) ? AudioCategory.SOUND : AudioCategory.VOICE, currentStep.audioKlip, null));
+                f_audioLink.SetValue(_cutsceneManager, Game.Manager.Audio.Play((!currentStep.boolValue) ? AudioCategory.SOUND : AudioCategory.VOICE, currentStep.audioKlip, null));
                 break;
             case CutsceneStepType.CLEAR_MOOD:
                 uiDoll.ClearMood();
                 break;
             case CutsceneStepType.PARTICLE_EMITTER:
                 var emitterBehavior = UnityEngine.Object.Instantiate<EmitterBehavior>(currentStep.emitterBehavior);
-                _emitterBehavior.SetValue(_cutsceneManager, emitterBehavior);
+                f_emitterBehavior.SetValue(_cutsceneManager, emitterBehavior);
 
                 emitterBehavior.transform.SetParent(Game.Manager.Ui.GetEffectsContainer(currentStep.intValue).particleContainer, false);
                 emitterBehavior.transform.position = Game.Manager.gameCamera.ScreenScale(currentStep.position);
@@ -361,7 +361,7 @@ public static class CutsceneManagerUtility
             case CutsceneStepType.SHOW_NOTIFICATION:
                 {
                     var targetDoll = uiDoll;
-                    _targetDoll.SetValue(_cutsceneManager, targetDoll);
+                    f_targetDoll.SetValue(_cutsceneManager, targetDoll);
 
                     var text = currentStep.stringValue;
                     var notificationType = currentStep.notificationType;
@@ -377,7 +377,7 @@ public static class CutsceneManagerUtility
 
         if (flag)
         {
-            _nextStep.Invoke(_cutsceneManager, [true]);
+            m_nextStep.Invoke(_cutsceneManager, [true]);
             return;
         }
 
@@ -402,10 +402,10 @@ public static class CutsceneManagerUtility
                     case CutsceneStepType.SHAKE_SCREEN:
                     case CutsceneStepType.RESET_DOLLS:
                     case CutsceneStepType.CLEAR_MOOD:
-                        _nextStep.Invoke(_cutsceneManager, [true]);
+                        m_nextStep.Invoke(_cutsceneManager, [true]);
                         break;
                     case CutsceneStepType.SPECIAL_STEP:
-                        _specialStep.GetValue<CutsceneStepSpecial>(_cutsceneManager).StepCompleteEvent += OnSpecialStepComplete;
+                        f_specialStep.GetValue<CutsceneStepSpecial>(_cutsceneManager).StepCompleteEvent += OnSpecialStepComplete;
                         break;
                     case CutsceneStepType.DIALOG_LINE:
                     case CutsceneStepType.DIALOG_TRIGGER:
@@ -437,7 +437,7 @@ public static class CutsceneManagerUtility
                     case CutsceneStepType.SOUND_EFFECT:
                     case CutsceneStepType.PARTICLE_EMITTER:
                     case CutsceneStepType.SHOW_NOTIFICATION:
-                        _checkStepProceed.SetValue(_cutsceneManager, true);
+                        f_checkStepProceed.SetValue(_cutsceneManager, true);
                         break;
                     case CutsceneStepType.SHOW_WINDOW:
                         if (!currentStep.boolValue)
@@ -469,16 +469,16 @@ public static class CutsceneManagerUtility
                 }
                 break;
             case CutsceneStepProceedType.INSTANT:
-                _nextStep.Invoke(_cutsceneManager, [stepSequence.Duration(true) <= 0f]);
+                m_nextStep.Invoke(_cutsceneManager, [stepSequence.Duration(true) <= 0f]);
                 break;
             case CutsceneStepProceedType.WAIT:
-                _isWaiting.SetValue(_cutsceneManager, true);
-                _waitDuration.SetValue(_cutsceneManager, currentStep.proceedFloat);
-                _waitTimestamp.SetValue(_cutsceneManager, Game.Manager.Time.Lifetime(_cutsceneManager.pauseDefinition));
+                f_isWaiting.SetValue(_cutsceneManager, true);
+                f_waitDuration.SetValue(_cutsceneManager, currentStep.proceedFloat);
+                f_waitTimestamp.SetValue(_cutsceneManager, Game.Manager.Time.Lifetime(_cutsceneManager.pauseDefinition));
                 break;
             case CutsceneStepProceedType.STANDBY:
-                _isOnStandby.SetValue(_cutsceneManager, true);
-                _standbyProceed.SetValue(_cutsceneManager, false);
+                f_isOnStandby.SetValue(_cutsceneManager, true);
+                f_standbyProceed.SetValue(_cutsceneManager, false);
                 break;
         }
     }
@@ -535,56 +535,56 @@ public static class CutsceneManagerUtility
     {
         specialStep.StepCompleteEvent -= OnSpecialStepComplete;
 
-        _nextStep.Invoke(Game.Session.Cutscenes, [true]);
+        m_nextStep.Invoke(Game.Session.Cutscenes, [true]);
     }
 
     private static void OnDialogLineComplete(UiDoll doll)
     {
         doll.DialogLineCompleteEvent -= OnDialogLineComplete;
-        _nextStep.Invoke(Game.Session.Cutscenes, [true]);
+        m_nextStep.Invoke(Game.Session.Cutscenes, [true]);
     }
 
     private static void OnDialogBoxHidden(UiDoll doll)
     {
         doll.DialogBoxHiddenEvent -= OnDialogBoxHidden;
-        _nextStep.Invoke(Game.Session.Cutscenes, [true]);
+        m_nextStep.Invoke(Game.Session.Cutscenes, [true]);
     }
 
     private static void OnDialogQueueEmpty()
     {
         Game.Session.Dialog.DialogQueueEmptyEvent -= OnDialogQueueEmpty;
-        _nextStep.Invoke(Game.Session.Cutscenes, [true]);
+        m_nextStep.Invoke(Game.Session.Cutscenes, [true]);
     }
 
     private static void OnCellphoneClosed()
     {
         Game.Session.gameCanvas.cellphone.ClosedEvent -= OnCellphoneClosed;
-        _nextStep.Invoke(Game.Session.Cutscenes, [true]);
+        m_nextStep.Invoke(Game.Session.Cutscenes, [true]);
     }
 
     private static void OnWindowShown()
     {
         Game.Manager.Windows.WindowShownEvent -= OnWindowShown;
-        _nextStep.Invoke(Game.Session.Cutscenes, [true]);
+        m_nextStep.Invoke(Game.Session.Cutscenes, [true]);
     }
 
     private static void OnWindowHidden()
     {
         Game.Manager.Windows.WindowHiddenEvent -= OnWindowHidden;
-        _nextStep.Invoke(Game.Session.Cutscenes, [true]);
+        m_nextStep.Invoke(Game.Session.Cutscenes, [true]);
     }
 
     private static void OnWindowQueueComplete()
     {
         Game.Manager.Windows.WindowQueueCompleteEvent -= OnWindowQueueComplete;
-        _nextStep.Invoke(Game.Session.Cutscenes, [true]);
+        m_nextStep.Invoke(Game.Session.Cutscenes, [true]);
     }
 
     private static void OnStepSequenceComplete()
     {
         //no unsub because it's used in a tween callback instead of an event
-        var currentStep = _currentStep.GetValue<CutsceneStepSubDefinition>(Game.Session.Cutscenes);
-        var bannerText = _bannerText.GetValue<BannerTextBehavior>(Game.Session.Cutscenes);
+        var currentStep = f_currentStep.GetValue<CutsceneStepSubDefinition>(Game.Session.Cutscenes);
+        var bannerText = f_bannerText.GetValue<BannerTextBehavior>(Game.Session.Cutscenes);
 
         switch (currentStep.stepType)
         {
@@ -598,7 +598,7 @@ public static class CutsceneManagerUtility
                 if (!currentStep.boolValue || bannerText.autoHide)
                 {
                     UnityEngine.Object.Destroy(bannerText.gameObject);
-                    _bannerText.SetValue(Game.Session.Cutscenes, null);
+                    f_bannerText.SetValue(Game.Session.Cutscenes, null);
                 }
                 break;
             case CutsceneStepType.PLAY_ANIMATION:
@@ -608,14 +608,14 @@ public static class CutsceneManagerUtility
                 }
                 break;
         }
-        _nextStep.Invoke(Game.Session.Cutscenes, [true]);
+        m_nextStep.Invoke(Game.Session.Cutscenes, [true]);
     }
 
     private static void OnDialogOptionSelected()
     {
-        var currentStep = _currentStep.GetValue<CutsceneStepSubDefinition>(Game.Session.Cutscenes);
-        var branches = _branches.GetValue<List<List<CutsceneStepSubDefinition>>>(Game.Session.Cutscenes);
-        var branchStepIndices = _branchStepIndices.GetValue<List<int>>(Game.Session.Cutscenes);
+        var currentStep = f_currentStep.GetValue<CutsceneStepSubDefinition>(Game.Session.Cutscenes);
+        var branches = f_branches.GetValue<List<List<CutsceneStepSubDefinition>>>(Game.Session.Cutscenes);
+        var branchStepIndices = f_branchStepIndices.GetValue<List<int>>(Game.Session.Cutscenes);
 
         Game.Session.Dialog.DialogOptionSelectedEvent -= OnDialogOptionSelected;
         CutsceneStepType stepType = currentStep.stepType;
@@ -624,6 +624,6 @@ public static class CutsceneManagerUtility
             branches.Add(currentStep.dialogOptions[Game.Session.Dialog.selectedDialogOptionIndex].steps);
             branchStepIndices.Add(-1);
         }
-        _nextStep.Invoke(Game.Session.Cutscenes, [true]);
+        m_nextStep.Invoke(Game.Session.Cutscenes, [true]);
     }
 }

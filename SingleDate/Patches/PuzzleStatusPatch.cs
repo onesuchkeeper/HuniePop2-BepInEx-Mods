@@ -9,9 +9,9 @@ namespace SingleDate;
 [HarmonyPatch(typeof(PuzzleStatus))]
 internal static class PuzzleStatusPatch
 {
-    private static readonly FieldInfo _altGirlFocused = AccessTools.Field(typeof(PuzzleStatus), "_altGirlFocused");
-    private static readonly FieldInfo _affection = AccessTools.Field(typeof(PuzzleStatus), "_affection");
-    private static readonly FieldInfo _affectionGoal = AccessTools.Field(typeof(PuzzleStatus), "_affectionGoal");
+    private static readonly FieldInfo f_altGirlFocused = AccessTools.Field(typeof(PuzzleStatus), "_altGirlFocused");
+    private static readonly FieldInfo f_affection = AccessTools.Field(typeof(PuzzleStatus), "_affection");
+    private static readonly FieldInfo f_affectionGoal = AccessTools.Field(typeof(PuzzleStatus), "_affectionGoal");
 
     [HarmonyPatch(nameof(PuzzleStatus.AddResourceValue))]
     [HarmonyPostfix]
@@ -23,10 +23,10 @@ internal static class PuzzleStatusPatch
             return;
         }
 
-        var affection = _affection.GetValue<int>(__instance);
-        var affectionGoal = _affectionGoal.GetValue<int>(__instance);
+        var affection = f_affection.GetValue<int>(__instance);
+        var affectionGoal = f_affectionGoal.GetValue<int>(__instance);
 
-        _affection.SetValue(__instance, Mathf.Clamp(affection + value, 0, affectionGoal));
+        f_affection.SetValue(__instance, Mathf.Clamp(affection + value, 0, affectionGoal));
     }
 
     [HarmonyPatch(nameof(PuzzleStatus.NextRound))]
@@ -40,7 +40,7 @@ internal static class PuzzleStatusPatch
 
         ModInterface.Log.LogInfo("Forcing next round girl focus for single date to alt girl");
 
-        _altGirlFocused.SetValue(__instance, true);
+        f_altGirlFocused.SetValue(__instance, true);
     }
 
     [HarmonyPatch(nameof(PuzzleStatus.SetGirlFocus))]
@@ -68,6 +68,6 @@ internal static class PuzzleStatusPatch
 
         ModInterface.Log.LogInfo("Overwrite setGirlFocusByStamina for single date to alt girl");
 
-        _altGirlFocused.SetValue(__instance, true);
+        f_altGirlFocused.SetValue(__instance, true);
     }
 }

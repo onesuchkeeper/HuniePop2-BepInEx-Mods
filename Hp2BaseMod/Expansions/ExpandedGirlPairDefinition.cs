@@ -32,4 +32,34 @@ public class ExpandedGirlPairDefinition
     /// Maps a pair's id to its style info.
     /// </summary>
     public PairStyleInfo PairStyle;
+
+    /// <summary>
+    /// Custom default failure cutscene
+    /// </summary>
+    public RelativeId CutsceneFailureId = RelativeId.Default;
+
+    /// <summary>
+    /// Custom default success cutscene
+    /// </summary>
+    public RelativeId CutsceneSuccessId = RelativeId.Default;
+
+    /// <summary>
+    /// Custom compatible success cutscene
+    /// </summary>
+    public RelativeId CutsceneCompatibleSuccessId = RelativeId.Default;
+
+    /// <summary>
+    /// Custom attracted success cutscene
+    /// </summary>
+    public RelativeId CutsceneAttractedSuccessId = RelativeId.Default;
+
+    /// <summary>
+    /// Custom bonus new round cutscene
+    /// </summary>
+    public RelativeId CutsceneBonusNewRoundId = RelativeId.Default;
+
+    /// <summary>
+    /// Custom bonus new round cutscene
+    /// </summary>
+    public RelativeId CutsceneBonusSuccessId = RelativeId.Default;
 }

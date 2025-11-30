@@ -8,7 +8,7 @@ namespace SingleDate;
 [HarmonyPatch(typeof(CutsceneStepSpecialPostRewards))]
 internal static class CutsceneStepSpecialPostRewardsPatch
 {
-    private static FieldInfo _postRewards = AccessTools.Field(typeof(CutsceneStepSpecialPostRewards), "_postRewards");
+    private static FieldInfo f_postRewards = AccessTools.Field(typeof(CutsceneStepSpecialPostRewards), "_postRewards");
 
     [HarmonyPatch("Start")]
     [HarmonyPostfix]
@@ -21,7 +21,7 @@ internal static class CutsceneStepSpecialPostRewardsPatch
 
         // alt girl is girl on right
         // for single dates put all rewards there
-        foreach (var reward in _postRewards.GetValue<List<PuzzlePostReward>>(__instance))
+        foreach (var reward in f_postRewards.GetValue<List<PuzzlePostReward>>(__instance))
         {
             reward.altGirl = true;
         }

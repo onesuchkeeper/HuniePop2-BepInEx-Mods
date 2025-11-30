@@ -9,7 +9,7 @@ namespace Hp2BaseMod.Utility;
 
 public static class StyleUnlockUtility
 {
-    private static readonly FieldInfo _notificationSequence = AccessTools.Field(typeof(NotificationBoxBehavior), "_notificationSequence");
+    private static readonly FieldInfo f_notificationSequence = AccessTools.Field(typeof(NotificationBoxBehavior), "_notificationSequence");
     private readonly static float _styleUnlockDuration = 5f;
     private readonly static Dictionary<UiDoll, Queue<(string message, bool silent)>> _queues
         = new Dictionary<UiDoll, Queue<(string message, bool silent)>>();
@@ -167,7 +167,7 @@ public static class StyleUnlockUtility
         var entry = queue.Peek();
 
         doll.notificationBox.Show(entry.message, _styleUnlockDuration, entry.silent);
-        var notificationSequence = _notificationSequence.GetValue<Sequence>(doll.notificationBox);
+        var notificationSequence = f_notificationSequence.GetValue<Sequence>(doll.notificationBox);
 
         notificationSequence.onComplete += () =>
         {

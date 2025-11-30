@@ -459,9 +459,11 @@ namespace Hp2BaseModTweaks.CellphoneApps
             var doll = f_wardrobeDoll.GetValue<UiDoll>(_wardrobeApp);
             PlayerFileGirl playerFileGirl = Game.Persistence.playerFile.GetPlayerFileGirl(doll.girlDefinition);
             f_wardrobeDoll.GetValue<UiDoll>(_wardrobeApp).LoadGirl(doll.girlDefinition);
+
             _wardrobeApp.selectListHairstyle.Populate(playerFileGirl);
             _wardrobeApp.selectListOutfit.Populate(playerFileGirl);
             _wardrobeApp.wearOnDatesCheckBox.Populate(playerFileGirl.stylesOnDates);
+
             Refresh();
         }
     }

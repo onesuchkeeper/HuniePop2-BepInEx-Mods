@@ -78,23 +78,31 @@ public class ChangeLocationCutsceneStep : CutsceneStepSubDefinition, IFunctional
 
         TweenUtils.KillTween(_sequence);
         _sequence = DOTween.Sequence();
-        _sequence.Insert(0f, Game.Session.gameCanvas.dollLeft.slideLayer.DOAnchorPos(Game.Session.gameCanvas.dollLeft.GetPositionByType(DollPositionType.HIDDEN), 1f).SetEase(Ease.InOutCubic));
-        _sequence.Insert(0f, Game.Session.gameCanvas.dollRight.slideLayer.DOAnchorPos(Game.Session.gameCanvas.dollRight.GetPositionByType(DollPositionType.HIDDEN), 1f).SetEase(Ease.InOutCubic));
-        _sequence.Insert(0.75f, Game.Session.gameCanvas.cellphone.rectTransform.DOAnchorPosY(Game.Session.gameCanvas.cellphone.yValues.x, 1.25f).SetEase(Ease.InOutCubic));
-        _sequence.Insert(0.75f, Game.Session.gameCanvas.header.rectTransform.DOAnchorPosY(Game.Session.gameCanvas.header.yValues.x, 1.25f).SetEase(Ease.InOutCubic));
-        _sequence.Insert(0.75f, Game.Session.gameCanvas.bgLocations.currentBg.art.rectTransform.DOAnchorPosY(0f, 1.25f).SetEase(Ease.InOutCubic));
-        _sequence.Insert(0.75f, Game.Session.gameCanvas.frameBottom.rectTransform.DOAnchorPosY(Game.Session.gameCanvas.frameBottom.hiddenPosY, 1.25f).SetEase(Ease.InOutCubic));
-        _sequence.Insert(0.75f, Game.Session.gameCanvas.frameTop.rectTransform.DOAnchorPosY(Game.Session.gameCanvas.frameTop.hiddenPosY, 1.25f).SetEase(Ease.InOutCubic));
-        _sequence.Insert(0.75f, DOTween.To(() => Game.Session.gameCanvas.bgLocations.currentBg.art.uiEffect.effectFactor, delegate (float x)
+        var position = 0f;
+        //_sequence.Insert(0f, Game.Session.gameCanvas.dollLeft.slideLayer.DOAnchorPos(Game.Session.gameCanvas.dollLeft.GetPositionByType(DollPositionType.HIDDEN), 1f).SetEase(Ease.InOutCubic));
+        //_sequence.Insert(0f, Game.Session.gameCanvas.dollRight.slideLayer.DOAnchorPos(Game.Session.gameCanvas.dollRight.GetPositionByType(DollPositionType.HIDDEN), 1f).SetEase(Ease.InOutCubic));
+        // position += 0.75
+        _sequence.Insert(position, Game.Session.gameCanvas.cellphone.rectTransform.DOAnchorPosY(Game.Session.gameCanvas.cellphone.yValues.x, 1.25f).SetEase(Ease.InOutCubic));
+        _sequence.Insert(position, Game.Session.gameCanvas.header.rectTransform.DOAnchorPosY(Game.Session.gameCanvas.header.yValues.x, 1.25f).SetEase(Ease.InOutCubic));
+        _sequence.Insert(position, Game.Session.gameCanvas.bgLocations.currentBg.art.rectTransform.DOAnchorPosY(0f, 1.25f).SetEase(Ease.InOutCubic));
+        _sequence.Insert(position, Game.Session.gameCanvas.frameBottom.rectTransform.DOAnchorPosY(Game.Session.gameCanvas.frameBottom.hiddenPosY, 1.25f).SetEase(Ease.InOutCubic));
+        _sequence.Insert(position, Game.Session.gameCanvas.frameTop.rectTransform.DOAnchorPosY(Game.Session.gameCanvas.frameTop.hiddenPosY, 1.25f).SetEase(Ease.InOutCubic));
+        _sequence.Insert(position, DOTween.To(() => Game.Session.gameCanvas.bgLocations.currentBg.art.uiEffect.effectFactor, delegate (float x)
         {
             Game.Session.gameCanvas.bgLocations.currentBg.art.uiEffect.effectFactor = x;
         }, 1f, 0.875f).SetEase(Ease.InOutSine));
-        _sequence.Insert(0.75f, Game.Session.gameCanvas.bgLocations.overlaysCanvasGroup.DOFade(1f, 1.75f).SetEase(Ease.InOutSine));
-        _sequence.Insert(0.75f, Game.Session.gameCanvas.bgLocations.shadowsCanvasGroup.DOFade(1f, 1.75f).SetEase(Ease.InOutSine));
-        _sequence.Insert(1.75f, Game.Session.gameCanvas.bgLocations.currentBg.bar.backgroundRectTransform.DOSizeDelta(Game.Session.gameCanvas.bgLocations.currentBg.bar.shownSizeDelta, 0.75f).SetEase(Ease.InOutCubic));
-        _sequence.Insert(1.75f, Game.Session.gameCanvas.bgLocations.currentBg.bar.frontMaskRectTransform.DOSizeDelta(Game.Session.gameCanvas.bgLocations.currentBg.bar.maskShownSizeDelta, 0.75f).SetEase(Ease.InOutCubic));
-        _sequence.Insert(1.75f, Game.Session.gameCanvas.bgLocations.barsCanvasGroup.DOFade(1f, 0.5f).SetEase(Ease.Linear));
-        _sequence.Insert(3f, Game.Session.gameCanvas.bgLocations.rectTransform.DOAnchorPosY(Game.Session.gameCanvas.bgLocations.origPos.y + 1130f, 1.5f).SetEase(Ease.InOutCubic));
+        _sequence.Insert(position, Game.Session.gameCanvas.bgLocations.overlaysCanvasGroup.DOFade(1f, 1.75f).SetEase(Ease.InOutSine));
+        _sequence.Insert(position, Game.Session.gameCanvas.bgLocations.shadowsCanvasGroup.DOFade(1f, 1.75f).SetEase(Ease.InOutSine));
+
+        position += 1f;
+
+        _sequence.Insert(position, Game.Session.gameCanvas.bgLocations.currentBg.bar.backgroundRectTransform.DOSizeDelta(Game.Session.gameCanvas.bgLocations.currentBg.bar.shownSizeDelta, 0.75f).SetEase(Ease.InOutCubic));
+        _sequence.Insert(position, Game.Session.gameCanvas.bgLocations.currentBg.bar.frontMaskRectTransform.DOSizeDelta(Game.Session.gameCanvas.bgLocations.currentBg.bar.maskShownSizeDelta, 0.75f).SetEase(Ease.InOutCubic));
+        _sequence.Insert(position, Game.Session.gameCanvas.bgLocations.barsCanvasGroup.DOFade(1f, 0.5f).SetEase(Ease.Linear));
+
+        position += 1.25f;
+
+        _sequence.Insert(position, Game.Session.gameCanvas.bgLocations.rectTransform.DOAnchorPosY(Game.Session.gameCanvas.bgLocations.origPos.y + 1130f, 1.5f).SetEase(Ease.InOutCubic));
 
         _sequence.OnComplete(() => OnDepartAnimationsComplete(locationDef));
 
@@ -113,19 +121,29 @@ public class ChangeLocationCutsceneStep : CutsceneStepSubDefinition, IFunctional
 
         TweenUtils.KillTween(_sequence);
         _sequence = DOTween.Sequence();
+        var position = 1.5f;
 
-        _sequence.Insert(1.75f, Game.Session.gameCanvas.bgLocations.barsCanvasGroup.DOFade(0f, 0.5f).SetEase(Ease.Linear));
-        _sequence.Insert(1.5f, Game.Session.gameCanvas.bgLocations.currentBg.bar.frontMaskRectTransform.DOSizeDelta(Game.Session.gameCanvas.bgLocations.currentBg.bar.maskHiddenSizeDelta, 0.75f).SetEase(Ease.InOutCubic));
-        _sequence.Insert(1.5f, Game.Session.gameCanvas.bgLocations.currentBg.bar.backgroundRectTransform.DOSizeDelta(Game.Session.gameCanvas.bgLocations.currentBg.bar.hiddenSizeDelta, 0.75f).SetEase(Ease.InOutCubic));
-        _sequence.Insert(1.5f, Game.Session.gameCanvas.bgLocations.shadowsCanvasGroup.DOFade(0f, 1.75f).SetEase(Ease.InOutSine));
-        _sequence.Insert(1.5f, Game.Session.gameCanvas.bgLocations.overlaysCanvasGroup.DOFade(0f, 1.75f).SetEase(Ease.InOutSine));
-        _sequence.Insert(2.375f, DOTween.To(() => Game.Session.gameCanvas.bgLocations.currentBg.art.uiEffect.effectFactor, delegate (float x)
+        _sequence.Insert(position, Game.Session.gameCanvas.bgLocations.currentBg.bar.frontMaskRectTransform.DOSizeDelta(Game.Session.gameCanvas.bgLocations.currentBg.bar.maskHiddenSizeDelta, 0.75f).SetEase(Ease.InOutCubic));
+        _sequence.Insert(position, Game.Session.gameCanvas.bgLocations.currentBg.bar.backgroundRectTransform.DOSizeDelta(Game.Session.gameCanvas.bgLocations.currentBg.bar.hiddenSizeDelta, 0.75f).SetEase(Ease.InOutCubic));
+        _sequence.Insert(position, Game.Session.gameCanvas.bgLocations.shadowsCanvasGroup.DOFade(0f, 1.75f).SetEase(Ease.InOutSine));
+        _sequence.Insert(position, Game.Session.gameCanvas.bgLocations.overlaysCanvasGroup.DOFade(0f, 1.75f).SetEase(Ease.InOutSine));
+
+        position += 0.25f;
+
+        _sequence.Insert(position, Game.Session.gameCanvas.bgLocations.barsCanvasGroup.DOFade(0f, 0.5f).SetEase(Ease.Linear));
+
+        position += 0.25f;
+
+        _sequence.Insert(position, Game.Session.gameCanvas.frameTop.rectTransform.DOAnchorPosY(Game.Session.gameCanvas.frameTop.origPosition.y, 1.25f).SetEase(Ease.InOutCubic));
+        _sequence.Insert(position, Game.Session.gameCanvas.frameBottom.rectTransform.DOAnchorPosY(Game.Session.gameCanvas.frameBottom.origPosition.y, 1.25f).SetEase(Ease.InOutCubic));
+        _sequence.Insert(position, Game.Session.gameCanvas.bgLocations.currentBg.art.rectTransform.DOAnchorPosY(locationDef.bgYOffset, 1.25f).SetEase(Ease.InOutCubic));
+
+        position += 0.375f;
+
+        _sequence.Insert(position, DOTween.To(() => Game.Session.gameCanvas.bgLocations.currentBg.art.uiEffect.effectFactor, delegate (float x)
         {
             Game.Session.gameCanvas.bgLocations.currentBg.art.uiEffect.effectFactor = x;
         }, 0f, 0.875f).SetEase(Ease.InOutSine));
-        _sequence.Insert(2f, Game.Session.gameCanvas.frameTop.rectTransform.DOAnchorPosY(Game.Session.gameCanvas.frameTop.origPosition.y, 1.25f).SetEase(Ease.InOutCubic));
-        _sequence.Insert(2f, Game.Session.gameCanvas.frameBottom.rectTransform.DOAnchorPosY(Game.Session.gameCanvas.frameBottom.origPosition.y, 1.25f).SetEase(Ease.InOutCubic));
-        _sequence.Insert(2f, Game.Session.gameCanvas.bgLocations.currentBg.art.rectTransform.DOAnchorPosY(locationDef.bgYOffset, 1.25f).SetEase(Ease.InOutCubic));
 
         _sequence.OnComplete(OnArriveComplete);
 

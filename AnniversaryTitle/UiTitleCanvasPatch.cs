@@ -227,7 +227,7 @@ public class ExpandedUiTitleCanvas
         float bounceScale = 0;
         var fadeTime = 0.75f;
 
-        for (int i = Plugin.InitialTitleAnimation ? 1 : 0; i < 12; i++)//skip intro for first pass
+        for (int i = Plugin.InitialTitleAnimation ? 1 : 0; i < 12; i++) //skip intro for first pass
         {
             switch (i)
             {
@@ -396,7 +396,7 @@ public class ExpandedUiTitleCanvas
 
                 lastTime = -999f;
                 _audioSource.time = 0f;
-                _audioSource.Play();
+                if (_audioSource.isActiveAndEnabled) _audioSource.Play();
                 PlayAnimation();
             }
         }

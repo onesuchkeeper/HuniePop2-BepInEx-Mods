@@ -14,7 +14,7 @@ public static class BonusRoundSuccessCutscene
             {
                 CutsceneStepUtility.MakeDialogTriggerInfo(new RelativeId(-1, 47), CutsceneStepProceedType.INSTANT, CutsceneStepDollTargetType.RANDOM),
                 CutsceneStepUtility.MakeBannerTextInfo("BannerTextSuccess", 0, CutsceneStepProceedType.AUTOMATIC),
-                CutsceneStepUtility.MakeWaitInfo(3.5f),
+                CutsceneStepUtility.MakeWaitInfo(3.8f),
                 CutsceneStepUtility.MakeShowWindowInfo(true, "PhotosWindow", CutsceneStepProceedType.AUTOMATIC),
                 CutsceneStepUtility.MakeBannerTextHideInfo(CutsceneStepProceedType.AUTOMATIC),
                 CutsceneStepUtility.MakeSubCutsceneGirlPairInfo(GirlPairRelationshipType.LOVERS, CutsceneStepProceedType.AUTOMATIC),

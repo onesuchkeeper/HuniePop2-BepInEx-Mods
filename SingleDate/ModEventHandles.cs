@@ -3,7 +3,6 @@ using System.Linq;
 using System.Reflection;
 using HarmonyLib;
 using Hp2BaseMod;
-using Hp2BaseMod.Extension;
 using Hp2BaseMod.Extension.IEnumerableExtension;
 using UnityEngine;
 
@@ -11,10 +10,7 @@ namespace SingleDate;
 
 internal static class ModEventHandles
 {
-    private static FieldInfo f_roundOverCutscene = AccessTools.Field(typeof(PuzzleManager), "_roundOverCutscene");
-    private static FieldInfo f_newRoundCutscene = AccessTools.Field(typeof(PuzzleManager), "_newRoundCutscene");
     private static readonly FieldInfo f_altGirlFocused = AccessTools.Field(typeof(PuzzleStatus), "_altGirlFocused");
-    private static FieldInfo f_gameOver = AccessTools.Field(typeof(PuzzleStatus), "_gameOver");
 
     private static bool _singleDropZone = false;
 
@@ -97,7 +93,7 @@ internal static class ModEventHandles
     private static bool IsIncompleteAttracted(PlayerFileGirlPair filePair, int maxSingleGirlRelationshipLevel) => State.IsSingle(filePair.girlPairDefinition)
         && State.SaveFile.GetGirl(filePair.girlPairDefinition.girlDefinitionTwo.id)?.RelationshipLevel < (maxSingleGirlRelationshipLevel - 1);
 
-    internal static void On_PreRoundOverCutscene()
+    internal static void On_PuzzleRoundOver(PuzzleRoundOverArgs args)
     {
         if (Game.Session.Puzzle.puzzleStatus.statusType != PuzzleStatusType.NORMAL
             || Game.Session.Puzzle.puzzleGrid.roundState != PuzzleRoundState.SUCCESS)
@@ -113,89 +109,33 @@ internal static class ModEventHandles
             return;
         }
 
-        //step 1, set base game cutscenes properly
-        var newRoundCutscene = f_newRoundCutscene.GetValue<CutsceneDefinition>(Game.Session.Puzzle);
-        var roundOverCutscene = f_roundOverCutscene.GetValue<CutsceneDefinition>(Game.Session.Puzzle);
-        var gameOver = Game.Session.Puzzle.puzzleStatus.gameOver;
-
         var maxSingleGirlRelationshipLevel = Plugin.MaxSingleGirlRelationshipLevel;
         var girlId = ModInterface.Data.GetDataId(GameDataType.Girl, playerFileGirlPair.girlPairDefinition.girlDefinitionTwo.id);
         var girlSave = State.SaveFile.GetGirl(girlId);
 
-        //the game doesn't have a way to actually check this properly, may need to handle in base mod state
-        var preBonusRound = f_newRoundCutscene.GetValue<CutsceneDefinition>(Game.Session.Puzzle) == Game.Session.Puzzle.cutsceneNewroundBonus;
-
         if (State.IsSingleDate)
         {
-            var singleDateGirl = Plugin.GetSingleDateGirl(girlId);
-
-            //correct cutscenes
-            //bonus round without required level
-            if (preBonusRound
-                && girlSave?.RelationshipLevel < maxSingleGirlRelationshipLevel - 1)
+            // correct cutscenes
+            // bonus round without required level
+            if (girlSave?.RelationshipLevel < maxSingleGirlRelationshipLevel - 1)
             {
                 ModInterface.Log.LogInfo("Single date deny bonus round");
-                newRoundCutscene = null;
-                roundOverCutscene = ModInterface.GameData.GetCutscene(CutsceneIds.Success);
-                gameOver = true;
+                args.IsSexDate = false;
+                args.LevelUpType = PuzzleRoundOverArgs.CutsceneType.None;
+                args.IsGameOver = true;
             }
-            //at required level at sex loc and time
+            // at required level at sex loc and time
             else if ((Game.Session.Location.currentGirlPair.sexLocationDefinition == null
                         || Game.Session.Location.currentGirlPair.sexLocationDefinition == Game.Session.Location.currentLocation)
                     && girlSave?.RelationshipLevel >= maxSingleGirlRelationshipLevel - 1
                     && Game.Session.Location.currentGirlPair.sexDaytime == (ClockDaytimeType)(Game.Persistence.playerFile.daytimeElapsed % 4))
             {
-                //after bonus round
-                if (Game.Session.Puzzle.puzzleStatus.bonusRound)
-                {
-                    gameOver = true;
-                    newRoundCutscene = null;
-                    roundOverCutscene = Game.Session.Puzzle.cutsceneSuccessBonus;
-                }
-                //before bonus round
-                else
-                {
-                    gameOver = false;
-                    newRoundCutscene = Game.Session.Puzzle.cutsceneNewroundBonus;
-                    roundOverCutscene = Game.Session.Puzzle.cutsceneSuccessAttracted;
-                }
+                args.IsSexDate = true;
+                args.LevelUpType = PuzzleRoundOverArgs.CutsceneType.AttractToLovers;
+                args.IsGameOver = Game.Session.Puzzle.puzzleStatus.bonusRound;
             }
-
-            //TODO there's an interop issue with repeat threesome here. I have no way of making sure that is comes
-            //after the repeat threesome cutscene corrections. And I don't want it to happen whenever
-            //cuz that's not how HP1 works
-            //I could add an interop to expose some kind of "set cutscenes" delegate
-            //Or in the base mod I'd need some way to coordinate them. Like flags that separately set
-            //if the threesome should occur and what cutscenes to use for a threesome.
-            //hmmm
-
-            //replace default cutscenes with customs if they exist.
-            ModInterface.Log.LogInfo($"Pre cutscene replace- Game Over: {gameOver}, Round Over Cutscene: {roundOverCutscene?.name ?? "null"}, New Round Cutscene: {newRoundCutscene?.name ?? "null"}");
-            if (gameOver && roundOverCutscene == Game.Session.Puzzle.cutsceneSuccess)
-            {
-                roundOverCutscene = ModInterface.GameData.GetCutscene(CutsceneIds.Success);
-            }
-
-            if (!gameOver
-                && (roundOverCutscene == Game.Session.Puzzle.cutsceneSuccessAttracted
-                    || roundOverCutscene == Game.Session.Puzzle.cutsceneSuccess)
-                && singleDateGirl.CutsceneSuccessAttracted != RelativeId.Default)
-            {
-                roundOverCutscene = ModInterface.GameData.GetCutscene(singleDateGirl.CutsceneSuccessAttracted);
-            }
-
-            if (roundOverCutscene == Game.Session.Puzzle.cutsceneSuccessBonus
-                && singleDateGirl.CutsceneSuccessBonus != RelativeId.Default)
-            {
-                roundOverCutscene = ModInterface.GameData.GetCutscene(singleDateGirl.CutsceneSuccessBonus);
-            }
-
-            //set cutscenes
-            f_gameOver.SetValue(Game.Session.Puzzle.puzzleStatus, gameOver);
-            f_newRoundCutscene.SetValue(Game.Session.Puzzle, newRoundCutscene);
-            f_roundOverCutscene.SetValue(Game.Session.Puzzle, roundOverCutscene);
         }
-        else if (preBonusRound && Plugin.RequireLoversBeforeThreesome)
+        else if (Plugin.RequireLoversBeforeThreesome)
         {
             var girlSaveOne = State.SaveFile.GetGirl(playerFileGirlPair.girlPairDefinition.girlDefinitionOne.id);
             var girlSaveTwo = State.SaveFile.GetGirl(playerFileGirlPair.girlPairDefinition.girlDefinitionTwo.id);
@@ -204,9 +144,8 @@ internal static class ModEventHandles
                 || (girlSaveTwo != null && girlSaveTwo.RelationshipLevel < maxSingleGirlRelationshipLevel))
             {
                 ModInterface.Log.LogInfo("Deny double date bonus due to single date levels");
-                f_gameOver.SetValue(Game.Session.Puzzle.puzzleStatus, false);
-                f_newRoundCutscene.SetValue(Game.Session.Puzzle, null);
-                f_roundOverCutscene.SetValue(Game.Session.Puzzle, Game.Session.Puzzle.cutsceneSuccess);
+                args.IsSexDate = false;
+                args.LevelUpType = PuzzleRoundOverArgs.CutsceneType.None;
             }
         }
     }

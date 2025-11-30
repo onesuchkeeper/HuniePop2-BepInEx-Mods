@@ -34,8 +34,6 @@ internal class Plugin : Hp2BaseModPlugin
         set => _instance.SetConfigProperty(value);
     }
 
-    private Dictionary<RelativeId, RtPair> _rtPairs = new();
-
     public static new int ModId { get { return ((Hp2BaseModPlugin)_instance).ModId; } }
     private static Plugin _instance;
 
@@ -77,18 +75,10 @@ internal class Plugin : Hp2BaseModPlugin
         });
 
         ModInterface.Events.PreDataMods += On_PreDataMods;
-        ModInterface.Events.PreRoundOverCutscene += ThreesomeHandler.PreRoundOverCutscene;
+        ModInterface.Events.PuzzleRoundOver += ThreesomeHandler.OnPuzzleRoundOver;
         ModInterface.Events.PostCodeSubmitted += On_PostCodeSubmitted;
         ModInterface.Events.PrePersistenceReset += On_PostPersistenceReset;
         new Harmony(MyPluginInfo.PLUGIN_GUID).PatchAll();
-    }
-
-    [InteropMethod]
-    public void SetPairCutscenes(RelativeId girlId, RelativeId cutsceneAttractedSuccessId, RelativeId cutsceneBonusNewroundId)
-    {
-        var rtPair = _rtPairs.GetOrNew(girlId);
-        rtPair.CutsceneAttractedSuccessId = cutsceneAttractedSuccessId;
-        rtPair.CutsceneBonusNewRoundId = cutsceneBonusNewroundId;
     }
 
     private void On_PostPersistenceReset(SaveData data)

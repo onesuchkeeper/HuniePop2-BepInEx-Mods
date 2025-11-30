@@ -43,13 +43,13 @@ internal class ExpandedUiAppPairSlot
         return expansion;
     }
 
-    private static FieldInfo _playerFileGirlPair = AccessTools.Field(typeof(UiAppPairSlot), "_playerFileGirlPair");
-    private static FieldInfo _tooltip = AccessTools.Field(typeof(UiAppPairSlot), "_tooltip");
+    private static FieldInfo f_playerFileGirlPair = AccessTools.Field(typeof(UiAppPairSlot), "_playerFileGirlPair");
+    private static FieldInfo f_tooltip = AccessTools.Field(typeof(UiAppPairSlot), "_tooltip");
 
-    private static FieldInfo _transitionDef = AccessTools.Field(typeof(ButtonStateTransition), "_transitionDef");
-    private static FieldInfo _origSprite = AccessTools.Field(typeof(ButtonStateTransition), "_origSprite");
+    private static FieldInfo f_transitionDef = AccessTools.Field(typeof(ButtonStateTransition), "_transitionDef");
+    private static FieldInfo f_origSprite = AccessTools.Field(typeof(ButtonStateTransition), "_origSprite");
 
-    private static FieldInfo _overTransitions = AccessTools.Field(typeof(ButtonBehavior), "_overTransitions");
+    private static FieldInfo f_overTransitions = AccessTools.Field(typeof(ButtonBehavior), "_overTransitions");
 
     private ButtonStateTransitionDef _singleOverDef;
     private ButtonStateTransitionDef _defaultOverDef;
@@ -76,7 +76,7 @@ internal class ExpandedUiAppPairSlot
         //so we do this pseudo-start thing here
         if (!_started)
         {
-            _overSpriteTransition = _overTransitions.GetValue<List<ButtonStateTransition>>(_uiAppPairSlot.button)
+            _overSpriteTransition = f_overTransitions.GetValue<List<ButtonStateTransition>>(_uiAppPairSlot.button)
                 .FirstOrDefault(x => x.transitionDef.sprite != null);
 
             _defaultOverDef = _overSpriteTransition?.transitionDef;
@@ -104,12 +104,12 @@ internal class ExpandedUiAppPairSlot
             _started = true;
         }
 
-        if (!State.IsSingle(_playerFileGirlPair.GetValue<PlayerFileGirlPair>(_uiAppPairSlot)?.girlPairDefinition))
+        if (!State.IsSingle(f_playerFileGirlPair.GetValue<PlayerFileGirlPair>(_uiAppPairSlot)?.girlPairDefinition))
         {
             if (_overSpriteTransition?.transitionDef != _defaultOverDef)
             {
-                _transitionDef.SetValue(_overSpriteTransition, _defaultOverDef);
-                _origSprite.SetValue(_overSpriteTransition, _defaultBackgroundSprite);
+                f_transitionDef.SetValue(_overSpriteTransition, _defaultOverDef);
+                f_origSprite.SetValue(_overSpriteTransition, _defaultBackgroundSprite);
             }
 
             _background.sprite = _defaultBackgroundSprite;
@@ -121,8 +121,8 @@ internal class ExpandedUiAppPairSlot
 
         if (_overSpriteTransition?.transitionDef != _singleOverDef)
         {
-            _transitionDef.SetValue(_overSpriteTransition, _singleOverDef);
-            _origSprite.SetValue(_overSpriteTransition, UiPrefabs.SingleUiAppPairSlotBg);
+            f_transitionDef.SetValue(_overSpriteTransition, _singleOverDef);
+            f_origSprite.SetValue(_overSpriteTransition, UiPrefabs.SingleUiAppPairSlotBg);
         }
 
         _background.sprite = UiPrefabs.SingleUiAppPairSlotBg;
@@ -132,7 +132,7 @@ internal class ExpandedUiAppPairSlot
 
     public void ShowTooltip()
     {
-        var playerFileGirlPair = _playerFileGirlPair.GetValue<PlayerFileGirlPair>(_uiAppPairSlot);
+        var playerFileGirlPair = f_playerFileGirlPair.GetValue<PlayerFileGirlPair>(_uiAppPairSlot);
 
         if (!State.IsSingle(playerFileGirlPair?.girlPairDefinition))
         {
@@ -148,7 +148,7 @@ internal class ExpandedUiAppPairSlot
             text += $" {girlSave.RelationshipLevel}/{Plugin.MaxSingleGirlRelationshipLevel}";
         }
 
-        _tooltip.GetValue<UiTooltipSimple>(_uiAppPairSlot)?
+        f_tooltip.GetValue<UiTooltipSimple>(_uiAppPairSlot)?
             .Populate(text, 0, 1f, 1920f);
     }
 }

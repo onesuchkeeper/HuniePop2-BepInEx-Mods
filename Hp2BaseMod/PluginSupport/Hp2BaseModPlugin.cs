@@ -15,6 +15,7 @@ namespace Hp2BaseMod;
 /// Inheriting this class is NOT nesisary for compatibility with the Hp2BaseMod.
 /// 
 /// Implements behaviors common in Hp2BaseMod plugin development.
+/// Use <see cref="ConfigPropertyAttribute"/> and <see cref="InteropMethodAttribute"/>
 /// </summary>
 public abstract class Hp2BaseModPlugin : BaseUnityPlugin
 {

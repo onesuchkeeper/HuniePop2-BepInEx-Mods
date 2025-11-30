@@ -50,7 +50,7 @@ internal class ExpandedUiCellphoneAppStatus
         return expansion;
     }
 
-    private static readonly FieldInfo _image = AccessTools.Field(typeof(ButtonBehavior), "_image");
+    private static readonly FieldInfo f_image = AccessTools.Field(typeof(ButtonBehavior), "_image");
 
     private RelativeId _girlId;
     private RectTransform _charmTransform;
@@ -103,7 +103,7 @@ internal class ExpandedUiCellphoneAppStatus
         charmBG_transform.sizeDelta = _charmSize;
         var charmBG_image = charmBG_go.AddComponent<Image>();
 
-        var portraitImage = _image.GetValue<Image>(_uiCellphoneAppPair.statusPortraitRight.buttonBehavior);
+        var portraitImage = f_image.GetValue<Image>(_uiCellphoneAppPair.statusPortraitRight.buttonBehavior);
         charmBG_transform.sizeDelta = portraitImage.rectTransform.sizeDelta;
 
         charmBG_image.sprite = portraitImage.sprite;

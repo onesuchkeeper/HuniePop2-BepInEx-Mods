@@ -8,8 +8,8 @@ namespace SingleDate;
 [HarmonyPatch(typeof(PuzzleManager))]
 internal static class PuzzleManagerPatch
 {
-    private static readonly FieldInfo _puzzleStatus = AccessTools.Field(typeof(PuzzleManager), "_puzzleStatus");
-    private static readonly FieldInfo _puzzleGrid = AccessTools.Field(typeof(PuzzleManager), "_puzzleGrid");
+    private static readonly FieldInfo f_puzzleStatus = AccessTools.Field(typeof(PuzzleManager), "_puzzleStatus");
+    private static readonly FieldInfo f_puzzleGrid = AccessTools.Field(typeof(PuzzleManager), "_puzzleGrid");
 
     [HarmonyPatch("OnRoundOver")]
     [HarmonyPostfix]
@@ -21,8 +21,8 @@ internal static class PuzzleManagerPatch
             return;
         }
 
-        var puzzleStatus = _puzzleStatus.GetValue<PuzzleStatus>(__instance);
-        var puzzleGrid = _puzzleGrid.GetValue<UiPuzzleGrid>(__instance);
+        var puzzleStatus = f_puzzleStatus.GetValue<PuzzleStatus>(__instance);
+        var puzzleGrid = f_puzzleGrid.GetValue<UiPuzzleGrid>(__instance);
 
         if (puzzleStatus.statusType == PuzzleStatusType.NORMAL
             && puzzleGrid.roundState == PuzzleRoundState.SUCCESS)

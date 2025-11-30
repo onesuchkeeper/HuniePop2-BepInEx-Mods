@@ -4,6 +4,7 @@ using Hp2BaseMod.GameDataInfo;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
 namespace SingleDate;
+
 public static class SingleDateMeetingCutscene
 {
     public static void AddDataMods()
@@ -13,12 +14,8 @@ public static class SingleDateMeetingCutscene
             CleanUpType = CutsceneCleanUpType.NONE,
             Steps = new List<IGameDefinitionInfo<CutsceneStepSubDefinition>>()
             {
-                new CutsceneStepInfo(){
-                    StepType = CutsceneStepType.DIALOG_TRIGGER,
-                    ProceedType = CutsceneStepProceedType.AUTOMATIC,
-                    DollTargetType = CutsceneStepDollTargetType.RANDOM,
-                    DialogTriggerDefinitionId = new RelativeId(-1, 10)//afternoon greeting
-                }
+                //afternoon greeting
+                CutsceneStepUtility.MakeDialogTriggerInfo(new RelativeId(-1, 10), CutsceneStepProceedType.AUTOMATIC, CutsceneStepDollTargetType.RANDOM),
             }
         });
     }

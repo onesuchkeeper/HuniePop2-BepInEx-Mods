@@ -23,11 +23,11 @@ namespace Hp2BaseModTweaks
     [HarmonyPatch(typeof(UiWindowPhotos), "Refresh")]
     public static class UiWindowPhotos_Refresh_Prefix
     {
-        private static readonly FieldInfo _bigPhotoDefinition = AccessTools.Field(typeof(UiWindowPhotos), "_bigPhotoDefinition");
+        private static readonly FieldInfo f_bigPhotoDefinition = AccessTools.Field(typeof(UiWindowPhotos), "_bigPhotoDefinition");
 
         public static void Prefix(UiWindowPhotos __instance)
         {
-            var photoDef = _bigPhotoDefinition.GetValue<PhotoDefinition>(__instance);
+            var photoDef = f_bigPhotoDefinition.GetValue<PhotoDefinition>(__instance);
             if (photoDef != null)
             {
                 for (int i = 0; i < __instance.viewModeButtons.Count; i++)

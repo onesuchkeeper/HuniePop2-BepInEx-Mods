@@ -9,25 +9,25 @@ namespace SingleDate;
 [HarmonyPatch(typeof(UiAppRelationshipSlot))]
 internal static class UiAppRelationshipSlotPatch
 {
-    private static readonly FieldInfo _hornySequence = AccessTools.Field(typeof(UiAppRelationshipSlot), "_hornySequence");
-    private static readonly FieldInfo _playerFileGirlPair = AccessTools.Field(typeof(UiAppRelationshipSlot), "_playerFileGirlPair");
-    private static readonly FieldInfo _daytimeOffset = AccessTools.Field(typeof(UiAppRelationshipSlot), "_daytimeOffset");
-    private static readonly FieldInfo _mainGirlDefinition = AccessTools.Field(typeof(UiAppRelationshipSlot), "_mainGirlDefinition");
-    private static readonly FieldInfo _tooltip = AccessTools.Field(typeof(UiAppRelationshipSlot), "_tooltip");
+    private static readonly FieldInfo f_hornySequence = AccessTools.Field(typeof(UiAppRelationshipSlot), "_hornySequence");
+    private static readonly FieldInfo f_playerFileGirlPair = AccessTools.Field(typeof(UiAppRelationshipSlot), "_playerFileGirlPair");
+    private static readonly FieldInfo f_daytimeOffset = AccessTools.Field(typeof(UiAppRelationshipSlot), "_daytimeOffset");
+    private static readonly FieldInfo f_mainGirlDefinition = AccessTools.Field(typeof(UiAppRelationshipSlot), "_mainGirlDefinition");
+    private static readonly FieldInfo f_tooltip = AccessTools.Field(typeof(UiAppRelationshipSlot), "_tooltip");
 
     [HarmonyPatch(nameof(UiAppRelationshipSlot.Refresh))]
     [HarmonyPrefix]
     public static bool Refresh(UiAppRelationshipSlot __instance)
     {
-        var playerFileGirlPair = _playerFileGirlPair.GetValue<PlayerFileGirlPair>(__instance);
+        var playerFileGirlPair = f_playerFileGirlPair.GetValue<PlayerFileGirlPair>(__instance);
 
         if (!State.IsSingle(playerFileGirlPair?.girlPairDefinition))
         {
             return true;
         }
 
-        var hornySequence = _hornySequence.GetValue<Sequence>(__instance);
-        var daytimeOffset = _daytimeOffset.GetValue<int>(__instance);
+        var hornySequence = f_hornySequence.GetValue<Sequence>(__instance);
+        var daytimeOffset = f_daytimeOffset.GetValue<int>(__instance);
         //var mainGirlDefinition = _mainGirlDefinition.GetValue<GirlDefinition>(__instance);
 
         var girlSave = State.SaveFile.GetGirl(playerFileGirlPair.girlPairDefinition.girlDefinitionTwo.id);
@@ -47,7 +47,7 @@ internal static class UiAppRelationshipSlotPatch
                 __instance.itemIcon.sprite = __instance.hornyIcon;
 
                 hornySequence = DOTween.Sequence().SetLoops(-1, LoopType.Restart);
-                _hornySequence.SetValue(__instance, hornySequence);
+                f_hornySequence.SetValue(__instance, hornySequence);
 
                 hornySequence.Insert(0f, __instance.itemIcon.rectTransform.DOScale(1.15f, 0.2f).SetEase(Ease.InOutSine));
                 hornySequence.Insert(0.2f, __instance.itemIcon.rectTransform.DOScale(1f, 0.2f).SetEase(Ease.InOutSine));
@@ -108,7 +108,7 @@ internal static class UiAppRelationshipSlotPatch
     [HarmonyPostfix]
     public static void ShowTooltip(UiAppRelationshipSlot __instance)
     {
-        var playerFileGirlPair = _playerFileGirlPair.GetValue<PlayerFileGirlPair>(__instance);
+        var playerFileGirlPair = f_playerFileGirlPair.GetValue<PlayerFileGirlPair>(__instance);
 
         if (!State.IsSingle(playerFileGirlPair.girlPairDefinition))
         {
@@ -116,7 +116,7 @@ internal static class UiAppRelationshipSlotPatch
         }
 
         var girlSave = State.SaveFile.GetGirl(playerFileGirlPair.girlPairDefinition.girlDefinitionTwo.id);
-        var daytimeOffset = _daytimeOffset.GetValue<int>(__instance);
+        var daytimeOffset = f_daytimeOffset.GetValue<int>(__instance);
 
         //when not horny
         var maxSingleGirlRelationshipLevel = Plugin.MaxSingleGirlRelationshipLevel;
@@ -126,7 +126,7 @@ internal static class UiAppRelationshipSlotPatch
             && (playerFileGirlPair.relationshipType == GirlPairRelationshipType.ATTRACTED
                 || playerFileGirlPair.relationshipType == GirlPairRelationshipType.COMPATIBLE))
         {
-            var tooltip = _tooltip.GetValue<UiTooltipSimple>(__instance);
+            var tooltip = f_tooltip.GetValue<UiTooltipSimple>(__instance);
             tooltip.Populate($"Relationship Status:\n{playerFileGirlPair.relationshipType} {girlSave.RelationshipLevel}/{maxSingleGirlRelationshipLevel}", 0, 1f, 1920f);
         }
     }

@@ -33,6 +33,7 @@ public static class PreSexCutscene
                 CutsceneStepUtility.MakeDollMoveInfo(DollPositionType.INNER, CutsceneStepDollTargetType.RANDOM, CutsceneStepProceedType.AUTOMATIC),
 
                 CutsceneStepUtility.MakeWaitInfo(0.5f),
+
                 CutsceneStepUtility.MakeDialogTriggerInfo(DialogTriggers.PreSex, CutsceneStepProceedType.AUTOMATIC, CutsceneStepDollTargetType.RANDOM),
 
                 CutsceneStepUtility.MakeToggleHeaderInfo(true, CutsceneStepProceedType.INSTANT),

@@ -15,7 +15,7 @@ namespace Hp2BaseModTweaks
     [HarmonyPatch(typeof(UiTitleCanvas), "OnInitialAnimationComplete")]
     internal static class TitleCanvasPatch
     {
-        private static readonly FieldInfo _coverArt = AccessTools.Field(typeof(UiTitleCanvas), "coverArt");
+        private static readonly FieldInfo f_coverArt = AccessTools.Field(typeof(UiTitleCanvas), "coverArt");
 
         public static void Prefix(UiTitleCanvas __instance)
         {
@@ -28,7 +28,7 @@ namespace Hp2BaseModTweaks
             {
                 var path = logoPaths.GetRandom();
 
-                if (!(_coverArt.GetValue(__instance) is UiCoverArt coverArt))
+                if (!(f_coverArt.GetValue(__instance) is UiCoverArt coverArt))
                 {
                     ModInterface.Log.LogWarning("Unable to find title canvas cover art");
                     return;

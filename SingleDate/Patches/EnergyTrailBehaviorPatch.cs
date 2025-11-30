@@ -6,7 +6,7 @@ namespace SingleDate;
 [HarmonyPatch(typeof(EnergyTrailBehavior))]
 internal static class EnergyTrailBehaviorPatch
 {
-    private static FieldInfo _splashText = AccessTools.Field(typeof(EnergyTrailBehavior), "_splashText");
+    private static FieldInfo f_splashText = AccessTools.Field(typeof(EnergyTrailBehavior), "_splashText");
 
     [HarmonyPatch(nameof(EnergyTrailBehavior.Init), [typeof(EnergyTrailFormat), typeof(PuzzleReward), typeof(UiPuzzleSlot)])]
     [HarmonyPostfix]
@@ -20,7 +20,7 @@ internal static class EnergyTrailBehaviorPatch
         if (reward.resourceValue != 0
             && reward.resourceType == PuzzleResourceType.BROKEN)
         {
-            _splashText.SetValue(__instance, reward.GetLabelText(false));
+            f_splashText.SetValue(__instance, reward.GetLabelText(false));
         }
     }
 }

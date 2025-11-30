@@ -13,8 +13,6 @@ namespace HuniePopUltimate;
 
 public partial class HpExtraction
 {
-    private int _locationCount = 0;
-
     private ITextureRenderStep[] _finderIconSteps = [
         new TextureRsCellphoneOutline(4f, 0f, 1f),
     ];

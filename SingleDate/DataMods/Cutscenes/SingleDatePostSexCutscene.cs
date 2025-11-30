@@ -4,6 +4,7 @@ using Hp2BaseMod.GameDataInfo;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
 namespace SingleDate;
+
 public static class SingleDatePostSexCutscene
 {
     public static void AddDataMods()
@@ -13,12 +14,9 @@ public static class SingleDatePostSexCutscene
             CleanUpType = CutsceneCleanUpType.NONE,
             Steps = new List<IGameDefinitionInfo<CutsceneStepSubDefinition>>()
             {
-                new CutsceneStepInfo(){
-                    StepType = CutsceneStepType.DIALOG_TRIGGER,
-                    ProceedType = CutsceneStepProceedType.AUTOMATIC,
-                    DollTargetType = CutsceneStepDollTargetType.RANDOM,
-                    DialogTriggerDefinitionId = new RelativeId(-1, 43)//moan 1
-                }
+                //moan 
+                CutsceneStepUtility.MakeDialogTriggerInfo(new RelativeId(-1, 43), CutsceneStepProceedType.AUTOMATIC, CutsceneStepDollTargetType.RANDOM),
+                CutsceneStepUtility.MakeWaitInfo(0.5f),
             }
         });
     }

@@ -10,11 +10,9 @@ namespace RepeatThreesome
 {
     public static class ThreesomeHandler
     {
-        private static FieldInfo f_roundOverCutscene = AccessTools.Field(typeof(PuzzleManager), "_roundOverCutscene");
         private static FieldInfo f_newRoundCutscene = AccessTools.Field(typeof(PuzzleManager), "_newRoundCutscene");
-        private static FieldInfo f_gameOver = AccessTools.Field(typeof(PuzzleStatus), "_gameOver");
 
-        public static void PreRoundOverCutscene()
+        public static void OnPuzzleRoundOver(PuzzleRoundOverArgs args)
         {
             if (Game.Session.Puzzle.puzzleStatus.statusType == PuzzleStatusType.NORMAL)
             {
@@ -28,20 +26,8 @@ namespace RepeatThreesome
                     && (Game.Session.Location.currentLocation == currentGirlPair.sexLocationDefinition
                         || ModInterface.GameData.IsCodeUnlocked(Constants.LocalCodeId)))
                 {
-                    if (Game.Session.Puzzle.puzzleStatus.bonusRound)
-                    {
-                        f_roundOverCutscene.SetValue(Game.Session.Puzzle, Game.Session.Puzzle.cutsceneSuccessBonus);
-                    }
-                    else
-                    {
-                        ModInterface.Log.LogInfo("Setting up Lovers Bonus Round");
-                        f_roundOverCutscene.SetValue(Game.Session.Puzzle, Game.Session.Puzzle.cutsceneSuccessAttracted);
-                        f_newRoundCutscene.SetValue(Game.Session.Puzzle, Game.Session.Puzzle.cutsceneNewroundBonus);
-
-                        //gameOver property has been made to only be settable to true, for some reason...
-                        //so access the underlying field
-                        f_gameOver.SetValue(Game.Session.Puzzle.puzzleStatus, false);
-                    }
+                    args.IsSexDate = true;
+                    args.IsGameOver = Game.Session.Puzzle.puzzleStatus.bonusRound;
                 }
             }
 

@@ -111,7 +111,7 @@ internal class Plugin : Hp2BaseModPlugin
         ModInterface.Events.PreGameSave += State.On_PreGameSave;
         ModInterface.Events.PostPersistenceReset += State.On_PostPersistenceReset;
 
-        ModInterface.Events.PreRoundOverCutscene += ModEventHandles.On_PreRoundOverCutscene;
+        ModInterface.Events.PuzzleRoundOver += ModEventHandles.On_PuzzleRoundOver;
         ModInterface.Events.FinderSlotsPopulate += ModEventHandles.On_FinderSlotsPopulate;
         ModInterface.Events.LocationArriveSequence += ModEventHandles.On_LocationArriveSequence;
         ModInterface.Events.RandomDollSelected += ModEventHandles.On_RandomDollSelected;

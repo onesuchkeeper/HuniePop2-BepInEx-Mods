@@ -9,11 +9,11 @@ namespace Hp2BaseMod;
 [HarmonyPatch(typeof(LocationManager))]
 internal static class LocationManagerPatch
 {
-    private static FieldInfo _isLocked = AccessTools.Field(typeof(LocationManager), "_isLocked");
-    private static FieldInfo _arrivalCutscene = AccessTools.Field(typeof(LocationManager), "_arrivalCutscene");
-    private static readonly FieldInfo _currentGirlPair = AccessTools.Field(typeof(LocationManager), "_currentGirlPair");
-    private static readonly FieldInfo _currentSidesFlipped = AccessTools.Field(typeof(LocationManager), "_currentSidesFlipped");
-    private static readonly FieldInfo _currentLocation = AccessTools.Field(typeof(LocationManager), "_currentLocation");
+    private static FieldInfo f_isLocked = AccessTools.Field(typeof(LocationManager), "_isLocked");
+    private static FieldInfo f_arrivalCutscene = AccessTools.Field(typeof(LocationManager), "_arrivalCutscene");
+    private static readonly FieldInfo f_currentGirlPair = AccessTools.Field(typeof(LocationManager), "_currentGirlPair");
+    private static readonly FieldInfo f_currentSidesFlipped = AccessTools.Field(typeof(LocationManager), "_currentSidesFlipped");
+    private static readonly FieldInfo f_currentLocation = AccessTools.Field(typeof(LocationManager), "_currentLocation");
 
     [HarmonyPatch("OnLocationSettled")]
     [HarmonyPrefix]
@@ -24,14 +24,14 @@ internal static class LocationManagerPatch
             return true;
         }
 
-        var arrivalCutscene = _arrivalCutscene.GetValue<CutsceneDefinition>(__instance);
+        var arrivalCutscene = f_arrivalCutscene.GetValue<CutsceneDefinition>(__instance);
 
         if (arrivalCutscene != null)
         {
             return true;
         }
 
-        _isLocked.SetValue(__instance, false);
+        f_isLocked.SetValue(__instance, false);
 
         Game.Session.Logic.ProcessBundleList(__instance.currentLocation.departBundleList, false);
 
@@ -45,7 +45,7 @@ internal static class LocationManagerPatch
 
         uiDoll.ReadDialogTrigger(__instance.dtGreetings[greetingIndex], DialogLineFormat.PASSIVE, -1);
 
-        _arrivalCutscene.SetValue(__instance, null);
+        f_arrivalCutscene.SetValue(__instance, null);
         return false;
     }
 
@@ -55,7 +55,7 @@ internal static class LocationManagerPatch
     {
         if (unload) { return; }
 
-        var currentLocation = _currentLocation.GetValue(__instance) as LocationDefinition;
+        var currentLocation = f_currentLocation.GetValue(__instance) as LocationDefinition;
 
         if (currentLocation.locationType == LocationType.HUB)
         {
@@ -90,12 +90,12 @@ internal static class LocationManagerPatch
         }
         else
         {
-            var currentGirlPair = _currentGirlPair.GetValue(__instance) as GirlPairDefinition;
+            var currentGirlPair = f_currentGirlPair.GetValue(__instance) as GirlPairDefinition;
             var playerFileGirlPair = Game.Persistence.playerFile.GetPlayerFileGirlPair(currentGirlPair);
 
             if (playerFileGirlPair == null) { return; }
 
-            var flipped = (bool)_currentSidesFlipped.GetValue(__instance);
+            var flipped = (bool)f_currentSidesFlipped.GetValue(__instance);
             var leftGirlDef = flipped ? currentGirlPair.girlDefinitionTwo : currentGirlPair.girlDefinitionOne;
             var rightGirlDef = flipped ? currentGirlPair.girlDefinitionOne : currentGirlPair.girlDefinitionTwo;
 

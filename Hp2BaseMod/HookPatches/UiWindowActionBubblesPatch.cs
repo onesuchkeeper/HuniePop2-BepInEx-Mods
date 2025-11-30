@@ -8,7 +8,7 @@ namespace Hp2BaseMod;
 [HarmonyPatch(typeof(UiWindowActionBubbles))]
 internal static class UiWindowActionBubblesPatch
 {
-    private static FieldInfo _selectedBubble = AccessTools.Field(typeof(UiWindowActionBubbles), "_selectedBubble");
+    private static FieldInfo f_selectedBubble = AccessTools.Field(typeof(UiWindowActionBubbles), "_selectedBubble");
 
     [HarmonyPatch("OnActionBubblePressed")]
     [HarmonyPrefix]
@@ -109,7 +109,7 @@ internal static class UiWindowActionBubblesPatch
         Game.Manager.Audio.Play(AudioCategory.SOUND, __instance.sfxBubbleSelect, __instance.pauseDefinition);
         Game.Manager.Audio.Play(AudioCategory.SOUND, actionBubble.sfxSelect, __instance.pauseDefinition);
 
-        _selectedBubble.SetValue(__instance, null);
+        f_selectedBubble.SetValue(__instance, null);
 
         return false;
     }

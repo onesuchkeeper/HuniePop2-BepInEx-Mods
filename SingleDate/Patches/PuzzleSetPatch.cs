@@ -10,7 +10,7 @@ namespace SingleDate;
 [HarmonyPatch(typeof(PuzzleSet))]
 internal static class PuzzleSetPatch
 {
-    private static readonly FieldInfo _affection = AccessTools.Field(typeof(PuzzleStatus), "_affection");
+    private static readonly FieldInfo f_affection = AccessTools.Field(typeof(PuzzleStatus), "_affection");
 
     [HarmonyPatch("GetMatchRewards")]
     [HarmonyPostfix]
@@ -32,7 +32,7 @@ internal static class PuzzleSetPatch
         //hp1's broken tokens take a percentage of the current affection, multiply by (number of tokens), then divide by (number of tokens - 1), with min value of 1
         //so I'll just ignore the mult and divide entirely. The -1 looks like it may be a mistake? Like they were confusing it with max index? seems odd
         var allotment = -Mathf.Max(1,
-            Mathf.FloorToInt(_affection.GetValue<int>(Game.Session.Puzzle.puzzleStatus)
+            Mathf.FloorToInt(f_affection.GetValue<int>(Game.Session.Puzzle.puzzleStatus)
                 * State.GetBrokenMult()));
 
         foreach (var reward in brokenRewards)

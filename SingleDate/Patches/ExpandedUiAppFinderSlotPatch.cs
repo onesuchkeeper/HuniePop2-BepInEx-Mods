@@ -34,8 +34,8 @@ public class ExpandedUiAppFinderSlot
 
     private static readonly float _singleSpacing = 48f;
     private static readonly float _doubleSpacing = 96f;
-    private static readonly FieldInfo _playerFileFinderSlot = AccessTools.Field(typeof(UiAppFinderSlot), "_playerFileFinderSlot");
-    private static readonly FieldInfo _girlDefinition = AccessTools.Field(typeof(UiAppHeadSlot), "_girlDefinition");
+    private static readonly FieldInfo f_playerFileFinderSlot = AccessTools.Field(typeof(UiAppFinderSlot), "_playerFileFinderSlot");
+    private static readonly FieldInfo f_girlDefinition = AccessTools.Field(typeof(UiAppHeadSlot), "_girlDefinition");
 
     private UiAppHeadSlot _girlSlot;
     private UiAppHeadSlot _nobodySlot;
@@ -51,13 +51,13 @@ public class ExpandedUiAppFinderSlot
     {
         var pairDef = _core.locationDefinition.locationType == LocationType.SIM && _core.locationDefinition == Game.Session.Location.currentLocation
             ? Game.Session.Location.currentGirlPair
-            : _playerFileFinderSlot.GetValue<PlayerFileFinderSlot>(_core)?.girlPairDefinition;
+            : f_playerFileFinderSlot.GetValue<PlayerFileFinderSlot>(_core)?.girlPairDefinition;
 
         if (State.IsSingle(pairDef))
         {
             if (!_populatedAsSingle)
             {
-                var leftDef = _girlDefinition.GetValue<GirlDefinition>(_core.headSlotLeft);
+                var leftDef = f_girlDefinition.GetValue<GirlDefinition>(_core.headSlotLeft);
                 var leftId = ModInterface.Data.GetDataId(GameDataType.Girl, leftDef.id);
 
                 _girlSlot = leftId.SourceId == State.ModId

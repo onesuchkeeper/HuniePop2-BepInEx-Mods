@@ -9,9 +9,9 @@ namespace Hp2BaseMod.Save
     [HarmonyPatch(typeof(GamePersistence))]
     internal static class GamePersistencePatches
     {
-        private static FieldInfo _saveDataAccess = AccessTools.Field(typeof(GamePersistence), "_saveData");
-        private static FieldInfo inited = AccessTools.Field(typeof(GamePersistence), "_inited");
-        private static FieldInfo debugMode = AccessTools.Field(typeof(GamePersistence), "_debugMode");
+        private static FieldInfo f_saveDataAccess = AccessTools.Field(typeof(GamePersistence), "_saveData");
+        private static FieldInfo f_inited = AccessTools.Field(typeof(GamePersistence), "_inited");
+        private static FieldInfo f_debugMode = AccessTools.Field(typeof(GamePersistence), "_debugMode");
 
         [HarmonyPrefix]
         [HarmonyPatch("Save")]
@@ -20,7 +20,7 @@ namespace Hp2BaseMod.Save
             ModInterface.Events.NotifyPreSave();
 
             //create copy of save data
-            var saveData = (SaveData)_saveDataAccess.GetValue(__instance);
+            var saveData = (SaveData)f_saveDataAccess.GetValue(__instance);
             if (saveData == null)
             {
                 __state = null;
@@ -49,7 +49,7 @@ namespace Hp2BaseMod.Save
         {
             if (__state != null)
             {
-                _saveDataAccess.SetValue(__instance, __state);
+                f_saveDataAccess.SetValue(__instance, __state);
             }
 
             ModInterface.Events.NotifyPostSave();
@@ -59,15 +59,15 @@ namespace Hp2BaseMod.Save
         [HarmonyPatch("Load")]
         private static void LoadPost(GamePersistence __instance)
         {
-            if (!(bool)inited.GetValue(__instance)
-                || (bool)debugMode.GetValue(__instance))
+            if (!(bool)f_inited.GetValue(__instance)
+                || (bool)f_debugMode.GetValue(__instance))
             {
                 return;
             }
 
             try
             {
-                var saveData = _saveDataAccess.GetValue(__instance) as SaveData;
+                var saveData = f_saveDataAccess.GetValue(__instance) as SaveData;
                 ModInterface.InjectSave(saveData);
             }
             catch (Exception e)
@@ -80,10 +80,10 @@ namespace Hp2BaseMod.Save
         [HarmonyPatch("Reset")]
         private static void ResetPre(GamePersistence __instance)
         {
-            if ((bool)inited.GetValue(__instance))
+            if ((bool)f_inited.GetValue(__instance))
             {
                 ModInterface.ApplyDataMods();
-                ModInterface.Events.NotifyPrePersistenceReset(_saveDataAccess.GetValue(__instance) as SaveData);
+                ModInterface.Events.NotifyPrePersistenceReset(f_saveDataAccess.GetValue(__instance) as SaveData);
             }
         }
 
@@ -91,9 +91,9 @@ namespace Hp2BaseMod.Save
         [HarmonyPatch("Reset")]
         private static void ResetPost(GamePersistence __instance)
         {
-            if ((bool)inited.GetValue(__instance))
+            if ((bool)f_inited.GetValue(__instance))
             {
-                ModInterface.Events.NotifyPostPersistenceReset(_saveDataAccess.GetValue(__instance) as SaveData);
+                ModInterface.Events.NotifyPostPersistenceReset(f_saveDataAccess.GetValue(__instance) as SaveData);
             }
         }
 
@@ -106,7 +106,7 @@ namespace Hp2BaseMod.Save
         [HarmonyPatch("Init")]
         private static void InitPre(GamePersistence __instance)
         {
-            if ((bool)inited.GetValue(__instance))
+            if ((bool)f_inited.GetValue(__instance))
             {
                 return;
             }

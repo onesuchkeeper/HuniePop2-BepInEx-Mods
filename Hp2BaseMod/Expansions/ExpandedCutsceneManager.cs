@@ -33,11 +33,11 @@ public class ExpandedCutsceneManager
         return expansion;
     }
 
-    private static FieldInfo _currentStep = AccessTools.Field(typeof(CutsceneManager), "_currentStep");
-    private static FieldInfo _branchStepIndices = AccessTools.Field(typeof(CutsceneManager), "_branchStepIndices");
-    private static FieldInfo _branches = AccessTools.Field(typeof(CutsceneManager), "_branches");
-    private static FieldInfo _audioLink = AccessTools.Field(typeof(CutsceneManager), "_audioLink");
-    private static FieldInfo _stepSequence = AccessTools.Field(typeof(CutsceneManager), "_stepSequence");
+    private static FieldInfo f_currentStep = AccessTools.Field(typeof(CutsceneManager), "_currentStep");
+    private static FieldInfo f_branchStepIndices = AccessTools.Field(typeof(CutsceneManager), "_branchStepIndices");
+    private static FieldInfo f_branches = AccessTools.Field(typeof(CutsceneManager), "_branches");
+    private static FieldInfo f_audioLink = AccessTools.Field(typeof(CutsceneManager), "_audioLink");
+    private static FieldInfo f_stepSequence = AccessTools.Field(typeof(CutsceneManager), "_stepSequence");
     private static MethodInfo m_nextStep = AccessTools.Method(typeof(CutsceneManager), "NextStep");
 
     protected CutsceneManager _core;
@@ -48,8 +48,8 @@ public class ExpandedCutsceneManager
 
     public bool NextStep(bool resetSequence)
     {
-        var branchStepIndices = _branchStepIndices.GetValue<List<int>>(_core);
-        var branches = _branches.GetValue<List<List<CutsceneStepSubDefinition>>>(_core);
+        var branchStepIndices = f_branchStepIndices.GetValue<List<int>>(_core);
+        var branches = f_branches.GetValue<List<List<CutsceneStepSubDefinition>>>(_core);
 
         //don't actually change the index yet in case we don't end up processing
         var currentBranchStepIndex = branchStepIndices[_core.currentBranchIndex] + 1;
@@ -60,7 +60,7 @@ public class ExpandedCutsceneManager
         }
 
         var currentStep = branches[_core.currentBranchIndex][currentBranchStepIndex];
-        var stepSequence = _stepSequence.GetValue<Sequence>(_core);
+        var stepSequence = f_stepSequence.GetValue<Sequence>(_core);
 
         if (currentStep is IFunctionalCutsceneStep functional)
         {
@@ -71,7 +71,7 @@ public class ExpandedCutsceneManager
             {
                 Game.Manager.Time.KillTween(stepSequence, true, true);
                 stepSequence = DOTween.Sequence();
-                _stepSequence.SetValue(_core, stepSequence);
+                f_stepSequence.SetValue(_core, stepSequence);
             }
 
             functional.Act();
@@ -102,12 +102,12 @@ public class ExpandedCutsceneManager
         {
             Game.Manager.Time.KillTween(stepSequence, true, true);
             stepSequence = DOTween.Sequence();
-            _stepSequence.SetValue(_core, stepSequence);
+            f_stepSequence.SetValue(_core, stepSequence);
         }
 
         branchStepIndices[_core.currentBranchIndex] = currentBranchStepIndex;
-        _audioLink.SetValue(_core, null);
-        _currentStep.SetValue(_core, currentStep);
+        f_audioLink.SetValue(_core, null);
+        f_currentStep.SetValue(_core, currentStep);
 
         CutsceneManagerUtility.HandleStepType(currentStep,
             branches,

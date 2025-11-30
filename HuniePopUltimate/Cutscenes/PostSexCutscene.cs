@@ -14,6 +14,7 @@ public static class PostSexCutscene
             Steps = new()
             {
                 CutsceneStepUtility.MakeWaitInfo(0.5f),
+
                 new FunctionalCutsceneStepInfo((complete) => {
                     //the game requires you to be at the sex location to level up normally, so do it here instead
                     Game.Persistence.playerFile.GetPlayerFileGirlPair(Game.Session.Location.currentGirlPair).RelationshipLevelUp();
@@ -43,7 +44,9 @@ public static class PostSexCutscene
                 CutsceneStepUtility.MakeDollMoveInfo(DollPositionType.INNER, CutsceneStepDollTargetType.RANDOM, CutsceneStepProceedType.AUTOMATIC),
 
                 CutsceneStepUtility.MakeWaitInfo(0.25f),
+
                 CutsceneStepUtility.MakeDialogTriggerInfo(DialogTriggers.PostSex, CutsceneStepProceedType.AUTOMATIC, CutsceneStepDollTargetType.RANDOM),
+
                 CutsceneStepUtility.MakeWaitInfo(0.25f),
             },
             CleanUpType = (CutsceneCleanUpType)(-1)

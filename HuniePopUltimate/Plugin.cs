@@ -25,6 +25,9 @@ public class Plugin : Hp2BaseModPlugin
     public static readonly string DATA_DIR = "HuniePop_Data";
     public static readonly string DAC_DIR = "Digital Art Collection";
     public static readonly string ASSEMBLY_DIR = Path.Combine(DATA_DIR, "Managed");
+    public static readonly string REPEAT_THREESOME_UUID = "OSK.BepInEx.RepeatThreesome";
+    public static readonly string SINGLE_DATE_UUID = "OSK.BepInEx.SingleDate";
+    public static readonly string EXTRA_LOCATIONS_UUID = "OSK.BepInEx.ExtraLocations";
 
     [ConfigProperty(false, "If all Hp1 outfit and hairstyles should auto-unlock.")]
     public static bool UnlockStyles
@@ -66,32 +69,6 @@ public class Plugin : Hp2BaseModPlugin
         _instance = this;
 
         Config.Bind(Hp2BaseModPlugin.CONFIG_GENERAL, "HuniePopDir", Path.Combine(Paths.PluginPath, "..", "..", "..", "HuniePop"), "Path to the HuniePop install directory.");
-        IBodySubDataMod<GirlPartSubDefinition> nudeOutfitPart = null;
-        if (Chainloader.PluginInfos.ContainsKey("OSK.BepInEx.RepeatThreesome"))
-        {
-            nudeOutfitPart = new GirlPartDataMod(new RelativeId(ModInterface.GetSourceId("OSK.BepInEx.RepeatThreesome"), 0), InsertStyle.replace)
-            {
-                PartType = GirlPartType.OUTFIT,
-                PartName = "nudeOutfit",
-                X = 0,
-                Y = 0,
-                SpriteInfo = new SpriteInfoInternal("EmptySprite")
-            };
-        }
-        var singleDateId = ModInterface.GetSourceId("OSK.BepInEx.SingleDate");
-
-        var sexLocs = new List<RelativeId>()
-        {
-            LocationIds.BedRoomDate,
-            Locations.RoyalSuite,
-            Locations.HotelRoom,
-        };
-        if (Chainloader.PluginInfos.ContainsKey("OSK.BepInEx.ExtraLocations"))
-        {
-            var extraLocationsId = ModInterface.GetSourceId("OSK.BepInEx.ExtraLocations");
-            sexLocs.Add(new RelativeId(extraLocationsId, 2));
-            sexLocs.Add(new RelativeId(extraLocationsId, 7));
-        }
 
         if (!(this.Config.TryGetEntry<string>(Hp2BaseModPlugin.CONFIG_GENERAL, "HuniePopDir", out var hpDirConfig)
                 && !string.IsNullOrWhiteSpace(hpDirConfig.Value)
@@ -115,14 +92,41 @@ public class Plugin : Hp2BaseModPlugin
             return;
         }
 
+        var nudeOutfitPart = Chainloader.PluginInfos.ContainsKey(REPEAT_THREESOME_UUID)
+            ? new GirlPartDataMod(new RelativeId(ModInterface.GetSourceId(REPEAT_THREESOME_UUID), 0), InsertStyle.replace)
+            {
+                PartType = GirlPartType.OUTFIT,
+                PartName = "nudeOutfit",
+                X = 0,
+                Y = 0,
+                SpriteInfo = new SpriteInfoInternal("EmptySprite")
+            }
+            : null;
+
+        var sexLocs = new List<RelativeId>()
+        {
+            LocationIds.BedRoomDate,
+            Locations.RoyalSuite,
+            Locations.HotelRoom,
+        };
+
+        if (Chainloader.PluginInfos.ContainsKey(EXTRA_LOCATIONS_UUID))
+        {
+            var extraLocationsId = ModInterface.GetSourceId(EXTRA_LOCATIONS_UUID);
+            sexLocs.Add(new RelativeId(extraLocationsId, 2));
+            sexLocs.Add(new RelativeId(extraLocationsId, 7));
+        }
+
         _sexLocs = sexLocs.ToArray();
+
+        var singleDateId = ModInterface.GetSourceId(SINGLE_DATE_UUID);
+
         if (ModInterface.TryGetInterModValue(singleDateId, "AddGirlDatePhotos", out Action<RelativeId, IEnumerable<(RelativeId, float)>> m_AddGirlDatePhotos)
             && ModInterface.TryGetInterModValue(singleDateId, "AddGirlSexPhotos", out Action<RelativeId, IEnumerable<(RelativeId, RelativeId)>> m_AddGirlSexPhotos)
             && ModInterface.TryGetInterModValue(singleDateId, "SetGirlCharm", out Action<RelativeId, Sprite> m_SetCharmSprite)
             && ModInterface.TryGetInterModValue(singleDateId, "AddSexLocationBlackList", out Action<RelativeId, IEnumerable<RelativeId>> m_AddSexLocationBlackList)
             && ModInterface.TryGetInterModValue(singleDateId, "SetCutsceneSuccessAttracted", out Action<RelativeId, RelativeId> m_SetCutsceneSuccessAttracted)
-            && ModInterface.TryGetInterModValue(singleDateId, "SetBonusRoundSuccessCutscene", out Action<RelativeId, RelativeId> m_SetBonusRoundSuccessCutscene)
-            && ModInterface.TryGetInterModValue(singleDateId, "IsSexDateValid", out m_IsSexDateValid))
+            && ModInterface.TryGetInterModValue(singleDateId, "SetBonusRoundSuccessCutscene", out Action<RelativeId, RelativeId> m_SetBonusRoundSuccessCutscene))
         {
             var defaultGirlStyle = new GirlStyleInfo()
             {
@@ -166,13 +170,18 @@ public class Plugin : Hp2BaseModPlugin
                     HasMeetingStyleTwo = false,
                     MeetingLocationDefinitionID = new RelativeId(-1, 1 + (girlId.LocalId % 8)),//temp
                     SexDayTime = sexTime,
+                    Styles = defaultPairStyle,
+                    FavQuestions = questions,
+                    SexLocationDefinitionID = null,
+
+                    BonusSuccessCutsceneDefinitionID = Cutscenes.BonusRoundSuccess,
+                    AttractSuccessCutsceneDefinitionID = Cutscenes.SuccessAttracted,
+                    SuccessCutsceneDefinitionID = new RelativeId(singleDateId, 4),
+
                     IntroRelationshipCutsceneDefinitionID = new RelativeId(singleDateId, 0),
                     AttractRelationshipCutsceneDefinitionID = new RelativeId(singleDateId, 1),
                     PreSexRelationshipCutsceneDefinitionID = Cutscenes.PreSex,
                     PostSexRelationshipCutsceneDefinitionID = Cutscenes.PostSex,
-                    Styles = defaultPairStyle,
-                    FavQuestions = questions,
-                    SexLocationDefinitionID = null,
                 });
 
                 m_AddSexLocationBlackList(girlId, SexLocs);

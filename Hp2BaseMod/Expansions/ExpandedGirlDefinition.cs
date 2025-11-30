@@ -67,6 +67,10 @@ public class ExpandedGirlDefinition
             ModInterface.Save.GetCurrentFile().GetGirl(_id).BodyId = id;
             var baseFile = Game.Persistence.playerFile.GetPlayerFileGirl(_def);
             body.Apply(_def);
+
+            ModInterface.Log.LogInfo($"Post apply body outfits in def: {string.Join(",", _def.outfits.Select(x => x?.outfitName))}");
+            ModInterface.Log.LogInfo($"Post apply body outfits in body: {string.Join(",", body.Outfits.Select(x => x?.outfitName))}");
+
             baseFile.outfitIndex = _def.defaultOutfitIndex;
             baseFile.hairstyleIndex = _def.defaultHairstyleIndex;
         }

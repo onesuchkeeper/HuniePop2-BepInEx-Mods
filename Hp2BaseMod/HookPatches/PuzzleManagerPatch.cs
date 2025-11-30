@@ -8,17 +8,107 @@ namespace Hp2BaseMod;
 [HarmonyPatch(typeof(PuzzleManager))]
 public static class PuzzleMangerPatch
 {
-    private static MethodInfo _notifyPreRoundOverCutscene = AccessTools.Method(typeof(PuzzleMangerPatch), nameof(Act));
+    private static FieldInfo f_roundOverCutscene = AccessTools.Field(typeof(PuzzleManager), "_roundOverCutscene");
+    private static FieldInfo f_newRoundCutscene = AccessTools.Field(typeof(PuzzleManager), "_newRoundCutscene");
+    private static FieldInfo f_gameOver = AccessTools.Field(typeof(PuzzleStatus), "_gameOver");
+    private static FieldInfo f_roundState = AccessTools.Field(typeof(UiPuzzleGrid), "_roundState");
+    private static MethodInfo m_handleCutscenes = AccessTools.Method(typeof(PuzzleMangerPatch), nameof(HandleCutscenes));
+    private static MethodInfo m_checkRelationShip = AccessTools.Method(typeof(PuzzleMangerPatch), nameof(CheckRelationShip));
 
-    public static void Act()
+    private static PuzzleRoundOverArgs _args;
+
+    public static void CheckRelationShip()
     {
-        ModInterface.Events.NotifyPreRoundOverCutscene();
+        var currentGirlPair = Game.Session.Location.currentGirlPair;
+        var playerFileGirlPair = Game.Persistence.playerFile.GetPlayerFileGirlPair(currentGirlPair);
+
+        _args = new PuzzleRoundOverArgs();
+        _args.IsSexDate = playerFileGirlPair.relationshipType == GirlPairRelationshipType.ATTRACTED
+            && Game.Session.Location.currentLocation == currentGirlPair.sexLocationDefinition;
+
+        switch (Game.Session.Puzzle.puzzleStatus.statusType)
+        {
+            case PuzzleStatusType.NORMAL:
+                _args.LevelUpType = playerFileGirlPair.relationshipType == GirlPairRelationshipType.COMPATIBLE
+                    ? PuzzleRoundOverArgs.CutsceneType.CompatToAttract
+                    : PuzzleRoundOverArgs.CutsceneType.AttractToLovers;
+                break;
+            case PuzzleStatusType.NONSTOP:
+            case PuzzleStatusType.BOSS:
+                _args.LevelUpType = PuzzleRoundOverArgs.CutsceneType.None;
+                break;
+        }
+    }
+
+    public static void HandleCutscenes()
+    {
+        _args.IsGameOver = Game.Session.Puzzle.puzzleStatus.gameOver;
+        _args.IsSuccess = Game.Session.Puzzle.puzzleGrid.roundState == PuzzleRoundState.SUCCESS;
+
+        var pairExpansion = Game.Session.Location.currentGirlPair.Expansion();
+
+        ModInterface.Events.NotifyPuzzleRoundOver(_args);
+
+        ModInterface.Log.LogInfo(_args.ToString());
+
+        f_gameOver.SetValue(Game.Session.Puzzle.puzzleStatus, _args.IsGameOver);
+        f_roundState.SetValue(Game.Session.Puzzle.puzzleGrid, _args.IsSuccess
+            ? PuzzleRoundState.SUCCESS
+            : PuzzleRoundState.FAILURE);
+
+        if (_args.IsSuccess)
+        {
+            if (_args.IsSexDate)
+            {
+                if (Game.Session.Puzzle.puzzleStatus.bonusRound)
+                {
+                    f_newRoundCutscene.SetValue(Game.Session.Puzzle, null);
+
+                    f_roundOverCutscene.SetValue(Game.Session.Puzzle,
+                        ModInterface.GameData.GetCutscene(pairExpansion.CutsceneBonusSuccessId) ?? Game.Session.Puzzle.cutsceneSuccessBonus);
+                }
+                else
+                {
+                    ModInterface.Log.LogInfo($"custom attract success cutscene id{pairExpansion.CutsceneAttractedSuccessId}");
+                    f_roundOverCutscene.SetValue(Game.Session.Puzzle,
+                        ModInterface.GameData.GetCutscene(pairExpansion.CutsceneAttractedSuccessId) ?? Game.Session.Puzzle.cutsceneSuccessAttracted);
+
+                    f_newRoundCutscene.SetValue(Game.Session.Puzzle,
+                        ModInterface.GameData.GetCutscene(pairExpansion.CutsceneBonusNewRoundId) ?? Game.Session.Puzzle.cutsceneNewroundBonus);
+                }
+            }
+            else
+            {
+                switch (_args.LevelUpType)
+                {
+                    case PuzzleRoundOverArgs.CutsceneType.None:
+                        f_roundOverCutscene.SetValue(Game.Session.Puzzle,
+                            ModInterface.GameData.GetCutscene(pairExpansion.CutsceneSuccessId) ?? Game.Session.Puzzle.cutsceneSuccess);
+                        break;
+                    case PuzzleRoundOverArgs.CutsceneType.AttractToLovers:
+                        f_roundOverCutscene.SetValue(Game.Session.Puzzle,
+                            ModInterface.GameData.GetCutscene(pairExpansion.CutsceneAttractedSuccessId) ?? Game.Session.Puzzle.cutsceneSuccessAttracted);
+                        break;
+                    case PuzzleRoundOverArgs.CutsceneType.CompatToAttract:
+                        f_roundOverCutscene.SetValue(Game.Session.Puzzle,
+                            ModInterface.GameData.GetCutscene(pairExpansion.CutsceneSuccessId) ?? Game.Session.Puzzle.cutsceneSuccess);
+                        break;
+                }
+            }
+        }
+        else
+        {
+            f_roundOverCutscene.SetValue(Game.Session.Puzzle,
+                    ModInterface.GameData.GetCutscene(pairExpansion.CutsceneFailureId) ?? Game.Session.Puzzle.cutsceneFailure);
+        }
     }
 
     [HarmonyPatch("OnRoundOver")]
     [HarmonyTranspiler]
     static IEnumerable<CodeInstruction> OnRoundOver(IEnumerable<CodeInstruction> instructions)
     {
+        yield return new CodeInstruction(OpCodes.Call, m_checkRelationShip);
+
         int step = 0;
         foreach (var instruction in instructions)
         {
@@ -38,7 +128,7 @@ public static class PuzzleMangerPatch
                     break;
                 case 4:
                     step = -1;
-                    yield return new CodeInstruction(OpCodes.Call, _notifyPreRoundOverCutscene);
+                    yield return new CodeInstruction(OpCodes.Call, m_handleCutscenes);
                     break;
             }
 
@@ -50,32 +140,4 @@ public static class PuzzleMangerPatch
             ModInterface.Log.LogError("Failed to transply hook into PuzzleManager.OnRoundOver");
         }
     }
-
-    // [HarmonyPatch(nameof(PuzzleManager.StartPuzzle))]
-    // [HarmonyPrefix]
-    // public static void StartPuzzle()
-    // {
-
-    // }
-    //I think this may take place in the locations logic bundles...
-    //which is real stupid...
-    //I could probably remove the logic bundles entierly?
-    //why would you make a logic bundle and not just interface and explicitly code your behavior
-    //lets make a logic bundle logging util and see what all them dos
-
-
-    //when line index is -1 and on a date, it is selected by the index of the current location
-    //instead we can just look up the line index in the expanded DT?
-    //Game.Session.Puzzle.StartPuzzle();
-    //the base just calls start puzzle, we have to handle this there
-
-    // if (lineIndex < 0)
-    // {
-    //     DialogTriggerForceType forceType = dialogTriggerDef.forceType;
-    //     if (forceType == DialogTriggerForceType.DATE_LOCATION && Game.Session.Location.AtLocationType(LocationType.DATE) && Game.Session.Location.dateLocationDefs.Contains(Game.Session.Location.currentLocation))
-    //     {
-    //         lineIndex = Game.Session.Location.dateLocationDefs.IndexOf(Game.Session.Location.currentLocation);
-    //     }
-    // }
-    //uiDoll.ReadDialogTrigger(__instance.dtGreetings[greetingIndex], DialogLineFormat.PASSIVE, -1);
 }

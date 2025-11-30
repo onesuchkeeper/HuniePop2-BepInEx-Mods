@@ -167,6 +167,12 @@ namespace Hp2BaseModTweaks
             var def = Game.Data.Girls.Get(Game.Persistence.playerFile.GetFlagValue("wardrobe_girl_id")) ?? Game.Data.Girls.Get(1);
             var body = def.Expansion().GetCurrentBody();
 
+            //test
+            foreach (var entry in def.outfits)
+            {
+                ModInterface.Log.LogInfo($"{entry?.outfitName ?? "null"}");
+            }
+
             f_playerFileGirl.SetValue(_uiAppStyleSelectList, Game.Persistence.playerFile.GetPlayerFileGirl(def));
 
             if (_initialized && def != null)

@@ -68,8 +68,8 @@ namespace Hp2BaseMod
         public event Action<CodeDefinition> PostCodeSubmitted;
         internal void NotifyPostCodeSubmitted(CodeDefinition codeDefinition) => PostCodeSubmitted?.Invoke(codeDefinition);
 
-        public event Action PreRoundOverCutscene;
-        internal void NotifyPreRoundOverCutscene() => PreRoundOverCutscene?.Invoke();
+        public event Action<PuzzleRoundOverArgs> PuzzleRoundOver;
+        internal void NotifyPuzzleRoundOver(PuzzleRoundOverArgs args) => PuzzleRoundOver?.Invoke(args);
 
         public event Action<FinderSlotPopulateEventArgs> FinderSlotsPopulate;
         internal void NotifyPreFinderSlotPopulatePairs(FinderSlotPopulateEventArgs args) => FinderSlotsPopulate?.Invoke(args);
