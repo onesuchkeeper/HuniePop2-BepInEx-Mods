@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using HarmonyLib;
@@ -6,6 +7,7 @@ using Hp2BaseMod.Extension;
 using UnityEngine;
 
 namespace Hp2BaseMod;
+
 [HarmonyPatch(typeof(UiDoll))]
 class UiDoll_ChangeStyle
 {
@@ -23,6 +25,11 @@ class UiDoll_ChangeStyle
     [HarmonyPrefix()]
     public static void ChangeOutfit(UiDoll __instance, ref int outfitIndex)
         => ExpandedUiDoll.Get(__instance).ChangeOutfit(ref outfitIndex);
+
+    [HarmonyPatch(nameof(UiDoll.ChangeOutfit))]
+    [HarmonyPostfix()]
+    public static void PostChangeOutfit(UiDoll __instance, int outfitIndex)
+        => ExpandedUiDoll.Get(__instance).PostChangeOutfit();
 
     [HarmonyPatch(nameof(UiDoll.ChangeHairstyle))]
     [HarmonyPrefix()]
@@ -159,8 +166,8 @@ public class ExpandedUiDoll
 
         if (!Game.Persistence.playerData.uncensored && expansion.IsNSFW)
         {
-            outfitIndex = girlDef.defaultOutfitIndex;
-            outfit = girlDef.outfits[outfitIndex];
+            index = girlDef.defaultOutfitIndex;
+            outfit = girlDef.outfits[index];
             expansion = outfit.Expansion();
         }
 
@@ -174,6 +181,16 @@ public class ExpandedUiDoll
             _specialEffect.rectTransform.SetParent(Game.Session.gameCanvas.dollSpecialEffectContainer, false);
             _specialEffect = null;
         }
+
+        outfitIndex = index;
+    }
+
+    /// <summary>
+    /// After changing outfit, move it to the bottom of its layer
+    /// </summary>
+    public void PostChangeOutfit()
+    {
+        RefreshSpecialParts(_core.girlDefinition.Expansion().HairstyleIndexToId[_core.currentHairstyleIndex]);
     }
 
     public bool ChangeHairstyle(int hairstyleIndex)
@@ -228,11 +245,26 @@ public class ExpandedUiDoll
 
         var hairId = _core.girlDefinition.Expansion().HairstyleIndexToId[_core.currentHairstyleIndex];
 
-        int j = 0;
+        RefreshSpecialParts(hairId);
+
+        return false;
+    }
+
+    private void RefreshSpecialParts(RelativeId hairId)
+    {
+        int i;
+        for (i = 0; i < _core.partSpecials.Length; i++)
+        {
+            _core.partSpecials[i].StopAnimation();
+            _core.partSpecials[i].dollPart.rectTransform.SetSiblingIndex(0);
+            _core.partSpecials[i].dollPart.UnloadPart();
+        }
+
+        i = 0;
         foreach (var part in _core.girlDefinition.specialParts)
         {
-            //make sure special part is allowed
-            //empty or null allows all, otherwise whitelist
+            // make sure special part is allowed
+            // empty or null allows all, otherwise whitelist
             var specialPartExpansion = part.Expansion();
             if (specialPartExpansion.RequiredHairstyles != null
                 && specialPartExpansion.RequiredHairstyles.Any()
@@ -241,22 +273,20 @@ public class ExpandedUiDoll
                 continue;
             }
 
-            m_LoadPart.Invoke(_core, [_core.partSpecials[j].dollPart, part.partIndexSpecial, -1f]);
+            m_LoadPart.Invoke(_core, [_core.partSpecials[i].dollPart, part.partIndexSpecial, -1f]);
 
             if (part.sortingPartType != GirlPartType.SPECIAL1
                 && part.sortingPartType != GirlPartType.SPECIAL2
                 && part.sortingPartType != GirlPartType.SPECIAL3)
             {
                 var sibling = (UiDollPart)m_GetDollPartByType.Invoke(_core, [part.sortingPartType]);
-                _core.partSpecials[j].dollPart.rectTransform.SetSiblingIndex(sibling.rectTransform.GetSiblingIndex());
+                _core.partSpecials[i].dollPart.rectTransform.SetSiblingIndex(sibling.rectTransform.GetSiblingIndex());
             }
 
-            _core.partSpecials[j].StartAnimation(part.animType);
+            _core.partSpecials[i].StartAnimation(part.animType);
 
-            j++;
+            i++;
         }
-
-        return false;
     }
 
     internal void OnDestroy()

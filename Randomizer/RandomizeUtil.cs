@@ -147,7 +147,7 @@ public static class RandomizeUtil
 
         var randomizedNames = Plugin.RandomizeNames;
 
-        var canSwapCharms = ModInterface.TryGetInterModValue("OSK.BepInEx.SingleDate", "SwapCharms", out Action<RelativeId, RelativeId> m_swapCharms);
+        var canSwapSingleDate = ModInterface.TryGetInterModValue("OSK.BepInEx.SingleDate", "SwapGirls", out Action<RelativeId, RelativeId> m_SwapGirls);
 
         //special characters don't have all the stuff they need,
         //so instead I'll just swap their visuals and other bits with someone
@@ -175,9 +175,9 @@ public static class RandomizeUtil
             var specialId = ModInterface.Data.GetDataId(GameDataType.Girl, specialGirl.id);
             var targetId = ModInterface.Data.GetDataId(GameDataType.Girl, targetGirl.id);
 
-            if (canSwapCharms)
+            if (canSwapSingleDate)
             {
-                m_swapCharms(specialId, targetId);
+                m_SwapGirls(specialId, targetId);
             }
 
             id_handler.Value.Invoke(specialGirl, targetGirl);

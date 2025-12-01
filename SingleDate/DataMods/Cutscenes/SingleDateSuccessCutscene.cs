@@ -20,7 +20,7 @@ public static class SingleDateSuccessCutscene
                 CutsceneStepUtility.MakeBannerTextHideInfo(CutsceneStepProceedType.AUTOMATIC),
                 CutsceneStepUtility.MakeDialogTriggerInfo(new RelativeId(-1, 16), CutsceneStepProceedType.AUTOMATIC, CutsceneStepDollTargetType.RANDOM),
                 CutsceneStepUtility.MakeWaitInfo(0.5f),
-                CutsceneStepUtility.MakeShowWindowInfo(false, "PhotosWindow", CutsceneStepProceedType.AUTOMATIC),
+                CutsceneStepUtility.MakeShowWindowInfo(true, "PhotosWindow", CutsceneStepProceedType.AUTOMATIC),
                 CutsceneStepUtility.MakeHidePuzzleGridInfo(CutsceneStepProceedType.AUTOMATIC),
                 CutsceneStepUtility.MakeWaitInfo(0.5f),
             }

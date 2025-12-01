@@ -50,6 +50,7 @@ public static class RandomizeStyles
                 if (girlExpansion.OutfitIndexToId.TryGetValue(index, out var id))
                 {
                     outfitPool.Add(id);
+                    if (id == RelativeId.Default) ModInterface.Log.LogInfo($"bad index: {index}");
                 }
             }
 
@@ -61,6 +62,8 @@ public static class RandomizeStyles
                 }
             }
         }
+
+        ModInterface.Log.LogInfo(string.Join(",", outfits));
 
         if (!nsfw)
         {

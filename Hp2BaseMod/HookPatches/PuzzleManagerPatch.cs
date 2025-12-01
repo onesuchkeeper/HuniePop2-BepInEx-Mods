@@ -91,7 +91,7 @@ public static class PuzzleMangerPatch
                         break;
                     case PuzzleRoundOverArgs.CutsceneType.CompatToAttract:
                         f_roundOverCutscene.SetValue(Game.Session.Puzzle,
-                            ModInterface.GameData.GetCutscene(pairExpansion.CutsceneSuccessId) ?? Game.Session.Puzzle.cutsceneSuccess);
+                            ModInterface.GameData.GetCutscene(pairExpansion.CutsceneCompatibleSuccessId) ?? Game.Session.Puzzle.cutsceneSuccessCompatible);
                         break;
                 }
             }

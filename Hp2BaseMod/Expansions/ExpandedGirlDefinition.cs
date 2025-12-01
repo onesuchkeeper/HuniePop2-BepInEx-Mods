@@ -68,9 +68,6 @@ public class ExpandedGirlDefinition
             var baseFile = Game.Persistence.playerFile.GetPlayerFileGirl(_def);
             body.Apply(_def);
 
-            ModInterface.Log.LogInfo($"Post apply body outfits in def: {string.Join(",", _def.outfits.Select(x => x?.outfitName))}");
-            ModInterface.Log.LogInfo($"Post apply body outfits in body: {string.Join(",", body.Outfits.Select(x => x?.outfitName))}");
-
             baseFile.outfitIndex = _def.defaultOutfitIndex;
             baseFile.hairstyleIndex = _def.defaultHairstyleIndex;
         }
@@ -188,11 +185,11 @@ public class ExpandedGirlDefinition
 
     public GirlHairstyleSubDefinition GetHairstyle(GirlBodySubDefinition body, RelativeId id)
     {
-        if (body.Hairstyles.TryGet(HairstyleIdToIndex[id], out var hairstyle))
+        if (!body.Hairstyles.TryGet(HairstyleIdToIndex[id], out var hairstyle))
         {
-            return hairstyle;
+            hairstyle = body.Hairstyles[body.DefaultHairstyleIndex];
         }
 
-        return body.Hairstyles[body.DefaultHairstyleIndex];
+        return hairstyle;
     }
 }

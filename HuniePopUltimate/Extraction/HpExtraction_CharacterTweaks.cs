@@ -492,7 +492,7 @@ public partial class HpExtraction
                 };
                 break;
             case 9://kyu
-                body.BackPosition = new VectorInfo(225f, 454f);
+                body.BackPosition = new VectorInfo(245f, 454f);
                 body.HeadPosition = new VectorInfo(230, 780);
                 girlMod.SpecialCharacter = false;
                 body.SpecialEffectName = "FairyWingsKyu";

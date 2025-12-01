@@ -336,7 +336,7 @@ public class Plugin : Hp2BaseModPlugin
 
         Game.Data.Girls.GetAllBySpecial(true)
             .SelectMany(x => x.expressions)
-            .Where(x => x.partIndexEyesGlow == -1)
+            .Where(x => x != null && x.partIndexEyesGlow == -1)
             .ForEach(x => x.partIndexEyesGlow = x.partIndexEyes);
 
         var kyu = ModInterface.GameData.GetGirl(Girls.KyuId).Expansion();

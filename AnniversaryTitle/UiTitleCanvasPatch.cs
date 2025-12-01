@@ -376,36 +376,76 @@ public class ExpandedUiTitleCanvas
         Plugin.InitialTitleAnimation = false;
     }
 
+
+
     private IEnumerator<object> LoopAnimationWithMusic()
     {
         if (_audioSource != null)
         {
             var lastTime = -999f;
-            while (true)//coroutine will be killed on Destroy
+            while (_core.gameObject != null)//coroutine will be killed on Destroy 
             {
                 yield return new WaitUntil(() =>
                 {
-                    if (lastTime > _audioSource.time)//when last time is smaller than current time, return false
-                    {
-                        return true;
-                    }
-
+                    if (_core.gameObject == null) return true;
+                    if (lastTime > _audioSource.time) return true;
                     lastTime = _audioSource.time;
-                    return false;//when last time is bigger then or equal to current time, return true, when they equal do false
+                    return false;
                 });
 
-                lastTime = -999f;
-                _audioSource.time = 0f;
-                if (_audioSource.isActiveAndEnabled) _audioSource.Play();
-                PlayAnimation();
+                if (_core.gameObject != null)
+                {
+                    lastTime = -999f;
+                    _audioSource.time = 0f;
+                    if (_audioSource.isActiveAndEnabled) _audioSource.Play();
+                    PlayAnimation();
+                }
             }
         }
     }
 
+    // private IEnumerator<object> LoopAnimationWithMusic()
+    // {
+    //     if (this._audioSource == null)
+    //     {
+    //         yield break;
+    //     }
+
+    //     // Ensure audio is not set to loop in the Inspector
+    //     this._audioSource.loop = false;
+
+    //     while (true)
+    //     {
+    //         if (this == null || _core.gameObject == null)
+    //         {
+    //             yield break;
+    //         }
+
+    //         // Restart audio
+    //         this._audioSource.time = 0f;
+    //         if (this._audioSource.isActiveAndEnabled)
+    //         {
+    //             this._audioSource.Play();
+    //         }
+
+    //         PlayAnimation();
+
+    //         // Wait for audio to finish
+    //         while (this._audioSource.isPlaying)
+    //         {
+    //             if (this == null || _core.gameObject == null)
+    //             {
+    //                 yield break;
+    //             }
+
+    //             yield return null; // Next frame
+    //         }
+    //     }
+    // }
+
     internal void OnDestroy()
     {
         TweenUtils.KillTween(_animationSequence);
-
         GameObject.Destroy(_frontSprite);
         GameObject.Destroy(_foregroundSprite);
         GameObject.Destroy(_midSprite);

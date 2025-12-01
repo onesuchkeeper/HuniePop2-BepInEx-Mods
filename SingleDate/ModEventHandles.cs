@@ -120,8 +120,11 @@ internal static class ModEventHandles
             if (girlSave?.RelationshipLevel < maxSingleGirlRelationshipLevel - 1)
             {
                 ModInterface.Log.LogInfo("Single date deny bonus round");
+                if (args.LevelUpType == PuzzleRoundOverArgs.CutsceneType.AttractToLovers)
+                {
+                    args.LevelUpType = PuzzleRoundOverArgs.CutsceneType.None;
+                }
                 args.IsSexDate = false;
-                args.LevelUpType = PuzzleRoundOverArgs.CutsceneType.None;
                 args.IsGameOver = true;
             }
             // at required level at sex loc and time

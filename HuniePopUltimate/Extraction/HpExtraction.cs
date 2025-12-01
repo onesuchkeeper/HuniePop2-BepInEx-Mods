@@ -656,7 +656,7 @@ public partial class HpExtraction : BaseExtraction
                         IsCodeUnlocked = false,
                         IsPurchased = false,
                         IsNSFW = true,
-                        HideNipples = true,
+                        HideNipples = false,
                     });
                 }
 

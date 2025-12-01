@@ -14,10 +14,10 @@ public static class SingleDateAttractCutscene
             CleanUpType = CutsceneCleanUpType.NONE,
             Steps = new List<IGameDefinitionInfo<CutsceneStepSubDefinition>>()
             {
-                //big move dialogue
+                // big move dialogue
                 CutsceneStepUtility.MakeDialogTriggerInfo(new RelativeId(-1, 34), CutsceneStepProceedType.AUTOMATIC, CutsceneStepDollTargetType.RANDOM),
                 CutsceneStepUtility.MakeWaitInfo(0.5f),
-                CutsceneStepUtility.MakeShowWindowInfo(false, "PhotosWindow", CutsceneStepProceedType.AUTOMATIC),
+                CutsceneStepUtility.MakeShowWindowInfo(true, "PhotosWindow", CutsceneStepProceedType.AUTOMATIC),
             }
         });
     }

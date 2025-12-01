@@ -1,6 +1,7 @@
 ﻿using System;
 
 namespace Hp2BaseMod.GameDataInfo;
+
 public class PairStyleInfo
 {
     public GirlStyleInfo MeetingGirlOne;
@@ -10,6 +11,35 @@ public class PairStyleInfo
     public GirlStyleInfo SexGirlOne;
 
     public GirlStyleInfo SexGirlTwo;
+
+    public PairStyleInfo() { }
+
+    internal PairStyleInfo(GirlPairDefinition def)
+    {
+        MeetingGirlOne = new GirlStyleInfo()
+        {
+            HairstyleId = new RelativeId(-1, (int)def.meetingStyleTypeOne),
+            OutfitId = new RelativeId(-1, (int)def.meetingStyleTypeOne)
+        };
+
+        MeetingGirlTwo = new GirlStyleInfo()
+        {
+            HairstyleId = new RelativeId(-1, (int)def.meetingStyleTypeTwo),
+            OutfitId = new RelativeId(-1, (int)def.meetingStyleTypeTwo)
+        };
+
+        SexGirlOne = new GirlStyleInfo()
+        {
+            HairstyleId = new RelativeId(-1, (int)def.sexStyleTypeOne),
+            OutfitId = new RelativeId(-1, (int)def.sexStyleTypeOne)
+        };
+
+        SexGirlTwo = new GirlStyleInfo()
+        {
+            HairstyleId = new RelativeId(-1, (int)def.sexStyleTypeTwo),
+            OutfitId = new RelativeId(-1, (int)def.sexStyleTypeTwo)
+        };
+    }
 
     public void SetData(ref PairStyleInfo def)
     {

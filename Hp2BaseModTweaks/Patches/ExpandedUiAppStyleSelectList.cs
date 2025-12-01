@@ -26,13 +26,8 @@ namespace Hp2BaseModTweaks
 
         [HarmonyPatch("Refresh")]
         [HarmonyPrefix]
-        public static void PreRefresh(UiAppStyleSelectList __instance)
-            => ExpandedUiAppStyleSelectList.Get(__instance).PreRefresh();
-
-        [HarmonyPatch("Refresh")]
-        [HarmonyPostfix]
-        public static void PostRefresh(UiAppStyleSelectList __instance)
-            => ExpandedUiAppStyleSelectList.Get(__instance).PostRefresh();
+        public static bool Refresh(UiAppStyleSelectList __instance)
+            => ExpandedUiAppStyleSelectList.Get(__instance).Refresh();
 
         [HarmonyPatch("OnBuyButtonPressed")]
         [HarmonyPrefix]
@@ -74,7 +69,6 @@ namespace Hp2BaseModTweaks
         private RectTransform _paddingRectTransform;
         private RectTransform _itemContainerRectTransform;
         private List<UiAppSelectListItem> _ownedListItems = new List<UiAppSelectListItem>();
-        private Vector2 _preRefreshPos;
 
         private int _purchaseCost;
         private bool _initialized;
@@ -158,76 +152,51 @@ namespace Hp2BaseModTweaks
             _extensions.Remove(_uiAppStyleSelectList);
         }
 
-        public void PreRefresh()
-        {
-            _preRefreshPos = _uiAppStyleSelectList.rectTransform.anchoredPosition;
-
-            //if the selected wardrobe is on another page, the wardrobe will populate this with a null
-            //and will throw on refresh. So manually set the playerFile girl from the flag or lola for default
-            var def = Game.Data.Girls.Get(Game.Persistence.playerFile.GetFlagValue("wardrobe_girl_id")) ?? Game.Data.Girls.Get(1);
-            var body = def.Expansion().GetCurrentBody();
-
-            //test
-            foreach (var entry in def.outfits)
-            {
-                ModInterface.Log.LogInfo($"{entry?.outfitName ?? "null"}");
-            }
-
-            f_playerFileGirl.SetValue(_uiAppStyleSelectList, Game.Persistence.playerFile.GetPlayerFileGirl(def));
-
-            if (_initialized && def != null)
-            {
-                //create the correct number of items
-                var diff = (_uiAppStyleSelectList.alternative
-                        ? def.outfits.Count
-                        : def.hairstyles.Count)
-                    - _uiAppStyleSelectList.listItems.Count;
-
-                if (diff > 0)
-                {
-                    // add missing
-                    for (var i = diff; i > 0; i--)
-                    {
-                        var newItem = UnityEngine.Object.Instantiate(_listItemTemplate);
-                        newItem.rectTransform.SetParent(_itemContainerRectTransform, false);
-
-                        newItem.ListItemSelectedEvent += On_ListItemSelected;
-
-                        _ownedListItems.Add(newItem);
-                        _uiAppStyleSelectList.listItems.Add(newItem);
-                    }
-                }
-                else if (diff < 0)
-                {
-                    //remove extras
-                    for (var i = diff; i < 0; i++)
-                    {
-                        var old = _uiAppStyleSelectList.listItems.Last();
-                        _uiAppStyleSelectList.listItems.RemoveAt(_uiAppStyleSelectList.listItems.Count - 1);
-
-                        old.ListItemSelectedEvent -= On_ListItemSelected;
-                        _ownedListItems.Remove(old);
-
-                        UnityEngine.Object.Destroy(old.gameObject);
-                    }
-                }
-            }
-        }
-
-        public void PostRefresh()
+        /// <summary>
+        /// Completely replaces <see cref="UiAppStyleSelectList.Refresh"/>
+        /// Original cannot handle gaps in collections made nesisary by the indexing of parts
+        /// </summary>
+        /// <returns></returns>
+        public bool Refresh()
         {
             if (!_initialized
                 || !f_playerFileGirl.TryGetValue<PlayerFileGirl>(_uiAppStyleSelectList, out var playerFileGirl)
                 || playerFileGirl.girlDefinition == null)
             {
-                return;
+                return false;
             }
 
-            //ignore anchor changes, let the layout determine position
-            _uiAppStyleSelectList.rectTransform.anchoredPosition = _preRefreshPos;
+            // get girl def, default to Ashley
+            var i = 0;
+            var def = Game.Data.Girls.Get(Game.Persistence.playerFile.GetFlagValue("wardrobe_girl_id"));
+
+            if (def == null)
+            {
+                def = ModInterface.GameData.GetGirl(Girls.AshleyId);
+                f_playerFileGirl.SetValue(_uiAppStyleSelectList, Game.Persistence.playerFile.GetPlayerFileGirl(def));
+            }
+
+            // create missing list items
+            var diff = (_uiAppStyleSelectList.alternative
+                ? def.outfits.Where(x => x != null).Count()
+                : def.hairstyles.Where(x => x != null).Count()) - _uiAppStyleSelectList.listItems.Count;
+
+            if (diff > 0)
+            {
+                // add missing
+                for (i = diff; i > 0; i--)
+                {
+                    var newItem = UnityEngine.Object.Instantiate(_listItemTemplate);
+                    newItem.rectTransform.SetParent(_itemContainerRectTransform, false);
+
+                    newItem.ListItemSelectedEvent += On_ListItemSelected;
+
+                    _ownedListItems.Add(newItem);
+                    _uiAppStyleSelectList.listItems.Add(newItem);
+                }
+            }
 
             var postGame = Game.Persistence.playerFile.storyProgress >= 14;
-
             var purchaseItems = new List<UiAppSelectListItem>();
             var codeItems = new List<UiAppSelectListItem>();
             var shownItems = new List<UiAppSelectListItem>();
@@ -237,10 +206,10 @@ namespace Hp2BaseModTweaks
 
             var styleEnumerator = _uiAppStyleSelectList.alternative
                 ? playerFileGirl.girlDefinition.outfits
-                    .Select<GirlOutfitSubDefinition, (string Name, ExpandedStyleDefinition Expansion)>(x => (x.outfitName, x.Expansion()))
+                    .Select<GirlOutfitSubDefinition, (string Name, ExpandedStyleDefinition Expansion)>(x => x == null ? (null, null) : (x.outfitName, x.Expansion()))
                     .GetEnumerator()
                 : playerFileGirl.girlDefinition.hairstyles
-                    .Select<GirlHairstyleSubDefinition, (string Name, ExpandedStyleDefinition Expansion)>(x => (x.hairstyleName, x.Expansion()))
+                    .Select<GirlHairstyleSubDefinition, (string Name, ExpandedStyleDefinition Expansion)>(x => x == null ? (null, null) : (x.hairstyleName, x.Expansion()))
                     .GetEnumerator();
 
             var listItemEnumerator = _uiAppStyleSelectList.listItems.GetEnumerator();
@@ -248,7 +217,6 @@ namespace Hp2BaseModTweaks
             UiAppSelectListItem purchaseItem = null;
             _purchaseCost = 0;
 
-            var i = 0;
             while (styleEnumerator.MoveNext() && listItemEnumerator.MoveNext())
             {
                 var unlocked = _uiAppStyleSelectList.alternative
@@ -258,7 +226,12 @@ namespace Hp2BaseModTweaks
                 var hideIfLocked = false;
                 string text;
 
-                if (styleEnumerator.Current.Expansion.IsCodeUnlocked)
+                if (styleEnumerator.Current.Expansion == null)
+                {
+                    hiddenItems.Add(listItemEnumerator.Current);
+                    text = string.Empty;
+                }
+                else if (styleEnumerator.Current.Expansion.IsCodeUnlocked)
                 {
                     text = unlocked
                         ? styleEnumerator.Current.Name
@@ -338,6 +311,16 @@ namespace Hp2BaseModTweaks
                 i++;
             }
 
+            while (listItemEnumerator.MoveNext())
+            {
+                hiddenItems.Add(listItemEnumerator.Current);
+            }
+
+            foreach (var hiddenItem in hiddenItems)
+            {
+                hiddenItem.Populate(false, string.Empty, true);
+            }
+
             f_purchaseListItem.SetValue(_uiAppStyleSelectList, purchaseItem);
 
             purchaseItem?.ShowCost(
@@ -396,6 +379,8 @@ namespace Hp2BaseModTweaks
             //for fun and to show the user that the list can scroll, move the scroll to the bottom and have it
             //scroll up
             _paddingRectTransform.position -= new Vector3(0f, _scrollRectTransform.sizeDelta.y / 2);
+
+            return false;
         }
 
         private void On_ListItemSelected(UiAppSelectListItem listItem) => m_onListItemSelected.Invoke(_uiAppStyleSelectList, [listItem]);

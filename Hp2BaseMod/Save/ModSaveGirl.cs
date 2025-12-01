@@ -214,9 +214,19 @@ namespace Hp2BaseMod.Save
                 save.hairstyleIndex = hairstyleIndex;
             }
 
+            if (save.hairstyleIndex < 0)
+            {
+                save.hairstyleIndex = girl.defaultHairstyleIndex;
+            }
+
             if (girlExpanded.OutfitIdToIndex.TryGetValue(OutfitId, out var outfitIndex))
             {
                 save.outfitIndex = outfitIndex;
+            }
+
+            if (save.outfitIndex < 0)
+            {
+                save.outfitIndex = girl.defaultOutfitIndex;
             }
 
             ValidatedSet.SetModIds(ref save.learnedBaggage, LearnedBaggage, GameDataType.Ailment);
@@ -245,7 +255,7 @@ namespace Hp2BaseMod.Save
                     ModInterface.Log.LogInfo($"Discarding unlocked outfit with unregistered id {unlockedOutfit} from save for girl {id}");
                 }
             }
-            save.unlockedOutfits = save.unlockedOutfits.Distinct().ToList();
+            save.unlockedOutfits = save.unlockedOutfits.Distinct().Where(x => x >= 0).ToList();
 
             foreach (var unlockedHairstyle in UnlockedHairstyles.OrEmptyIfNull())
             {
@@ -258,7 +268,7 @@ namespace Hp2BaseMod.Save
                     ModInterface.Log.LogInfo($"Discarding unlocked hairstyle with unregistered id {unlockedHairstyle} from save for girl {id}");
                 }
             }
-            save.unlockedHairstyles = save.unlockedHairstyles.Distinct().ToList();
+            save.unlockedHairstyles = save.unlockedHairstyles.Distinct().Where(x => x >= 0).ToList();
         }
     }
 }

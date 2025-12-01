@@ -223,10 +223,6 @@ public class Plugin : Hp2BaseModPlugin
 
         ModInterface.Log.LogInfo("Loading HuniePop assembly (this may take a bit)");
         var hpExtraction = new HpExtraction(hpDirConfig.Value, m_AddGirlDatePhotos, m_AddGirlSexPhotos, m_SetCharmSprite, nudeOutfitPart);
-        // using (var hpExtraction = new HpExtraction(hpDirConfig.Value, m_AddGirlDatePhotos, m_AddGirlSexPhotos, m_SetCharmSprite, nudeOutfitPart))
-        // {
-
-        // }
         using (ModInterface.Log.MakeIndent("HuniePop assembly loaded successfully, beginning import:"))
         {
             hpExtraction.Extract();
