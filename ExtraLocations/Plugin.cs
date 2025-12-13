@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using BepInEx;
+using BepInEx.Configuration;
 using Hp2BaseMod;
 using Hp2BaseMod.GameDataInfo;
 using Hp2BaseMod.GameDataInfo.Interface;
@@ -20,16 +21,26 @@ public class Plugin : BaseUnityPlugin
     private static readonly Vector2 BG_SIZE = new Vector2(2008, 1130);
     private static readonly Vector2 DAC_SIZE = new Vector2(3568, 2025);
 
-    private static readonly string CONFIG_PROP_DAC = "DigitalArtCollectionDir";
-    private static readonly string CONFIG_PROP_OST = "DoubleDateOstDir";
+    public static ConfigEntry<string> ConfigDac => _configDac;
+    private static ConfigEntry<string> _configDac;
+
+    public static ConfigEntry<string> ConfigOst => _configOst;
+    private static ConfigEntry<string> _configOst;
 
     public static int ModId => _modId;
     private static int _modId = ModInterface.GetSourceId(MyPluginInfo.PLUGIN_GUID);
 
     private void Awake()
     {
-        this.Config.Bind(Hp2BaseModPlugin.CONFIG_GENERAL, CONFIG_PROP_DAC, Path.Combine(Paths.PluginPath, "..", "..", "Digital Art Collection"), "Directory containing the HuniePop 2 Digital Art Collection Dlc");
-        this.Config.Bind(Hp2BaseModPlugin.CONFIG_GENERAL, CONFIG_PROP_OST, Path.Combine(Paths.PluginPath, "..", "..", "..", "..", "music", "HuniePop 2 - Double Date OST", "WAV"), "Directory containing the HuniePop 2 OST");
+        _configDac = Config.Bind(Hp2BaseModPlugin.CONFIG_GENERAL,
+            "DigitalArtCollectionDir",
+            Path.Combine(Paths.PluginPath, "..", "..", "Digital Art Collection"),
+            "Directory containing the HuniePop 2 Digital Art Collection Dlc");
+
+        _configOst = Config.Bind(Hp2BaseModPlugin.CONFIG_GENERAL,
+            "DoubleDateOstDir",
+            Path.Combine(Paths.PluginPath, "..", "..", "..", "..", "music", "HuniePop 2 - Double Date OST", "WAV"),
+            "Directory containing the HuniePop 2 OST");
 
         var dacBgScaleRs = new TextureRsScale(BG_SIZE / DAC_SIZE);
 
@@ -38,8 +49,7 @@ public class Plugin : BaseUnityPlugin
         AudioClipInfo volcanoBgMusic = null;
         AudioClipInfo hotelRoomBgMusic = null;
 
-        if (this.Config.TryGetEntry<string>(Hp2BaseModPlugin.CONFIG_GENERAL, CONFIG_PROP_OST, out var ConfigOst)
-            && !string.IsNullOrWhiteSpace(ConfigOst.Value)
+        if (!string.IsNullOrWhiteSpace(ConfigOst.Value)
             && Directory.Exists(ConfigOst.Value))
         {
             var ostHiddenPartyMix = Path.Combine(ConfigOst.Value, "31 Double Date Party Mix (Bonus).wav");
@@ -95,11 +105,10 @@ public class Plugin : BaseUnityPlugin
         };
 
         //dac locs
-        if (this.Config.TryGetEntry<string>(Hp2BaseModPlugin.CONFIG_GENERAL, CONFIG_PROP_DAC, out var DacDirConfig)
-            && !string.IsNullOrWhiteSpace(DacDirConfig.Value)
-            && Directory.Exists(DacDirConfig.Value))
+        if (!string.IsNullOrWhiteSpace(ConfigDac.Value)
+            && Directory.Exists(ConfigDac.Value))
         {
-            var waterfallImgDir = Path.Combine(DacDirConfig.Value, "Misc", "Cut Locations", "Waterfall");
+            var waterfallImgDir = Path.Combine(ConfigDac.Value, "Misc", "Cut Locations", "Waterfall");
 
             ModInterface.AddDataMod(new LocationDataMod(Locations.HiddenWaterfall, InsertStyle.replace)
             {

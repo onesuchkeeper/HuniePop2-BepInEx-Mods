@@ -38,7 +38,7 @@ internal static class PuzzleStatusPatch
             return;
         }
 
-        ModInterface.Log.LogInfo("Forcing next round girl focus for single date to alt girl");
+        ModInterface.Log.Message("Forcing next round girl focus for single date to alt girl");
 
         f_altGirlFocused.SetValue(__instance, true);
     }
@@ -52,7 +52,7 @@ internal static class PuzzleStatusPatch
             return;
         }
 
-        ModInterface.Log.LogInfo("Overwrite setGirlFocus for single date to alt girl");
+        ModInterface.Log.Message("Overwrite setGirlFocus for single date to alt girl");
 
         altGirl = true;
     }
@@ -66,7 +66,7 @@ internal static class PuzzleStatusPatch
             return;
         }
 
-        ModInterface.Log.LogInfo("Overwrite setGirlFocusByStamina for single date to alt girl");
+        ModInterface.Log.Message("Overwrite setGirlFocusByStamina for single date to alt girl");
 
         f_altGirlFocused.SetValue(__instance, true);
     }

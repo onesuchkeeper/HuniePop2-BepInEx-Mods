@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using AssetStudio;
 using Hp2BaseMod;
-using Hp2BaseMod.Extension.OrderedDictionaryExtension;
+using Hp2BaseMod.Extension;
 using Hp2BaseMod.GameDataInfo;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
@@ -102,7 +102,7 @@ public partial class HpExtraction
                         : LocationType.DATE);
             }
 
-            ModInterface.Log.LogInfo($"{hp1Id} {locationName}, - Loc type locationType{locationType} {locationMod.LocationType}");
+            ModInterface.Log.Message($"{hp1Id} {locationName}, - Loc type locationType{locationType} {locationMod.LocationType}");
 
             if (locationDef.TryGetValue("spriteCollectionName", out string spriteCollectionName)
                 && collectionData.TryGetValue(spriteCollectionName, out var spriteCollection)

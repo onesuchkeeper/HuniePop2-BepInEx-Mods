@@ -131,7 +131,7 @@ public static class ModInterface
             _modSaveData = JsonConvert.DeserializeObject<ModSaveData>(File.ReadAllText(_modSavePath));
             if (_modSaveData == null)
             {
-                Log.LogWarning("Failed to load mod save data");
+                Log.Warning("Failed to load mod save data");
                 _modSaveData = new ModSaveData();
             }
         }
@@ -158,7 +158,7 @@ public static class ModInterface
     {
         _modSaveData.Strip(saveData);
         File.WriteAllText(_modSavePath, JsonConvert.SerializeObject(_modSaveData));
-        Log.LogInfo($"Mod data saved");
+        Log.Message($"Mod data saved");
     }
 
     internal static void InjectSave(SaveData saveData) => _modSaveData.SetData(saveData);
@@ -193,7 +193,7 @@ public static class ModInterface
         }
 
         sourceId = _idPool.AddUnusedItem();
-        Log.LogInfo($"Added new source id {sourceId} for previously unregistered GUID {sourceGUID}");
+        Log.Message($"Added new source id {sourceId} for previously unregistered GUID {sourceGUID}");
         _modSaveData.SourceGUID_Id.Add(sourceGUID, sourceId);
         _sourceId_GUID.Add(sourceId, sourceGUID);
         return sourceId;
@@ -273,7 +273,7 @@ public static class ModInterface
             }
             catch (Exception e)
             {
-                Log.LogError("Command exception", e);
+                Log.Error("Command exception", e);
                 result = "Exception thrown while executing command";
                 return false;
             }
@@ -287,13 +287,13 @@ public static class ModInterface
     {
         if (command == null || command.Name == null)
         {
-            Log.LogError($"Attempt to register invalid command {command}");
+            Log.Error($"Attempt to register invalid command {command}");
             return;
         }
 
         if (command.Name.Any(x => x == '.' || x == ' ' || x == '\t'))
         {
-            Log.LogError($"Invalid command name \"{command.Name}\"");
+            Log.Error($"Invalid command name \"{command.Name}\"");
             return;
         }
 
@@ -402,7 +402,8 @@ public static class ModInterface
     /// </summary>
     public static void RegisterInterModValue(int modId, string name, object value)
     {
-        ModInterface.Log.LogInfo($"Registering interop value with name {name}, for mod with id {modId}.");
+        ModInterface.Log.Message($"Registering interop value with name {name}, for mod with id {modId}.");
+        ModInterface.Log.InNull(_interModValues, nameof(_interModValues));
         _interModValues.GetOrNew(modId)[name] = value;
     }
 
@@ -446,7 +447,7 @@ public static class ModInterface
 
         if (Game.Persistence.playerFile.storyProgress >= 13)
         {
-            var kyuHole = Game.Persistence.playerFile.GetFlagValue("kyu_hole_selection");
+            var kyuHole = Game.Persistence.playerFile.GetFlagValue(Flags.KYU_HOLE_SELECTION);
             earnedPhotos = earnedPhotos.Append(Game.Session.Hub.kyuPhotoDefs[Mathf.Clamp(kyuHole, 0, Game.Session.Hub.kyuPhotoDefs.Length - 1)]);
         }
 

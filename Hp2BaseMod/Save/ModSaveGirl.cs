@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Hp2BaseMod.Extension.IEnumerableExtension;
+using Hp2BaseMod.Extension;
 using Hp2BaseMod.Utility;
 
 namespace Hp2BaseMod.Save
@@ -205,18 +205,11 @@ namespace Hp2BaseMod.Save
 
         private void Inject(SaveFileGirl save)
         {
-            var id = ModInterface.Data.GetDataId(GameDataType.Girl, save.girlId);
-            var girl = ModInterface.GameData.GetGirl(id);
-            var girlExpanded = ExpandedGirlDefinition.Get(id);
+            var girlExpanded = ExpandedGirlDefinition.Get(save.girlId);
 
             if (girlExpanded.HairstyleIdToIndex.TryGetValue(HairstyleId, out var hairstyleIndex))
             {
                 save.hairstyleIndex = hairstyleIndex;
-            }
-
-            if (save.hairstyleIndex < 0)
-            {
-                save.hairstyleIndex = girl.defaultHairstyleIndex;
             }
 
             if (girlExpanded.OutfitIdToIndex.TryGetValue(OutfitId, out var outfitIndex))
@@ -224,25 +217,11 @@ namespace Hp2BaseMod.Save
                 save.outfitIndex = outfitIndex;
             }
 
-            if (save.outfitIndex < 0)
-            {
-                save.outfitIndex = girl.defaultOutfitIndex;
-            }
-
             ValidatedSet.SetModIds(ref save.learnedBaggage, LearnedBaggage, GameDataType.Ailment);
-            save.learnedBaggage = save.learnedBaggage.Where(x => x > 0 && x < girl.baggageItemDefs.Count).ToList();
-
             ValidatedSet.SetModIds(ref save.receivedUniques, ReceivedUniques, GameDataType.Item);
-            save.receivedUniques = save.receivedUniques.Where(x => x > 0 && x < girl.uniqueItemDefs.Count).ToList();
-
             ValidatedSet.SetModIds(ref save.receivedShoes, ReceivedShoes, GameDataType.Item);
-            save.receivedShoes = save.receivedShoes.Where(x => x > 0 && x < girl.shoesItemDefs.Count).ToList();
-
             ValidatedSet.SetModIds(ref save.learnedFavs, LearnedFavs, GameDataType.Question);
-            save.learnedFavs = save.learnedFavs.Where(x => x > 0 && x < girl.favAnswers.Count).ToList();
-
             ValidatedSet.SetModIds(ref save.recentHerQuestions, RecentHerQuestions, GameDataType.Question);
-            save.recentHerQuestions = save.recentHerQuestions.Where(x => x > 0 && x < girl.herQuestions.Count).ToList();
 
             foreach (var unlockedOutfit in UnlockedOutfits.OrEmptyIfNull())
             {
@@ -250,12 +229,7 @@ namespace Hp2BaseMod.Save
                 {
                     save.unlockedOutfits.Add(index);
                 }
-                else
-                {
-                    ModInterface.Log.LogInfo($"Discarding unlocked outfit with unregistered id {unlockedOutfit} from save for girl {id}");
-                }
             }
-            save.unlockedOutfits = save.unlockedOutfits.Distinct().Where(x => x >= 0).ToList();
 
             foreach (var unlockedHairstyle in UnlockedHairstyles.OrEmptyIfNull())
             {
@@ -263,12 +237,7 @@ namespace Hp2BaseMod.Save
                 {
                     save.unlockedHairstyles.Add(index);
                 }
-                else
-                {
-                    ModInterface.Log.LogInfo($"Discarding unlocked hairstyle with unregistered id {unlockedHairstyle} from save for girl {id}");
-                }
             }
-            save.unlockedHairstyles = save.unlockedHairstyles.Distinct().Where(x => x >= 0).ToList();
         }
     }
 }

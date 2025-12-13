@@ -11,7 +11,6 @@ namespace Hp2BaseMod.Save;
 [Serializable]
 public class ModSaveFile
 {
-    private const string WARDROBE_GIRL_ID_FLAG = "wardrobe_girl_id";
     private const int HOTEL_ROOM_LOC_ID = 21;
     private const int LOLA_GIRL_ID = 1;
     private const int DEFAULT_INV_SLOT_COUNT = 35;
@@ -43,7 +42,7 @@ public class ModSaveFile
     public void Strip(SaveFile saveFile)
     {
         // wardrobe girl id
-        var wardrobeGirlIdFlag = saveFile.flags.FirstOrDefault(x => x.flagName == WARDROBE_GIRL_ID_FLAG);
+        var wardrobeGirlIdFlag = saveFile.flags.FirstOrDefault(x => x.flagName == Flags.WARDROBE_GIRL_ID);
         var wardrobeGirlId = wardrobeGirlIdFlag?.flagValue;
         if (wardrobeGirlId.HasValue)
         {
@@ -170,7 +169,7 @@ public class ModSaveFile
     {
         var i = 0;
 
-        var wardrobeFlag = saveFile.flags.FirstOrDefault(x => x.flagName == WARDROBE_GIRL_ID_FLAG);
+        var wardrobeFlag = saveFile.flags.FirstOrDefault(x => x.flagName == Flags.WARDROBE_GIRL_ID);
         if (wardrobeFlag != null)
         {
             ValidatedSet.SetFromRelativeId(ref wardrobeFlag.flagValue, GameDataType.GirlPair, WardrobeGirlId);
@@ -186,12 +185,12 @@ public class ModSaveFile
         if (WardrobeGirlId.HasValue
             && ModInterface.Data.TryGetRuntimeDataId(GameDataType.Girl, WardrobeGirlId, out var wardrobeGirlRuntimeId))
         {
-            saveFile.flags.Add(new SaveFileFlag(WARDROBE_GIRL_ID_FLAG) { flagValue = wardrobeGirlRuntimeId });
+            saveFile.flags.Add(new SaveFileFlag(Flags.WARDROBE_GIRL_ID) { flagValue = wardrobeGirlRuntimeId });
         }
 
-        SaveUtility.HandleModSaves(GameDataType.Girl, Girls, saveFile.girls, saveFile.girls.Select(x => x.girlId), "girl");
-        SaveUtility.HandleModSaves(GameDataType.GirlPair, GirlPairs, saveFile.girlPairs, saveFile.girlPairs.Select(x => x.girlPairId), "girl pair");
-        SaveUtility.HandleModSaves(GameDataType.Location, FinderSlots, saveFile.finderSlots, saveFile.finderSlots.Select(x => x.locationId), "finder slot");
+        SaveUtility.HandleModSaves(GameDataType.Girl, Girls, saveFile.girls, saveFile.girls.Select(x => x.girlId));
+        SaveUtility.HandleModSaves(GameDataType.GirlPair, GirlPairs, saveFile.girlPairs, saveFile.girlPairs.Select(x => x.girlPairId));
+        SaveUtility.HandleModSaves(GameDataType.Location, FinderSlots, saveFile.finderSlots, saveFile.finderSlots.Select(x => x.locationId));
 
         i = 0;
         var invSlotEnum = InventorySlots.GetEnumerator();

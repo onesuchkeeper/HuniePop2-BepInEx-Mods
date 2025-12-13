@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Hp2BaseMod.Extension;
 using Hp2BaseMod.GameDataInfo;
 using Hp2BaseMod.ModGameData;
 
@@ -64,16 +65,22 @@ public class ExpandedGirlDefinition
     {
         if (Bodies.TryGetValue(id, out var body))
         {
-            ModInterface.Save.GetCurrentFile().GetGirl(_id).BodyId = id;
-            var baseFile = Game.Persistence.playerFile.GetPlayerFileGirl(_def);
+            var girl = ModInterface.Save.GetCurrentFile().GetGirl(_id);
+            var oldId = girl.BodyId;
+            girl.BodyId = id;
+
             body.Apply(_def);
 
-            baseFile.outfitIndex = _def.defaultOutfitIndex;
-            baseFile.hairstyleIndex = _def.defaultHairstyleIndex;
+            if (oldId != id)
+            {
+                var baseFile = Game.Persistence.playerFile.GetPlayerFileGirl(_def);
+                baseFile.outfitIndex = _def.defaultOutfitIndex;
+                baseFile.hairstyleIndex = _def.defaultHairstyleIndex;
+            }
         }
         else
         {
-            ModInterface.Log.LogWarning($"Failed to set body of girl {_id} to {id}");
+            ModInterface.Log.Warning($"Failed to set body of girl {_id} to {id}");
         }
     }
 
@@ -192,4 +199,6 @@ public class ExpandedGirlDefinition
 
         return hairstyle;
     }
+
+    public Dictionary<RelativeId, RelativeId> FavQuestionIdToAnswerId = new();
 }

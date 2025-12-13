@@ -75,27 +75,30 @@ internal static class DefaultGameDataHandler
                     var expansion = ExpandedDialogTriggerDefinition.Get(dt);
                     var id = new RelativeId(-1, dt.id);
 
-                    // lines are looked up by trigger id and girl id.
-                    var girlIndex = 0;//each line set corresponds with a girl
-                    foreach (var lineSet in dt.dialogLineSets)
+                    if (GirlSubDataModder.IsGirlDialogTrigger(dt))
                     {
-                        var girlId = new RelativeId(-1, girlIndex);
-
-                        var lineIndexLookup = expansion.GirlIdToLineIdToLineIndex.GetOrNew(girlId);
-                        var lineIdLookup = expansion.GirlIdToLineIndexToLineId.GetOrNew(girlId);
-
-                        var lineIndex = 0;
-                        foreach (var line in lineSet.dialogLines)
+                        // lines are looked up by trigger id and girl id.
+                        var girlIndex = 0;//each line set corresponds with a girl
+                        foreach (var lineSet in dt.dialogLineSets)
                         {
-                            var lineId = new RelativeId(-1, lineIndex);
+                            var girlId = new RelativeId(-1, girlIndex);
 
-                            lineIndexLookup[lineId] = lineIndex;
-                            lineIdLookup[lineIndex] = lineId;
+                            var lineIndexLookup = expansion.GirlIdToLineIdToLineIndex.GetOrNew(girlId);
+                            var lineIdLookup = expansion.GirlIdToLineIndexToLineId.GetOrNew(girlId);
 
-                            lineIndex++;
+                            var lineIndex = 0;
+                            foreach (var line in lineSet.dialogLines)
+                            {
+                                var lineId = new RelativeId(-1, lineIndex);
+
+                                lineIndexLookup[lineId] = lineIndex;
+                                lineIdLookup[lineIndex] = lineId;
+
+                                lineIndex++;
+                            }
+
+                            girlIndex++;
                         }
-
-                        girlIndex++;
                     }
                 }
             }
@@ -174,6 +177,11 @@ internal static class DefaultGameDataHandler
                         {
                             part.Expansion().RequiredHairstyles = hairShowingSpecials.ToList();
                         }
+
+                        for (i = 0; i < girl.favAnswers.Count; i++)
+                        {
+                            expansion.FavQuestionIdToAnswerId[new RelativeId(-1, i + 1)] = new RelativeId(-1, girl.favAnswers[i]);
+                        }
                     }
                 }
             }
@@ -206,10 +214,11 @@ internal static class DefaultGameDataHandler
 
             using (ModInterface.Log.MakeIndent("Questions"))
             {
-                foreach (var def in questionDataDict.Values)
+                foreach (var id_def in questionDataDict)
                 {
-                    var expansion = def.Expansion();
-                    MapRelativeIdRange(expansion.AnswerIdToIndex, expansion.AnswerIndexToId, def.questionAnswers.Count);
+                    var expansion = id_def.Value.Expansion();
+                    expansion.DialogTriggerIndex = id_def.Key - 1;
+                    MapRelativeIdRange(expansion.AnswerIdToIndex, expansion.AnswerIndexToId, id_def.Value.questionAnswers.Count);
                 }
             }
         }

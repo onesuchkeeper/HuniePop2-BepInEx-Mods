@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using BepInEx;
 using BepInEx.Bootstrap;
+using BepInEx.Configuration;
 using HarmonyLib;
 using Hp2BaseMod;
 using Hp2BaseMod.GameDataInfo;
@@ -20,28 +21,24 @@ namespace HuniePopUltimate;
 [BepInDependency("OSK.BepInEx.ExtraLocations", BepInDependency.DependencyFlags.SoftDependency)]
 public class Plugin : Hp2BaseModPlugin
 {
+    public const string DATA_DIR = "HuniePop_Data";
+    public const string DAC_DIR = "Digital Art Collection";
+    public const string REPEAT_THREESOME_UUID = "OSK.BepInEx.RepeatThreesome";
+    public const string SINGLE_DATE_UUID = "OSK.BepInEx.SingleDate";
+    public const string EXTRA_LOCATIONS_UUID = "OSK.BepInEx.ExtraLocations";
+
     public static readonly string ROOT_DIR = Path.Combine(Paths.PluginPath, MyPluginInfo.PLUGIN_NAME);
     public static readonly string IMAGES_DIR = Path.Combine(ROOT_DIR, "images");
-    public static readonly string DATA_DIR = "HuniePop_Data";
-    public static readonly string DAC_DIR = "Digital Art Collection";
     public static readonly string ASSEMBLY_DIR = Path.Combine(DATA_DIR, "Managed");
-    public static readonly string REPEAT_THREESOME_UUID = "OSK.BepInEx.RepeatThreesome";
-    public static readonly string SINGLE_DATE_UUID = "OSK.BepInEx.SingleDate";
-    public static readonly string EXTRA_LOCATIONS_UUID = "OSK.BepInEx.ExtraLocations";
 
-    [ConfigProperty(false, "If all Hp1 outfit and hairstyles should auto-unlock.")]
-    public static bool UnlockStyles
-    {
-        get => _instance.GetConfigProperty<bool>();
-        set => _instance.SetConfigProperty(value);
-    }
+    public static ConfigEntry<bool> UnlockStyles => _unlockStyles;
+    private static ConfigEntry<bool> _unlockStyles;
 
-    [ConfigProperty(false, "If all Hp1 photos should auto-unlock.")]
-    public static bool UnlockPhotos
-    {
-        get => _instance.GetConfigProperty<bool>();
-        set => _instance.SetConfigProperty(value);
-    }
+    public static ConfigEntry<bool> UnlockPhotos => _unlockPhotos;
+    private static ConfigEntry<bool> _unlockPhotos;
+
+    public static ConfigEntry<string> HuniePopDir => _huniePopDir;
+    private static ConfigEntry<string> _huniePopDir;
 
     /// <summary>
     /// Ids of locations where single data bonus rounds can take place.
@@ -59,36 +56,43 @@ public class Plugin : Hp2BaseModPlugin
 
     internal static int _photoModCount = 0;
 
-    private Func<RelativeId, bool> m_IsSexDateValid;
     private static Plugin _instance;
 
     public Plugin() : base(MyPluginInfo.PLUGIN_GUID) { }
 
-    private void Awake()
+    protected override void Awake()
     {
+        base.Awake();
+
+        var audioManager_GO = new GameObject();
+        var audioManager = audioManager_GO.AddComponent<AudioMemoryMonitor>();
+        audioManager.gameObject.transform.SetParent(this.transform);
+
         _instance = this;
+        AssetStudio.Logger.Default = new Logger(new TextWriter());
 
-        Config.Bind(Hp2BaseModPlugin.CONFIG_GENERAL, "HuniePopDir", Path.Combine(Paths.PluginPath, "..", "..", "..", "HuniePop"), "Path to the HuniePop install directory.");
+        _unlockStyles = Config.Bind(Hp2BaseModPlugin.CONFIG_GENERAL, nameof(UnlockStyles), false, "If all Hp1 outfit and hairstyles should auto-unlock.");
+        _unlockPhotos = Config.Bind(Hp2BaseModPlugin.CONFIG_GENERAL, nameof(UnlockPhotos), false, "If all Hp1 photos should auto-unlock.");
+        _huniePopDir = Config.Bind(Hp2BaseModPlugin.CONFIG_GENERAL, nameof(HuniePopDir), Path.Combine(Paths.PluginPath, "..", "..", "..", "HuniePop"), "Path to the HuniePop install directory.");
 
-        if (!(this.Config.TryGetEntry<string>(Hp2BaseModPlugin.CONFIG_GENERAL, "HuniePopDir", out var hpDirConfig)
-                && !string.IsNullOrWhiteSpace(hpDirConfig.Value)
-                && Directory.Exists(hpDirConfig.Value)))
+        if (!(!string.IsNullOrWhiteSpace(HuniePopDir.Value)
+                && Directory.Exists(HuniePopDir.Value)))
         {
-            ModInterface.Log.LogWarning("HuniePop Ultimate configuration does not contain an existing HuniePop directory. Please check \"HuniePop 2 - Double Date\\BepInEx\\config\\{MyPluginInfo.PLUGIN_GUID}.cfg\" and make sure the directory is correct.");
+            ModInterface.Log.Error("HuniePop Ultimate configuration does not contain an existing HuniePop directory. Please check \"HuniePop 2 - Double Date\\BepInEx\\config\\{MyPluginInfo.PLUGIN_GUID}.cfg\" and make sure the directory is correct.");
             return;
         }
 
-        var dataDir = Path.Combine(hpDirConfig.Value, DATA_DIR);
+        var dataDir = Path.Combine(HuniePopDir.Value, DATA_DIR);
         if (!Directory.Exists(dataDir))
         {
-            ModInterface.Log.LogWarning("HuniePop Ultimate failed to find HuniePop data directory");
+            ModInterface.Log.Error("HuniePop Ultimate failed to find HuniePop data directory");
             return;
         }
 
-        var assemblyDir = Path.Combine(hpDirConfig.Value, ASSEMBLY_DIR);
+        var assemblyDir = Path.Combine(HuniePopDir.Value, ASSEMBLY_DIR);
         if (!Directory.Exists(assemblyDir))
         {
-            ModInterface.Log.LogWarning("HuniePop Ultimate failed to find HuniePop assembly directory");
+            ModInterface.Log.Error("HuniePop Ultimate failed to find HuniePop assembly directory");
             return;
         }
 
@@ -142,16 +146,16 @@ public class Plugin : Hp2BaseModPlugin
                 SexGirlTwo = defaultGirlStyle,
             };
 
-            var questions = new List<IGameDefinitionInfo<GirlPairFavQuestionSubDefinition>>();
-            for (int i = 1; i <= 20; i++)
-            {
-                questions.Add(new GirlPairFavQuestionInfo()
-                {
-                    GirlResponseIndexOne = 1,
-                    GirlResponseIndexTwo = 1,
-                    QuestionDefinitionID = new RelativeId(-1, i)
-                });
-            }
+            // var questions = new List<IGameDefinitionInfo<GirlPairFavQuestionSubDefinition>>();
+            // for (int i = 1; i <= 20; i++)
+            // {
+            //     questions.Add(new GirlPairFavQuestionInfo()
+            //     {
+            //         GirlResponseIndexOne = 1,
+            //         GirlResponseIndexTwo = 1,
+            //         QuestionDefinitionID = new RelativeId(-1, i)
+            //     });
+            // }
 
             var defaultPhoto = new RelativeId(singleDateId, 0);
             _singleDateNobodyId = new RelativeId(singleDateId, 0);
@@ -171,7 +175,7 @@ public class Plugin : Hp2BaseModPlugin
                     MeetingLocationDefinitionID = new RelativeId(-1, 1 + (girlId.LocalId % 8)),//temp
                     SexDayTime = sexTime,
                     Styles = defaultPairStyle,
-                    FavQuestions = questions,
+                    //FavQuestions = questions,
                     SexLocationDefinitionID = null,
 
                     BonusSuccessCutsceneDefinitionID = Cutscenes.BonusRoundSuccess,
@@ -201,7 +205,7 @@ public class Plugin : Hp2BaseModPlugin
                 yield return Girls.Celeste;
                 yield return Girls.Venus;
             }
-            ;//ide why do you force this on the newline? What did I ever do to you?
+            ;// ide why do you force this on the newline? What did I ever do to you?
 
             foreach (var girl in AllHp1NormalSingleDates())
             {
@@ -221,8 +225,8 @@ public class Plugin : Hp2BaseModPlugin
 
         new Harmony(MyPluginInfo.PLUGIN_GUID).PatchAll();
 
-        ModInterface.Log.LogInfo("Loading HuniePop assembly (this may take a bit)");
-        var hpExtraction = new HpExtraction(hpDirConfig.Value, m_AddGirlDatePhotos, m_AddGirlSexPhotos, m_SetCharmSprite, nudeOutfitPart);
+        ModInterface.Log.Message("Loading HuniePop assembly (this may take a bit)");
+        var hpExtraction = new HpExtraction(HuniePopDir.Value, m_AddGirlDatePhotos, m_AddGirlSexPhotos, m_SetCharmSprite, nudeOutfitPart);
         using (ModInterface.Log.MakeIndent("HuniePop assembly loaded successfully, beginning import:"))
         {
             hpExtraction.Extract();
@@ -240,8 +244,8 @@ public class Plugin : Hp2BaseModPlugin
             new TextureRsPad(1),
         ];
 
-        //kyu old photo
-        var kyuPhotoDir = Path.Combine(hpDirConfig.Value, DAC_DIR, "Photos", "Kyu");
+        // kyu old photo
+        var kyuPhotoDir = Path.Combine(HuniePopDir.Value, DAC_DIR, "Photos", "Kyu");
         if (Directory.Exists(kyuPhotoDir))
         {
             var censoredTexture = new TextureInfoExternal(Path.Combine(kyuPhotoDir, "Old Bedroom1.jpg"), true);
@@ -257,7 +261,7 @@ public class Plugin : Hp2BaseModPlugin
             });
         }
 
-        //audrey 10th photo
+        // audrey 10th photo
         {
             ITextureRenderStep[] audreyThumbSteps = [
                 new TextureRsScale(new Vector2(156f/1440f, 112f/1080f)),
@@ -278,7 +282,7 @@ public class Plugin : Hp2BaseModPlugin
             });
         }
 
-        //favorites
+        // favorites
         FavDrink.AddDataMods();
         FavExercise.AddDataMods();
         FavFridayNight.AddDataMods();
@@ -299,6 +303,20 @@ public class Plugin : Hp2BaseModPlugin
         FavThemeParkRide.AddDataMods();
         FavTrait.AddDataMods();
         FavWeather.AddDataMods();
+
+        Birthday.AddDataMods();
+        CupSize.AddDataMods();
+        Education.AddDataMods();
+        FavColour.AddDataMods();
+        FavHangout.AddDataMods();
+        FavHobby.AddDataMods();
+        FavSeason.AddDataMods();
+        Height.AddDataMods();
+        Homeworld.AddDataMods();
+        LastName.AddDataMods();
+        Occupation.AddDataMods();
+        Weight.AddDataMods();
+        Age.AddDataMods();
 
         //dts
         ModInterface.AddDataMod(new DialogTriggerDataMod(DialogTriggers.PreBedroom, InsertStyle.append)
@@ -349,7 +367,7 @@ public class Plugin : Hp2BaseModPlugin
 
     private void On_RequestUnlockedPhotos(RequestUnlockedPhotosEventArgs args)
     {
-        if (!UnlockPhotos) return;
+        if (!UnlockPhotos.Value) return;
 
         args.UnlockedPhotos ??= new List<PhotoDefinition>();
 
@@ -361,7 +379,7 @@ public class Plugin : Hp2BaseModPlugin
 
     private void On_PreLoadPlayerFile(PlayerFile file)
     {
-        if (!UnlockStyles) return;
+        if (!UnlockStyles.Value) return;
 
         using (ModInterface.Log.MakeIndent())
         {

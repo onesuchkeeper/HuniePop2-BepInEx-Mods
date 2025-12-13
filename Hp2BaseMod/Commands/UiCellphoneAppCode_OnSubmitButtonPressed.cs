@@ -32,12 +32,12 @@ public static class UiCellphoneAppCode_OnSubmitButtonPressed
             inputField.text = "";
             f_currentFieldText.SetValue(__instance, "");
 
-            ModInterface.Log.LogInfo($"Submitted code: \"{input}\" handled as command input");
+            ModInterface.Log.Message($"Submitted code: \"{input}\" handled as command input");
             var inputSplit = input.Substring(1, input.Length - 1).Split(' ');
 
             var success = ModInterface.TryExecuteCommand(inputSplit.First(), inputSplit.Skip(1).ToArray(), out var result);
 
-            ModInterface.Log.LogInfo($"Command {(success ? "succeeded" : "failed")}: {result}");
+            ModInterface.Log.Message($"Command {(success ? "succeeded" : "failed")}: {result}");
 
             m_showCodeResult.Invoke(__instance, [result, !success]);
 

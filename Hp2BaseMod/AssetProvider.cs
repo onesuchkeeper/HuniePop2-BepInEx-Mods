@@ -60,7 +60,7 @@ namespace Hp2BaseMod
 
             if (_internalsScraped)
             {
-                ModInterface.Log.LogError("Internals have already been scraped for."
+                ModInterface.Log.Error("Internals have already been scraped for."
                     + $" Requests must take place on or before {nameof(ModEvents.PreDataMods)}."
                     + $" {type.Name} {name} will not be available via {nameof(AssetProvider)}.");
                 return;
@@ -93,7 +93,7 @@ namespace Hp2BaseMod
 
             if (_internalsScraped)
             {
-                ModInterface.Log.LogError("Internals have already been scraped for."
+                ModInterface.Log.Error("Internals have already been scraped for."
                     + $" Requests must take place on or before {nameof(ModEvents.PreDataMods)}."
                     + $" The following paths of type {type.Name} will not be available via {nameof(AssetProvider)}: "
                     + string.Join(", ", names));
@@ -147,7 +147,7 @@ namespace Hp2BaseMod
             {
                 foreach (var path in type_paths.Value)
                 {
-                    ModInterface.Log.LogWarning($"Unable to find internal {type_paths.Key.Name}: {path}");
+                    ModInterface.Log.Warning($"Unable to find internal {type_paths.Key.Name}: {path}");
                 }
             }
         }
@@ -197,7 +197,7 @@ namespace Hp2BaseMod
                 return asset;
             }
 
-            ModInterface.Log.LogWarning($"Unable to find internal Asset of type {type.Name} with identifier {identifier} - returning null");
+            ModInterface.Log.Warning($"Unable to find internal Asset of type {type.Name} with identifier {identifier} - returning null");
             return null;
         }
 
@@ -333,7 +333,7 @@ namespace Hp2BaseMod
             foreach (var type_assets in _assets)
             {
                 var filePath = Path.Combine(folderPath, $"{type_assets.Key.Name}.csv");
-                ModInterface.Log.LogInfo($"Dev: Saving asset file {filePath}");
+                ModInterface.Log.Message($"Dev: Saving asset file {filePath}");
                 File.WriteAllText(filePath, $"\"{string.Join("\",\"", type_assets.Value.Keys)}\"");
             }
         }

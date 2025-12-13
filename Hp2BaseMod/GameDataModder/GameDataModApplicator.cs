@@ -200,7 +200,7 @@ internal class GameDataModApplicator
         {
             foreach (var id_mods in idToMods)
             {
-                using (ModInterface.Log.MakeIndent(id_mods.Key.ToString()))
+                using (ModInterface.Log.MakeIndent())
                 {
                     var target = getTarget.Invoke(id_mods.Key);
 

@@ -10,7 +10,7 @@ internal class SensitivityExp : IExpInfo
 
     public int CurrentLevel => State.GetSensitivityLevel() + 1;
 
-    public int MaxLevel => Plugin.MaxSensitivityLevel + 1;
+    public int MaxLevel => Plugin.MaxSensitivityLevel.Value + 1;
 
     public ItemDefinition ExpItemDef => ModInterface.GameData.GetItem(ItemSensitivitySmoothie.Exp);
 
@@ -23,7 +23,7 @@ internal class SensitivityExp : IExpInfo
         get
         {
             var sensitivityLevel = State.GetSensitivityLevel();
-            return sensitivityLevel == Plugin.MaxSensitivityLevel
+            return sensitivityLevel == Plugin.MaxSensitivityLevel.Value
                 ? "Maximum Sensitivity Level!"
                 : $"Misc • +{6 - (State.SensitivityExp % 6)} EXP until Level {sensitivityLevel + 2}";
         }

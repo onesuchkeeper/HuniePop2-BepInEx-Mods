@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Hp2BaseMod.Extension.IEnumerableExtension;
+using Hp2BaseMod.Extension;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
 using UnityEngine;
@@ -55,7 +55,7 @@ public class TextureInfoSprite : ITextureInfo
                             RenderRect(_texture, sprite);
                             break;
                         default:
-                            ModInterface.Log.LogInfo($"Unsupported {nameof(Sprite)} {nameof(sprite.packingMode)} {sprite.packingMode}");
+                            ModInterface.Log.Message($"Unsupported {nameof(Sprite)} {nameof(sprite.packingMode)} {sprite.packingMode}");
                             break;
                     }
                 }
@@ -97,7 +97,7 @@ public class TextureInfoSprite : ITextureInfo
     {
         if (!sprite.texture.isReadable)
         {
-            ModInterface.Log.LogWarning("Unable to render a tight-mesh sprite with a non-readable texture");
+            ModInterface.Log.Warning("Unable to render a tight-mesh sprite with a non-readable texture");
             return;
         }
 

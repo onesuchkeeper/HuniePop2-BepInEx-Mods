@@ -35,7 +35,7 @@ namespace Hp2BaseMod.Utility
             }
         }
 
-        public static void SetDictValue<Tk, Tv>(ref Dictionary<Tk, Tv> target, Dictionary<Tk, Tv> value, InsertStyle style)
+        public static void SetDictValues<Tk, Tv>(ref Dictionary<Tk, Tv> target, Dictionary<Tk, Tv> value, InsertStyle style)
         {
             if (value == null)
             {
@@ -81,7 +81,7 @@ namespace Hp2BaseMod.Utility
             }
             catch (Exception e)
             {
-                ModInterface.Log.LogError($"Threw setting value from lookup. value: \"{value}\"", e);
+                ModInterface.Log.Error($"Threw setting value from lookup. value: \"{value}\"", e);
             }
         }
 
@@ -253,7 +253,7 @@ namespace Hp2BaseMod.Utility
             }
             else
             {
-                ModInterface.Log.LogWarning($"Failed to find runtime for {Enum.GetName(typeof(GameDataType), gameDataType)} {relativeId}");
+                ModInterface.Log.Warning($"Failed to find runtime for {Enum.GetName(typeof(GameDataType), gameDataType)} {relativeId}");
             }
         }
     }

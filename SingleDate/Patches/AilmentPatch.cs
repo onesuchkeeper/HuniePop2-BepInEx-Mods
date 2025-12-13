@@ -23,7 +23,7 @@ internal static class AilmentPatch
             return true;
         }
 
-        if (!Plugin.SingleDateBaggage)
+        if (!Plugin.SingleDateBaggage.Value)
         {
             return false;
         }
@@ -33,7 +33,7 @@ internal static class AilmentPatch
             if (ModInterface.Data.TryGetRuntimeDataId(GameDataType.Ailment, id, out var runtimeId)
                 && __instance.definition.id == runtimeId)
             {
-                ModInterface.Log.LogInfo($"Preventing ailment {id} \"{__instance.definition.name}\" from being enabled during single date");
+                ModInterface.Log.Message($"Preventing ailment {id} \"{__instance.definition.name}\" from being enabled during single date");
                 return false;
             }
         }

@@ -60,7 +60,7 @@ public static class Girls
             case 12://venus
                 return Girls.Venus;
             default:
-                ModInterface.Log.LogError($"UNHANDLED Hp1 girl id {hp1Id}");
+                ModInterface.Log.Error($"UNHANDLED Hp1 girl id {hp1Id}");
                 return RelativeId.Default;
         }
     }

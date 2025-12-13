@@ -23,7 +23,7 @@ internal static partial class Styles
             _lillianBodyX + 71, _lillianBodyY + 73,
             false, false, false, true);
 
-        ((GirlPartDataMod)modOutfits.Last()).MirroredPart = new GirlPartDataMod(new RelativeId(Ids.ModId, _partCount++), InsertStyle.replace)
+        ((GirlPartDataMod)((OutfitDataMod)modOutfits.Last()).OutfitPart).MirroredPart = new GirlPartDataMod(new RelativeId(Ids.ModId, _partCount++), InsertStyle.replace)
         {
             PartType = GirlPartType.OUTFIT,
             PartName = "sceneQueenOutfitLillianMirror",

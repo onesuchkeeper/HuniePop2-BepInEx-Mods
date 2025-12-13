@@ -3,8 +3,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Hp2BaseMod.Extension;
 using Hp2BaseMod.GameDataInfo.Interface;
-using Hp2BaseMod.ModGameData;
 using UnityEngine;
 
 namespace Hp2BaseMod
@@ -13,7 +13,7 @@ namespace Hp2BaseMod
     {
         public static void Mod(GameData gameData)
         {
-            ModInterface.Log.LogInfo($"Loaded data sources: [{string.Join(", ", ModInterface.Save.SourceGUID_Id.Select(x => $"{x.Key} - {x.Value}"))}]");
+            ModInterface.Log.Message($"Loaded data sources: [{string.Join(", ", ModInterface.Save.SourceGUID_Id.Select(x => $"{x.Key} - {x.Value}"))}]");
 
             try
             {
@@ -53,7 +53,7 @@ namespace Hp2BaseMod
                     }
 
                     // grab data mods
-                    ModInterface.Log.LogInfo("grabbing data mods from the mod interface");
+                    ModInterface.Log.Message("grabbing data mods from the mod interface");
                     ModInterface.Log.IncreaseIndent();
 
                     context.abilityDataMods = ModInterface.AbilityDataMods;
@@ -74,6 +74,8 @@ namespace Hp2BaseMod
                     GirlSubDataModder.GatherSubMods(context.girlDataMods, out var GirlToBodyToMods, out var dialogLineModsByIdByDialogTriggerByGirlId);
                     ModInterface.Log.DecreaseIndent();
 
+                    var nextQuestionIndex = context.questionDataDict.Count();
+
                     // create and register missing empty mods for used ids, all need to exist before any are setup because they reference one another
                     using (ModInterface.Log.MakeIndent("creating data for new ids"))
                     {
@@ -93,6 +95,15 @@ namespace Hp2BaseMod
                         PreProcess(context.tokenDataDict, context.tokenDataMods, GameDataType.Token, assetProvider);
                     }
 
+                    using (ModInterface.Log.MakeIndent("registering question dt indexes"))
+                    {
+                        foreach (var question in context.questionDataDict.Values)
+                        {
+                            var expansion = question.Expansion();
+                            if (expansion.DialogTriggerIndex == -1) expansion.DialogTriggerIndex = nextQuestionIndex++;
+                        }
+                    }
+
                     GirlSubDataModder.HandleSubMods(context.girlDataDict,
                         context.girlDataMods,
                         GirlToBodyToMods,
@@ -101,13 +112,11 @@ namespace Hp2BaseMod
                         context.dialogTriggerDataDict,
                         dialogLineModsByIdByDialogTriggerByGirlId);
 
-                    //Requesting internal data
                     using (ModInterface.Log.MakeIndent("cataloging internal assets"))
                     {
                         assetProvider.FulfilInternalAssetRequests();
                     }
 
-                    //setup defs
                     GameDataModApplicator.ApplyDataMods(gameData,
                         gameDataProvider,
                         assetProvider,
@@ -118,32 +127,47 @@ namespace Hp2BaseMod
 
                 using (ModInterface.Log.MakeIndent("verifying gamedata integrity"))
                 {
-                    var lailani = ModInterface.GameData.GetGirl(Girls.LailaniId);
+                    var lailani = gameDataProvider.GetGirl(Girls.LailaniId);
 
                     using (ModInterface.Log.MakeIndent("girls"))
                     {
+
+                        var favorites = gameDataProvider.GetDialogTrigger(new RelativeId(-1, 5));
+
                         foreach (var girl in Game.Data.Girls.GetAll())
                         {
-                            girl.badFoodTypes ??= new();
-                            if (!girl.badFoodTypes.Any())
+                            using (ModInterface.Log.MakeIndent(girl.girlName))
                             {
-                                girl.badFoodTypes.Add((ItemFoodType)(-1));
-                            }
+                                var girlId = ModInterface.Data.GetDataId(GameDataType.Girl, girl.id);
+                                girl.badFoodTypes ??= new();
+                                if (!girl.badFoodTypes.Any())
+                                {
+                                    girl.badFoodTypes.Add((ItemFoodType)(-1));
+                                }
 
-                            if (girl.herQuestions.IsNullOrEmpty())
-                            {
-                                girl.herQuestions = lailani.herQuestions;
+                                if (girl.herQuestions.IsNullOrEmpty())
+                                {
+                                    girl.herQuestions = lailani.herQuestions;
+                                }
+                                girl.uniqueItemDefs ??= new();
+                                girl.shoesItemDefs ??= new();
+                                girl.baggageItemDefs ??= new();
                             }
-                            girl.uniqueItemDefs ??= new();
-                            girl.shoesItemDefs ??= new();
-                            girl.baggageItemDefs ??= new();
+                        }
+                    }
+
+                    using (ModInterface.Log.MakeIndent("pairs"))
+                    {
+                        foreach (var pair in Game.Data.GirlPairs.GetAll())
+                        {
+                            pair.favQuestions ??= new();
                         }
                     }
                 }
             }
             catch (Exception e)
             {
-                ModInterface.Log.LogError($"{e}");
+                ModInterface.Log.Error($"{e}");
             }
         }
 
@@ -158,6 +182,7 @@ namespace Hp2BaseMod
                 {
                     var newDef = ScriptableObject.CreateInstance<D>();
                     newDef.id = runtimeId;
+                    newDef.name = runtimeId.ToString();
 
                     dict.Add(runtimeId, newDef);
                 }

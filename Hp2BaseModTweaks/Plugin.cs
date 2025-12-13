@@ -2,9 +2,10 @@
 using System.IO;
 using System.Linq;
 using BepInEx;
+using BepInEx.Configuration;
 using HarmonyLib;
 using Hp2BaseMod;
-using Hp2BaseMod.Extension.IEnumerableExtension;
+using Hp2BaseMod.Extension;
 using Hp2BaseMod.GameDataInfo;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
@@ -15,21 +16,16 @@ namespace Hp2BaseModTweaks;
 
 [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
 [BepInDependency("OSK.BepInEx.Hp2BaseMod", "1.0.0")]
-public class Plugin : Hp2BaseModPlugin
+public partial class Plugin : Hp2BaseModPlugin
 {
     internal static readonly string RootDir = Path.Combine(Paths.PluginPath, MyPluginInfo.PLUGIN_NAME);
     internal static readonly string ImagesDir = Path.Combine(RootDir, "images");
 
-    public static string DigitalArtCollectionDir => _instance.Config.TryGetEntry<string>(Hp2BaseModPlugin.CONFIG_GENERAL, nameof(DigitalArtCollectionDir), out var config)
-        ? config.Value
-        : string.Empty;
+    public static ConfigEntry<string> DigitalArtCollectionDir => _digitalArtCollectionDir;
+    private static ConfigEntry<string> _digitalArtCollectionDir;
 
-    [ConfigProperty(true, "If the \"HuneiePop 2: Modded\" logo should be included in logo rotation. You may want to disable this if you've installed a mod with another custom logo.")]
-    public bool UseModLogo
-    {
-        get => GetConfigProperty<bool>();
-        set => SetConfigProperty(value);
-    }
+    public static ConfigEntry<bool> UseModLogo => _useModLogo;
+    private static ConfigEntry<bool> _useModLogo;
 
     internal static TweaksSaveData Save => _instance._save;
     private TweaksSaveData _save;
@@ -46,11 +42,16 @@ public class Plugin : Hp2BaseModPlugin
 
     public Plugin() : base(MyPluginInfo.PLUGIN_GUID) { }
 
-    private void Awake()
+    protected override void Awake()
     {
         _instance = this;
+
+        base.Awake();
+
         Config.SaveOnConfigSet = false;
-        this.Config.Bind(Hp2BaseModPlugin.CONFIG_GENERAL, nameof(DigitalArtCollectionDir), Path.Combine(Paths.PluginPath, "..", "..", "Digital Art Collection"), "Directory containing the HuniePop 2 Digital Art Collection Dlc");
+
+        _useModLogo = Config.Bind(Hp2BaseModPlugin.CONFIG_GENERAL, nameof(UseModLogo), true, "If the \"HuneiePop 2: Modded\" logo should be included in logo rotation. You may want to disable this if you've installed a mod with another custom logo.");
+        _digitalArtCollectionDir = Config.Bind(Hp2BaseModPlugin.CONFIG_GENERAL, nameof(DigitalArtCollectionDir), Path.Combine(Paths.PluginPath, "..", "..", "Digital Art Collection"), "Directory containing the HuniePop 2 Digital Art Collection Dlc");
 
         _modCredits = new List<CreditEntry>()
         {
@@ -62,7 +63,7 @@ public class Plugin : Hp2BaseModPlugin
             ])
         };
 
-        _logoPaths = UseModLogo
+        _logoPaths = _useModLogo.Value
             ? new List<string> { Path.Combine(ImagesDir, "logo.png") }
             : new();
 
@@ -175,10 +176,10 @@ public class Plugin : Hp2BaseModPlugin
         {
             var kyu = ModInterface.GameData.GetGirl(Girls.KyuId);
 
-            ModInterface.Log.LogInfo("Applying wings");
+            ModInterface.Log.Message("Applying wings");
             if (kyu == null)
             {
-                ModInterface.Log.LogWarning("Unable to find Kyu, \"PINK BITCH!\" wings not applied D:");
+                ModInterface.Log.Warning("Unable to find Kyu, \"PINK BITCH!\" wings not applied D:");
                 return;
             }
 
@@ -313,7 +314,7 @@ public class Plugin : Hp2BaseModPlugin
             CellphoneMiniHead = new SpriteInfoInternal("ui_title_icon_kyu")
         });
 
-        if (Directory.Exists(DigitalArtCollectionDir))
+        if (Directory.Exists(_digitalArtCollectionDir.Value))
         {
             CellphoneSprites.AddUiCellphoneSprites("Jewn", Girls.JewnId, new Vector2(2636, 1990), new Vector2(3911, 4711));
             CellphoneSprites.AddUiCellphoneSprites("Moxie", Girls.MoxieId, new Vector2(2411, 2287), new Vector2(3900, 5068));
@@ -346,7 +347,7 @@ public class Plugin : Hp2BaseModPlugin
     {
         if (codeDefinition == null)
         {
-            ModInterface.Log.LogInfo("null code");
+            ModInterface.Log.Message("null code");
             return;
         }
 

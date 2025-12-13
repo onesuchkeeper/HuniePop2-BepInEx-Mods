@@ -1,6 +1,6 @@
 using System.Collections.Specialized;
 
-namespace Hp2BaseMod.Extension.OrderedDictionaryExtension;
+namespace Hp2BaseMod.Extension;
 
 public static partial class OrderedDictionaryExtension
 {

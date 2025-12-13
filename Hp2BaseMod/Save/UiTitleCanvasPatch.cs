@@ -19,14 +19,8 @@ public static class UiTitleCanvasPatch_LoadGame
                 ? "BODY_NULL"
                 : body.BodyName;
 
-            ModInterface.Log.LogInfo($"Initializing body {bodyName} for {girl.girlName}");
+            ModInterface.Log.Message($"Initializing body {bodyName} for {girl.girlName}");
             body?.Apply(girl);
-        }
-
-        if (file.locationDefinition.locationType == LocationType.SPECIAL)
-        {
-            file.locationDefinition = ModInterface.GameData.GetLocation(Locations.HotelRoom);
-            file.girlPairDefinition = null;
         }
     }
 }

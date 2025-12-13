@@ -14,7 +14,7 @@ namespace Hp2BaseMod.Utility
                 var child = target.GetChild(i);
                 if (child != null)
                 {
-                    ModInterface.Log.LogInfo(child.name);
+                    ModInterface.Log.Message(child.name);
                     ModInterface.Log.IncreaseIndent();
                     LogChildren(child);
                     ModInterface.Log.DecreaseIndent();
@@ -28,13 +28,13 @@ namespace Hp2BaseMod.Utility
 
             if (components.Length == 0)
             {
-                ModInterface.Log.LogInfo($"No Components");
+                ModInterface.Log.Message($"No Components");
             }
             else
             {
                 foreach (var component in components)
                 {
-                    ModInterface.Log.LogInfo($"Type: {component.GetType().Name}, Name: {component.name}");
+                    ModInterface.Log.Message($"Type: {component.GetType().Name}, Name: {component.name}");
                 }
             }
         }
@@ -47,16 +47,16 @@ namespace Hp2BaseMod.Utility
                 var scaler = canvas.GetComponent<UnityEngine.UI.CanvasScaler>();
                 if (scaler != null)
                 {
-                    ModInterface.Log.LogInfo($"CanvasScaler- scale mode: {scaler.uiScaleMode}, refResolution:{scaler.referenceResolution}, screenMatchMode:{scaler.screenMatchMode},matchWidthOrHeight:{scaler.matchWidthOrHeight}");
+                    ModInterface.Log.Message($"CanvasScaler- scale mode: {scaler.uiScaleMode}, refResolution:{scaler.referenceResolution}, screenMatchMode:{scaler.screenMatchMode},matchWidthOrHeight:{scaler.matchWidthOrHeight}");
                 }
                 else
                 {
-                    ModInterface.Log.LogInfo($"CanvasScaler- NULL");
+                    ModInterface.Log.Message($"CanvasScaler- NULL");
                 }
             }
             else
             {
-                ModInterface.Log.LogInfo($"No Canvas Component");
+                ModInterface.Log.Message($"No Canvas Component");
             }
         }
     }

@@ -51,7 +51,6 @@ namespace Hp2BaseModTweaks
             return extension;
         }
 
-        private static readonly FieldInfo f_origPos = AccessTools.Field(typeof(UiAppStyleSelectList), "_origPos");
         private static readonly FieldInfo f_origBgSize = AccessTools.Field(typeof(UiAppStyleSelectList), "_origBgSize");
         private static readonly FieldInfo f_playerFileGirl = AccessTools.Field(typeof(UiAppStyleSelectList), "_playerFileGirl");
         private static readonly FieldInfo f_purchaseListItem = AccessTools.Field(typeof(UiAppStyleSelectList), "_purchaseListItem");
@@ -166,24 +165,17 @@ namespace Hp2BaseModTweaks
                 return false;
             }
 
-            // get girl def, default to Ashley
+            // defaults
             var i = 0;
-            var def = Game.Data.Girls.Get(Game.Persistence.playerFile.GetFlagValue("wardrobe_girl_id"));
-
-            if (def == null)
-            {
-                def = ModInterface.GameData.GetGirl(Girls.AshleyId);
-                f_playerFileGirl.SetValue(_uiAppStyleSelectList, Game.Persistence.playerFile.GetPlayerFileGirl(def));
-            }
+            var def = Game.Data.Girls.Get(Game.Persistence.playerFile.GetFlagValue(Flags.WARDROBE_GIRL_ID));
 
             // create missing list items
             var diff = (_uiAppStyleSelectList.alternative
-                ? def.outfits.Where(x => x != null).Count()
-                : def.hairstyles.Where(x => x != null).Count()) - _uiAppStyleSelectList.listItems.Count;
+                ? def.outfits.Count()
+                : def.hairstyles.Count()) - _uiAppStyleSelectList.listItems.Count;
 
             if (diff > 0)
             {
-                // add missing
                 for (i = diff; i > 0; i--)
                 {
                     var newItem = UnityEngine.Object.Instantiate(_listItemTemplate);
@@ -201,15 +193,16 @@ namespace Hp2BaseModTweaks
             var codeItems = new List<UiAppSelectListItem>();
             var shownItems = new List<UiAppSelectListItem>();
             var hiddenItems = new List<UiAppSelectListItem>();
+            var nsfwItems = new List<UiAppSelectListItem>();
 
             var visibleItemCount = 0;
 
             var styleEnumerator = _uiAppStyleSelectList.alternative
                 ? playerFileGirl.girlDefinition.outfits
-                    .Select<GirlOutfitSubDefinition, (string Name, ExpandedStyleDefinition Expansion)>(x => x == null ? (null, null) : (x.outfitName, x.Expansion()))
+                    .Select<GirlOutfitSubDefinition, (string Name, ExpandedStyleDefinition Expansion)>(x => (x?.outfitName, x?.Expansion()))
                     .GetEnumerator()
                 : playerFileGirl.girlDefinition.hairstyles
-                    .Select<GirlHairstyleSubDefinition, (string Name, ExpandedStyleDefinition Expansion)>(x => x == null ? (null, null) : (x.hairstyleName, x.Expansion()))
+                    .Select<GirlHairstyleSubDefinition, (string Name, ExpandedStyleDefinition Expansion)>(x => (x?.hairstyleName, x?.Expansion()))
                     .GetEnumerator();
 
             var listItemEnumerator = _uiAppStyleSelectList.listItems.GetEnumerator();
@@ -229,7 +222,8 @@ namespace Hp2BaseModTweaks
                 if (styleEnumerator.Current.Expansion == null)
                 {
                     hiddenItems.Add(listItemEnumerator.Current);
-                    text = string.Empty;
+                    i++;
+                    continue;
                 }
                 else if (styleEnumerator.Current.Expansion.IsCodeUnlocked)
                 {
@@ -242,6 +236,8 @@ namespace Hp2BaseModTweaks
                     if (hideIfLocked && !unlocked)
                     {
                         hiddenItems.Add(listItemEnumerator.Current);
+                        i++;
+                        continue;
                     }
                     else
                     {
@@ -256,6 +252,8 @@ namespace Hp2BaseModTweaks
                     if (hideIfLocked && !unlocked)
                     {
                         hiddenItems.Add(listItemEnumerator.Current);
+                        i++;
+                        continue;
                     }
                     else
                     {
@@ -291,7 +289,15 @@ namespace Hp2BaseModTweaks
                         ? styleEnumerator.Current.Name
                         : "???";
 
-                    shownItems.Add(listItemEnumerator.Current);
+                    if (styleEnumerator.Current.Expansion.IsNSFW)
+                    {
+                        nsfwItems.Add(listItemEnumerator.Current);
+                    }
+                    else
+                    {
+                        shownItems.Add(listItemEnumerator.Current);
+                    }
+
                     visibleItemCount++;
                 }
 
@@ -345,24 +351,25 @@ namespace Hp2BaseModTweaks
 
             // reposition in proper order
             i = 0;
-            foreach (var item in shownItems.Concat(codeItems).Concat(purchaseItems).Concat(hiddenItems))
+            foreach (var item in shownItems.Concat(nsfwItems).Concat(codeItems).Concat(purchaseItems).Concat(hiddenItems))
             {
+                var position = i * _itemSpacing;
                 item.transform.localPosition = i++ * _itemSpacing;
             }
 
-            //fix bg
+            // fix bg
+            var origBgSize = f_origBgSize.GetValue<Vector2>(_uiAppStyleSelectList);
+
             if (postGame)
             {
-                _uiAppStyleSelectList.background.sizeDelta = _uiAppStyleSelectList.background.sizeDelta - new Vector2(0, 80);
+                _uiAppStyleSelectList.background.sizeDelta = origBgSize - new Vector2(0, 80);
             }
             else
             {
-                var origBgSize = f_origBgSize.GetValue<Vector2>(_uiAppStyleSelectList);
-
-                //they all have 1 code and 3 purchase items, so I'll just manually set it
-                //it'd be weird if random ones just started changing sizes
+                // they all have 1 code and 3 purchase items, so I'll just manually set it
+                // it'd be weird if random ones just started changing sizes
                 var postGameStyleCount = 4;
-                _uiAppStyleSelectList.background.sizeDelta = origBgSize + Vector2.down * (float)(40 * postGameStyleCount);
+                _uiAppStyleSelectList.background.sizeDelta = origBgSize + Vector2.down * (40 * postGameStyleCount);
                 _uiAppStyleSelectList.canvasGroup.alpha = 0f;
                 _uiAppStyleSelectList.canvasGroup.blocksRaycasts = false;
             }
@@ -376,7 +383,7 @@ namespace Hp2BaseModTweaks
 
             _scrollRectTransform.sizeDelta = _uiAppStyleSelectList.background.sizeDelta - new Vector2(24, 42);
 
-            //for fun and to show the user that the list can scroll, move the scroll to the bottom and have it
+            // for fun and to show the user that the list can scroll, move the scroll to the bottom and have it
             //scroll up
             _paddingRectTransform.position -= new Vector3(0f, _scrollRectTransform.sizeDelta.y / 2);
 

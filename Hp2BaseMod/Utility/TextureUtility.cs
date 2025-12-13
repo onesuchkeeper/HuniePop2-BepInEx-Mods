@@ -20,7 +20,7 @@ namespace Hp2BaseMod.Utility
         {
             if (!File.Exists(path))
             {
-                ModInterface.Log.LogWarning($"Failed to load png file {path}");
+                ModInterface.Log.Warning($"Failed to load png file {path}");
                 return null;
             }
 

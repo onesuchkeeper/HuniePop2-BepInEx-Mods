@@ -36,6 +36,7 @@ namespace Hp2BaseMod.Save
             {
                 sidesFlipped = SidesFlipped
             };
+
             ValidatedSet.SetFromRelativeId(ref save.girlPairId, GameDataType.GirlPair, GirlPairId);
             return save;
         }

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using Hp2BaseMod.Extension.IEnumerableExtension;
+using Hp2BaseMod.Extension;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.ModGameData;
 using Hp2BaseMod.Utility;
@@ -34,8 +34,8 @@ namespace Hp2BaseMod.GameDataInfo
         public IBodySubDataMod<GirlPartSubDefinition> PartBlink;
         public IBodySubDataMod<GirlPartSubDefinition> PartMouthNeutral;
 
-        public int? DefaultExpressionIndex;
-        public int? FailureExpressionIndex;
+        public RelativeId? DefaultExpressionId;
+        public RelativeId? FailureExpressionId;
         public RelativeId? DefaultHairstyleId;
         public RelativeId? DefaultOutfitId;
 
@@ -67,8 +67,8 @@ namespace Hp2BaseMod.GameDataInfo
         {
             assetProvider.NameAndAddAsset(ref SpecialEffectName, def.specialEffectPrefab);
 
-            DefaultExpressionIndex = def.defaultExpressionIndex;
-            FailureExpressionIndex = def.failureExpressionIndex;
+            DefaultExpressionId = new RelativeId(-1, def.defaultExpressionIndex);
+            FailureExpressionId = new RelativeId(-1, def.failureExpressionIndex);
 
             PartBody = new GirlPartDataMod(def.partIndexBody, assetProvider, def);
             PartNipples = new GirlPartDataMod(def.partIndexNipples, assetProvider, def);
@@ -194,8 +194,8 @@ namespace Hp2BaseMod.GameDataInfo
             ValidatedSet.SetValue(ref def.PartIndexBlink, def.PartIdToIndex, PartBlink?.Id);
             ValidatedSet.SetValue(ref def.PartIndexMouthNeutral, def.PartIdToIndex, PartMouthNeutral?.Id);
 
-            ValidatedSet.SetValue(ref def.DefaultExpressionIndex, DefaultExpressionIndex);
-            ValidatedSet.SetValue(ref def.FailureExpressionIndex, FailureExpressionIndex);
+            ValidatedSet.SetValue(ref def.DefaultExpressionIndex, expansion.ExpressionIdToIndex, DefaultExpressionId);
+            ValidatedSet.SetValue(ref def.FailureExpressionIndex, expansion.ExpressionIdToIndex, FailureExpressionId);
 
             ValidatedSet.SetValue(ref def.DefaultHairstyleIndex, expansion.HairstyleIdToIndex, DefaultHairstyleId);
             ValidatedSet.SetValue(ref def.DefaultOutfitIndex, expansion.OutfitIdToIndex, DefaultOutfitId);
@@ -234,7 +234,7 @@ namespace Hp2BaseMod.GameDataInfo
 
             ValidatedSet.SetValue(ref def.SpecialEffectPrefab, assetProvider.GetInternalAsset<UiDollSpecialEffect>(SpecialEffectName), InsertStyle);
 
-            ValidatedSet.SetDictValue(ref def.LocationIdToOutfitId, LocationIdToStyleInfo, InsertStyle);
+            ValidatedSet.SetDictValues(ref def.LocationIdToOutfitId, LocationIdToStyleInfo, InsertStyle);
         }
 
         /// <inheritdoc/>

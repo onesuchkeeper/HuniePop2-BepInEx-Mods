@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using BepInEx;
+using BepInEx.Configuration;
 using Hp2BaseMod;
 
 namespace Hp2Randomizer;
@@ -9,85 +10,59 @@ namespace Hp2Randomizer;
 [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
 [BepInDependency("OSK.BepInEx.Hp2BaseMod", "1.0.0")]
 [BepInDependency("OSK.BepInEx.SingleDate", BepInDependency.DependencyFlags.SoftDependency)]
-public class Plugin : Hp2BaseModPlugin
+public partial class Plugin : Hp2BaseModPlugin
 {
-    [ConfigProperty(-1, "Randomizer seed. Set to -1 for a new random seed.")]
-    public static int Seed
-    {
-        get => _instance.GetConfigProperty<int>();
-        set => _instance.SetConfigProperty(value);
-    }
+    private const string GENERAL_CONFIG_CAT = "general";
 
-    [ConfigProperty(true, "If character names will be randomized.")]
-    public static bool RandomizeNames
-    {
-        get => _instance.GetConfigProperty<bool>();
-        set => _instance.SetConfigProperty(value);
-    }
+    public static ConfigEntry<int> Seed => _seed;
+    private static ConfigEntry<int> _seed;
 
-    [ConfigProperty(true, "If character baggages will be randomized.")]
-    public static bool RandomizeBaggage
-    {
-        get => _instance.GetConfigProperty<bool>();
-        set => _instance.SetConfigProperty(value);
-    }
+    public static ConfigEntry<bool> RandomizeNames => _randomizeNames;
+    private static ConfigEntry<bool> _randomizeNames;
 
-    [ConfigProperty(true, "If character pairings will be randomized.")]
-    public static bool RandomizePairs
-    {
-        get => _instance.GetConfigProperty<bool>();
-        set => _instance.SetConfigProperty(value);
-    }
+    public static ConfigEntry<bool> RandomizeBaggage => _randomizeBaggage;
+    private static ConfigEntry<bool> _randomizeBaggage;
 
-    [ConfigProperty(true, "If character favorite and least favorite affection will be randomized.")]
-    public static bool RandomizeAffection
-    {
-        get => _instance.GetConfigProperty<bool>();
-        set => _instance.SetConfigProperty(value);
-    }
+    public static ConfigEntry<bool> RandomizePairs => _randomizePairs;
+    private static ConfigEntry<bool> _randomizePairs;
 
-    [ConfigProperty(true, "If Kyu should be included in the randomized characters.")]
-    public static bool IncludeKyu
-    {
-        get => _instance.GetConfigProperty<bool>();
-        set => _instance.SetConfigProperty(value);
-    }
+    public static ConfigEntry<bool> RandomizeAffection => _randomizeAffection;
+    private static ConfigEntry<bool> _randomizeAffection;
 
-    [ConfigProperty(true, "If the Nymphojinn should be included in the randomized characters.")]
-    public static bool IncludeNymphojinn
-    {
-        get => _instance.GetConfigProperty<bool>();
-        set => _instance.SetConfigProperty(value);
-    }
+    public static ConfigEntry<bool> IncludeKyu => _includeKyu;
+    private static ConfigEntry<bool> _includeKyu;
 
-    [ConfigProperty(true, "If special characters should always be swapped with a normal character.")]
-    public static bool ForceSpecialNormalSwap
-    {
-        get => _instance.GetConfigProperty<bool>();
-        set => _instance.SetConfigProperty(value);
-    }
+    public static ConfigEntry<bool> IncludeNymphojinn => _includeNymphojinn;
+    private static ConfigEntry<bool> _includeNymphojinn;
 
-    [ConfigProperty(true, "If special characters should keep their wings when swapped.")]
-    public static bool SwappedSpecialKeepWings
-    {
-        get => _instance.GetConfigProperty<bool>();
-        set => _instance.SetConfigProperty(value);
-    }
+    public static ConfigEntry<bool> ForceNormalSpecialSwap => _forceNormalSpecialSwap;
+    private static ConfigEntry<bool> _forceNormalSpecialSwap;
 
-    [ConfigProperty(false, "Disables the randomizer entirely.")]
-    public static bool Disable
-    {
-        get => _instance.GetConfigProperty<bool>();
-        set => _instance.SetConfigProperty(value);
-    }
+    public static ConfigEntry<bool> SwappedSpecialKeepWings => _swappedSpecialKeepWings;
+    private static ConfigEntry<bool> _swappedSpecialKeepWings;
 
-    private Dictionary<RelativeId, Action<GirlDefinition, GirlDefinition>> _swapHandlers = new();
+    public static ConfigEntry<bool> Disable => _disable;
+    private static ConfigEntry<bool> _disable;
+
+    private Dictionary<RelativeId, Func<GirlDefinition, GirlDefinition, bool>> _swapHandlers = new();
     private static Plugin _instance;
     public Plugin() : base(MyPluginInfo.PLUGIN_GUID) { }
 
-    private void Awake()
+    protected override void Awake()
     {
+        base.Awake();
         _instance = this;
+
+        _seed = Config.Bind(GENERAL_CONFIG_CAT, nameof(Seed), -1, "Randomizer seed. Set to -1 for a new random seed.");
+        _randomizeNames = Config.Bind(GENERAL_CONFIG_CAT, nameof(RandomizeNames), true, "If character names will be randomized.");
+        _randomizeBaggage = Config.Bind(GENERAL_CONFIG_CAT, nameof(RandomizeBaggage), true, "If character baggages will be randomized.");
+        _randomizePairs = Config.Bind(GENERAL_CONFIG_CAT, nameof(RandomizePairs), true, "If character pairings will be randomized.");
+        _randomizeAffection = Config.Bind(GENERAL_CONFIG_CAT, nameof(RandomizeAffection), true, "If character favorite and least favorite affection will be randomized.");
+        _includeKyu = Config.Bind(GENERAL_CONFIG_CAT, nameof(IncludeKyu), true, "If Kyu should be included in the randomized characters.");
+        _includeNymphojinn = Config.Bind(GENERAL_CONFIG_CAT, nameof(IncludeKyu), true, "If the Nymphojinn should be included in the randomized characters.");
+        _forceNormalSpecialSwap = Config.Bind(GENERAL_CONFIG_CAT, nameof(ForceNormalSpecialSwap), true, "If special characters should always be swapped with a normal character.");
+        _swappedSpecialKeepWings = Config.Bind(GENERAL_CONFIG_CAT, nameof(SwappedSpecialKeepWings), true, "If special characters should keep their wings when swapped.");
+        _disable = Config.Bind(GENERAL_CONFIG_CAT, nameof(Disable), true, "Disables the randomizer entirely.");
 
         ModInterface.AddCommand(new SetSeedCommand());
 
@@ -101,6 +76,6 @@ public class Plugin : Hp2BaseModPlugin
     /// and swaps their properties
     /// </summary>
     [InteropMethod]
-    public static void SetSpecialCharacterSwapHandler(RelativeId specialGirlId, Action<GirlDefinition, GirlDefinition> swapHandler)
+    public static void SetSpecialCharacterSwapHandler(RelativeId specialGirlId, Func<GirlDefinition, GirlDefinition, bool> swapHandler)
         => _instance._swapHandlers[specialGirlId] = swapHandler;
 }

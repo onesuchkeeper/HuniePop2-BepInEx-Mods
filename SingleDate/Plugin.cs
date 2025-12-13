@@ -2,11 +2,11 @@
 using System.IO;
 using System.Linq;
 using BepInEx;
+using BepInEx.Configuration;
 using HarmonyLib;
 using Hp2BaseMod;
 using Hp2BaseMod.Extension;
 using Hp2BaseMod.GameDataInfo;
-using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
 using UnityEngine;
 
@@ -22,53 +22,41 @@ namespace SingleDate;
 /// </summary>
 [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
 [BepInDependency("OSK.BepInEx.Hp2BaseMod", "1.0.0")]
-internal class Plugin : Hp2BaseModPlugin
+internal partial class Plugin : Hp2BaseModPlugin
 {
+    private const string GENERAL_CONFIG_CAT = "general";
     public static readonly string ROOT_DIR = Path.Combine(Paths.PluginPath, MyPluginInfo.PLUGIN_NAME);
     public static readonly string IMAGES_DIR = Path.Combine(ROOT_DIR, "images");
 
-    [ConfigProperty(false, "If upset hints are shown on single dates.")]
-    public static bool ShowSingleUpsetHunt
-    {
-        get => _instance.GetConfigProperty<bool>();
-        set => _instance.SetConfigProperty(value);
-    }
+    public static ConfigEntry<bool> ShowSingleUpsetHint => _showSingleUpsetHint;
+    private static ConfigEntry<bool> _showSingleUpsetHint;
 
-    [ConfigProperty(true, "If baggage is active on single dates.")]
-    public static bool SingleDateBaggage
-    {
-        get => _instance.GetConfigProperty<bool>();
-        set => _instance.SetConfigProperty(value);
-    }
+    public static ConfigEntry<bool> SingleDateBaggage => _singleDateBaggage;
+    private static ConfigEntry<bool> _singleDateBaggage;
 
-    [ConfigProperty(false, "If both characters must reach lovers on single dates before a threesome can occur.")]
-    public static bool RequireLoversBeforeThreesome
-    {
-        get => _instance.GetConfigProperty<bool>();
-        set => _instance.SetConfigProperty(value);
-    }
+    public static ConfigEntry<bool> RequireLoversBeforeThreesome => _requireLoversBeforeThreesome;
+    private static ConfigEntry<bool> _requireLoversBeforeThreesome;
 
-    [ConfigProperty(3, "Maximum relationship level for single dates. Maximum level must be reached for lovers status.")]
-    public static int MaxSingleGirlRelationshipLevel
-    {
-        get => _instance.GetConfigProperty<int>();
-        set => _instance.SetConfigProperty(value);
-    }
+    public static ConfigEntry<int> MaxSingleGirlRelationshipLevel => _maxSingleGirlRelationshipLevel;
+    private static ConfigEntry<int> _maxSingleGirlRelationshipLevel;
 
-    [ConfigProperty(4, "Maximum level for sensitivity.")]
-    public static int MaxSensitivityLevel
-    {
-        get => _instance.GetConfigProperty<int>();
-        set => _instance.SetConfigProperty(value);
-    }
+    public static ConfigEntry<int> MaxSensitivityLevel => _maxSensitivityLevel;
+    private static ConfigEntry<int> _maxSensitivityLevel;
 
     private Dictionary<RelativeId, SingleDateGirl> _singleDateGirls = new();
     private static Plugin _instance;
     public Plugin() : base(MyPluginInfo.PLUGIN_GUID) { }
 
-    private void Awake()
+    protected override void Awake()
     {
+        base.Awake();
         _instance = this;
+
+        _showSingleUpsetHint = Config.Bind(GENERAL_CONFIG_CAT, nameof(ShowSingleUpsetHint), false, "If upset hints are shown on single dates.");
+        _singleDateBaggage = Config.Bind(GENERAL_CONFIG_CAT, nameof(SingleDateBaggage), false, "If baggage is active on single dates.");
+        _requireLoversBeforeThreesome = Config.Bind(GENERAL_CONFIG_CAT, nameof(RequireLoversBeforeThreesome), false, "If both characters must reach lovers on single dates before a threesome can occur.");
+        _maxSingleGirlRelationshipLevel = Config.Bind(GENERAL_CONFIG_CAT, nameof(MaxSingleGirlRelationshipLevel), 3, "Maximum relationship level for single dates. Maximum level must be reached for lovers status.");
+        _maxSensitivityLevel = Config.Bind(GENERAL_CONFIG_CAT, nameof(MaxSensitivityLevel), 4, "Maximum level for sensitivity.");
 
         State.On_Plugin_Awake();
 
@@ -77,9 +65,11 @@ internal class Plugin : Hp2BaseModPlugin
 
         SingleDateMeetingCutscene.AddDataMods();
         SingleDateAttractCutscene.AddDataMods();
+        SingleDateAttractNoPhotoCutscene.AddDataMods();
         SingleDatePreSexCutscene.AddDataMods();
         SingleDatePostSexCutscene.AddDataMods();
         SingleDateSuccessCutscene.AddDataMods();
+        SingleDateSuccessNoPhotoCutscene.AddDataMods();
 
         PhotoDefault.AddDataMods();
         PhotoAbia.AddDataMods();
@@ -161,7 +151,7 @@ internal class Plugin : Hp2BaseModPlugin
         => _instance._singleDateGirls.GetOrNew(girlId).CharmSprite = charmSprite;
 
     [InteropMethod]
-    public static bool IsSexDateValid(RelativeId girlId) => State.SaveFile.GetGirl(girlId).RelationshipLevel >= (MaxSensitivityLevel - 1);
+    public static bool IsSexDateValid(RelativeId girlId) => State.SaveFile.GetGirl(girlId).RelationshipLevel >= (MaxSensitivityLevel.Value - 1);
 
     public static SingleDateGirl GetSingleDateGirl(RelativeId girlId)
             => _instance._singleDateGirls.GetOrNew(girlId);
@@ -188,22 +178,14 @@ internal class Plugin : Hp2BaseModPlugin
             SexGirlTwo = defaultGirlStyle,
         };
 
-        var questions = new List<IGameDefinitionInfo<GirlPairFavQuestionSubDefinition>>();
-
-        for (int i = 1; i <= 20; i++)
-        {
-            questions.Add(new GirlPairFavQuestionInfo()
-            {
-                GirlResponseIndexOne = 1,
-                GirlResponseIndexTwo = 1,
-                QuestionDefinitionID = new RelativeId(-1, i)
-            });
-        }
-
         //pairs
         for (int i = 1; i < 13; i++)
         {
-            ModInterface.AddDataMod(new GirlPairDataMod(new RelativeId(State.ModId, i), InsertStyle.replace)
+            var girlId = new RelativeId(State.ModId, i);
+            var hasSingleDateGirl = _singleDateGirls.TryGetValue(girlId, out var singleDateGirl);
+            var hasDatePhotos = hasSingleDateGirl && singleDateGirl.DatePhotos.Any();
+
+            var mod = new GirlPairDataMod(new RelativeId(State.ModId, i), InsertStyle.replace)
             {
                 GirlDefinitionOneID = GirlNobody.Id,
                 GirlDefinitionTwoID = new RelativeId(-1, i),
@@ -217,12 +199,18 @@ internal class Plugin : Hp2BaseModPlugin
                 SexDayTime = ClockDaytimeType.NIGHT,
                 SexLocationDefinitionID = new RelativeId(-1, 20),//royal suite
                 IntroRelationshipCutsceneDefinitionID = CutsceneIds.Meeting,
-                AttractRelationshipCutsceneDefinitionID = CutsceneIds.Attract,
+                AttractRelationshipCutsceneDefinitionID = hasDatePhotos
+                    ? CutsceneIds.Attract
+                    : CutsceneIds.AttractNoPhoto,
                 PreSexRelationshipCutsceneDefinitionID = CutsceneIds.PreSex,
                 PostSexRelationshipCutsceneDefinitionID = CutsceneIds.PostSex,
-                Styles = defaultPairStyle,
-                FavQuestions = questions
-            });
+                SuccessCutsceneDefinitionID = hasDatePhotos
+                    ? CutsceneIds.Success
+                    : CutsceneIds.SuccessNoPhoto,
+                Styles = defaultPairStyle
+            };
+
+            ModInterface.AddDataMod(mod);
         }
     }
 }

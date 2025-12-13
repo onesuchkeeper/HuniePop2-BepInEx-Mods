@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Reflection;
 using HarmonyLib;
+using Hp2BaseMod.Extension;
 using UnityEngine;
 
 namespace Hp2BaseMod;
@@ -34,6 +35,7 @@ internal static class UiWindowActionBubblesPatch
         if (playerFileGirlPair != null && playerFileGirlPair.relationshipType == GirlPairRelationshipType.ATTRACTED
             && Game.Persistence.playerFile.daytimeElapsed % 4 == (int)playerFileGirlPair.girlPairDefinition.sexDaytime)
         {
+            ModInterface.Log.Message("Pair is targeting sex location");
             args.Location = playerFileGirlPair.girlPairDefinition.sexLocationDefinition;
         }
 
@@ -99,7 +101,7 @@ internal static class UiWindowActionBubblesPatch
             var locs = Game.Data.Locations.GetAllByLocationType(LocationType.DATE)
                 .Where(x => x.Expansion().IsValidForNormalDate());
 
-            ModInterface.Log.LogInfo($"Choosing normal date Loc from pool: [{string.Join(", ", locs.Select(x => x.locationName))}]");
+            ModInterface.Log.Message($"Choosing normal date Loc from pool: [{string.Join(", ", locs.Select(x => x.locationName))}]");
 
             args.Location = locs.ToList().PopRandom();
         }

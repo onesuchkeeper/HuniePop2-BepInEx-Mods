@@ -130,12 +130,12 @@ namespace Hp2BaseMod.GameDataInfo
 
             var expansion = def.Expansion();
 
-            ValidatedSet.SetValue(ref expansion.CutsceneCompatibleSuccessId, CompatibleSuccessCutsceneDefinitionID);
-            ValidatedSet.SetValue(ref expansion.CutsceneAttractedSuccessId, AttractSuccessCutsceneDefinitionID);
-            ValidatedSet.SetValue(ref expansion.CutsceneBonusNewRoundId, BonusNewRoundCutsceneDefinitionID);
-            ValidatedSet.SetValue(ref expansion.CutsceneBonusSuccessId, BonusSuccessCutsceneDefinitionID);
-            ValidatedSet.SetValue(ref expansion.CutsceneFailureId, FailureCutsceneDefinitionID);
-            ValidatedSet.SetValue(ref expansion.CutsceneSuccessId, SuccessCutsceneDefinitionID);
+            ValidatedSet.SetValue(ref expansion.CutsceneNormalCompatibleSuccessId, CompatibleSuccessCutsceneDefinitionID);
+            ValidatedSet.SetValue(ref expansion.CutsceneNormalAttractedSuccessId, AttractSuccessCutsceneDefinitionID);
+            ValidatedSet.SetValue(ref expansion.CutsceneNormalBonusNewRoundId, BonusNewRoundCutsceneDefinitionID);
+            ValidatedSet.SetValue(ref expansion.CutsceneNormalBonusSuccessId, BonusSuccessCutsceneDefinitionID);
+            ValidatedSet.SetValue(ref expansion.CutsceneNormalFailureId, FailureCutsceneDefinitionID);
+            ValidatedSet.SetValue(ref expansion.CutsceneNormalSuccessId, SuccessCutsceneDefinitionID);
         }
 
         public PairStyleInfo GetStyles() => Styles;

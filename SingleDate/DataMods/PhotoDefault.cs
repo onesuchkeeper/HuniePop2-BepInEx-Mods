@@ -21,9 +21,7 @@ internal static class PhotoDefault
         ModInterface.AddDataMod(new PhotoDataMod(_id, InsertStyle.replace)
         {
             HasAlts = false,
-
             BigPhotoCensored = photoInfo,
-
             ThumbnailCensored = thumbInfo,
         });
     }

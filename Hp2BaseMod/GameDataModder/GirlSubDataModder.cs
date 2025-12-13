@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Hp2BaseMod.Extension;
-using Hp2BaseMod.Extension.IEnumerableExtension;
 using Hp2BaseMod.GameDataInfo.Interface;
 
 namespace Hp2BaseMod;
@@ -113,15 +112,24 @@ internal static class GirlSubDataModder
                         {
                             var body = expansion.Bodies.GetOrNew(id_bodyMods.Key);
 
-                            using (ModInterface.Log.MakeIndent($"body {id_bodyMods.Key}, total bodies {expansion.Bodies.Count}"))
+                            using (ModInterface.Log.MakeIndent($"body {id_bodyMods.Key}"))
                             {
                                 using (ModInterface.Log.MakeIndent("parts"))
                                 {
                                     RegisterUnregisteredIds(body.PartIdToIndex,
                                         body.PartIndexToId,
                                         body.Parts.Count,
-                                        id_bodyMods.Value.partMods.Select(x => x.Key).Distinct(),
+                                        id_bodyMods.Value.partMods.Select(x => x.Key),
                                         body.Parts);
+                                }
+
+                                using (ModInterface.Log.MakeIndent("specials"))
+                                {
+                                    RegisterUnregisteredIds(body.SpecialPartIdToIndex,
+                                        body.SpecialPartIndexToId,
+                                        body.SpecialParts.Count,
+                                        id_bodyMods.Value.specialPartMods.Select(x => x.Key),
+                                        body.SpecialParts);
                                 }
 
                                 using (ModInterface.Log.MakeIndent("expressions"))
@@ -129,7 +137,7 @@ internal static class GirlSubDataModder
                                     RegisterUnregisteredIds(expansion.ExpressionIdToIndex,
                                         expansion.ExpressionIndexToId,
                                         expansion.ExpressionIdToIndex.Count - 1,
-                                        id_bodyMods.Value.expressionMods.Select(x => x.Key).Distinct(),
+                                        id_bodyMods.Value.expressionMods.Select(x => x.Key),
                                         body.Expressions);
                                 }
 
@@ -138,7 +146,7 @@ internal static class GirlSubDataModder
                                     RegisterUnregisteredIds(expansion.OutfitIdToIndex,
                                         expansion.OutfitIndexToId,
                                         expansion.OutfitIdToIndex.Count - 1,
-                                        id_bodyMods.Value.outfitMods.Select(x => x.Key).Distinct(),
+                                        id_bodyMods.Value.outfitMods.Select(x => x.Key),
                                         body.Outfits);
                                 }
 
@@ -147,30 +155,22 @@ internal static class GirlSubDataModder
                                     RegisterUnregisteredIds(expansion.HairstyleIdToIndex,
                                         expansion.HairstyleIndexToId,
                                         expansion.HairstyleIdToIndex.Count - 1,
-                                        id_bodyMods.Value.hairstyleMods.Select(x => x.Key).Distinct(),
+                                        id_bodyMods.Value.hairstyleMods.Select(x => x.Key),
                                         body.Hairstyles);
-                                }
-
-                                using (ModInterface.Log.MakeIndent("specials"))
-                                {
-                                    RegisterUnregisteredIds(body.SpecialPartIdToIndex,
-                                        body.SpecialPartIndexToId,
-                                        body.SpecialParts.Count,
-                                        id_bodyMods.Value.specialPartMods.Select(x => x.Key).Distinct(),
-                                        body.SpecialParts);
                                 }
                             }
                         }
                     }
                 }
 
+                // add null trailing entries
                 foreach (var id_body in expansion.Bodies)
                 {
                     var bodyMods = girlId_BodyToMods.Value[id_body.Key];
 
-                    AddMissingIndexedDefinitions(bodyMods.expressionMods.Keys.Select(x => expansion.ExpressionIdToIndex[x]), id_body.Value.Expressions, expansion.ExpressionIdToIndex.Count);
-                    AddMissingIndexedDefinitions(bodyMods.hairstyleMods.Keys.Select(x => expansion.HairstyleIdToIndex[x]), id_body.Value.Hairstyles, expansion.HairstyleIdToIndex.Count);
-                    AddMissingIndexedDefinitions(bodyMods.outfitMods.Keys.Select(x => expansion.OutfitIdToIndex[x]), id_body.Value.Outfits, expansion.OutfitIdToIndex.Count);
+                    AddMissingIndexedDefinitions(bodyMods.expressionMods.Keys.Select(x => expansion.ExpressionIdToIndex[x]), id_body.Value.Expressions, expansion.ExpressionIdToIndex.Count - 1);
+                    AddMissingIndexedDefinitions(bodyMods.hairstyleMods.Keys.Select(x => expansion.HairstyleIdToIndex[x]), id_body.Value.Hairstyles, expansion.HairstyleIdToIndex.Count - 1);
+                    AddMissingIndexedDefinitions(bodyMods.outfitMods.Keys.Select(x => expansion.OutfitIdToIndex[x]), id_body.Value.Outfits, expansion.OutfitIdToIndex.Count - 1);
                 }
             }
 
@@ -185,15 +185,14 @@ internal static class GirlSubDataModder
 
                         if (girlExpansion.DialogTriggerIndex == -1)
                         {
-                            girlExpansion.DialogTriggerIndex = nextIndex;
-                            nextIndex++;
+                            girlExpansion.DialogTriggerIndex = nextIndex++;
                         }
                     }
                 }
 
                 using (ModInterface.Log.MakeIndent("line sets"))
                 {
-                    foreach (var dt in dialogTriggerDataDict.Values.Where(x => IsGirlDialogTrigger(x)))
+                    foreach (var dt in dialogTriggerDataDict.Values.Where(IsGirlDialogTrigger))
                     {
                         var expansion = dt.Expansion();
 
@@ -232,17 +231,14 @@ internal static class GirlSubDataModder
                         {
                             var dialogTrigger = ModInterface.GameData.GetDialogTrigger(dialogTriggerId_DialogLineModsById.Key);
 
-                            using (ModInterface.Log.MakeIndent($"dt {dialogTriggerId_DialogLineModsById.Key} with {dialogTrigger.dialogLineSets.Count} line sets"))
-                            {
-                                var dialogTriggerSet = dialogTrigger.dialogLineSets[girlExpansion.DialogTriggerIndex];
-                                var expansion = ExpandedDialogTriggerDefinition.Get(dialogTriggerId_DialogLineModsById.Key);
+                            var dialogTriggerSet = dialogTrigger.dialogLineSets[girlExpansion.DialogTriggerIndex];
+                            var expansion = ExpandedDialogTriggerDefinition.Get(dialogTriggerId_DialogLineModsById.Key);
 
-                                RegisterUnregisteredIds(expansion.GirlIdToLineIdToLineIndex[girlId_DialogLineModsByIdByDialogTrigger.Key],
-                                    expansion.GirlIdToLineIndexToLineId[girlId_DialogLineModsByIdByDialogTrigger.Key],
-                                    dialogTriggerSet.dialogLines.Count,
-                                    dialogTriggerId_DialogLineModsById.Value.Select(x => x.Key),
-                                    dialogTriggerSet.dialogLines);
-                            }
+                            RegisterUnregisteredIds(expansion.GirlIdToLineIdToLineIndex[girlId_DialogLineModsByIdByDialogTrigger.Key],
+                                expansion.GirlIdToLineIndexToLineId[girlId_DialogLineModsByIdByDialogTrigger.Key],
+                                dialogTriggerSet.dialogLines.Count,
+                                dialogTriggerId_DialogLineModsById.Value.Select(x => x.Key),
+                                dialogTriggerSet.dialogLines);
                         }
                     }
                 }
@@ -257,7 +253,6 @@ internal static class GirlSubDataModder
                     idToMods.GetOrNew(mod.Id).Add(mod);
                 }
 
-
                 foreach (var id_mods in idToMods)
                 {
                     using (ModInterface.Log.MakeIndent($"Question {id_mods.Key}"))
@@ -269,7 +264,6 @@ internal static class GirlSubDataModder
                         var index = question.questionAnswers.Count;
                         foreach (var id in answers.Where(x => !expansion.AnswerIdToIndex.ContainsKey(x)))
                         {
-                            ModInterface.Log.LogInfo($"Adding answer {id} at index {index}");
                             expansion.AnswerIdToIndex[id] = index;
                             expansion.AnswerIndexToId[index++] = id;
                             question.questionAnswers.Add(null);
@@ -293,7 +287,7 @@ internal static class GirlSubDataModder
     // nonstop = 56
     // wardrobe = 57
     // album = 58
-    private static bool IsGirlDialogTrigger(DialogTriggerDefinition dt) => dt.id < 49 || dt.id > 58;
+    public static bool IsGirlDialogTrigger(DialogTriggerDefinition dt) => dt.id < 49 || dt.id > 58;
 
     private static void RegisterUnregisteredIds<T>(IDictionary<RelativeId, int> idToIndex,
         IDictionary<int, RelativeId> indexToId,
@@ -305,9 +299,23 @@ internal static class GirlSubDataModder
         foreach (var id in ids.Where(x => !idToIndex.ContainsKey(x)))
         {
             idToIndex[id] = startingIndex;
-            indexToId[startingIndex++] = id;
-            var newData = new T();
-            gameData.Add(newData);
+            indexToId[startingIndex] = id;
+
+            if (startingIndex > gameData.Count - 1)
+            {
+                for (int i = startingIndex - gameData.Count; i > 0; i--)
+                {
+                    gameData.Add(null);
+                }
+
+                gameData.Add(new());
+            }
+            else
+            {
+                gameData[startingIndex] ??= new();
+            }
+
+            startingIndex++;
         }
     }
 
@@ -327,7 +335,7 @@ internal static class GirlSubDataModder
             }
             else
             {
-                definitions[index] = new();
+                definitions[index] ??= new();
             }
         }
 

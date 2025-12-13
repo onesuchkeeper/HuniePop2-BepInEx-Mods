@@ -4,11 +4,9 @@ using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using AssetStudio;
-using ETAR.AssetStudioPlugin.Extractor;
+using AssetStudio.Extractor;
 using Hp2BaseMod;
 using Hp2BaseMod.Extension;
-using Hp2BaseMod.Extension.IEnumerableExtension;
-using Hp2BaseMod.Extension.OrderedDictionaryExtension;
 using Hp2BaseMod.GameDataInfo;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
@@ -23,7 +21,8 @@ public partial class HpExtraction : BaseExtraction
 
 
     private Dictionary<SerializedFile, Dictionary<UnityAssetPath, TextureInfoRaw>> _textureInfo = new();
-    private Dictionary<SerializedFile, Dictionary<UnityAssetPath, AudioClipInfoVorbis>> _audioInfo = new();
+    private Dictionary<SerializedFile, Dictionary<UnityAssetPath, AudioClipInfoVorbisLazy>> _audioInfo = new();
+    //private Dictionary<SerializedFile, Dictionary<UnityAssetPath, OrderedDictionary>> _cutscenes = new();
     private Dictionary<int, GirlDataMod> _hpGirlIdToMod = new();
     private Dictionary<UnityAssetPath, PuzzleAffectionType> _affectionTypes = new(){
         {new UnityAssetPath(){ FileId = 0, PathId = 9371}, PuzzleAffectionType.TALENT},
@@ -73,7 +72,7 @@ public partial class HpExtraction : BaseExtraction
     {
         var collectionData = new Dictionary<string, (SerializedFile, OrderedDictionary)>();
 
-        foreach (var file_behviorList in _extractor.ExtractMonobehaviors("tk2dSpriteCollectionData"))
+        foreach (var file_behviorList in _extractor.ExtractMonoBehaviors("tk2dSpriteCollectionData"))
         {
             foreach (var behavior in file_behviorList.Value)
             {
@@ -86,7 +85,7 @@ public partial class HpExtraction : BaseExtraction
 
         _thumbnailCollection = collectionData["AllPhotoIconsSpriteCollection"];
 
-        foreach (var file_dialogTriggers in _extractor.ExtractMonobehaviors("DialogTriggerDefinition"))
+        foreach (var file_dialogTriggers in _extractor.ExtractMonoBehaviors("DialogTriggerDefinition"))
         {
             foreach (var dtDef in file_dialogTriggers.Value)
             {
@@ -94,15 +93,15 @@ public partial class HpExtraction : BaseExtraction
             }
         }
 
-        foreach (var file_girlDefs in _extractor.ExtractMonobehaviors("GirlDefinition"))
+        foreach (var file_girlDefs in _extractor.ExtractMonoBehaviors("GirlDefinition"))
         {
             foreach (var girlDef in file_girlDefs.Value)
             {
-                ExtractGirl(girlDef, collectionData);
+                ExtractGirl(file_girlDefs.Key, girlDef, collectionData);
             }
         }
 
-        foreach (var file_locationDef in _extractor.ExtractMonobehaviors("LocationDefinition"))
+        foreach (var file_locationDef in _extractor.ExtractMonoBehaviors("LocationDefinition"))
         {
             foreach (var locationDef in file_locationDef.Value)
             {
@@ -124,7 +123,7 @@ public partial class HpExtraction : BaseExtraction
         }
     }
 
-    private bool TryExtractAudioDef(OrderedDictionary AudioDef, SerializedFile file, out AudioClipInfoVorbis clipInfo)
+    private bool TryExtractAudioDef(OrderedDictionary AudioDef, SerializedFile file, out AudioClipInfoVorbisLazy clipInfo)
     {
         if (AudioDef.TryGetValue("clip", out OrderedDictionary clip)
             && UnityAssetPath.TryExtract(clip, out var unityPath)
@@ -136,22 +135,33 @@ public partial class HpExtraction : BaseExtraction
         return false;
     }
 
-    private void LogAll(OrderedDictionary dict)
+    private static void LogAll(OrderedDictionary dict)
     {
         var keys = dict.Keys.GetEnumerator();
         var vals = dict.Values.GetEnumerator();
         while (keys.MoveNext() && vals.MoveNext())
         {
-            using (ModInterface.Log.MakeIndent(keys.Current.ToString()))
+            if (vals.Current is OrderedDictionary subDict)
             {
-                if (vals.Current is OrderedDictionary subDict)
+                using (ModInterface.Log.MakeIndent(keys.Current.ToString()))
                 {
                     LogAll(subDict);
                 }
-                else
+            }
+            else if (vals.Current is List<object> list)
+            {
+                using (ModInterface.Log.MakeIndent(keys.Current.ToString()))
                 {
-                    ModInterface.Log.LogInfo($"{vals.Current?.ToString() ?? "null"}");
+                    foreach (var entry in list)
+                    {
+                        if (entry is OrderedDictionary orderedDict) LogAll(orderedDict);
+                        else ModInterface.Log.Message($"{vals.Current?.ToString() ?? "null"}");
+                    }
                 }
+            }
+            else
+            {
+                ModInterface.Log.Message($"{keys.Current} : {vals.Current?.ToString() ?? "null"}");
             }
         }
     }
@@ -171,7 +181,7 @@ public partial class HpExtraction : BaseExtraction
         {12,[2]},//venus
     };
 
-    private void ExtractGirl(OrderedDictionary girlDef, Dictionary<string, (SerializedFile, OrderedDictionary)> collectionData)
+    private void ExtractGirl(SerializedFile file, OrderedDictionary girlDef, Dictionary<string, (SerializedFile, OrderedDictionary)> collectionData)
     {
         var censoredIndex = -1;
         var nudeIndex = -1;
@@ -179,7 +189,7 @@ public partial class HpExtraction : BaseExtraction
 
         if (!girlDef.TryGetValue("id", out int nativeId))
         {
-            ModInterface.Log.LogError("Hp2 girl lacks id");
+            ModInterface.Log.Error("Hp2 girl lacks id");
             return;
         }
 
@@ -204,7 +214,7 @@ public partial class HpExtraction : BaseExtraction
 
         if (girlDef.TryGetValue("firstName", out string firstName))
         {
-            ModInterface.Log.LogInfo($"id:{nativeId}, name:{firstName}");
+            ModInterface.Log.Message($"id:{nativeId}, name:{firstName}");
             girlMod.GirlName = firstName;
         }
 
@@ -222,16 +232,13 @@ public partial class HpExtraction : BaseExtraction
             girlMod.LeastFavoriteAffectionType = affectionType;
         }
 
-        if (girlDef.TryGetValue("details", out List<object> details))
+        girlMod.FavoriteDialogLines = new();
+        using (ModInterface.Log.MakeIndent("talkQueries"))
         {
-            var asArray = details.OfType<string>().ToArray();
-
-            if (asArray.Length == 12)
+            ExtractQueries(Girls.FromHp1Id(nativeId), girlDef, file, girlMod.FavoriteDialogLines);
+            foreach (var foo in girlMod.FavoriteDialogLines.Keys)
             {
-                if (int.TryParse(asArray[1], out int girlAge))
-                {
-                    girlMod.GirlAge = girlAge;
-                }
+                ModInterface.Log.Message(foo.ToString());
             }
         }
 
@@ -295,7 +302,7 @@ public partial class HpExtraction : BaseExtraction
                                 && TryMakePartDataMod(GirlPartType.OUTFIT, outfitPartDef, spriteLookup, spriteTextureInfo,
                                     out var outfitPart, out var outfitSpriteInfo))
                             {
-                                ModInterface.Log.LogInfo($"Outfit {outfitName} - {outfitCount}");
+                                ModInterface.Log.Message($"Outfit {outfitName} - {outfitCount}");
 
                                 body.outfits.Add(new OutfitDataMod(new RelativeId(Plugin.ModId, outfitCount++), InsertStyle.append)
                                 {
@@ -472,7 +479,7 @@ public partial class HpExtraction : BaseExtraction
                                     {
                                         if (!string.IsNullOrWhiteSpace(limitToOutfits))
                                         {
-                                            ModInterface.Log.LogWarning($"{extraName} {limitToOutfits}");
+                                            ModInterface.Log.Warning($"{extraName} {limitToOutfits}");
                                         }
 
                                         body.specialParts ??= new();
@@ -548,7 +555,7 @@ public partial class HpExtraction : BaseExtraction
                                     if (piece.TryGetValue("layer", out int layerId)
                                     && piece.TryGetValue("name", out string pieceName))
                                     {
-                                        ModInterface.Log.LogInfo($"unhandled part type {typeId}, for layer {layerId}, named {pieceName}");
+                                        ModInterface.Log.Message($"unhandled part type {typeId}, for layer {layerId}, named {pieceName}");
                                     }
                                     break;
                             }
@@ -569,6 +576,17 @@ public partial class HpExtraction : BaseExtraction
                     confused.PartMouthOpen = mouthOpen;
                     horny.PartMouthOpen = mouthOpen;
                     sick.PartMouthOpen = mouthOpen;
+
+                    //upset
+                    body.expressions.Add(new GirlExpressionDataMod(new RelativeId(-1, (int)GirlExpressionType.UPSET), InsertStyle.append)
+                    {
+                        ExpressionType = GirlExpressionType.UPSET,
+                        PartEyebrows = angry.PartEyebrows,
+                        PartEyes = sad.PartEyes,
+                        PartEyesGlow = sad.PartEyes,
+                        PartMouthClosed = shy.PartMouthClosed,
+                        PartMouthOpen = mouthOpen
+                    });
 
                     //disappointed
                     body.expressions.Add(new GirlExpressionDataMod(new RelativeId(-1, (int)GirlExpressionType.DISAPPOINTED), InsertStyle.append)
@@ -663,8 +681,8 @@ public partial class HpExtraction : BaseExtraction
                 //defaults
                 body.DefaultOutfitId = body.outfits.First().Id;
                 body.DefaultHairstyleId = body.hairstyles.First().Id;
-                body.DefaultExpressionIndex = 0;
-                body.FailureExpressionIndex = 10;
+                body.DefaultExpressionId = new RelativeId(-1, (int)GirlExpressionType.NEUTRAL); ;
+                body.FailureExpressionId = new RelativeId(-1, (int)GirlExpressionType.UPSET); ;
 
                 girlMod.VoiceVolume = 1f;
                 girlMod.SexVoiceVolume = 1f;
@@ -823,7 +841,7 @@ public partial class HpExtraction : BaseExtraction
             return true;
         }
 
-        ModInterface.Log.LogInfo($"Failed to make sprite info");
+        ModInterface.Log.Message($"Failed to make sprite info");
         info = null;
         return false;
     }
@@ -894,7 +912,7 @@ public partial class HpExtraction : BaseExtraction
         return false;
     }
 
-    private bool TryGetAudioClipInfo(SerializedFile file, UnityAssetPath path, out AudioClipInfoVorbis clipInfo)
+    private bool TryGetAudioClipInfo(SerializedFile file, UnityAssetPath path, out AudioClipInfoVorbisLazy clipInfo)
     {
         var pathToInfo = _audioInfo.GetOrNew(file);
 
@@ -907,7 +925,7 @@ public partial class HpExtraction : BaseExtraction
 
         if (audioClip.m_Type == FMODSoundType.OGGVORBIS)
         {
-            clipInfo = new AudioClipInfoVorbis(audioClip.m_AudioData);
+            clipInfo = new AudioClipInfoVorbisLazy(audioClip.m_AudioData);
             return true;
         }
 

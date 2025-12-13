@@ -84,8 +84,8 @@ namespace Hp2BaseModTweaks.CellphoneApps
         {
             //If the initial girl is modded it is not handled properly, so default to lola
             //and repopulate afterwards
-            _initialWardrobeGirlId = Game.Persistence.playerFile.GetFlagValue("wardrobe_girl_id");
-            Game.Persistence.playerFile.SetFlagValue("wardrobe_girl_id", Girls.LolaId.LocalId);
+            _initialWardrobeGirlId = Game.Persistence.playerFile.GetFlagValue(Flags.WARDROBE_GIRL_ID);
+            Game.Persistence.playerFile.SetFlagValue(Flags.WARDROBE_GIRL_ID, Girls.AshleyId.LocalId);
             _wardrobeApp.StartCoroutine(Start());
         }
 
@@ -94,7 +94,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
             yield return new WaitForEndOfFrame();
             Canvas.ForceUpdateCanvases();
 
-            Game.Persistence.playerFile.SetFlagValue("wardrobe_girl_id", _initialWardrobeGirlId);
+            Game.Persistence.playerFile.SetFlagValue(Flags.WARDROBE_GIRL_ID, _initialWardrobeGirlId);
             var playerFileGirl = Game.Persistence.playerFile.GetPlayerFileGirl(Game.Data.Girls.Get(_initialWardrobeGirlId));
             _wardrobeApp.selectListHairstyle.Populate(playerFileGirl);
             _wardrobeApp.selectListOutfit.Populate(playerFileGirl);
@@ -324,13 +324,35 @@ namespace Hp2BaseModTweaks.CellphoneApps
 
         public void Refresh()
         {
+            // check valid data
             if (!_started) { return; }
+
+            var wardrobeGirlId = Game.Persistence.playerFile.GetFlagValue(Flags.WARDROBE_GIRL_ID);
+            var wardrobeGirlDef = Game.Data.Girls.Get(wardrobeGirlId);
+
+            if (wardrobeGirlDef == null)
+            {
+                wardrobeGirlId = ModInterface.Data.GetRuntimeDataId(GameDataType.Girl, Girls.AshleyId);
+                wardrobeGirlDef = ModInterface.GameData.GetGirl(Girls.AshleyId);
+                Game.Persistence.playerFile.SetFlagValue(Flags.WARDROBE_GIRL_ID, wardrobeGirlId);
+
+            }
+            var playerFileGirl = Game.Persistence.playerFile.GetPlayerFileGirl(wardrobeGirlDef);
+
+            if (!playerFileGirl.outfitIndex.InInclusiveRange(playerFileGirl.girlDefinition.outfits.Count - 1))
+            {
+                playerFileGirl.outfitIndex = playerFileGirl.girlDefinition.defaultOutfitIndex;
+            }
+
+            if (!playerFileGirl.hairstyleIndex.InInclusiveRange(playerFileGirl.girlDefinition.hairstyles.Count - 1))
+            {
+                playerFileGirl.hairstyleIndex = playerFileGirl.girlDefinition.defaultHairstyleIndex;
+            }
 
             // head slots
             UiAppFileIconSlot selectedFileIconSlot = null;
             var iconIndex = _girlsPageIndex * GIRLS_PER_PAGE;
             int renderedCount = 0;
-            var wardrobeGirlId = Game.Persistence.playerFile.GetFlagValue("wardrobe_girl_id");
 
             foreach (var slot in _subscribedSlots.Take(GIRLS_PER_PAGE))
             {
@@ -370,7 +392,6 @@ namespace Hp2BaseModTweaks.CellphoneApps
             }
 
             // if the selected slot is on a different page, use the dummy slot
-            var wardrobeGirlDef = Game.Data.Girls.Get(wardrobeGirlId);
             if (selectedFileIconSlot == null)
             {
                 _dummyFileIconSlot.girlDefinition = wardrobeGirlDef;
@@ -457,7 +478,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
         private void On_BodySelector_BodyChanged()
         {
             var doll = f_wardrobeDoll.GetValue<UiDoll>(_wardrobeApp);
-            PlayerFileGirl playerFileGirl = Game.Persistence.playerFile.GetPlayerFileGirl(doll.girlDefinition);
+            var playerFileGirl = Game.Persistence.playerFile.GetPlayerFileGirl(doll.girlDefinition);
             f_wardrobeDoll.GetValue<UiDoll>(_wardrobeApp).LoadGirl(doll.girlDefinition);
 
             _wardrobeApp.selectListHairstyle.Populate(playerFileGirl);

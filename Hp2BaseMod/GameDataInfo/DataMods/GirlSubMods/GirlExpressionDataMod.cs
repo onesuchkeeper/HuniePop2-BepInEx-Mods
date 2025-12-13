@@ -58,7 +58,6 @@ namespace Hp2BaseMod.GameDataInfo
             GirlBodySubDefinition bodyDef)
         {
             if (def == null) { return; }
-            ModInterface.Log.LogInfo($"Expression Mod {Id} pre: Normal eye index:{def.partIndexEyes}, Glow eye index {def.partIndexEyesGlow}");
 
             ValidatedSet.SetValue(ref def.expressionType, ExpressionType);
             ValidatedSet.SetValue(ref def.eyesClosed, EyesClosed);
@@ -69,8 +68,6 @@ namespace Hp2BaseMod.GameDataInfo
             ValidatedSet.SetValue(ref def.partIndexEyesGlow, bodyDef.PartIdToIndex, PartEyesGlow?.Id);
             ValidatedSet.SetValue(ref def.partIndexMouthClosed, bodyDef.PartIdToIndex, PartMouthClosed?.Id);
             ValidatedSet.SetValue(ref def.partIndexMouthOpen, bodyDef.PartIdToIndex, PartMouthOpen?.Id);
-
-            ModInterface.Log.LogInfo($"Expression Mod {Id} post: Normal eye index:{def.partIndexEyes}, Glow eye index {def.partIndexEyesGlow}");
         }
 
         /// <inheritdoc/>

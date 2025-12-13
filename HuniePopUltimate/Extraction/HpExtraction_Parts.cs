@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
 using Hp2BaseMod;
-using Hp2BaseMod.Extension.OrderedDictionaryExtension;
+using Hp2BaseMod.Extension;
 using Hp2BaseMod.GameDataInfo;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
@@ -18,10 +18,16 @@ public partial class HpExtraction
         {
             case 2:
                 return "Naughty Teacher";
+            case 3:
+                return "Pure Sin";
             case 6:
                 return "Unprepared";
             case 8:
                 return "Underwear";
+            case 9:
+                return "Pink, Bitch";
+            case 10:
+                return "Satin Strands";
             case 11:
                 return "Undergarments";
             case 12:
@@ -106,12 +112,12 @@ public partial class HpExtraction
                 }
                 else
                 {
-                    ModInterface.Log.LogInfo($"Failed get sprite");
+                    ModInterface.Log.Message($"Failed get sprite");
                 }
             }
             else
             {
-                ModInterface.Log.LogInfo($"Failed to read definition");
+                ModInterface.Log.Message($"Failed to read definition");
             }
         }
 

@@ -39,7 +39,6 @@ namespace Hp2BaseMod.Save
                     save.learnedFavs.Add(runtimeId);
                 }
             }
-            save.learnedFavs = save.learnedFavs.Distinct().ToList();
 
             foreach (var questions in RecentFavQuestions)
             {
@@ -48,7 +47,6 @@ namespace Hp2BaseMod.Save
                     save.recentFavQuestions.Add(runtimeId);
                 }
             }
-            save.recentFavQuestions = save.recentFavQuestions.Distinct().ToList();
         }
 
         public SaveFileGirlPair Convert(int runtimeId)

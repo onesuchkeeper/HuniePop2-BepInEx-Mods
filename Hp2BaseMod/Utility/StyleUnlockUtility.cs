@@ -179,7 +179,7 @@ public static class StyleUnlockUtility
             }
             else
             {
-                ModInterface.Log.LogInfo("Next item in queue");
+                ModInterface.Log.Message("Next item in queue");
                 HandleQueue(doll);
             }
         };

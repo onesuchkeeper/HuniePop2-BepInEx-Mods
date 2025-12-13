@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Reflection;
 using HarmonyLib;
 using Hp2BaseMod.Extension;
@@ -53,7 +54,7 @@ internal static class LocationManagerPatch
     [HarmonyPostfix]
     public static void ResetDolls(LocationManager __instance, bool unload = false)
     {
-        if (unload) { return; }
+        if (unload) { return; }//if the hub girl does not have the needed indexes
 
         var currentLocation = f_currentLocation.GetValue(__instance) as LocationDefinition;
 
@@ -62,7 +63,8 @@ internal static class LocationManagerPatch
             // the base method already randomizes hub girl outfit, so just use default
             var girlExpansion = Game.Session.Hub.hubGirlDefinition.Expansion();
 
-            var outfitIndex = UnityEngine.Random.Range(0, Game.Session.Hub.hubGirlDefinition.outfits.Count);
+            var i = 0;
+            var outfitIndex = Game.Session.Hub.hubGirlDefinition.outfits.Select(x => (x, i++)).Where(x => x.Item1 != null).ToArray().GetRandom().Item2;
             var outfit = Game.Session.Hub.hubGirlDefinition.outfits[outfitIndex];
 
             var hubStyle = new GirlStyleInfo()
@@ -76,7 +78,9 @@ internal static class LocationManagerPatch
             }
             else
             {
-                hubStyle.HairstyleId = girlExpansion.HairstyleIndexToId[UnityEngine.Random.Range(0, Game.Session.Hub.hubGirlDefinition.hairstyles.Count)];
+                i = 0;
+                var randomIndex = Game.Session.Hub.hubGirlDefinition.hairstyles.Select(x => (x, i++)).Where(x => x.Item1 != null).ToArray().GetRandom().Item2;
+                hubStyle.HairstyleId = girlExpansion.HairstyleIndexToId[randomIndex];
             }
 
             var args = ModInterface.Events.NotifyRequestStyleChange(Game.Session.Hub.hubGirlDefinition, currentLocation, 0.1f, hubStyle);

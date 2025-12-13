@@ -22,11 +22,11 @@ public class Plugin : BaseUnityPlugin
         try
         {
             ModInterface.Init();
-            ModInterface.Log.LogInfo("Mod interface initialized");
+            ModInterface.Log.Message("Mod interface initialized");
         }
         catch (Exception e)
         {
-            ModInterface.Log.LogError("Failed to initialize mod interface", e);
+            ModInterface.Log.Error("Failed to initialize mod interface", e);
             return;
         }
 
@@ -111,7 +111,7 @@ public class Plugin : BaseUnityPlugin
         }
         catch (Exception e)
         {
-            ModInterface.Log.LogError("Failed to handle existing game data", e);
+            ModInterface.Log.Error("Failed to handle existing game data", e);
             return;
         }
 
@@ -124,7 +124,7 @@ public class Plugin : BaseUnityPlugin
         }
         catch (Exception e)
         {
-            ModInterface.Log.LogError("Failed to patch", e);
+            ModInterface.Log.Error("Failed to patch", e);
             return;
         }
 
@@ -132,6 +132,6 @@ public class Plugin : BaseUnityPlugin
         ModInterface.AddCommand(new EchoCommand());
         ModInterface.AddCommand(new ArtCommand());
 
-        ModInterface.Log.LogInfo(Art.Random());
+        ModInterface.Log.Message(Art.Random());
     }
 }

@@ -3,7 +3,7 @@ using System.Collections.Specialized;
 using System.Linq;
 using AssetStudio;
 using Hp2BaseMod;
-using Hp2BaseMod.Extension.OrderedDictionaryExtension;
+using Hp2BaseMod.Extension;
 using Hp2BaseMod.GameDataInfo;
 using Hp2BaseMod.Utility;
 
@@ -171,11 +171,13 @@ public partial class HpExtraction
                         ExtractDialogLineSet(new RelativeId(-1, 14), lineSets[2], file);
                     }
                     break;
+                //I think queries are the player asking about a trait
                 case "QueryDuplicate":
                     break;
                 case "QueryIntro":
                     ExtractDialogLineSet(new RelativeId(-1, 4), lineSets[0], file);//favQuestionIntro
                     break;
+                //I think questions are the abstract general questions unique to each
                 case "QuestionBadChoice":
                     ExtractDialogLineSet(new RelativeId(-1, 3), lineSets[0], file);//herQuestionBadResponse
                     break;
@@ -183,20 +185,22 @@ public partial class HpExtraction
                     ExtractDialogLineSet(new RelativeId(-1, 8), lineSets[0], file);//herQuestionGoodResponse
                     break;
                 case "QuestionIncorrect":
+                    ExtractDialogLineSet(new RelativeId(-1, 3), lineSets[0], file);//herQuestionBadResponse
                     break;
                 case "QuestionIntro":
                     ExtractDialogLineSet(new RelativeId(-1, 2), lineSets[0], file);//herQuestionIntro
                     break;
+                //I think quiz it the "Remember the stuff I told you" bit
                 case "QuizCorrect":
-                    ExtractDialogLineSet(new RelativeId(-1, 6), lineSets[0], file);//favQuestionAgree
-                    ExtractDialogLineSet(new RelativeId(-1, 5), lineSets[0], file);//favQuestionResponse
+                    // ExtractDialogLineSet(new RelativeId(-1, 6), lineSets[0], file);//favQuestionAgree
+                    // ExtractDialogLineSet(new RelativeId(-1, 5), lineSets[0], file);//favQuestionResponse
                     break;
                 case "QuizIncorrect":
                     break;
                 case "QuizIntro":
                     break;
                 default:
-                    ModInterface.Log.LogError($"Unhandled hp1 dt {name}");
+                    ModInterface.Log.Error($"Unhandled hp1 dt {name}");
                     break;
             }
         }
@@ -314,7 +318,6 @@ public partial class HpExtraction
             switch (type)
             {
                 case 0://dialog line
-
                     break;
                 case 1://response options
                     break;

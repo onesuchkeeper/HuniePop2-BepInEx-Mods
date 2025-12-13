@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using DG.Tweening;
+using Hp2BaseMod.Extension;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.ModGameData.Interface;
 using Hp2BaseMod.Utility;
@@ -79,9 +80,6 @@ public class ChangeLocationCutsceneStep : CutsceneStepSubDefinition, IFunctional
         TweenUtils.KillTween(_sequence);
         _sequence = DOTween.Sequence();
         var position = 0f;
-        //_sequence.Insert(0f, Game.Session.gameCanvas.dollLeft.slideLayer.DOAnchorPos(Game.Session.gameCanvas.dollLeft.GetPositionByType(DollPositionType.HIDDEN), 1f).SetEase(Ease.InOutCubic));
-        //_sequence.Insert(0f, Game.Session.gameCanvas.dollRight.slideLayer.DOAnchorPos(Game.Session.gameCanvas.dollRight.GetPositionByType(DollPositionType.HIDDEN), 1f).SetEase(Ease.InOutCubic));
-        // position += 0.75
         _sequence.Insert(position, Game.Session.gameCanvas.cellphone.rectTransform.DOAnchorPosY(Game.Session.gameCanvas.cellphone.yValues.x, 1.25f).SetEase(Ease.InOutCubic));
         _sequence.Insert(position, Game.Session.gameCanvas.header.rectTransform.DOAnchorPosY(Game.Session.gameCanvas.header.yValues.x, 1.25f).SetEase(Ease.InOutCubic));
         _sequence.Insert(position, Game.Session.gameCanvas.bgLocations.currentBg.art.rectTransform.DOAnchorPosY(0f, 1.25f).SetEase(Ease.InOutCubic));

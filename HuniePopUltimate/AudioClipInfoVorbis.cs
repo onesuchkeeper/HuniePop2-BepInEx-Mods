@@ -1,17 +1,27 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
-using AssetStudio;
 using Hp2BaseMod;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
 using NVorbis;
+using UnityEngine;
 
-public class AudioClipInfoVorbis : IGameDefinitionInfo<UnityEngine.AudioClip>
+/// <summary>
+/// Simple lazy-loading audio clip with aggressive unloading.
+/// Loads data on first play, unloads after a short idle period.
+/// </summary>
+public class AudioClipInfoVorbisLazy : IGameDefinitionInfo<UnityEngine.AudioClip>
 {
-    private readonly ResourceReader _resourceReader;
-    private MemoryStream _memoryStream;
-    private VorbisReader _reader;
-    private bool _readerReady;
+    // Keep instances alive but make data management simple
+    private static readonly List<AudioClipInfoVorbisLazy> _allInstances = new List<AudioClipInfoVorbisLazy>();
+    private static float _lastCleanupTime = 0f;
+    private static readonly float _cleanupInterval = 1f; // Check every second
+    private static readonly float _unloadDelay = 3f; // Unload after 3 seconds of no reads
+    private static readonly int _maxLoadedClips = 10; // Only keep 10 clips loaded max
+
+    private readonly AssetStudio.ResourceReader _resourceReader;
+    private readonly string _debugName;
     private int _channels;
     private int _sampleRate;
     private int _totalSamples;
@@ -19,15 +29,24 @@ public class AudioClipInfoVorbis : IGameDefinitionInfo<UnityEngine.AudioClip>
     private long _endPos;
     private long _durationSamples;
 
-    public AudioClipInfoVorbis(ResourceReader resourceReader, double startSeconds = 0.0, double durationSeconds = -1.0)
+    // Transient data
+    private MemoryStream _memoryStream;
+    private VorbisReader _reader;
+    private long _currentSamplePosition; // Position in samples (NOT per-channel)
+    private bool _hasReachedEnd; // Safeguard against infinite loops
+    private int _consecutiveZeroReads; // Track failed reads
+    private float _lastAccessTime;
+    private int _readCallsSinceLastCleanup;
+
+    public AudioClipInfoVorbisLazy(AssetStudio.ResourceReader resourceReader, double startSeconds = 0.0, double durationSeconds = -1.0)
     {
         if (resourceReader == null)
             throw new ArgumentNullException(nameof(resourceReader));
 
         _resourceReader = resourceReader;
-        _readerReady = false;
+        _debugName = $"Clip_{_allInstances.Count}";
 
-        // Load the full Ogg data
+        // Load only metadata
         byte[] fullData = _resourceReader.GetData();
         using (var stream = new MemoryStream(fullData, writable: false))
         using (var tempReader = new VorbisReader(stream, true))
@@ -37,7 +56,6 @@ public class AudioClipInfoVorbis : IGameDefinitionInfo<UnityEngine.AudioClip>
             _totalSamples = (int)tempReader.TotalSamples;
         }
 
-        // Calculate playback range
         _startPos = (long)(startSeconds * _sampleRate);
         if (durationSeconds > 0.0)
         {
@@ -54,12 +72,20 @@ public class AudioClipInfoVorbis : IGameDefinitionInfo<UnityEngine.AudioClip>
             _startPos = 0;
         if (_endPos > _totalSamples)
             _endPos = _totalSamples;
+
+        _lastAccessTime = -999f;
+        _readCallsSinceLastCleanup = 0;
+        _currentSamplePosition = 0; // Relative to clip start
+        _hasReachedEnd = false;
+        _consecutiveZeroReads = 0;
+
+        _allInstances.Add(this);
     }
 
     public void SetData(ref UnityEngine.AudioClip def, GameDefinitionProvider gameData, AssetProvider assetProvider, InsertStyle insertStyle)
     {
         def = UnityEngine.AudioClip.Create(
-            string.Empty,
+            _debugName,
             (int)_durationSamples,
             _channels,
             _sampleRate,
@@ -69,98 +95,325 @@ public class AudioClipInfoVorbis : IGameDefinitionInfo<UnityEngine.AudioClip>
         );
     }
 
-    private void EnsureReaderInitialized()
+    private void LoadAudioData()
     {
         if (_reader != null)
             return;
 
-        _memoryStream = new MemoryStream(_resourceReader.GetData(), writable: false);
-        _reader = new VorbisReader(_memoryStream, true);
-        _readerReady = false;
+        try
+        {
+            byte[] data = _resourceReader.GetData();
+            _memoryStream = new MemoryStream(data, writable: false);
+            _reader = new VorbisReader(_memoryStream, true);
+
+            // Reset safeguards
+            _hasReachedEnd = false;
+            _consecutiveZeroReads = 0;
+
+            // Seek to the correct position based on current sample position
+            SeekToPosition(_currentSamplePosition);
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"Failed to load audio data for {_debugName}: {ex.Message}");
+            // Clean up partial state
+            _reader?.Dispose();
+            _memoryStream?.Dispose();
+            _reader = null;
+            _memoryStream = null;
+        }
+    }
+
+    private void SeekToPosition(long clipPosition)
+    {
+        if (_reader == null)
+            return;
+
+        try
+        {
+            // Convert clip-relative position to absolute position in file
+            long absolutePosition = _startPos + clipPosition;
+
+            // Clamp to valid range
+            if (absolutePosition < _startPos)
+                absolutePosition = _startPos;
+            if (absolutePosition >= _endPos)
+                absolutePosition = _endPos - 1;
+
+            // Validate before seeking
+            if (absolutePosition < 0 || absolutePosition >= _totalSamples)
+            {
+                Debug.LogWarning($"Invalid seek position for {_debugName}: {absolutePosition} (total: {_totalSamples})");
+                return;
+            }
+
+            // Try to seek
+            _reader.SamplePosition = absolutePosition;
+            _hasReachedEnd = false;
+            _consecutiveZeroReads = 0;
+        }
+        catch (Exception ex)
+        {
+            // NVorbis can throw ArgumentOutOfRangeException even with valid positions
+            // Log but continue - reader will start from wherever it is
+            if (clipPosition != 0) Debug.LogWarning($"Seek failed for {_debugName} to position {clipPosition}: {ex.Message}");
+        }
+    }
+
+    private void UnloadAudioData()
+    {
+        if (_reader == null)
+            return;
+
+        try
+        {
+            _reader?.Dispose();
+            _memoryStream?.Dispose();
+        }
+        catch (Exception ex)
+        {
+            Debug.LogWarning($"Error unloading {_debugName}: {ex.Message}");
+        }
+        finally
+        {
+            _reader = null;
+            _memoryStream = null;
+            _hasReachedEnd = false;
+            _consecutiveZeroReads = 0;
+        }
     }
 
     private void OnPCMReaderCallback(float[] data)
     {
-        this.EnsureReaderInitialized();
-
-        int read = _reader.ReadSamples(data);
-        if (!_readerReady && read > 0)
-            _readerReady = true;
-
-        if (read < data.Length)
+        // Safeguard: If we've reached the end, just return silence
+        if (_hasReachedEnd)
         {
-            for (int i = read; i < data.Length; i++)
-                data[i] = 0f;
+            Array.Clear(data, 0, data.Length);
+            return;
+        }
+
+        // Load on first read if not already loaded
+        if (_reader == null)
+        {
+            LoadAudioData();
+
+            // If loading failed, return silence
+            if (_reader == null)
+            {
+                Array.Clear(data, 0, data.Length);
+                _hasReachedEnd = true;
+                return;
+            }
+        }
+
+        _lastAccessTime = Time.realtimeSinceStartup;
+        _readCallsSinceLastCleanup++;
+
+        // Calculate how many samples we should read
+        long remainingSamples = _durationSamples - _currentSamplePosition;
+        if (remainingSamples <= 0)
+        {
+            // Past the end - mark as ended and fill with silence
+            _hasReachedEnd = true;
+            Array.Clear(data, 0, data.Length);
+            return;
+        }
+
+        // Read samples (data.Length is in individual samples, accounting for all channels)
+        int samplesToRead = (int)Math.Min(data.Length, remainingSamples * _channels);
+        int samplesRead = 0;
+
+        try
+        {
+            samplesRead = _reader.ReadSamples(data, 0, samplesToRead);
+
+            // Track zero reads as a safeguard
+            if (samplesRead == 0)
+            {
+                _consecutiveZeroReads++;
+
+                // If we get too many zero reads, mark as ended to prevent infinite loop
+                if (_consecutiveZeroReads > 10)
+                {
+                    Debug.LogWarning($"Too many consecutive zero reads for {_debugName}, marking as ended");
+                    _hasReachedEnd = true;
+                    Array.Clear(data, 0, data.Length);
+                    return;
+                }
+            }
+            else
+            {
+                _consecutiveZeroReads = 0; // Reset on successful read
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.LogWarning($"Failed to read samples from {_debugName}: {ex.Message}");
+            _hasReachedEnd = true;
+            Array.Clear(data, 0, data.Length);
+            return;
+        }
+
+        // Update our position (ReadSamples returns total samples across all channels)
+        _currentSamplePosition += samplesRead / _channels;
+
+        // Check if we've reached the end
+        if (_currentSamplePosition >= _durationSamples)
+        {
+            _hasReachedEnd = true;
+        }
+
+        // Pad remaining with silence if we didn't fill the buffer
+        if (samplesRead < data.Length)
+        {
+            Array.Clear(data, samplesRead, data.Length - samplesRead);
+        }
+
+        // Periodic cleanup check (lightweight)
+        if (Time.realtimeSinceStartup - _lastCleanupTime > _cleanupInterval)
+        {
+            PerformCleanup();
         }
     }
 
     private void OnPCMSetPositionCallback(int position)
     {
-        this.EnsureReaderInitialized();
+        _lastAccessTime = Time.realtimeSinceStartup;
 
-        if (!_readerReady)
-            return;
+        // Clamp position to valid range
+        if (position < 0)
+            position = 0;
+        if (position >= _durationSamples)
+            position = (int)_durationSamples - 1;
 
-        long absolutePos = _startPos + position;
-        if (absolutePos < _startPos)
-            absolutePos = _startPos;
-        if (absolutePos >= _endPos)
-            absolutePos = _endPos - 1;
+        // Reset end flag when seeking
+        _hasReachedEnd = false;
+        _consecutiveZeroReads = 0;
 
-        _reader.SamplePosition = absolutePos;
+        // Update our current position
+        _currentSamplePosition = position;
+
+        // If reader is already loaded, seek immediately
+        if (_reader != null)
+        {
+            SeekToPosition(position);
+        }
+        // If not loaded, position will be used when LoadAudioData is called
+    }
+
+    private static void PerformCleanup()
+    {
+        _lastCleanupTime = Time.realtimeSinceStartup;
+
+        // Find clips to unload (idle ones)
+        var idleClips = new List<AudioClipInfoVorbisLazy>();
+        var activeClips = new List<AudioClipInfoVorbisLazy>();
+
+        foreach (var instance in _allInstances)
+        {
+            if (instance._reader == null)
+                continue; // Already unloaded
+
+            float idleTime = _lastCleanupTime - instance._lastAccessTime;
+
+            // If has recent read activity, it's active
+            if (instance._readCallsSinceLastCleanup > 0)
+            {
+                activeClips.Add(instance);
+                instance._readCallsSinceLastCleanup = 0; // Reset counter
+            }
+            // If idle for longer than delay, mark for unload
+            else if (idleTime > _unloadDelay)
+            {
+                idleClips.Add(instance);
+            }
+        }
+
+        // Unload idle clips
+        foreach (var clip in idleClips)
+        {
+            clip.UnloadAudioData();
+        }
+
+        // If we still have too many loaded, unload the oldest active ones
+        if (activeClips.Count > _maxLoadedClips)
+        {
+            activeClips.Sort((a, b) => a._lastAccessTime.CompareTo(b._lastAccessTime));
+            int toUnload = activeClips.Count - _maxLoadedClips;
+            for (int i = 0; i < toUnload; i++)
+            {
+                activeClips[i].UnloadAudioData();
+            }
+        }
     }
 
     public void RequestInternals(AssetProvider assetProvider)
     {
-        // No-op
     }
 
-    /// <summary>
-    /// Reads the exact Ogg Vorbis header (3 packets) from the BinaryReader.
-    /// Returns the total byte length to extract.
-    /// </summary>
-    private static int ReadExactOggHeader(BinaryReader reader, int maxSize)
+    // Utility methods
+    public static int GetTotalInstanceCount()
     {
-        long startPos = reader.BaseStream.Position;
-        int headerCount = 0;
+        return _allInstances.Count;
+    }
 
-        while (headerCount < 3 && reader.BaseStream.Position - startPos < maxSize)
+    public static int GetLoadedInstanceCount()
+    {
+        int count = 0;
+        foreach (var instance in _allInstances)
         {
-            long pageStart = reader.BaseStream.Position;
-            byte[] capture = reader.ReadBytes(4);
-            if (capture.Length < 4 || capture[0] != (byte)'O' || capture[1] != (byte)'g' ||
-                capture[2] != (byte)'g' || capture[3] != (byte)'S')
-                break;
+            if (instance._reader != null)
+                count++;
+        }
+        return count;
+    }
 
-            reader.BaseStream.Position = pageStart + 26;
-            int segmentCount = reader.ReadByte();
-            reader.BaseStream.Position = pageStart + 27;
-            byte[] segmentTable = reader.ReadBytes(segmentCount);
-
-            int pageDataSize = 0;
-            for (int i = 0; i < segmentCount; i++)
-                pageDataSize += segmentTable[i];
-
-            reader.BaseStream.Position = pageStart + 27 + segmentCount + pageDataSize;
-
-            byte[] pageData = new byte[pageDataSize];
-            reader.BaseStream.Position = pageStart + 27 + segmentCount;
-            reader.Read(pageData, 0, pageDataSize);
-
-            for (int i = 0; i < pageData.Length - 6; i++)
+    public static long GetTotalLoadedMemoryBytes()
+    {
+        long total = 0;
+        foreach (var instance in _allInstances)
+        {
+            if (instance._memoryStream != null)
             {
-                if (pageData[i] == (byte)'v' && pageData[i + 1] == (byte)'o' &&
-                    pageData[i + 2] == (byte)'r' && pageData[i + 3] == (byte)'b' &&
-                    pageData[i + 4] == (byte)'i' && pageData[i + 5] == (byte)'s')
-                {
-                    headerCount++;
-                    if (headerCount >= 3)
-                        break;
-                }
+                total += instance._memoryStream.Length;
             }
         }
+        return total;
+    }
 
-        long endPos = reader.BaseStream.Position;
-        return (int)Math.Min(endPos - startPos, maxSize);
+    public static void LogMemoryStats()
+    {
+        int total = GetTotalInstanceCount();
+        int loaded = GetLoadedInstanceCount();
+        long memoryBytes = GetTotalLoadedMemoryBytes();
+        float memoryMB = memoryBytes / (1024f * 1024f);
+
+        Debug.Log($"AudioClip Stats - Total: {total}, Loaded: {loaded}, Memory: {memoryMB:F2} MB");
+    }
+
+    public static void ForceUnloadAll()
+    {
+        foreach (var instance in _allInstances)
+        {
+            instance.UnloadAudioData();
+        }
+    }
+}
+
+/// <summary>
+/// Optional: Add to a GameObject to periodically log stats
+/// </summary>
+public class AudioMemoryMonitor : MonoBehaviour
+{
+    [SerializeField] private float _logInterval = 5f;
+    private float _lastLogTime;
+
+    private void Update()
+    {
+        if (Time.realtimeSinceStartup - _lastLogTime > _logInterval)
+        {
+            _lastLogTime = Time.realtimeSinceStartup;
+            AudioClipInfoVorbisLazy.LogMemoryStats();
+        }
     }
 }

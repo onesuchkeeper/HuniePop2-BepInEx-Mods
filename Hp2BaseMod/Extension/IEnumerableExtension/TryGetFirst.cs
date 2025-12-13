@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Hp2BaseMod.Extension.IEnumerableExtension;
+namespace Hp2BaseMod.Extension;
 
 public static partial class IEnumerableExtension
 {

@@ -44,13 +44,7 @@ public class UiCellphoneBodySelector : MonoBehaviour
     public AudioKlip ButtonPressedSound
     {
         get => _buttonPressedSound;
-        set
-        {
-            if (_buttonPressedSound != value)
-            {
-                _buttonPressedSound = value;
-            }
-        }
+        set => _buttonPressedSound = value;
     }
     private AudioKlip _buttonPressedSound;
 

@@ -1,4 +1,4 @@
-using Hp2BaseMod;
+namespace Hp2BaseMod.Utility;
 
 public static partial class GameDataLogUtility
 {
@@ -6,19 +6,19 @@ public static partial class GameDataLogUtility
     {
         if (expression == null)
         {
-            ModInterface.Log.LogInfo("null");
+            ModInterface.Log.Message("null");
             return;
         }
 
         using (ModInterface.Log.MakeIndent($"Expression Type: {expression.expressionType}"))
         {
-            ModInterface.Log.LogInfo($"Eyebrows Index: {expression.partIndexEyebrows}");
+            ModInterface.Log.Message($"Eyebrows Index: {expression.partIndexEyebrows}");
 
-            ModInterface.Log.LogInfo($"Eyes Index: {expression.partIndexEyes}, "
+            ModInterface.Log.Message($"Eyes Index: {expression.partIndexEyes}, "
                 + $"Eyes Glow Index: {expression.partIndexEyesGlow}, "
                 + $"Eyes Closed: {expression.eyesClosed} ");
 
-            ModInterface.Log.LogInfo($"Mouth Open: {expression.mouthOpen}"
+            ModInterface.Log.Message($"Mouth Open: {expression.mouthOpen}"
                 + $"Mouth Closed Index: {expression.partIndexMouthClosed}");
         }
     }
@@ -27,14 +27,14 @@ public static partial class GameDataLogUtility
     {
         if (outfit == null)
         {
-            ModInterface.Log.LogInfo("null");
+            ModInterface.Log.Message("null");
             return;
         }
 
         using (ModInterface.Log.MakeIndent($"Outfit: {outfit.outfitName}"))
         {
-            ModInterface.Log.LogInfo($"Part index: {outfit.partIndexOutfit}, Hide Nipples: {outfit.hideNipples}");
-            if (outfit.tightlyPaired) ModInterface.Log.LogInfo($"Paired hairstyle index: {outfit.pairHairstyleIndex}");
+            ModInterface.Log.Message($"Part index: {outfit.partIndexOutfit}, Hide Nipples: {outfit.hideNipples}");
+            if (outfit.tightlyPaired) ModInterface.Log.Message($"Paired hairstyle index: {outfit.pairHairstyleIndex}");
         }
     }
 
@@ -42,18 +42,18 @@ public static partial class GameDataLogUtility
     {
         if (hairstyle == null)
         {
-            ModInterface.Log.LogInfo("null");
+            ModInterface.Log.Message("null");
             return;
         }
 
         using (ModInterface.Log.MakeIndent($"Hairstyle: {hairstyle.hairstyleName}"))
         {
-            ModInterface.Log.LogInfo($"Part index front: {hairstyle.partIndexFronthair}, "
+            ModInterface.Log.Message($"Part index front: {hairstyle.partIndexFronthair}, "
                 + "Part index back: {hairstyle.partIndexFronthair}");
 
-            if (hairstyle.tightlyPaired) ModInterface.Log.LogInfo($"Paired outfit index: {hairstyle.pairOutfitIndex}");
+            if (hairstyle.tightlyPaired) ModInterface.Log.Message($"Paired outfit index: {hairstyle.pairOutfitIndex}");
 
-            ModInterface.Log.LogInfo($"Hide Specials: {hairstyle.hideSpecials}");
+            ModInterface.Log.Message($"Hide Specials: {hairstyle.hideSpecials}");
         }
     }
 }

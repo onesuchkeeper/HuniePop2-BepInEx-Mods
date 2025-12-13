@@ -11,6 +11,11 @@ public class ModState
     public int MaxStoreSmoothies = 4;
 
     /// <summary>
+    /// The number of favorite question options displayed when asking.
+    /// </summary>
+    public int FavQuestionOptionCount = 3;
+
+    /// <summary>
     /// If the cellphone ui should appear on the left, same position as in the hub.
     /// </summary>
     public bool CellphoneOnLeft;

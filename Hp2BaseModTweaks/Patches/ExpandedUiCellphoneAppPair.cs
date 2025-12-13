@@ -80,7 +80,7 @@ internal class ExpandedUiCellphoneAppPair
         }
         else
         {
-            ModInterface.Log.LogWarning($"Failed to find {nameof(UiCellphoneAppPair)}'s background image");
+            ModInterface.Log.Warning($"Failed to find {nameof(UiCellphoneAppPair)}'s background image");
         }
 
         if (_core.transform.Find("ActiveContainer/SectionBottom/TitleBar") is Transform titleBarTransform)
@@ -89,7 +89,7 @@ internal class ExpandedUiCellphoneAppPair
         }
         else
         {
-            ModInterface.Log.LogWarning($"Failed to find {nameof(UiCellphoneAppPair)}'s title bar");
+            ModInterface.Log.Warning($"Failed to find {nameof(UiCellphoneAppPair)}'s title bar");
         }
 
         foreach (var meter in _core.levelMeters.Take(4))

@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace Hp2BaseMod.Extension.StringExtension;
+namespace Hp2BaseMod.Extension;
 
 public static partial class StringExtension
 {

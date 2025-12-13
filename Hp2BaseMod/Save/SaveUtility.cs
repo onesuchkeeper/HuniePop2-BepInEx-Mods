@@ -35,8 +35,7 @@ public static class SaveUtility
     public static void HandleModSaves<TData, TModSave>(GameDataType gameDataType,
         Dictionary<RelativeId, TModSave> mods,
         List<TData> dataList,
-        IEnumerable<int> dataRuntimeIds,
-        string failNoun)
+        IEnumerable<int> dataRuntimeIds)
     where TModSave : IModSave<TData>
     {
         var modByRuntime = new Dictionary<int, TModSave>();
@@ -45,10 +44,6 @@ public static class SaveUtility
             if (ModInterface.Data.TryGetRuntimeDataId(gameDataType, entry.Key, out var runtime))
             {
                 modByRuntime[runtime] = entry.Value;
-            }
-            else
-            {
-                ModInterface.Log.LogWarning($"Discarding {failNoun} with unregistered id {entry.Key} from save");
             }
         }
 

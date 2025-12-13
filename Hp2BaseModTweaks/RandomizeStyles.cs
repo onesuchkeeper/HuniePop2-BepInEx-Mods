@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Hp2BaseMod;
+using Hp2BaseMod.Extension;
 using Hp2BaseMod.GameDataInfo;
 
 namespace Hp2BaseModTweaks;
@@ -50,7 +51,6 @@ public static class RandomizeStyles
                 if (girlExpansion.OutfitIndexToId.TryGetValue(index, out var id))
                 {
                     outfitPool.Add(id);
-                    if (id == RelativeId.Default) ModInterface.Log.LogInfo($"bad index: {index}");
                 }
             }
 
@@ -63,12 +63,13 @@ public static class RandomizeStyles
             }
         }
 
-        ModInterface.Log.LogInfo(string.Join(",", outfits));
-
-        if (!nsfw)
+        outfits = outfits.Where(x =>
         {
-            outfits = outfits.Where(x => !girlExpansion.GetOutfit(x).Expansion().IsNSFW).ToArray();
-        }
+            var outfit = girlExpansion.GetOutfit(x);
+            if (outfit == null) return false;
+
+            return nsfw || !outfit.Expansion().IsNSFW;
+        }).ToArray();
 
         if (!outfits.Any())
         {
@@ -83,9 +84,23 @@ public static class RandomizeStyles
         var outfitId = outfits.ElementAt(UnityEngine.Random.Range(0, outfits.Count()));
         var selectedOutfit = girlExpansion.GetOutfit(outfitId);
 
-        var hairStyleId = (!unpaired && selectedOutfit.pairHairstyleIndex != -1)
-            ? girlExpansion.HairstyleIndexToId[selectedOutfit.pairHairstyleIndex]
-            : hairstyles.ElementAt(UnityEngine.Random.Range(0, hairstyles.Count()));
+        RelativeId hairStyleId;
+        if (!unpaired && selectedOutfit.pairHairstyleIndex != -1)
+        {
+            hairStyleId = girlExpansion.HairstyleIndexToId[selectedOutfit.pairHairstyleIndex];
+        }
+        else
+        {
+            var pool = hairstyles.Where(x =>
+            {
+                var hairstyle = girlExpansion.GetHairstyle(x);
+                if (hairstyle == null) return false;
+
+                return nsfw || !hairstyle.Expansion().IsNSFW;
+            }).ToArray();
+
+            hairStyleId = pool.GetRandom();
+        }
 
         style = new GirlStyleInfo()
         {

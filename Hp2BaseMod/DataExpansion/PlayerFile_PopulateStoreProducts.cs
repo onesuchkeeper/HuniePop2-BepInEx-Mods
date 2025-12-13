@@ -3,7 +3,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using HarmonyLib;
-using Hp2BaseMod.Extension.IEnumerableExtension;
+using Hp2BaseMod.Extension;
 using Hp2BaseMod.GameDataInfo.Interface;
 using UnityEngine;
 

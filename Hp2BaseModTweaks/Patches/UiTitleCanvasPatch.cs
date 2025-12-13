@@ -6,6 +6,7 @@ using System.Reflection;
 using DG.Tweening;
 using HarmonyLib;
 using Hp2BaseMod;
+using Hp2BaseMod.Extension;
 using Hp2BaseMod.Utility;
 using UnityEngine;
 using UnityEngine.UI;
@@ -30,7 +31,7 @@ namespace Hp2BaseModTweaks
 
                 if (!(f_coverArt.GetValue(__instance) is UiCoverArt coverArt))
                 {
-                    ModInterface.Log.LogWarning("Unable to find title canvas cover art");
+                    ModInterface.Log.Warning("Unable to find title canvas cover art");
                     return;
                 }
 

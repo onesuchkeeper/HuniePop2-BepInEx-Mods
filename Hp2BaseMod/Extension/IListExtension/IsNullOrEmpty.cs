@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 
+namespace Hp2BaseMod.Extension;
+
 public static partial class IListExtension
 {
     /// <summary>

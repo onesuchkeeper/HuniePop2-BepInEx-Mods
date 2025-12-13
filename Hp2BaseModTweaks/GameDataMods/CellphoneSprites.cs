@@ -20,7 +20,7 @@ public static class CellphoneSprites
 
         var digitalArtCollectionDir = Plugin.DigitalArtCollectionDir;
 
-        var texturePath = Path.Combine(digitalArtCollectionDir, "Heads", $"{name}.png");
+        var texturePath = Path.Combine(Plugin.DigitalArtCollectionDir.Value, "Heads", $"{name}.png");
         if (File.Exists(texturePath))
         {
             //pad to center in square
@@ -50,7 +50,7 @@ public static class CellphoneSprites
                 ])));
         }
 
-        texturePath = Path.Combine(digitalArtCollectionDir, "Sprites", $"{name}.png");
+        texturePath = Path.Combine(Plugin.DigitalArtCollectionDir.Value, "Sprites", $"{name}.png");
         if (File.Exists(texturePath))
         {
             var trimAmount = portraitSize.y * 0.1f;

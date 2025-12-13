@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 
+namespace Hp2BaseMod.Extension;
+
 public static partial class IListExtension
 {
     public static T PopFirst<T>(this IList<T> source)

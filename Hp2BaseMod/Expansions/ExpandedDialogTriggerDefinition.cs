@@ -48,15 +48,15 @@ public class ExpandedDialogTriggerDefinition
     {
         var girlExpansion = ExpandedGirlDefinition.Get(girlId);
 
-        if (def.dialogLineSets[girlExpansion.DialogTriggerIndex].dialogLines.Count > 0)
+        lineSet = def.dialogLineSets[girlExpansion.DialogTriggerIndex];
+        if (lineSet.dialogLines.Count > 0)
         {
-            lineSet = def.dialogLineSets[girlExpansion.DialogTriggerIndex];
             return true;
         }
 
-        if (def.dialogLineSets.FirstOrDefault()?.dialogLines.Count > 0)
+        lineSet = def.dialogLineSets.FirstOrDefault();
+        if (lineSet?.dialogLines.Count > 0)
         {
-            lineSet = def.dialogLineSets[0];
             return true;
         }
 

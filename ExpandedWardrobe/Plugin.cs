@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using BepInEx;
-using BepInEx.Bootstrap;
 using BepInEx.Configuration;
 using Hp2BaseMod;
 
@@ -14,24 +13,55 @@ namespace ExpandedWardrobe;
 [BepInDependency("OSK.BepInEx.Hp2BaseModTweaks", BepInDependency.DependencyFlags.SoftDependency)]
 internal class Plugin : BaseUnityPlugin
 {
-    private static readonly string CONFIG_CAT_STYLES = "styles";
-    private static readonly string CONFIG_PROP_STYLES_ABIA = "abia styles";
-    private static readonly string CONFIG_PROP_STYLES_ASHLEY = "ashley styles";
-    private static readonly string CONFIG_PROP_STYLES_BROOKE = "brooke styles";
-    private static readonly string CONFIG_PROP_STYLES_CANDACE = "candace styles";
-    private static readonly string CONFIG_PROP_STYLES_JESSIE = "jessie styles";
-    private static readonly string CONFIG_PROP_STYLES_JEWN = "abia styles";
-    private static readonly string CONFIG_PROP_STYLES_KYU = "kyu styles";
-    private static readonly string CONFIG_PROP_STYLES_LAILANI = "lailani styles";
-    private static readonly string CONFIG_PROP_STYLES_LILLIAN = "lillian styles";
-    private static readonly string CONFIG_PROP_STYLES_LOLA = "lola styles";
-    private static readonly string CONFIG_PROP_STYLES_MOXIE = "moxie styles";
-    private static readonly string CONFIG_PROP_STYLES_NORA = "nora styles";
-    private static readonly string CONFIG_PROP_STYLES_POLLY = "polly styles";
-    private static readonly string CONFIG_PROP_STYLES_SARAH = "sarah styles";
-    private static readonly string CONFIG_PROP_STYLES_ZOEY = "zoey styles";
+    private const string CONFIG_CAT_STYLES = "styles";
 
-    private static readonly string CONFIG_PROP_UNLOCK_ALL = "unlock all";
+    public static ConfigEntry<bool> AbiaStyles => _abiaStyles;
+    private static ConfigEntry<bool> _abiaStyles;
+
+    public static ConfigEntry<bool> AshleyStyles => _ashleyStyles;
+    private static ConfigEntry<bool> _ashleyStyles;
+
+    public static ConfigEntry<bool> BrookeStyles => _brookeStyles;
+    private static ConfigEntry<bool> _brookeStyles;
+
+    public static ConfigEntry<bool> CandaceStyles => _candaceStyles;
+    private static ConfigEntry<bool> _candaceStyles;
+
+    public static ConfigEntry<bool> JessieStyles => _jessieStyles;
+    private static ConfigEntry<bool> _jessieStyles;
+
+    public static ConfigEntry<bool> JewnStyles => _jewnStyles;
+    private static ConfigEntry<bool> _jewnStyles;
+
+    public static ConfigEntry<bool> KyuStyles => _kyuStyles;
+    private static ConfigEntry<bool> _kyuStyles;
+
+    public static ConfigEntry<bool> LailaniStyles => _lailaniStyles;
+    private static ConfigEntry<bool> _lailaniStyles;
+
+    public static ConfigEntry<bool> LillianStyles => _lillianStyles;
+    private static ConfigEntry<bool> _lillianStyles;
+
+    public static ConfigEntry<bool> LolaStyles => _lolaStyles;
+    private static ConfigEntry<bool> _lolaStyles;
+
+    public static ConfigEntry<bool> MoxieStyles => _moxieStyles;
+    private static ConfigEntry<bool> _moxieStyles;
+
+    public static ConfigEntry<bool> NoraStyles => _noraStyles;
+    private static ConfigEntry<bool> _noraStyles;
+
+    public static ConfigEntry<bool> PollyStyles => _pollyStyles;
+    private static ConfigEntry<bool> _pollyStyles;
+
+    public static ConfigEntry<bool> SarahStyles => _sarahStyles;
+    private static ConfigEntry<bool> _sarahStyles;
+
+    public static ConfigEntry<bool> ZoeyStyles => _zoeyStyles;
+    private static ConfigEntry<bool> _zoeyStyles;
+
+    public static ConfigEntry<bool> UnlockAll => _unlockAll;
+    private static ConfigEntry<bool> _unlockAll;
 
     public static readonly string ROOT_DIR = Path.Combine(Paths.PluginPath, MyPluginInfo.PLUGIN_NAME);
     public static readonly string IMAGES_DIR = Path.Combine(ROOT_DIR, "images");
@@ -40,38 +70,39 @@ internal class Plugin : BaseUnityPlugin
     {
         Ids.Init();
 
-        this.Config.Bind(CONFIG_CAT_STYLES, CONFIG_PROP_STYLES_ABIA, true, "If all Abia's styles should be added.");
-        this.Config.Bind(CONFIG_CAT_STYLES, CONFIG_PROP_STYLES_ASHLEY, true, "If all Ashley's styles should be added.");
-        this.Config.Bind(CONFIG_CAT_STYLES, CONFIG_PROP_STYLES_BROOKE, true, "If all Brooke's styles should be added.");
-        this.Config.Bind(CONFIG_CAT_STYLES, CONFIG_PROP_STYLES_CANDACE, true, "If all Candace's styles should be added.");
-        this.Config.Bind(CONFIG_CAT_STYLES, CONFIG_PROP_STYLES_JESSIE, true, "If all Jessie's styles should be added.");
-        this.Config.Bind(CONFIG_CAT_STYLES, CONFIG_PROP_STYLES_JEWN, true, "If all Jewn's styles should be added.");
-        this.Config.Bind(CONFIG_CAT_STYLES, CONFIG_PROP_STYLES_KYU, true, "If all Kyu's styles should be added.");
-        this.Config.Bind(CONFIG_CAT_STYLES, CONFIG_PROP_STYLES_LAILANI, true, "If all Lailani's styles should be added.");
-        this.Config.Bind(CONFIG_CAT_STYLES, CONFIG_PROP_STYLES_LOLA, true, "If all Lola's styles should be added.");
-        this.Config.Bind(CONFIG_CAT_STYLES, CONFIG_PROP_STYLES_MOXIE, true, "If all Moxie's styles should be added.");
-        this.Config.Bind(CONFIG_CAT_STYLES, CONFIG_PROP_STYLES_NORA, true, "If all Nora's styles should be added.");
-        this.Config.Bind(CONFIG_CAT_STYLES, CONFIG_PROP_STYLES_POLLY, true, "If all Polly's styles should be added.");
-        this.Config.Bind(CONFIG_CAT_STYLES, CONFIG_PROP_STYLES_SARAH, true, "If all Sarah's styles should be added.");
-        this.Config.Bind(CONFIG_CAT_STYLES, CONFIG_PROP_STYLES_ZOEY, true, "If all Zoey's styles should be added.");
+        _abiaStyles = Config.Bind(CONFIG_CAT_STYLES, "Abia Styles", true, "If all Abia's styles should be added.");
+        _ashleyStyles = Config.Bind(CONFIG_CAT_STYLES, "Ashley Styles", true, "If all Ashley's styles should be added.");
+        _brookeStyles = Config.Bind(CONFIG_CAT_STYLES, "Brooke Styles", true, "If all Brooke's styles should be added.");
+        _candaceStyles = Config.Bind(CONFIG_CAT_STYLES, "Candace Styles", true, "If all Candace's styles should be added.");
+        _jessieStyles = Config.Bind(CONFIG_CAT_STYLES, "Jessie Styles", true, "If all Jessie's styles should be added.");
+        _jewnStyles = Config.Bind(CONFIG_CAT_STYLES, "Jewn Styles", true, "If all Jewn's styles should be added.");
+        _kyuStyles = Config.Bind(CONFIG_CAT_STYLES, "Kyu Styles", true, "If all Kyu's styles should be added.");
+        _lailaniStyles = Config.Bind(CONFIG_CAT_STYLES, "Lailani Styles", true, "If all Lailani's styles should be added.");
+        _lillianStyles = Config.Bind(CONFIG_CAT_STYLES, "Lillian Styles", true, "If all Lillian's styles should be added.");
+        _lolaStyles = Config.Bind(CONFIG_CAT_STYLES, "Lola Styles", true, "If all Lola's styles should be added.");
+        _moxieStyles = Config.Bind(CONFIG_CAT_STYLES, "Moxie Styles", true, "If all Moxie's styles should be added.");
+        _noraStyles = Config.Bind(CONFIG_CAT_STYLES, "Nora Styles", true, "If all Nora's styles should be added.");
+        _pollyStyles = Config.Bind(CONFIG_CAT_STYLES, "Polly Styles", true, "If all Polly's styles should be added.");
+        _sarahStyles = Config.Bind(CONFIG_CAT_STYLES, "Sarah Styles", true, "If all Sarah's styles should be added.");
+        _zoeyStyles = Config.Bind(CONFIG_CAT_STYLES, "Zoey Styles", true, "If all Zoey's styles should be added.");
 
-        this.Config.Bind(Hp2BaseModPlugin.CONFIG_GENERAL, CONFIG_PROP_UNLOCK_ALL, true, "If all expanded wardrobe outfits and hairstyles should be automatically unlocked.");
+        _unlockAll = Config.Bind(Hp2BaseModPlugin.CONFIG_GENERAL, "Unlock All Styles", true, "If all expanded wardrobe outfits and hairstyles should be automatically unlocked.");
 
-        IfBoolConfig(CONFIG_CAT_STYLES, CONFIG_PROP_STYLES_ABIA, Styles.AddAbiaStyles);
-        IfBoolConfig(CONFIG_CAT_STYLES, CONFIG_PROP_STYLES_ASHLEY, Styles.AddAshleyStyles);
-        IfBoolConfig(CONFIG_CAT_STYLES, CONFIG_PROP_STYLES_BROOKE, Styles.AddBrookeStyles);
-        IfBoolConfig(CONFIG_CAT_STYLES, CONFIG_PROP_STYLES_CANDACE, Styles.AddCandaceStyles);
-        IfBoolConfig(CONFIG_CAT_STYLES, CONFIG_PROP_STYLES_JESSIE, Styles.AddJessieStyles);
-        IfBoolConfig(CONFIG_CAT_STYLES, CONFIG_PROP_STYLES_JEWN, Styles.AddJewnStyles);
-        IfBoolConfig(CONFIG_CAT_STYLES, CONFIG_PROP_STYLES_KYU, Styles.AddKyuStyles);
-        IfBoolConfig(CONFIG_CAT_STYLES, CONFIG_PROP_STYLES_LAILANI, Styles.AddLailaniStyles);
-        IfBoolConfig(CONFIG_CAT_STYLES, CONFIG_PROP_STYLES_LILLIAN, Styles.AddLillianStyles);
-        IfBoolConfig(CONFIG_CAT_STYLES, CONFIG_PROP_STYLES_LOLA, Styles.AddLolaStyles);
-        IfBoolConfig(CONFIG_CAT_STYLES, CONFIG_PROP_STYLES_MOXIE, Styles.AddMoxieStyles);
-        IfBoolConfig(CONFIG_CAT_STYLES, CONFIG_PROP_STYLES_NORA, Styles.AddNoraStyles);
-        IfBoolConfig(CONFIG_CAT_STYLES, CONFIG_PROP_STYLES_POLLY, Styles.AddPollyStyles);
-        IfBoolConfig(CONFIG_CAT_STYLES, CONFIG_PROP_STYLES_SARAH, Styles.AddSarahStyles);
-        IfBoolConfig(CONFIG_CAT_STYLES, CONFIG_PROP_STYLES_ZOEY, Styles.AddZoeyStyles);
+        if (_abiaStyles.Value) Styles.AddAbiaStyles();
+        if (_ashleyStyles.Value) Styles.AddAshleyStyles();
+        if (_brookeStyles.Value) Styles.AddBrookeStyles();
+        if (_candaceStyles.Value) Styles.AddCandaceStyles();
+        if (_jessieStyles.Value) Styles.AddJessieStyles();
+        if (_jewnStyles.Value) Styles.AddJewnStyles();
+        if (_kyuStyles.Value) Styles.AddKyuStyles();
+        if (_lailaniStyles.Value) Styles.AddLailaniStyles();
+        if (_lillianStyles.Value) Styles.AddLillianStyles();
+        if (_lolaStyles.Value) Styles.AddLolaStyles();
+        if (_moxieStyles.Value) Styles.AddMoxieStyles();
+        if (_noraStyles.Value) Styles.AddNoraStyles();
+        if (_pollyStyles.Value) Styles.AddPollyStyles();
+        if (_sarahStyles.Value) Styles.AddSarahStyles();
+        if (_zoeyStyles.Value) Styles.AddZoeyStyles();
 
         if (ModInterface.TryGetInterModValue("OSK.BepInEx.Hp2BaseModTweaks", "AddModCredit",
                 out Action<string, IEnumerable<(string creditButtonPath, string creditButtonOverPath, string redirectLink)>> m_addModConfig))
@@ -93,19 +124,10 @@ internal class Plugin : BaseUnityPlugin
         ModInterface.Events.PreLoadPlayerFile += On_PreLoadPlayerFile;
     }
 
-    private void IfBoolConfig(string configSection, string configKey, Action action)
-    {
-        if (this.Config.TryGetEntry(configSection, configKey, out ConfigEntry<bool> configEntry)
-            && configEntry.Value)
-        {
-            action();
-        }
-    }
-
-    //unlock all expanded wardrobe styles
+    // unlock all expanded wardrobe styles
     private void On_PreLoadPlayerFile(PlayerFile file)
     {
-        using (ModInterface.Log.MakeIndent())
+        if (_unlockAll.Value)
         {
             foreach (var fileGirl in file.girls)
             {

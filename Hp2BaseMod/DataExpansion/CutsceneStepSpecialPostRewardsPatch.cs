@@ -37,7 +37,7 @@ public static class CutsceneStepSpecialPostRewardsPatch
             return;
         }
 
-        ModInterface.Log.LogInfo("Handling style unlocks");
+        ModInterface.Log.Message("Handling style unlocks");
 
         f_stylesUnlocked.SetValue(__instance, true);
 

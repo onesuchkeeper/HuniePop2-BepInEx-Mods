@@ -90,7 +90,7 @@ namespace RepeatThreesome
 
             if (!expansion.OutfitIdToIndex.TryGetValue(Constants.NudeOutfitId, out var nudeOutfitIndex))
             {
-                ModInterface.Log.LogWarning($"Failed to find nude outfit for Girl {girl.girlDefinition.girlName}.");
+                ModInterface.Log.Warning($"Failed to find nude outfit for Girl {girl.girlDefinition.girlName}.");
                 return false;
             }
 

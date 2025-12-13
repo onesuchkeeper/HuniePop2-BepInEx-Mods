@@ -16,6 +16,22 @@
     <RootNamespace>HuniePopUltimate</RootNamespace>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <!-- Ensure Roslyn analyzers & generators run -->
+    <RunAnalyzers>true</RunAnalyzers>
+    <RunAnalyzersDuringBuild>true</RunAnalyzersDuringBuild>
+    <RunAnalyzersDuringLiveAnalysis>true</RunAnalyzersDuringLiveAnalysis>
+    <RestoreSources>
+      $(RestoreSources);
+      C:\Git\HuniePop2-BepInEx-Mods\Hp2BaseMod.Analyzer\bin\Release
+    </RestoreSources>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Hp2BaseMod\Hp2BaseMod.csproj" />
+    <PackageReference Include="Hp2BaseMod.Analyzer" Version="1.0.0" PrivateAssets="all"/>
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all" />
     <PackageReference Include="BepInEx.Core" Version="5.*" />
@@ -31,9 +47,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <ProjectReference Include="..\Hp2BaseMod.SourceGen\Hp2BaseMod.SourceGen.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
-    <ProjectReference Include="..\..\ETAR\Plugins\AssetStudio\ETAR.AssetStudioPlugin.Extractor\ETAR.AssetStudioPlugin.Extractor.csproj" />
-    <ProjectReference Include="..\Hp2BaseMod\Hp2BaseMod.csproj" />
+    <ProjectReference Include="..\..\AssetStudio\AssetStudio.Extractor\AssetStudio.Extractor.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -68,5 +82,8 @@
   
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Exec Command="Copy &quot;$(OutDir)$(AssemblyName).dll&quot; &quot;C:\Program Files (x86)\Steam\steamapps\common\HuniePop 2 - Double Date\BepInEx\plugins\$(Product)&quot;" />
+    <Exec Command="Copy &quot;$(OutDir)AssetStudio.Extractor.dll&quot; &quot;C:\Program Files (x86)\Steam\steamapps\common\HuniePop 2 - Double Date\BepInEx\plugins\$(Product)&quot;" />
+    <Exec Command="Copy &quot;$(OutDir)AssetStudio.dll&quot; &quot;C:\Program Files (x86)\Steam\steamapps\common\HuniePop 2 - Double Date\BepInEx\plugins\$(Product)&quot;" />
+    <Exec Command="Copy &quot;$(OutDir)AssetStudioUtility.dll&quot; &quot;C:\Program Files (x86)\Steam\steamapps\common\HuniePop 2 - Double Date\BepInEx\plugins\$(Product)&quot;" />
   </Target>
 </Project>

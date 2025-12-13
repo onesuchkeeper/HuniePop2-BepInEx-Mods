@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using BepInEx;
+using BepInEx.Configuration;
 using HarmonyLib;
 using Hp2BaseMod;
-using Hp2BaseMod.Extension;
 using Hp2BaseMod.GameDataInfo;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
@@ -17,31 +17,29 @@ namespace RepeatThreesome;
 [BepInDependency("OSK.BepInEx.Hp2BaseModTweaks", BepInDependency.DependencyFlags.SoftDependency)]
 internal class Plugin : Hp2BaseModPlugin
 {
+    private const string GENERAL_CONFIG_CAT = "general";
+
     private static string PLUGIN_DIR = Path.Combine(Paths.PluginPath, MyPluginInfo.PLUGIN_NAME);
     private static string IMAGES_DIR = Path.Combine(PLUGIN_DIR, "images");
 
-    [ConfigProperty(true, "If threesomes can only take place at the location their photo occurs at.")]
-    public static bool LoversLocationRequirement
-    {
-        get => _instance.GetConfigProperty<bool>();
-        set => _instance.SetConfigProperty(value);
-    }
+    public static ConfigEntry<bool> LoversLocationRequirement => _loversLocationRequirement;
+    public static ConfigEntry<bool> _loversLocationRequirement;
 
-    [ConfigProperty(true, "If characters will change to nude outfits during bonus rounds.")]
-    public bool IsBonusRoundNude
-    {
-        get => _instance.GetConfigProperty<bool>();
-        set => _instance.SetConfigProperty(value);
-    }
+    public ConfigEntry<bool> IsBonusRoundNude => _isBonusRoundNude;
+    public ConfigEntry<bool> _isBonusRoundNude;
 
     public static new int ModId { get { return ((Hp2BaseModPlugin)_instance).ModId; } }
     private static Plugin _instance;
 
     public Plugin() : base(MyPluginInfo.PLUGIN_GUID) { }
 
-    private void Awake()
+    protected override void Awake()
     {
+        base.Awake();
         _instance = this;
+
+        _loversLocationRequirement = Config.Bind(GENERAL_CONFIG_CAT, nameof(LoversLocationRequirement), false, "If threesomes can only take place at the location their photo occurs at.");
+        _isBonusRoundNude = Config.Bind(GENERAL_CONFIG_CAT, nameof(IsBonusRoundNude), true, "If characters will change to nude outfits during bonus rounds.");
 
         if (ModInterface.TryGetInterModValue("OSK.BepInEx.Hp2BaseModTweaks", "AddModCredit",
                 out Action<string, IEnumerable<(string creditButtonPath, string creditButtonOverPath, string redirectLink)>> m_addModCredit))
@@ -83,8 +81,8 @@ internal class Plugin : Hp2BaseModPlugin
 
     private void On_PostPersistenceReset(SaveData data)
     {
-        CodeUtility.ValidateCode(data, Constants.LocalCodeId, LoversLocationRequirement);
-        CodeUtility.ValidateCode(data, Constants.NudeCodeId, IsBonusRoundNude);
+        CodeUtility.ValidateCode(data, Constants.LocalCodeId, LoversLocationRequirement.Value);
+        CodeUtility.ValidateCode(data, Constants.NudeCodeId, IsBonusRoundNude.Value);
     }
 
     private void On_PostCodeSubmitted(CodeDefinition codeDefinition)
@@ -94,8 +92,8 @@ internal class Plugin : Hp2BaseModPlugin
             return;
         }
 
-        LoversLocationRequirement = ModInterface.GameData.IsCodeUnlocked(Constants.LocalCodeId);
-        IsBonusRoundNude = ModInterface.GameData.IsCodeUnlocked(Constants.NudeCodeId);
+        LoversLocationRequirement.Value = ModInterface.GameData.IsCodeUnlocked(Constants.LocalCodeId);
+        IsBonusRoundNude.Value = ModInterface.GameData.IsCodeUnlocked(Constants.NudeCodeId);
     }
 
     private void On_PreDataMods()
@@ -158,7 +156,7 @@ internal class Plugin : Hp2BaseModPlugin
             // polly has an alt
             if (girlId == Girls.PollyId)
             {
-                ModInterface.Log.LogInfo($"Adding nude outfit for polly {girlId}");
+                ModInterface.Log.Message($"Adding nude outfit for polly {girlId}");
 
                 ModInterface.AddDataMod(new GirlDataMod(girlId, InsertStyle.append)
                 {
@@ -175,7 +173,7 @@ internal class Plugin : Hp2BaseModPlugin
             // all others
             else
             {
-                ModInterface.Log.LogInfo($"Adding nude outfit for girl {girlId}");
+                ModInterface.Log.Message($"Adding nude outfit for girl {girlId}");
 
                 ModInterface.AddDataMod(new GirlDataMod(girlId, InsertStyle.append)
                 {

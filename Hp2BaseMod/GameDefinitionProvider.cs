@@ -82,7 +82,7 @@ namespace Hp2BaseMod
                 case GameDataType.Token:
                     return _gameData.Tokens.Get(runtimeId);
                 default:
-                    ModInterface.Log.LogInfo($"Failed to find definition for {type} with runtime id {runtimeId}");
+                    ModInterface.Log.Message($"Failed to find definition for {type} with runtime id {runtimeId}");
                     return null;
             }
         }

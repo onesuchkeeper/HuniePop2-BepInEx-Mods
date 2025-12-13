@@ -82,7 +82,7 @@ public class ExpandedUiTitleCanvas
 
                 if (request.isNetworkError)
                 {
-                    ModInterface.Log.LogError($"Error while loading external {nameof(AudioClip)}: {request.error}");
+                    ModInterface.Log.Error($"Error while loading external {nameof(AudioClip)}: {request.error}");
                 }
                 else
                 {
@@ -376,72 +376,60 @@ public class ExpandedUiTitleCanvas
         Plugin.InitialTitleAnimation = false;
     }
 
-
-
     private IEnumerator<object> LoopAnimationWithMusic()
     {
-        if (_audioSource != null)
-        {
-            var lastTime = -999f;
-            while (_core.gameObject != null)//coroutine will be killed on Destroy 
-            {
-                yield return new WaitUntil(() =>
-                {
-                    if (_core.gameObject == null) return true;
-                    if (lastTime > _audioSource.time) return true;
-                    lastTime = _audioSource.time;
-                    return false;
-                });
+        if (_audioSource == null || _core == null || _core.gameObject == null)
+            yield break;
 
-                if (_core.gameObject != null)
+        var lastTime = -999f;
+
+        while (_core != null && _core.gameObject != null)
+        {
+            yield return new WaitUntil(() =>
+            {
+                if (_core == null || _core.gameObject == null)
+                    return true;
+
+                if (_audioSource == null)
+                    return true;
+
+                float currentTime;
+                try
                 {
-                    lastTime = -999f;
-                    _audioSource.time = 0f;
-                    if (_audioSource.isActiveAndEnabled) _audioSource.Play();
-                    PlayAnimation();
+                    currentTime = _audioSource.time;
                 }
+                catch
+                {
+                    return true;
+                }
+
+                if (lastTime > currentTime)
+                    return true;
+
+                lastTime = currentTime;
+                return false;
+            });
+
+            if (_core == null || _core.gameObject == null || _audioSource == null)
+                yield break;
+
+            lastTime = -999f;
+
+            try
+            {
+                _audioSource.time = 0f;
             }
+            catch
+            {
+                yield break;
+            }
+
+            if (_audioSource.isActiveAndEnabled)
+                _audioSource.Play();
+
+            PlayAnimation();
         }
     }
-
-    // private IEnumerator<object> LoopAnimationWithMusic()
-    // {
-    //     if (this._audioSource == null)
-    //     {
-    //         yield break;
-    //     }
-
-    //     // Ensure audio is not set to loop in the Inspector
-    //     this._audioSource.loop = false;
-
-    //     while (true)
-    //     {
-    //         if (this == null || _core.gameObject == null)
-    //         {
-    //             yield break;
-    //         }
-
-    //         // Restart audio
-    //         this._audioSource.time = 0f;
-    //         if (this._audioSource.isActiveAndEnabled)
-    //         {
-    //             this._audioSource.Play();
-    //         }
-
-    //         PlayAnimation();
-
-    //         // Wait for audio to finish
-    //         while (this._audioSource.isPlaying)
-    //         {
-    //             if (this == null || _core.gameObject == null)
-    //             {
-    //                 yield break;
-    //             }
-
-    //             yield return null; // Next frame
-    //         }
-    //     }
-    // }
 
     internal void OnDestroy()
     {

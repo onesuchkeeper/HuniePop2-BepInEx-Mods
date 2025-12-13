@@ -1,5 +1,5 @@
 using System;
-using ETAR.AssetStudioPlugin.Extractor;
+using AssetStudio.Extractor;
 
 namespace HuniePopUltimate;
 
@@ -12,7 +12,7 @@ public class BaseExtraction : IDisposable
     public BaseExtraction(string dataPath,
         string assemblyPath)
     {
-        _extractor = Extractor.Create(dataPath, assemblyPath);
+        _extractor = Extractor.Load(dataPath, assemblyPath);
     }
 
     public void Dispose()

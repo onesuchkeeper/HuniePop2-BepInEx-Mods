@@ -27,10 +27,14 @@ internal static class GirlNobody
             SpriteInfo = emptySpriteInfo
         };
 
+        var neutralExpressionId = new RelativeId(-1, (int)GirlExpressionType.NEUTRAL);
+
         ModInterface.AddDataMod(new GirlDataMod(_id, InsertStyle.replace)
         {
             GirlName = "Nobody",
             SpecialCharacter = true,
+
+
 
             bodies = new List<IGirlBodyDataMod>()
             {
@@ -42,12 +46,12 @@ internal static class GirlNobody
                     PartBlushLight = emptyPart,
                     PartMouthNeutral = emptyPart,
                     PartNipples = emptyPart,
-                    DefaultExpressionIndex = 0,
+                    DefaultExpressionId = neutralExpressionId,
                     DefaultHairstyleId = emptyPartId,
                     DefaultOutfitId = emptyPartId,
 
                     expressions = new List<IBodySubDataMod<GirlExpressionSubDefinition>>(){
-                        new GirlExpressionDataMod(emptyPartId, InsertStyle.replace)
+                        new GirlExpressionDataMod(neutralExpressionId, InsertStyle.replace)
                         {
                             ExpressionType = GirlExpressionType.NEUTRAL,
                             PartEyebrows = emptyPart,

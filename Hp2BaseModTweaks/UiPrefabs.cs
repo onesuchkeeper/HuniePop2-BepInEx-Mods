@@ -45,7 +45,7 @@ public static class UiPrefabs
 
             if (bundle == null)
             {
-                ModInterface.Log.LogWarning("Failed to load Hp2BaseModTweaks asset bundle");
+                ModInterface.Log.Warning("Failed to load Hp2BaseModTweaks asset bundle");
             }
             else
             {

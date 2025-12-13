@@ -2,7 +2,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using Hp2BaseMod.Extension.IEnumerableExtension;
+using Hp2BaseMod.Extension;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
 using UnityEngine;
@@ -15,6 +15,8 @@ namespace Hp2BaseMod.GameDataInfo
     public class GirlDataMod : DataMod, IGirlDataMod
     {
         public List<(RelativeId, List<IDialogLineDataMod>)> linesByDialogTriggerId;
+
+        public Dictionary<RelativeId, IDialogLineDataMod> FavoriteDialogLines;
 
         #region Girl Info
 
@@ -150,7 +152,6 @@ namespace Hp2BaseMod.GameDataInfo
 
             linesByDialogTriggerId = new();
 
-
             foreach (var dialogTrigger in dts)
             {
                 var dialogTriggerId = new RelativeId(dialogTrigger);
@@ -175,6 +176,8 @@ namespace Hp2BaseMod.GameDataInfo
         /// <inheritdoc/>
         public void SetData(GirlDefinition def, GameDefinitionProvider gameDataProvider, AssetProvider assetProvider)
         {
+            var girlExp = def.Expansion();
+
             ValidatedSet.SetValue(ref def.girlAge, GirlAge);
             ValidatedSet.SetValue(ref def.specialCharacter, SpecialCharacter);
             ValidatedSet.SetValue(ref def.bossCharacter, BossCharacter);
@@ -194,16 +197,7 @@ namespace Hp2BaseMod.GameDataInfo
 
             ValidatedSet.SetListValue(ref def.herQuestions, HerQuestions, InsertStyle);
 
-            if (FavAnswers != null)
-            {
-                def.favAnswers ??= new();
-                foreach (var answer in FavAnswers)
-                {
-                    var questionIndex = ModInterface.Data.GetRuntimeDataId(GameDataType.Question, answer.Key);
-                    var answerIndex = ModInterface.GameData.GetQuestion(questionIndex).Expansion().AnswerIdToIndex[answer.Value];
-                    def.favAnswers.FillInsert(questionIndex, answerIndex, -1);
-                }
-            }
+            ValidatedSet.SetDictValues(ref girlExp.FavQuestionIdToAnswerId, FavAnswers, InsertStyle);
 
             ValidatedSet.SetValue(ref def.altStylesFlagName, AltStylesFlagName, InsertStyle);
 
@@ -228,6 +222,26 @@ namespace Hp2BaseMod.GameDataInfo
             ValidatedSet.SetListValue(ref def.baggageItemDefs, BaggageItemDefIDs?.Select(gameDataProvider.GetItem), InsertStyle);
             ValidatedSet.SetListValue(ref def.uniqueItemDefs, UniqueItemDefIDs?.Select(gameDataProvider.GetItem), InsertStyle);
             ValidatedSet.SetListValue(ref def.shoesItemDefs, ShoesItemDefIDs?.Select(gameDataProvider.GetItem), InsertStyle);
+
+            if (FavoriteDialogLines != null)
+            {
+                var favQuestionResponse = gameDataProvider.GetDialogTrigger(new RelativeId(-1, 5));
+
+                if (favQuestionResponse == null)
+                {
+                    ModInterface.Log.Error("Failed to find FavQuestionResponse dialog trigger.");
+                }
+                else
+                {
+                    var lineSet = favQuestionResponse.dialogLineSets[girlExp.DialogTriggerIndex];
+                    foreach (var id_line in FavoriteDialogLines)
+                    {
+                        var questionIndex = gameDataProvider.GetQuestion(id_line.Key).Expansion().DialogTriggerIndex;
+                        var line = lineSet.dialogLines.GetOrNew(questionIndex);
+                        id_line.Value.SetData(line, gameDataProvider, assetProvider);
+                    }
+                }
+            }
         }
 
         /// <inheritdoc/>

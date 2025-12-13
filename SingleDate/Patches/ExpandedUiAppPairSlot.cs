@@ -145,7 +145,7 @@ internal class ExpandedUiAppPairSlot
             || playerFileGirlPair.relationshipType == GirlPairRelationshipType.COMPATIBLE)
         {
             var girlSave = State.SaveFile.GetGirl(playerFileGirlPair.girlPairDefinition.girlDefinitionTwo.id);
-            text += $" {girlSave.RelationshipLevel}/{Plugin.MaxSingleGirlRelationshipLevel}";
+            text += $" {girlSave.RelationshipLevel}/{Plugin.MaxSingleGirlRelationshipLevel.Value}";
         }
 
         f_tooltip.GetValue<UiTooltipSimple>(_uiAppPairSlot)?

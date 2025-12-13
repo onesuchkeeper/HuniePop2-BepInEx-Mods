@@ -9,15 +9,15 @@ public static partial class GameDataLogUtility
     {
         if (cutsceneDef == null)
         {
-            ModInterface.Log.LogInfo("null");
+            ModInterface.Log.Message("null");
             return;
         }
 
-        ModInterface.Log.LogInfo($"Cleanup Type: {Enum.GetName(typeof(CutsceneCleanUpType), cutsceneDef.cleanUpType)}");
+        ModInterface.Log.Message($"Cleanup Type: {Enum.GetName(typeof(CutsceneCleanUpType), cutsceneDef.cleanUpType)}");
         int i = 0;
         foreach (var step in cutsceneDef.steps)
         {
-            ModInterface.Log.LogInfo($"Step {i++}");
+            ModInterface.Log.Message($"Step {i++}");
             ModInterface.Log.IncreaseIndent();
             LogCutsceneStep(step);
             ModInterface.Log.DecreaseIndent();
@@ -28,12 +28,13 @@ public static partial class GameDataLogUtility
     {
         if (step == null)
         {
-            ModInterface.Log.LogInfo("null");
+            ModInterface.Log.Message("null");
             return;
         }
 
         using (ModInterface.Log.MakeIndent($"Type: {Enum.GetName(typeof(CutsceneStepType), step.stepType)}"))
         {
+            var usesTarget = false;
             switch (step.stepType)
             {
                 case CutsceneStepType.BRANCH:
@@ -41,7 +42,7 @@ public static partial class GameDataLogUtility
                         int i = 0;
                         foreach (var branch in step.branches)
                         {
-                            ModInterface.Log.LogInfo($"Branch {i++}:");
+                            ModInterface.Log.Message($"Branch {i++}:");
                             ModInterface.Log.IncreaseIndent();
                             LogCutsceneBranch(branch);
                             ModInterface.Log.DecreaseIndent();
@@ -52,186 +53,210 @@ public static partial class GameDataLogUtility
                     LogLogicAction(step.logicAction);
                     break;
                 case CutsceneStepType.SPECIAL_STEP:
-                    ModInterface.Log.LogInfo($"Special step prefab: {step.specialStepPrefab?.name ?? "null"}");
+                    ModInterface.Log.Message($"Special step prefab: {step.specialStepPrefab?.name ?? "null"}");
                     break;
                 case CutsceneStepType.CHANGE_EXPRESSION:
-                    ModInterface.Log.LogInfo($"setMood: {step.setMood}");
-                    ModInterface.Log.LogInfo($"expressionType: {Enum.GetName(typeof(GirlExpressionType), step.expressionType)}");
+                    usesTarget = true;
+                    ModInterface.Log.Message($"setMood: {step.setMood}");
+                    ModInterface.Log.Message($"expressionType: {Enum.GetName(typeof(GirlExpressionType), step.expressionType)}");
                     if (step.setMood)
                     {
-                        ModInterface.Log.LogInfo($"SetMood, EyesClosed: {step.boolValue}");
+                        ModInterface.Log.Message($"SetMood, EyesClosed: {step.boolValue}");
                     }
                     else
                     {
-                        ModInterface.Log.LogInfo($"ChangeExpression, BreathSpeed: {step.floatValue}");
+                        ModInterface.Log.Message($"ChangeExpression, BreathSpeed: {step.floatValue}");
                     }
                     break;
                 case CutsceneStepType.DIALOG_LINE:
-                    ModInterface.Log.LogInfo($"DialogLine: {step.dialogLine?.dialogText ?? "null"}");//fix this
-                    ModInterface.Log.LogInfo($"ProceedType: {Enum.GetName(typeof(CutsceneStepProceedType), step.proceedType)}");
-                    ModInterface.Log.LogInfo($"isDialogBoxLocked: {step.boolValue}");
+                    usesTarget = true;
+                    ModInterface.Log.Message($"DialogLine: {step.dialogLine?.dialogText ?? "null"}");//fix this
+                    ModInterface.Log.Message($"ProceedType: {Enum.GetName(typeof(CutsceneStepProceedType), step.proceedType)}");
+                    ModInterface.Log.Message($"isDialogBoxLocked: {step.boolValue}");
                     break;
                 case CutsceneStepType.DIALOG_TRIGGER:
-                    ModInterface.Log.LogInfo($"DialogTrigger: {step.dialogTriggerDefinition.name}");
+                    usesTarget = true;
+                    ModInterface.Log.Message($"DialogTrigger: {step.dialogTriggerDefinition.name}");
 
-                    ModInterface.Log.LogInfo($"ProceedType: {Enum.GetName(typeof(CutsceneStepProceedType), step.proceedType)}");
+                    ModInterface.Log.Message($"ProceedType: {Enum.GetName(typeof(CutsceneStepProceedType), step.proceedType)}");
                     break;
                 case CutsceneStepType.DOUBLE_TRIGGER:
-                    ModInterface.Log.LogInfo($"Use puzzle focus:{step.boolValue}");
+                    ModInterface.Log.Message($"Use puzzle focus:{step.boolValue}");
 
-                    ModInterface.Log.LogInfo($"Trigger: {step.dialogTriggerDefinition.name}");
+                    ModInterface.Log.Message($"Trigger: {step.dialogTriggerDefinition.name}");
 
-                    ModInterface.Log.LogInfo($"Response: {step.dialogTriggerDefinition.responseTrigger.name}");
+                    ModInterface.Log.Message($"Response: {step.dialogTriggerDefinition.responseTrigger.name}");
 
-                    ModInterface.Log.LogInfo($"toHidden:{step.proceedBool}");
+                    ModInterface.Log.Message($"toHidden:{step.proceedBool}");
                     break;
                 case CutsceneStepType.DIALOG_OPTIONS:
                     {
                         var i = 0;
                         foreach (var option in step.dialogOptions)
                         {
-                            ModInterface.Log.LogInfo($"DialogOption {i}");
+                            ModInterface.Log.Message($"DialogOption {i}");
                             ModInterface.Log.IncreaseIndent();
                             LogDialogOption(option);
                             ModInterface.Log.DecreaseIndent();
                         }
-                        ModInterface.Log.LogInfo($"Shuffle: {step.boolValue}");
+                        ModInterface.Log.Message($"Shuffle: {step.boolValue}");
                         break;
                     }
                 case CutsceneStepType.DOLL_MOVE:
-                    ModInterface.Log.LogInfo($"dollPositionType: {Enum.GetName(typeof(DollPositionType), step.dollPositionType)}");
-                    ModInterface.Log.LogInfo($"Duration: {(step.floatValue > 0 ? step.floatValue : 1f)}");
-                    ModInterface.Log.LogInfo($"TargetType: {Enum.GetName(typeof(CutsceneStepDollTargetType), step.dollTargetType)}");
+                    usesTarget = true;
+                    ModInterface.Log.Message($"dollPositionType: {Enum.GetName(typeof(DollPositionType), step.dollPositionType)}");
+                    ModInterface.Log.Message($"Duration: {(step.floatValue > 0 ? step.floatValue : 1f)}");
+                    ModInterface.Log.Message($"TargetType: {Enum.GetName(typeof(CutsceneStepDollTargetType), step.dollTargetType)}");
                     switch (step.dollTargetType)
                     {
                         case CutsceneStepDollTargetType.GIRL_DEFINITION:
                             if (step.girlDefinition == null)
                             {
-                                ModInterface.Log.LogInfo($"Def: null");
+                                ModInterface.Log.Message($"Def: null");
                             }
                             else
                             {
-                                ModInterface.Log.LogInfo($"Def: {ModInterface.Data.GetDataId(GameDataType.Girl, step.girlDefinition.id)} - {step.girlDefinition.girlName}");
+                                ModInterface.Log.Message($"Def: {ModInterface.Data.GetDataId(GameDataType.Girl, step.girlDefinition.id)} - {step.girlDefinition.girlName}");
                             }
                             break;
                         case CutsceneStepDollTargetType.ORIENTATION_TYPE:
-                            ModInterface.Log.LogInfo($"Orientation: {Enum.GetName(typeof(DollOrientationType), step.targetDollOrientation)}");
+                            ModInterface.Log.Message($"Orientation: {Enum.GetName(typeof(DollOrientationType), step.targetDollOrientation)}");
                             break;
                         case CutsceneStepDollTargetType.FOCUSED:
                         case CutsceneStepDollTargetType.RANDOM:
                             break;
                         default:
-                            ModInterface.Log.LogInfo($"Unknown target type: {step.dollTargetType}");
+                            ModInterface.Log.Message($"Unknown target type: {step.dollTargetType}");
                             break;
                     }
                     break;
                 case CutsceneStepType.LOAD_GIRL:
+                    usesTarget = true;
                     if (step.girlDefinition == null)
                     {
-                        ModInterface.Log.LogInfo("unload");
+                        ModInterface.Log.Message("unload");
                     }
                     else
                     {
-                        ModInterface.Log.LogInfo($"GirlDef: {step.girlDefinition.name}");
+                        ModInterface.Log.Message($"GirlDef: {step.girlDefinition.name}");
 
                         if (step.boolValue)
                         {
-                            ModInterface.Log.LogInfo($"Default expressions/styles");
+                            ModInterface.Log.Message($"Default expressions/styles");
                         }
                         else
                         {
-                            ModInterface.Log.LogInfo($"Expression: {step.expressionIndex}");
-                            ModInterface.Log.LogInfo($"Hairstyle: {step.hairstyleIndex}");
-                            ModInterface.Log.LogInfo($"Outfit: {step.outfitIndex}");
+                            ModInterface.Log.Message($"Expression: {step.expressionIndex}");
+                            ModInterface.Log.Message($"Hairstyle: {step.hairstyleIndex}");
+                            ModInterface.Log.Message($"Outfit: {step.outfitIndex}");
                         }
                     }
                     break;
                 case CutsceneStepType.TOGGLE_PHONE:
                     if (step.intValue == 0)
                     {
-                        ModInterface.Log.LogInfo("Both Header and Lower Cellphone");
+                        ModInterface.Log.Message("Both Header and Lower Cellphone");
                     }
                     else
                     {
-                        ModInterface.Log.LogInfo(step.intValue > 0 ? "Header" : "Lower Cellphone");
+                        ModInterface.Log.Message(step.intValue > 0 ? "Header" : "Lower Cellphone");
                     }
 
-                    ModInterface.Log.LogInfo(step.boolValue ? "Hub position" : "Normal Position");
+                    ModInterface.Log.Message(step.boolValue ? "Hub position" : "Normal Position");
                     break;
                 case CutsceneStepType.REWIND:
-                    ModInterface.Log.LogInfo($"Steps: {Mathf.Abs(step.intValue)}");
+                    ModInterface.Log.Message($"Steps: {Mathf.Abs(step.intValue)}");
                     break;
                 case CutsceneStepType.PUZZLE_GRID:
-                    ModInterface.Log.LogInfo(step.boolValue ? "Show" : "Hide");
+                    ModInterface.Log.Message(step.boolValue ? "Show" : "Hide");
                     break;
                 case CutsceneStepType.BANNER_TEXT:
-                    ModInterface.Log.LogInfo(step.boolValue ? "Show" : "Hide");
+                    ModInterface.Log.Message(step.boolValue ? "Show" : "Hide");
                     if (step.boolValue)
                     {
-                        ModInterface.Log.LogInfo($"BannerTextPrefab: {step.bannerTextPrefab.name}");
-                        ModInterface.Log.LogInfo($"Effect Index: {step.intValue}");
+                        ModInterface.Log.Message($"BannerTextPrefab: {step.bannerTextPrefab.name}");
+                        ModInterface.Log.Message($"Effect Index: {step.intValue}");
                     }
                     break;
                 case CutsceneStepType.PUZZLE_REFOCUS:
-                    ModInterface.Log.LogInfo($"Express Failure: {step.boolValue}");
+                    ModInterface.Log.Message($"Express Failure: {step.boolValue}");
                     break;
                 case CutsceneStepType.SET_EXHAUSTION:
-                    ModInterface.Log.LogInfo($"Exhausted: {step.boolValue}");
+                    usesTarget = true;
+                    ModInterface.Log.Message($"Exhausted: {step.boolValue}");
                     break;
                 case CutsceneStepType.SUB_CUTSCENE:
-                    ModInterface.Log.LogInfo($"subCutsceneType: {Enum.GetName(typeof(CutsceneStepSubCutsceneType), step.subCutsceneType)}");
+                    ModInterface.Log.Message($"subCutsceneType: {Enum.GetName(typeof(CutsceneStepSubCutsceneType), step.subCutsceneType)}");
                     switch (step.subCutsceneType)
                     {
                         case CutsceneStepSubCutsceneType.STRAIGHT:
                             LogCutscene(step.subCutsceneDefinition);
                             break;
                         case CutsceneStepSubCutsceneType.GIRL_PAIR:
-                            ModInterface.Log.LogInfo($"girlPairRelationshipType: {Enum.GetName(typeof(GirlPairRelationshipType), step.girlPairRelationshipType)}");
+                            ModInterface.Log.Message($"girlPairRelationshipType: {Enum.GetName(typeof(GirlPairRelationshipType), step.girlPairRelationshipType)}");
                             break;
                     }
                     break;
                 case CutsceneStepType.SHOW_WINDOW:
-                    ModInterface.Log.LogInfo($"Don't Queue: {step.boolValue}");
-                    ModInterface.Log.LogInfo($"WindowPrefab: {step.windowPrefab?.name ?? "null"}");
+                    ModInterface.Log.Message($"Don't Queue: {step.boolValue}");
+                    ModInterface.Log.Message($"WindowPrefab: {step.windowPrefab?.name ?? "null"}");
                     break;
                 case CutsceneStepType.USE_CELLPHONE:
                     if (!StringUtils.IsEmpty(step.stringValue))
                     {
-                        ModInterface.Log.LogInfo($"Freeze Button Indexes: {step.stringValue}");
+                        ModInterface.Log.Message($"Freeze Button Indexes: {step.stringValue}");
                     }
                     break;
                 case CutsceneStepType.SHAKE_SCREEN:
-                    ModInterface.Log.LogInfo($"Duration: {step.floatValue}");
-                    ModInterface.Log.LogInfo($"Strength: {step.intValue}");
-                    ModInterface.Log.LogInfo($"FadeOut: {step.boolValue}");
+                    ModInterface.Log.Message($"Duration: {step.floatValue}");
+                    ModInterface.Log.Message($"Strength: {step.intValue}");
+                    ModInterface.Log.Message($"FadeOut: {step.boolValue}");
                     break;
                 case CutsceneStepType.RESET_DOLLS:
                     //no arguments
                     break;
                 case CutsceneStepType.TOGGLE_OVERLAY:
-                    ModInterface.Log.LogInfo(step.boolValue ? "On" : "Off");
-                    ModInterface.Log.LogInfo($"Duration: {step.floatValue}");
+                    ModInterface.Log.Message(step.boolValue ? "On" : "Off");
+                    ModInterface.Log.Message($"Duration: {step.floatValue}");
                     break;
                 case CutsceneStepType.SOUND_EFFECT:
-                    ModInterface.Log.LogInfo(step.boolValue ? "Voice" : "Sound");
-                    ModInterface.Log.LogInfo($"Volume: {step.audioKlip.volume}");
-                    ModInterface.Log.LogInfo($"Clip: {step.audioKlip.clip.name}");
+                    ModInterface.Log.Message(step.boolValue ? "Voice" : "Sound");
+                    ModInterface.Log.Message($"Volume: {step.audioKlip.volume}");
+                    ModInterface.Log.Message($"Clip: {step.audioKlip.clip.name}");
                     break;
                 case CutsceneStepType.CLEAR_MOOD:
                     //no arguments
                     break;
                 case CutsceneStepType.PARTICLE_EMITTER:
-                    ModInterface.Log.LogInfo($"EmitterBehavior: {step.emitterBehavior.name}");
-                    ModInterface.Log.LogInfo($"Effect Container: {step.intValue}");
-                    ModInterface.Log.LogInfo($"Position: {step.position}");
+                    ModInterface.Log.Message($"EmitterBehavior: {step.emitterBehavior.name}");
+                    ModInterface.Log.Message($"Effect Container: {step.intValue}");
+                    ModInterface.Log.Message($"Position: {step.position}");
                     break;
                 case CutsceneStepType.SHOW_NOTIFICATION:
-                    ModInterface.Log.LogInfo($"Text: {step.stringValue}");
-                    ModInterface.Log.LogInfo($"NotificationType: {Enum.GetName(typeof(CutsceneStepNotificationType), step.notificationType)}");
-                    ModInterface.Log.LogInfo($"Show duration: {step.floatValue}");
+                    ModInterface.Log.Message($"Text: {step.stringValue}");
+                    ModInterface.Log.Message($"NotificationType: {Enum.GetName(typeof(CutsceneStepNotificationType), step.notificationType)}");
+                    ModInterface.Log.Message($"Show duration: {step.floatValue}");
                     break;
             }
-            ModInterface.Log.LogInfo($"ProceedType: {Enum.GetName(typeof(CutsceneStepProceedType), step.proceedType)}, Proceed Float: {step.proceedFloat}");
+            ModInterface.Log.Message($"ProceedType: {Enum.GetName(typeof(CutsceneStepProceedType), step.proceedType)}, Proceed Float: {step.proceedFloat}");
+
+            if (usesTarget)
+            {
+                var targetStr = $"Doll Target Type: {Enum.GetName(typeof(CutsceneStepDollTargetType), step.dollTargetType)}";
+                switch (step.dollTargetType)
+                {
+                    case CutsceneStepDollTargetType.GIRL_DEFINITION:
+                        ModInterface.Log.Message(targetStr + $", Target Def: {step.targetGirlDefinition?.name ?? "null"} - {step.targetGirlDefinition?.girlName ?? "null"}");
+                        break;
+                    case CutsceneStepDollTargetType.ORIENTATION_TYPE:
+                        ModInterface.Log.Message(targetStr + $", Orientation: {step.targetDollOrientation}");
+                        break;
+                    case CutsceneStepDollTargetType.RANDOM:
+                        break;
+                    case CutsceneStepDollTargetType.FOCUSED:
+                        break;
+                }
+            }
         }
     }
 
@@ -239,7 +264,7 @@ public static partial class GameDataLogUtility
     {
         if (branch == null)
         {
-            ModInterface.Log.LogInfo("null");
+            ModInterface.Log.Message("null");
             return;
         }
 
@@ -266,16 +291,16 @@ public static partial class GameDataLogUtility
     {
         if (dialogOption == null)
         {
-            ModInterface.Log.LogInfo("null");
+            ModInterface.Log.Message("null");
             return;
         }
 
-        ModInterface.Log.LogInfo($"Yuri: {dialogOption.yuri}");
+        ModInterface.Log.Message($"Yuri: {dialogOption.yuri}");
         if (dialogOption.yuri)
         {
-            ModInterface.Log.LogInfo($"Yuri Text: {dialogOption.yuriDialogOptionText}");
+            ModInterface.Log.Message($"Yuri Text: {dialogOption.yuriDialogOptionText}");
         }
-        ModInterface.Log.LogInfo($"Text: {dialogOption.yuriDialogOptionText}");
-        ModInterface.Log.LogInfo($"Text: {dialogOption.yuriDialogOptionText}");
+        ModInterface.Log.Message($"Text: {dialogOption.yuriDialogOptionText}");
+        ModInterface.Log.Message($"Text: {dialogOption.yuriDialogOptionText}");
     }
 }

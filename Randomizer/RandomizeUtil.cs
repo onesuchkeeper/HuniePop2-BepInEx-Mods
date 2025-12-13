@@ -2,8 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Hp2BaseMod;
-using Hp2BaseMod.Extension.IEnumerableExtension;
-using Hp2BaseMod.Extension.StringExtension;
+using Hp2BaseMod.Extension;
 
 namespace Hp2Randomizer;
 
@@ -34,35 +33,40 @@ public static class RandomizeUtil
     /// Randomizes game data
     /// </summary>
     /// <param name="swapHandlerDict"></param>
-    public static void Randomize(IEnumerable<(RelativeId, Action<GirlDefinition, GirlDefinition>)> swapHandlers)
+    public static void Randomize(IEnumerable<(RelativeId, Func<GirlDefinition, GirlDefinition, bool>)> swapHandlers)
     {
-        if (Plugin.Disable) return;
+        if (Plugin.Disable.Value) return;
 
-        var seed = Plugin.Seed;
+        var seed = Plugin.Seed.Value;
         if (seed == -1)
         {
-            Plugin.Seed = seed = Environment.TickCount;
+            Plugin.Seed.Value = seed = Environment.TickCount;
         }
 
         var swapHandlerDict = swapHandlers.ToDictionary(x => x.Item1, x => x.Item2);
 
-        var keepSwappedWings = Plugin.SwappedSpecialKeepWings;
+        var keepSwappedWings = Plugin.SwappedSpecialKeepWings.Value;
 
-        if (Plugin.IncludeKyu)
+        if (Plugin.IncludeKyu.Value)
         {
             swapHandlerDict.Add(Girls.KyuId, (a, b) => SwapKyu(a, b, keepSwappedWings));
         }
 
-        if (Plugin.IncludeNymphojinn)
+        if (Plugin.IncludeNymphojinn.Value)
         {
             swapHandlerDict.Add(Girls.MoxieId, (a, b) => SwapNymphojinn(a, b, keepSwappedWings));
             swapHandlerDict.Add(Girls.JewnId, (a, b) => SwapNymphojinn(a, b, keepSwappedWings));
         }
 
-        ModInterface.Log.LogInfo($"Randomizing, seed:{seed}");
+        ModInterface.Log.Message($"Randomizing, seed:{seed}");
         var random = new Random(seed);
 
         var normalGirls = Game.Data.Girls.GetAllBySpecial(false);
+
+        normalGirls.Remove(ModInterface.GameData.GetGirl(Girls.KyuId));
+        normalGirls.Remove(ModInterface.GameData.GetGirl(Girls.MoxieId));
+        normalGirls.Remove(ModInterface.GameData.GetGirl(Girls.JewnId));
+
         var normalPairs = Game.Data.GirlPairs.GetAll().Where(x =>
             x.girlDefinitionOne != null
             && x.girlDefinitionTwo != null
@@ -88,7 +92,7 @@ public static class RandomizeUtil
         }
 
         IEnumerable<(int a, int b)> pairings;
-        if (!Plugin.RandomizePairs)
+        if (!Plugin.RandomizePairs.Value)
         {
             pairings = normalPairs.Select(x => (x.girlDefinitionOne.id, x.girlDefinitionTwo.id));
         }
@@ -98,7 +102,7 @@ public static class RandomizeUtil
         }
         else
         {
-            ModInterface.Log.LogWarning($"Failed to create simple graph from pairings, they will not be randomized.");
+            ModInterface.Log.Warning($"Failed to create simple graph from pairings, they will not be randomized.");
             pairings = normalPairs.Select(x => (x.girlDefinitionOne.id, x.girlDefinitionTwo.id));
         }
 
@@ -145,7 +149,7 @@ public static class RandomizeUtil
             }
         }
 
-        var randomizedNames = Plugin.RandomizeNames;
+        var randomizedNames = Plugin.RandomizeNames.Value;
 
         var canSwapSingleDate = ModInterface.TryGetInterModValue("OSK.BepInEx.SingleDate", "SwapGirls", out Action<RelativeId, RelativeId> m_SwapGirls);
 
@@ -180,156 +184,44 @@ public static class RandomizeUtil
                 m_SwapGirls(specialId, targetId);
             }
 
-            id_handler.Value.Invoke(specialGirl, targetGirl);
+            var shouldSwap = id_handler.Value.Invoke(specialGirl, targetGirl);
+
+            if (!shouldSwap) continue;
 
             var specialGirlExpanded = specialGirl.Expansion();
             var targetGirlExpanded = targetGirl.Expansion();
 
-            var holdIdToIndex = specialGirlExpanded.OutfitIdToIndex;
-            specialGirlExpanded.OutfitIdToIndex = targetGirlExpanded.OutfitIdToIndex;
-            targetGirlExpanded.OutfitIdToIndex = holdIdToIndex;
+            //hairstyle
+            Swap(ref specialGirlExpanded.HairstyleIndexToId, ref targetGirlExpanded.HairstyleIndexToId);
+            Swap(ref specialGirlExpanded.HairstyleIdToIndex, ref targetGirlExpanded.HairstyleIdToIndex);
 
-            holdIdToIndex = specialGirlExpanded.HairstyleIdToIndex;
-            specialGirlExpanded.HairstyleIdToIndex = targetGirlExpanded.HairstyleIdToIndex;
-            targetGirlExpanded.HairstyleIdToIndex = holdIdToIndex;
+            //outfit
+            Swap(ref specialGirlExpanded.OutfitIndexToId, ref targetGirlExpanded.OutfitIndexToId);
+            Swap(ref specialGirlExpanded.OutfitIdToIndex, ref targetGirlExpanded.OutfitIdToIndex);
 
-            holdIdToIndex = specialGirlExpanded.ExpressionIdToIndex;
-            specialGirlExpanded.ExpressionIdToIndex = targetGirlExpanded.ExpressionIdToIndex;
-            targetGirlExpanded.ExpressionIdToIndex = holdIdToIndex;
+            //expressions
+            Swap(ref specialGirlExpanded.ExpressionIndexToId, ref targetGirlExpanded.ExpressionIndexToId);
+            Swap(ref specialGirlExpanded.ExpressionIdToIndex, ref targetGirlExpanded.ExpressionIdToIndex);
 
-            var holdIndexToId = specialGirlExpanded.OutfitIndexToId;
-            specialGirlExpanded.OutfitIndexToId = targetGirlExpanded.OutfitIndexToId;
-            targetGirlExpanded.OutfitIndexToId = holdIndexToId;
-
-            holdIndexToId = specialGirlExpanded.HairstyleIndexToId;
-            specialGirlExpanded.HairstyleIndexToId = targetGirlExpanded.HairstyleIndexToId;
-            targetGirlExpanded.HairstyleIndexToId = holdIndexToId;
-
-            holdIndexToId = specialGirlExpanded.ExpressionIndexToId;
-            specialGirlExpanded.ExpressionIndexToId = targetGirlExpanded.ExpressionIndexToId;
-            targetGirlExpanded.ExpressionIndexToId = holdIndexToId;
-
-            var holdBodies = specialGirlExpanded.Bodies;
-            specialGirlExpanded.Bodies = targetGirlExpanded.Bodies;
-            targetGirlExpanded.Bodies = holdBodies;
-
-            var holdParts = specialGirl.parts;
-            specialGirl.parts = targetGirl.parts;
-            targetGirl.parts = holdParts;
-
-            var holdSpecialParts = specialGirl.specialParts;
-            specialGirl.specialParts = targetGirl.specialParts;
-            targetGirl.specialParts = holdSpecialParts;
-
-            var holdInt = specialGirl.partIndexBlink;
-            specialGirl.partIndexBlink = targetGirl.partIndexBlink;
-            targetGirl.partIndexBlink = holdInt;
-
-            holdInt = specialGirl.partIndexBlushHeavy;
-            specialGirl.partIndexBlushHeavy = targetGirl.partIndexBlushHeavy;
-            targetGirl.partIndexBlushHeavy = holdInt;
-
-            holdInt = specialGirl.partIndexBlushLight;
-            specialGirl.partIndexBlushLight = targetGirl.partIndexBlushLight;
-            targetGirl.partIndexBlushLight = holdInt;
-
-            holdInt = specialGirl.partIndexBody;
-            specialGirl.partIndexBody = targetGirl.partIndexBody;
-            targetGirl.partIndexBody = holdInt;
-
-            var holdIndexList = specialGirl.partIndexesPhonemes;
-            specialGirl.partIndexesPhonemes = targetGirl.partIndexesPhonemes;
-            targetGirl.partIndexesPhonemes = holdIndexList;
-
-            holdIndexList = specialGirl.partIndexesPhonemesTeeth;
-            specialGirl.partIndexesPhonemesTeeth = targetGirl.partIndexesPhonemesTeeth;
-            targetGirl.partIndexesPhonemesTeeth = holdIndexList;
-
-            holdInt = specialGirl.partIndexMouthNeutral;
-            specialGirl.partIndexMouthNeutral = targetGirl.partIndexMouthNeutral;
-            targetGirl.partIndexMouthNeutral = holdInt;
-
-            holdInt = specialGirl.partIndexNipples;
-            specialGirl.partIndexNipples = targetGirl.partIndexNipples;
-            targetGirl.partIndexNipples = holdInt;
-
-            holdInt = specialGirl.defaultOutfitIndex;
-            specialGirl.defaultOutfitIndex = targetGirl.defaultOutfitIndex;
-            targetGirl.defaultOutfitIndex = holdInt;
-
-            holdInt = specialGirl.defaultHairstyleIndex;
-            specialGirl.defaultHairstyleIndex = targetGirl.defaultHairstyleIndex;
-            targetGirl.defaultHairstyleIndex = holdInt;
-
-            var holdOutfits = specialGirl.outfits;
-            specialGirl.outfits = targetGirl.outfits;
-            targetGirl.outfits = holdOutfits;
-
-            var holdHair = specialGirl.hairstyles;
-            specialGirl.hairstyles = targetGirl.hairstyles;
-            targetGirl.hairstyles = holdHair;
-
-            holdInt = specialGirl.defaultExpressionIndex;
-            specialGirl.defaultExpressionIndex = targetGirl.defaultExpressionIndex;
-            targetGirl.defaultExpressionIndex = holdInt;
-
-            var holdExpressions = specialGirl.expressions;
-            specialGirl.expressions = targetGirl.expressions;
-            targetGirl.expressions = holdExpressions;
-
-            var holdSpecialEffectPrefab = specialGirl.specialEffectPrefab;
-            specialGirl.specialEffectPrefab = targetGirl.specialEffectPrefab;
-            targetGirl.specialEffectPrefab = holdSpecialEffectPrefab;
-
-            var holdSprite = specialGirl.cellphoneHead;
-            specialGirl.cellphoneHead = targetGirl.cellphoneHead;
-            targetGirl.cellphoneHead = holdSprite;
-
-            holdSprite = specialGirl.cellphoneHeadAlt;
-            specialGirl.cellphoneHeadAlt = targetGirl.cellphoneHeadAlt;
-            targetGirl.cellphoneHeadAlt = holdSprite;
-
-            holdSprite = specialGirl.cellphoneMiniHead;
-            specialGirl.cellphoneMiniHead = targetGirl.cellphoneMiniHead;
-            targetGirl.cellphoneMiniHead = holdSprite;
-
-            holdSprite = specialGirl.cellphoneMiniHeadAlt;
-            specialGirl.cellphoneMiniHeadAlt = targetGirl.cellphoneMiniHeadAlt;
-            targetGirl.cellphoneMiniHeadAlt = holdSprite;
-
-            holdSprite = specialGirl.cellphonePortrait;
-            specialGirl.cellphonePortrait = targetGirl.cellphonePortrait;
-            targetGirl.cellphonePortrait = holdSprite;
-
-            holdSprite = specialGirl.cellphonePortraitAlt;
-            specialGirl.cellphonePortraitAlt = targetGirl.cellphonePortraitAlt;
-            targetGirl.cellphonePortraitAlt = holdSprite;
-
-            var holdBool = specialGirl.hasAltStyles;
-            specialGirl.hasAltStyles = targetGirl.hasAltStyles;
-            targetGirl.hasAltStyles = holdBool;
-
-            var holdString = specialGirl.altStylesFlagName;
-            specialGirl.altStylesFlagName = targetGirl.altStylesFlagName;
-            targetGirl.altStylesFlagName = holdString;
-
-            var holdCode = specialGirl.altStylesCodeDefinition;
-            specialGirl.altStylesCodeDefinition = targetGirl.altStylesCodeDefinition;
-            targetGirl.altStylesCodeDefinition = holdCode;
-
-            holdCode = specialGirl.unlockStyleCodeDefinition;
-            specialGirl.unlockStyleCodeDefinition = targetGirl.unlockStyleCodeDefinition;
-            targetGirl.unlockStyleCodeDefinition = holdCode;
-
-            holdInt = specialGirl.failureExpressionIndex;
-            specialGirl.failureExpressionIndex = targetGirl.failureExpressionIndex;
-            targetGirl.failureExpressionIndex = holdInt;
+            //others
+            Swap(ref specialGirlExpanded.Bodies, ref targetGirlExpanded.Bodies);
+            Swap(ref specialGirl.cellphoneHead, ref targetGirl.cellphoneHead);
+            Swap(ref specialGirl.cellphoneHeadAlt, ref targetGirl.cellphoneHeadAlt);
+            Swap(ref specialGirl.cellphoneMiniHead, ref targetGirl.cellphoneMiniHead);
+            Swap(ref specialGirl.cellphoneMiniHeadAlt, ref targetGirl.cellphoneMiniHeadAlt);
+            Swap(ref specialGirl.cellphonePortrait, ref targetGirl.cellphonePortrait);
+            Swap(ref specialGirl.cellphonePortraitAlt, ref targetGirl.cellphonePortraitAlt);
+            Swap(ref specialGirl.hasAltStyles, ref targetGirl.hasAltStyles);
+            Swap(ref specialGirl.altStylesFlagName, ref targetGirl.altStylesFlagName);
+            Swap(ref specialGirl.altStylesCodeDefinition, ref targetGirl.altStylesCodeDefinition);
+            Swap(ref specialGirl.unlockStyleCodeDefinition, ref targetGirl.unlockStyleCodeDefinition);
+            Swap(ref specialGirlExpanded.FavQuestionIdToAnswerId, ref targetGirlExpanded.FavQuestionIdToAnswerId);
         }
 
         var handledCutscenes = new HashSet<CutsceneDefinition>();
 
-        var randomizedBaggage = Plugin.RandomizeBaggage;
-        var randomizedAffection = Plugin.RandomizeAffection;
+        var randomizedBaggage = Plugin.RandomizeBaggage.Value;
+        var randomizedAffection = Plugin.RandomizeAffection.Value;
 
         // randomize girls
         foreach (var girl in normalGirls)
@@ -502,24 +394,33 @@ public static class RandomizeUtil
         }
     }
 
-    private static void SwapNymphojinn(GirlDefinition nymphojinnDef, GirlDefinition otherGirlDef, bool keepSwappedWings)
+    private static bool SwapNymphojinn(GirlDefinition nymphojinnDef, GirlDefinition otherGirlDef, bool keepSwappedWings)
     {
-        //find the neutral glowing eyes to use for expressions that don't have glowing eyes
-        var defaultGlowEyesIndex = -1;
-        if (otherGirlDef.expressions.TryGetFirst(x => x.expressionType == GirlExpressionType.NEUTRAL, out var neutralExpression))
-        {
-            defaultGlowEyesIndex = neutralExpression.partIndexEyesGlow;
-        }
-        else
-        {
-            ModInterface.Log.LogWarning($"Unable to find neutral expression for girl {otherGirlDef.girlName}");
-        }
+        var nymphoExpansion = nymphojinnDef.Expansion();
+        var otherGirlExpansion = otherGirlDef.Expansion();
 
-        foreach (var expression in otherGirlDef.expressions)
+        //find the neutral glowing eyes to use for expressions that don't have glowing eyes
+        foreach (var body in otherGirlExpansion.Bodies.Values)
         {
-            expression.partIndexEyes = expression.partIndexEyesGlow == -1
-                ? defaultGlowEyesIndex
-                : expression.partIndexEyesGlow;
+            body.SpecialEffectPrefab = nymphojinnDef.specialEffectPrefab;
+
+            var defaultGlowEyesIndex = -1;
+
+            if (body.Expressions.TryGetFirst(x => x.expressionType == GirlExpressionType.NEUTRAL, out var neutralExpression))
+            {
+                defaultGlowEyesIndex = neutralExpression.partIndexEyesGlow;
+            }
+            else
+            {
+                ModInterface.Log.Warning($"Unable to find neutral expression for girl {otherGirlDef.girlName}]s body {body.BodyName}");
+            }
+
+            foreach (var expression in body.Expressions)
+            {
+                expression.partIndexEyes = expression.partIndexEyesGlow == -1
+                    ? defaultGlowEyesIndex
+                    : expression.partIndexEyesGlow;
+            }
         }
 
         foreach (var expression in otherGirlDef.expressions)
@@ -529,9 +430,6 @@ public static class RandomizeUtil
                 expression.partIndexEyes = expression.partIndexEyesGlow;
             }
         }
-
-        var nymphoExpansion = nymphojinnDef.Expansion();
-        var otherGirlExpansion = otherGirlDef.Expansion();
 
         foreach (var dt in Game.Data.DialogTriggers.GetAll())
         {
@@ -546,35 +444,53 @@ public static class RandomizeUtil
         nymphojinnDef.defaultHairstyleIndex = 0;
         nymphojinnDef.defaultOutfitIndex = 0;
 
-        if (keepSwappedWings && otherGirlDef.specialEffectPrefab == null)
-        {
-            otherGirlDef.specialEffectPrefab = nymphojinnDef.specialEffectPrefab;
-        }
+        HandleSpecialCharDtSwap(nymphojinnDef.Expansion(), otherGirlDef.Expansion());
+
+        return true;
     }
 
-    private static void SwapKyu(GirlDefinition kyuDef, GirlDefinition otherGirlDef, bool keepSwappedWings)
+    private static bool SwapKyu(GirlDefinition kyuDef, GirlDefinition otherGirlDef, bool keepSwappedWings)
     {
         kyuDef.defaultHairstyleIndex = 1;
         kyuDef.defaultOutfitIndex = 1;
 
         if (keepSwappedWings && otherGirlDef.specialEffectPrefab == null)
         {
-            otherGirlDef.specialEffectPrefab = kyuDef.specialEffectPrefab;
+            foreach (var body in otherGirlDef.Expansion().Bodies.Values)
+            {
+                body.SpecialEffectPrefab = kyuDef.specialEffectPrefab;
+            }
         }
 
         HandleSpecialCharDtSwap(kyuDef.Expansion(), otherGirlDef.Expansion());
+        return true;
     }
 
-    private static void HandleSpecialCharDtSwap(ExpandedGirlDefinition special, ExpandedGirlDefinition other)
+    public static void HandleSpecialCharDtSwap(ExpandedGirlDefinition special, ExpandedGirlDefinition other)
     {
         foreach (var dt in Game.Data.DialogTriggers.GetAll())
         {
-            var kyuLines = dt.dialogLineSets[special.DialogTriggerIndex];
-            if (kyuLines.dialogLines.Count != 0)
+            var specialLines = dt.dialogLineSets[special.DialogTriggerIndex];
+
+            if (specialLines.dialogLines.Count != 0)
             {
-                dt.dialogLineSets[special.DialogTriggerIndex] = dt.dialogLineSets[other.DialogTriggerIndex];
-                dt.dialogLineSets[other.DialogTriggerIndex] = kyuLines;
+                var otherLines = dt.dialogLineSets[other.DialogTriggerIndex];
+
+                if (otherLines.dialogLines.Count != 0)
+                {
+                    dt.dialogLineSets[special.DialogTriggerIndex] = otherLines;
+                }
+
+                dt.dialogLineSets[other.DialogTriggerIndex] = specialLines;
             }
         }
     }
+
+    private static void Swap<T>(ref T a, ref T b)
+    {
+        var hold = a;
+        a = b;
+        b = hold;
+    }
+
 }

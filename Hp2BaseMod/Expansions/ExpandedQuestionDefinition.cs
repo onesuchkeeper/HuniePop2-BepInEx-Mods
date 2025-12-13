@@ -33,4 +33,6 @@ public class ExpandedQuestionDefinition
     };
 
     public string GetAnswer(QuestionDefinition def, RelativeId answerId) => def.questionAnswers[AnswerIdToIndex[answerId]];
+
+    public int DialogTriggerIndex = -1;
 }

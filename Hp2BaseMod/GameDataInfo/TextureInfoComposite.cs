@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Hp2BaseMod.Extension.IEnumerableExtension;
+using Hp2BaseMod.Extension;
 using Hp2BaseMod.GameDataInfo.Interface;
 using UnityEngine;
 
@@ -79,7 +79,7 @@ public class TextureInfoComposite : ITextureInfo
                                 srcColor.g * srcAlpha + dstColor.g * (1f - srcAlpha),
                                 srcColor.b * srcAlpha + dstColor.b * (1f - srcAlpha),
                                 srcAlpha + dstColor.a * (1f - srcAlpha)
-                            ); ;
+                            );
                         }
                     }
                 }

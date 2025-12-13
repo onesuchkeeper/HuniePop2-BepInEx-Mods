@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using BepInEx.Logging;
@@ -10,11 +11,11 @@ namespace Hp2BaseMod
     /// </summary>
     public class ModLog
     {
-        public class ModLogIndent : IDisposable
+        public class Indent : IDisposable
         {
             private readonly ModLog _modLog;
 
-            public ModLogIndent(ModLog modLog)
+            public Indent(ModLog modLog)
             {
                 _modLog = modLog;
                 _modLog.IncreaseIndent();
@@ -47,10 +48,10 @@ namespace Hp2BaseMod
             BepInEx.Logging.Logger.Sources.Add(_logSource);
         }
 
-        public ModLogIndent MakeIndent(string title = null)
+        public Indent MakeIndent(string title = null)
         {
-            if (title != null) { this.LogInfo(title); }
-            return new ModLogIndent(this);
+            if (title != null) { this.Message(title); }
+            return new Indent(this);
         }
 
         /// <summary>
@@ -58,30 +59,29 @@ namespace Hp2BaseMod
         /// </summary>
         public void IncreaseIndent()// => _indent++;
         {
-            //LogLine("{");
             _indent++;
         }
+
         /// <summary>
         /// Decreases how indented the log messages will be
         /// </summary>
         public void DecreaseIndent()// => _indent = Math.Max(0, _indent - 1);
         {
             _indent = Math.Max(0, _indent - 1);
-            //LogLine("}");
         }
 
-        public void LogDebug(string message)
+        public void Debug(string message)
         {
-            if (ShowDebug) LogInfo(message);
+            if (ShowDebug) Message(message);
         }
 
         /// <summary>
         /// outputs a formatted error message to the log
         /// </summary>
         /// <param name="message"></param>
-        public void LogError(string message)
+        public void Error(string message)
         {
-            var lines = message.Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
+            var lines = message.Split([Environment.NewLine], StringSplitOptions.None);
             var tab = new string('-', Math.Max(1, (_indent * 2) - 5));
 
             foreach (var l in lines)
@@ -94,9 +94,9 @@ namespace Hp2BaseMod
         /// outputs a formatted error message to the log
         /// </summary>
         /// <param name="message"></param>
-        public void LogError(string context, Exception exception)
+        public void Error(string context, Exception exception)
         {
-            IEnumerable<string> lines = exception.ToString().Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
+            IEnumerable<string> lines = exception.ToString().Split([Environment.NewLine], StringSplitOptions.None);
 
             var tab = new string('-', Math.Max(1, (_indent * 2) - 5));
 
@@ -111,12 +111,12 @@ namespace Hp2BaseMod
         /// Returns true if the target is null, false otherwise.
         /// </summary>
         /// <param name="line"></param>
-        public bool LogIsNull(object target, string name = null)
+        public bool InNull(object target, string name = null)
         {
             var isNull = target == null;
             if (isNull)
             {
-                LogError($"{name} is null");
+                Error($"{name} is null");
             }
             return isNull;
         }
@@ -125,11 +125,11 @@ namespace Hp2BaseMod
         /// outputs to the log
         /// </summary>
         /// <param name="line"></param>
-        public void LogInfo([System.Runtime.CompilerServices.CallerMemberName] string line = "")
+        public void Message([System.Runtime.CompilerServices.CallerMemberName] string line = "")
         {
             if (line == null) { line = "null"; }
 
-            var lines = line.Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
+            var lines = line.Split([Environment.NewLine], StringSplitOptions.None);
             var tab = new string(' ', _indent * 2);
 
             foreach (var l in lines)
@@ -138,11 +138,17 @@ namespace Hp2BaseMod
             }
         }
 
-        public void LogWarning(string line)
+        /// <summary>
+        /// outputs to the log
+        /// </summary>
+        /// <param name="line"></param>
+        public void Message(IEnumerable values) => Message(values == null ? null : $"[{string.Join(", ", values)}]");
+
+        public void Warning(string line)
         {
             if (line == null) { line = "null"; }
 
-            var lines = line.Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
+            var lines = line.Split([Environment.NewLine], StringSplitOptions.None);
             var tab = new string(' ', _indent * 2);
 
             foreach (var l in lines)
@@ -151,17 +157,8 @@ namespace Hp2BaseMod
             }
         }
 
-        /// <summary>
-        /// outputs a formatted title to the log
-        /// </summary>
-        /// <param name="line"></param>
-        public void LogTitle(string line)
-        {
-            LogInfo($"-----{line}-----");
-        }
-
         public void LogMissingIdError(string descriptor, RelativeId id) => LogMissingIdError(descriptor, id.LocalId, id.SourceId);
 
-        public void LogMissingIdError(string descriptor, int localId, int SourceId) => LogInfo($"{descriptor} with local id {localId} and mod id {SourceId}, but no mod with that id exists. Make sure you're obtaining your mod ids correctly by looking the mod up from the {nameof(ModInterface)}.");
+        public void LogMissingIdError(string descriptor, int localId, int SourceId) => Message($"{descriptor} with local id {localId} and mod id {SourceId}, but no mod with that id exists. Make sure you're obtaining your mod ids correctly by looking the mod up from the {nameof(ModInterface)}.");
     }
 }

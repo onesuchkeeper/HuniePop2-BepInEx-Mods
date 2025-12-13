@@ -1,5 +1,6 @@
 using Hp2BaseMod;
 namespace SingleDate;
+
 public static class CutsceneIds
 {
     public static RelativeId Meeting => _meeting;
@@ -16,4 +17,10 @@ public static class CutsceneIds
 
     public static RelativeId Success => _success;
     private static RelativeId _success = new RelativeId(State.ModId, 4);
+
+    public static RelativeId AttractNoPhoto => _attractNoPhoto;
+    private static RelativeId _attractNoPhoto = new RelativeId(State.ModId, 5);
+
+    public static RelativeId SuccessNoPhoto => _successNoPhoto;
+    private static RelativeId _successNoPhoto = new RelativeId(State.ModId, 6);
 }

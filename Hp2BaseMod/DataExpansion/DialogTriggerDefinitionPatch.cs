@@ -6,7 +6,7 @@ using HarmonyLib;
 namespace Hp2BaseMod.EnumExpansion
 {
     /// <summary>
-    /// overrides getting line sets to use relative ids
+    /// Overrides getting line sets to use relative ids
     /// </summary>
     [HarmonyPatch(typeof(DialogTriggerDefinition))]
     internal class DialogTriggerDefinitionPatch
@@ -38,7 +38,7 @@ namespace Hp2BaseMod.EnumExpansion
             }
             catch (Exception e)
             {
-                ModInterface.Log.LogError($"Getting line sets for girl {girlDef.id} - {girlDef.name},", e);
+                ModInterface.Log.Error($"Getting line sets for girl {girlDef.id} - {girlDef.name},", e);
             }
 
             return true;

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using ETAR.AssetStudioPlugin.Extractor;
+using AssetStudio.Extractor;
 using Hp2BaseMod;
 
 [Serializable]

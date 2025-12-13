@@ -3,7 +3,7 @@ using System.Linq;
 using System.Reflection;
 using HarmonyLib;
 using Hp2BaseMod;
-using Hp2BaseMod.Extension.IEnumerableExtension;
+using Hp2BaseMod.Extension;
 using UnityEngine;
 
 namespace SingleDate;
@@ -59,7 +59,7 @@ internal static class ModEventHandles
             return;
         }
 
-        ModInterface.Log.LogInfo("Forcing focus for single date");
+        ModInterface.Log.Message("Forcing focus for single date");
 
         args.SelectedDoll = Game.Session.gameCanvas.dollRight;
 
@@ -69,17 +69,17 @@ internal static class ModEventHandles
 
     internal static void On_FinderSlotsPopulate(FinderSlotPopulateEventArgs args)
     {
-        var maxSingleGirlRelationshipLevel = Plugin.MaxSingleGirlRelationshipLevel;
+        var maxSingleGirlRelationshipLevel = Plugin.MaxSingleGirlRelationshipLevel.Value;
 
         args.SexPool?.RemoveAll(x => State.IsSingle(x.girlPairDefinition)
             && State.SaveFile.GetGirl(x.girlPairDefinition.girlDefinitionTwo.id)?.RelationshipLevel != maxSingleGirlRelationshipLevel - 1);
 
         foreach (var id in args.SexPool)
         {
-            ModInterface.Log.LogInfo(id.ToString());
+            ModInterface.Log.Message(id.ToString());
         }
 
-        if (Plugin.RequireLoversBeforeThreesome)
+        if (Plugin.RequireLoversBeforeThreesome.Value)
         {
             args.SexPool?.RemoveAll(x => !State.IsSingle(x.girlPairDefinition)
                 && (State.SaveFile.GetGirl(x.girlPairDefinition.girlDefinitionOne.id)?.RelationshipLevel != maxSingleGirlRelationshipLevel
@@ -109,7 +109,7 @@ internal static class ModEventHandles
             return;
         }
 
-        var maxSingleGirlRelationshipLevel = Plugin.MaxSingleGirlRelationshipLevel;
+        var maxSingleGirlRelationshipLevel = Plugin.MaxSingleGirlRelationshipLevel.Value;
         var girlId = ModInterface.Data.GetDataId(GameDataType.Girl, playerFileGirlPair.girlPairDefinition.girlDefinitionTwo.id);
         var girlSave = State.SaveFile.GetGirl(girlId);
 
@@ -119,7 +119,7 @@ internal static class ModEventHandles
             // bonus round without required level
             if (girlSave?.RelationshipLevel < maxSingleGirlRelationshipLevel - 1)
             {
-                ModInterface.Log.LogInfo("Single date deny bonus round");
+                ModInterface.Log.Message("Single date deny bonus round");
                 if (args.LevelUpType == PuzzleRoundOverArgs.CutsceneType.AttractToLovers)
                 {
                     args.LevelUpType = PuzzleRoundOverArgs.CutsceneType.None;
@@ -138,7 +138,7 @@ internal static class ModEventHandles
                 args.IsGameOver = Game.Session.Puzzle.puzzleStatus.bonusRound;
             }
         }
-        else if (Plugin.RequireLoversBeforeThreesome)
+        else if (Plugin.RequireLoversBeforeThreesome.Value)
         {
             var girlSaveOne = State.SaveFile.GetGirl(playerFileGirlPair.girlPairDefinition.girlDefinitionOne.id);
             var girlSaveTwo = State.SaveFile.GetGirl(playerFileGirlPair.girlPairDefinition.girlDefinitionTwo.id);
@@ -146,7 +146,7 @@ internal static class ModEventHandles
             if ((girlSaveOne != null && girlSaveOne.RelationshipLevel < maxSingleGirlRelationshipLevel)
                 || (girlSaveTwo != null && girlSaveTwo.RelationshipLevel < maxSingleGirlRelationshipLevel))
             {
-                ModInterface.Log.LogInfo("Deny double date bonus due to single date levels");
+                ModInterface.Log.Message("Deny double date bonus due to single date levels");
                 args.IsSexDate = false;
                 args.LevelUpType = PuzzleRoundOverArgs.CutsceneType.None;
             }
@@ -162,7 +162,7 @@ internal static class ModEventHandles
             return;
         }
 
-        var maxSingleGirlRelationshipLevel = Plugin.MaxSingleGirlRelationshipLevel;
+        var maxSingleGirlRelationshipLevel = Plugin.MaxSingleGirlRelationshipLevel.Value;
 
         if (State.IsSingleDate)
         {
@@ -217,8 +217,12 @@ internal static class ModEventHandles
 
                 return;
             }
+            else
+            {
+                args.Location = null;
+            }
         }
-        else
+        else if (Plugin.RequireLoversBeforeThreesome.Value)
         {
             var girlSaveOne = State.SaveFile.GetGirl(playerFileGirlPair.girlPairDefinition.girlDefinitionOne.id);
             var girlSaveTwo = State.SaveFile.GetGirl(playerFileGirlPair.girlPairDefinition.girlDefinitionTwo.id);
@@ -231,10 +235,11 @@ internal static class ModEventHandles
                 args.Location = playerFileGirlPair.girlPairDefinition.sexLocationDefinition;
                 return;
             }
+            else
+            {
+                args.Location = null;
+            }
         }
-
-        //if not a sex date, set it to null to force it to re-roll
-        args.Location = null;
     }
 
     internal static void On_SinglePhotoDisplayed(SinglePhotoDisplayArgs args)
@@ -280,7 +285,7 @@ internal static class ModEventHandles
         }
         else
         {
-            var datePercentage = girlSave.RelationshipLevel / (float)Plugin.MaxSingleGirlRelationshipLevel;
+            var datePercentage = girlSave.RelationshipLevel / (float)Plugin.MaxSingleGirlRelationshipLevel.Value;
 
             if (!singleDateGirl.DatePhotos.Any())
             {
@@ -317,7 +322,7 @@ internal static class ModEventHandles
     internal static void On_PreDateDollsRefresh(PreDateDollResetArgs args)
     {
         var playerFileGirlPair = Game.Persistence.playerFile.GetPlayerFileGirlPair(Game.Session.Location.currentGirlPair);
-        var maxSingleGirlRelationshipLevel = Plugin.MaxSingleGirlRelationshipLevel;
+        var maxSingleGirlRelationshipLevel = Plugin.MaxSingleGirlRelationshipLevel.Value;
 
         if (State.IsSingleDate)
         {
@@ -330,7 +335,7 @@ internal static class ModEventHandles
                 args.Style = PreDateDollResetArgs.StyleType.Sex;
             }
         }
-        else if (Plugin.RequireLoversBeforeThreesome)
+        else if (Plugin.RequireLoversBeforeThreesome.Value)
         {
             var girlSaveOne = State.SaveFile.GetGirl(playerFileGirlPair.girlPairDefinition.girlDefinitionOne.id);
             var girlSaveTwo = State.SaveFile.GetGirl(playerFileGirlPair.girlPairDefinition.girlDefinitionTwo.id);

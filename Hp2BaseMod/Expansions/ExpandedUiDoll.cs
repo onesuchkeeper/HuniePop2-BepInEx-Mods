@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using HarmonyLib;
@@ -74,7 +73,6 @@ public class ExpandedUiDoll
     }
 
     private static readonly FieldInfo f_specialEffect = AccessTools.Field(typeof(UiDoll), "_specialEffect");
-    private static readonly FieldInfo f_girlDefinition = AccessTools.Field(typeof(UiDoll), "_girlDefinition");
     private static readonly FieldInfo f_currentOutfitIndex = AccessTools.Field(typeof(UiDoll), "_currentOutfitIndex");
     private static readonly FieldInfo f_currentHairstyleIndex = AccessTools.Field(typeof(UiDoll), "_currentHairstyleIndex");
 
@@ -107,6 +105,8 @@ public class ExpandedUiDoll
             return;
         }
 
+        ModInterface.Log.Message($"Loading special effect {_core.soulGirlDefinition.specialEffectPrefab.name} for {_core.soulGirlDefinition.girlName}");
+
         if (_core.soulGirlDefinition.specialEffectPrefab.GetType() == typeof(UiDollSpecialEffectFairyWings))
         {
             _core.soulGirlDefinition.specialEffectOffset = body.BackPos;
@@ -124,7 +124,7 @@ public class ExpandedUiDoll
         specialEffectInstance.rectTransform.SetParent(Game.Session.gameCanvas.dollSpecialEffectContainer, false);
         specialEffectInstance.Init(_core);
 
-        //outfit is changed before special effects are set, so correct specials here
+        // outfit is changed before special effects are set, so correct specials here
         if (_core.soulGirlDefinition.outfits[f_currentOutfitIndex.GetValue<int>(_core)].Expansion().HideSpecial)
         {
             _specialEffect = f_specialEffect.GetValue<UiDollSpecialEffect>(_core);
@@ -143,31 +143,34 @@ public class ExpandedUiDoll
 
     public void ChangeOutfit(ref int outfitIndex)
     {
-        var girlDef = f_girlDefinition.GetValue(_core) as GirlDefinition;
+        if (_core.girlDefinition == null) { return; }
 
-        if (girlDef == null) { return; }
-
-        var playerFileGirl = Game.Persistence.playerFile.GetPlayerFileGirl(girlDef);
+        var playerFileGirl = Game.Persistence.playerFile.GetPlayerFileGirl(_core.girlDefinition);
         var index = outfitIndex == -1
                 ? playerFileGirl.outfitIndex
                 : outfitIndex;
 
-        index = Mathf.Clamp(index, 0, girlDef.outfits.Count - 1);
+        if (index < 0 || index >= _core.girlDefinition.outfits.Count)
+        {
+            ModInterface.Log.Message($"out of range outfit index {index}/{_core.girlDefinition.outfits.Count} changed to default {_core.girlDefinition.defaultOutfitIndex}.");
+            index = _core.girlDefinition.defaultOutfitIndex;
+        }
 
-        var outfit = girlDef.outfits[index];
+        var outfit = _core.girlDefinition.outfits[index];
 
         if (outfit == null)
         {
-            index = girlDef.defaultOutfitIndex;
-            outfit = girlDef.outfits[index];
+            index = _core.girlDefinition.defaultOutfitIndex;
+            outfit = _core.girlDefinition.outfits[index];
         }
 
         var expansion = outfit.Expansion();
 
         if (!Game.Persistence.playerData.uncensored && expansion.IsNSFW)
         {
-            index = girlDef.defaultOutfitIndex;
-            outfit = girlDef.outfits[index];
+            ModInterface.Log.Message("Hiding NSFW outfit for censored mode");
+            index = _core.girlDefinition.defaultOutfitIndex;
+            outfit = _core.girlDefinition.outfits[index];
             expansion = outfit.Expansion();
         }
 
@@ -204,7 +207,11 @@ public class ExpandedUiDoll
             ? playerFileGirl.hairstyleIndex
             : hairstyleIndex;
 
-        hairstyleIndex = Mathf.Clamp(hairstyleIndex, 0, _core.girlDefinition.hairstyles.Count - 1);
+        if (hairstyleIndex < 0 || hairstyleIndex >= _core.girlDefinition.hairstyles.Count)
+        {
+            ModInterface.Log.Message($"out of range hairstyle index {hairstyleIndex}/{_core.girlDefinition.hairstyles.Count} changed to default {_core.girlDefinition.defaultHairstyleIndex}");
+            hairstyleIndex = _core.girlDefinition.defaultHairstyleIndex;
+        }
 
         var hairstyle = _core.girlDefinition.hairstyles[hairstyleIndex];
 
