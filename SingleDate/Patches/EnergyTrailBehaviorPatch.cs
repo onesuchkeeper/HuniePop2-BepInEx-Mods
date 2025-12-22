@@ -6,7 +6,7 @@ namespace SingleDate;
 [HarmonyPatch(typeof(EnergyTrailBehavior))]
 internal static class EnergyTrailBehaviorPatch
 {
-    private static FieldInfo f_splashText = AccessTools.Field(typeof(EnergyTrailBehavior), "_splashText");
+    private static readonly FieldInfo f_splashText = AccessTools.Field(typeof(EnergyTrailBehavior), "_splashText");
 
     [HarmonyPatch(nameof(EnergyTrailBehavior.Init), [typeof(EnergyTrailFormat), typeof(PuzzleReward), typeof(UiPuzzleSlot)])]
     [HarmonyPostfix]

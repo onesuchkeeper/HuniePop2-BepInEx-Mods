@@ -102,9 +102,9 @@ public class Plugin : BaseUnityPlugin
                 ModInterface.Data.RegisterDefaultData(GameDataType.Affection, AffectionTypes.Romance.LocalId);
                 ModInterface.Data.RegisterDefaultData(GameDataType.Affection, AffectionTypes.Sexuality.LocalId);
 
-                ModInterface.Data.RegisterDefaultData(GameDataType.SpecialPart, SpecialParts.KyuWingId.LocalId);
-                ModInterface.Data.RegisterDefaultData(GameDataType.SpecialPart, SpecialParts.MoxieWingId.LocalId);
-                ModInterface.Data.RegisterDefaultData(GameDataType.SpecialPart, SpecialParts.JewnWingId.LocalId);
+                ModInterface.Data.RegisterDefaultData(GameDataType.SpecialEffect, SpecialParts.KyuWingId.LocalId);
+                ModInterface.Data.RegisterDefaultData(GameDataType.SpecialEffect, SpecialParts.MoxieWingId.LocalId);
+                ModInterface.Data.RegisterDefaultData(GameDataType.SpecialEffect, SpecialParts.JewnWingId.LocalId);
 
                 ModInterface.Assets.RequestInternal<Material>("UIDefault");
             }

@@ -78,8 +78,8 @@ public static class StyleUnlockUtility
         var girlExpansion = playerFileGirl.girlDefinition.Expansion();
 
         return UnlockStyle(playerFileGirl,
-            girlExpansion.HairstyleIdToIndex[hairId],
-            girlExpansion.OutfitIdToIndex[outfitId],
+            girlExpansion.HairstyleLookup[hairId],
+            girlExpansion.OutfitLookup[outfitId],
             silent);
     }
 

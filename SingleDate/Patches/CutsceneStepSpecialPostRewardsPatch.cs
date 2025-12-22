@@ -8,7 +8,7 @@ namespace SingleDate;
 [HarmonyPatch(typeof(CutsceneStepSpecialPostRewards))]
 internal static class CutsceneStepSpecialPostRewardsPatch
 {
-    private static FieldInfo f_postRewards = AccessTools.Field(typeof(CutsceneStepSpecialPostRewards), "_postRewards");
+    private static readonly FieldInfo f_postRewards = AccessTools.Field(typeof(CutsceneStepSpecialPostRewards), "_postRewards");
 
     [HarmonyPatch("Start")]
     [HarmonyPostfix]

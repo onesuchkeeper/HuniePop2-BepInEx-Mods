@@ -20,6 +20,6 @@ namespace Hp2BaseMod
         Token,
         Fruit,
         Affection,
-        SpecialPart,
+        SpecialEffect,
     }
 }

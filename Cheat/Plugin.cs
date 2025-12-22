@@ -46,6 +46,9 @@ public partial class Plugin : Hp2BaseModPlugin
     public static ConfigEntry<int> BonusRoundAffection => _bonusRoundAffection;
     private static ConfigEntry<int> _bonusRoundAffection;
 
+    public static ConfigEntry<bool> TalkStamina => _talkStamina;
+    private static ConfigEntry<bool> _talkStamina;
+
     private static readonly FieldInfo f_testMode = AccessTools.Field(typeof(GameManager), "_testMode");
     private static readonly FieldInfo f_learnedBaggage = AccessTools.Field(typeof(PlayerFileGirl), "_learnedBaggage");
 
@@ -69,6 +72,8 @@ public partial class Plugin : Hp2BaseModPlugin
         _datePassion = Config.Bind(GENERAL_CONFIG_CAT, nameof(DatePassion), 0, "Passion added to every token match during dates.");
 
         _bonusRoundAffection = Config.Bind(GENERAL_CONFIG_CAT, nameof(BonusRoundAffection), 0, "If true during bonus rounds every token match earns 50 additional affection.");
+
+        _talkStamina = Config.Bind(GENERAL_CONFIG_CAT, nameof(TalkStamina), false, "If true talking will set stamina to max.");
 
         ModInterface.Log.ShowDebug = true;
         ModInterface.Events.PreLoadPlayerFile += On_PreLoadPlayerFile;
@@ -97,14 +102,14 @@ public partial class Plugin : Hp2BaseModPlugin
 
                     foreach (var body in expansion.Bodies.Values)
                     {
-                        foreach (var outfit in expansion.OutfitIndexToId.Keys)
+                        foreach (var outfit in expansion.OutfitLookup.Indexes)
                         {
                             fileGirl.UnlockOutfit(outfit);
                         }
 
-                        foreach (var hairstyleId_index in expansion.HairstyleIdToIndex)
+                        foreach (var index in expansion.HairstyleLookup.Indexes)
                         {
-                            fileGirl.UnlockHairstyle(hairstyleId_index.Value);
+                            fileGirl.UnlockHairstyle(index);
                         }
                     }
                 }
@@ -129,7 +134,7 @@ public partial class Plugin : Hp2BaseModPlugin
                 ModInterface.Log.Message(nameof(LearnAllBaggage));
                 foreach (var fileGirl in file.girls)
                 {
-                    f_learnedBaggage.SetValue(fileGirl, Enumerable.Range(0, fileGirl.girlDefinition.baggageItemDefs.Count()));
+                    f_learnedBaggage.SetValue(fileGirl, Enumerable.Range(0, fileGirl.girlDefinition.baggageItemDefs.Count()).ToList());
                 }
             }
 
@@ -164,6 +169,22 @@ public static class PuzzleSetGetMatchRewards_Patch
             __instance.AddResourceValue(PuzzleResourceType.STAMINA, Plugin.DateStamina.Value, false);
             __instance.AddResourceValue(PuzzleResourceType.PASSION, Plugin.DatePassion.Value, false);
             __instance.AddResourceValue(PuzzleResourceType.SENTIMENT, Plugin.DateSentiment.Value, false);
+        }
+    }
+}
+
+[HarmonyPatch(typeof(UiWindowActionBubbles))]
+internal static class UiWindowActionBubbles_Patch
+{
+    [HarmonyPatch("OnActionBubblePressed")]
+    [HarmonyPrefix]
+    private static void OnActionBubblePressed(UiWindowActionBubbles __instance, UiActionBubble actionBubble)
+    {
+        if (Plugin.TalkStamina.Value
+            && actionBubble.actionBubbleType == ActionBubbleType.TALK)
+        {
+            Game.Session.Puzzle.puzzleStatus.girlStatusLeft.stamina = 6;
+            Game.Session.Puzzle.puzzleStatus.girlStatusRight.stamina = 6;
         }
     }
 }

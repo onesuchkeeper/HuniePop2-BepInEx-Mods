@@ -9,9 +9,9 @@ namespace Hp2BaseMod;
 [HarmonyPatch(typeof(UiWindowPhotos))]
 internal static class UiWindowPhotosPatch
 {
-    private static FieldInfo f_singlePhoto = AccessTools.Field(typeof(UiWindowPhotos), "_singlePhoto");
-    private static FieldInfo f_bigPhotoDefinition = AccessTools.Field(typeof(UiWindowPhotos), "_bigPhotoDefinition");
-    private static FieldInfo f_nextPhotos = AccessTools.Field(typeof(UiWindowPhotos), "_nextPhotos");
+    private static readonly FieldInfo f_singlePhoto = AccessTools.Field(typeof(UiWindowPhotos), "_singlePhoto");
+    private static readonly FieldInfo f_bigPhotoDefinition = AccessTools.Field(typeof(UiWindowPhotos), "_bigPhotoDefinition");
+    private static readonly FieldInfo f_nextPhotos = AccessTools.Field(typeof(UiWindowPhotos), "_nextPhotos");
     private static readonly MethodInfo m_refreshBigPhoto = AccessTools.Method(typeof(UiWindowPhotos), "RefreshBigPhoto");
 
     [HarmonyPatch("Init")]

@@ -1,5 +1,6 @@
 ﻿// Hp2BaseMod 2021, By OneSuchKeeper
 
+using System;
 using System.Collections.Generic;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.ModGameData;
@@ -72,15 +73,16 @@ namespace Hp2BaseMod.GameDataInfo
                             RelativeId girlId,
                             GirlBodySubDefinition bodyDef)
         {
-            if (def == null) { return; }
+            if (def == null) throw new ArgumentNullException(nameof(def));
+            if (bodyDef == null) throw new ArgumentNullException(nameof(bodyDef));
 
             ValidatedSet.SetValue(ref def.partType, PartType);
             ValidatedSet.SetValue(ref def.partName, PartName, InsertStyle);
             ValidatedSet.SetValue(ref def.x, X);
             ValidatedSet.SetValue(ref def.y, Y);
 
-            ValidatedSet.SetValue(ref def.mirroredPartIndex, bodyDef.PartIdToIndex, MirroredPart?.Id);
-            ValidatedSet.SetValue(ref def.altPartIndex, bodyDef.PartIdToIndex, AltPart?.Id);
+            ValidatedSet.SetValue(ref def.mirroredPartIndex, bodyDef.PartLookup, MirroredPart?.Id);
+            ValidatedSet.SetValue(ref def.altPartIndex, bodyDef.PartLookup, AltPart?.Id);
 
             ValidatedSet.SetValue(ref def.sprite, SpriteInfo, InsertStyle, gameDataProvider, assetProvider);
         }

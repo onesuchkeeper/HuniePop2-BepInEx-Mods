@@ -11,7 +11,7 @@ using Hp2BaseMod.Extension;
 [HarmonyPatch(typeof(PlayerFileGirl))]
 public static class PlayerFileGirl_FavAnswers
 {
-    private static FieldInfo f_learnedFavs = AccessTools.Field(typeof(PlayerFileGirl), "_learnedFavs");
+    private static readonly FieldInfo f_learnedFavs = AccessTools.Field(typeof(PlayerFileGirl), "_learnedFavs");
 
     [HarmonyPatch(nameof(PlayerFileGirl.LearnFavAnswer))]
     [HarmonyPrefix]

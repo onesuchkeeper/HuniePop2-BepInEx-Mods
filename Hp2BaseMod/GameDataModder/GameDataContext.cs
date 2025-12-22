@@ -42,7 +42,7 @@ internal class GameDataContext
     public IEnumerable<IGameDataMod<PhotoDefinition>> photoDataMods;
 
     public Dictionary<int, QuestionDefinition> questionDataDict;
-    public IEnumerable<IQuestionDataMod> questionDataMods;
+    public IEnumerable<IFavQuestionDataMod> questionDataMods;
 
     public Dictionary<int, TokenDefinition> tokenDataDict;
     public IEnumerable<IGameDataMod<TokenDefinition>> tokenDataMods;

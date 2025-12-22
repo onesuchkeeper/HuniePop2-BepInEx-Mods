@@ -3,31 +3,47 @@ using System.Collections.Generic;
 
 namespace Hp2BaseMod.Extension;
 
-public static partial class IListExtension
+public static partial class IList_Ext
 {
     /// <summary>
-    /// Inserts the given value at the given index by first expanding the list by adding
-    /// as many defaultValues as needed to reach the given index
+    /// Set the value to the list item at the given index. 
+    /// If list does not include the given index, pads the list with new values until it does.
     /// </summary>
-    public static void FillInsert<T>(this IList<T> source, int index, T value, T defaultValue)
+    public static void FillSet<T>(this IList<T> source, int index, T value, T defaultValue = default)
     {
         if (index < 0) throw new ArgumentOutOfRangeException(nameof(index));
         var delta = index - source.Count + 1;
-        for (int i = 0; i < delta; i++) source.Add(defaultValue);
-        source[index] = value;
+
+        if (delta > 0)
+        {
+            delta--;
+            for (int i = 0; i < delta; i++) source.Add(defaultValue);
+            source.Add(value);
+        }
+        else
+        {
+            source[index] = value;
+        }
     }
 
     /// <summary>
-    /// Inserts a new value
+    /// Set the value to the list item at the given index.
+    /// If list does not include the given index, pads the list with new values until it does.
     /// </summary>
-    public static T FillInsert<T>(this IList<T> source, int index, T defaultValue)
-        where T : new()
+    public static void FillSet<T>(this IList<T> source, int index, T value, Func<T> fillValueFactory)
     {
         if (index < 0) throw new ArgumentOutOfRangeException(nameof(index));
         var delta = index - source.Count + 1;
-        for (int i = 0; i < delta; i++) source.Add(defaultValue);
-        var newValue = new T();
-        source[index] = newValue;
-        return newValue;
+
+        if (delta > 0)
+        {
+            delta--;
+            for (int i = 0; i < delta; i++) source.Add(fillValueFactory());
+            source.Add(value);
+        }
+        else
+        {
+            source[index] = value;
+        }
     }
 }

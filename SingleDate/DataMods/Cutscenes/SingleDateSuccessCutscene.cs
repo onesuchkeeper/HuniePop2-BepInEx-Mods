@@ -18,9 +18,9 @@ public static class SingleDateSuccessCutscene
                 CutsceneStepUtility.MakePuzzleRefocusInfo(false, CutsceneStepProceedType.AUTOMATIC),
                 CutsceneStepUtility.MakeSpecialStepInfo("CutsceneStepPostRewards", CutsceneStepProceedType.AUTOMATIC),
                 CutsceneStepUtility.MakeBannerTextHideInfo(CutsceneStepProceedType.AUTOMATIC),
-                CutsceneStepUtility.MakeDialogTriggerInfo(new RelativeId(-1, 16), CutsceneStepProceedType.AUTOMATIC, CutsceneStepDollTargetType.RANDOM),
+                CutsceneStepUtility.MakeDialogTriggerInfo(Hp2BaseMod.DialogTriggers.DateSuccess, CutsceneStepProceedType.AUTOMATIC, CutsceneStepDollTargetType.RANDOM),
                 CutsceneStepUtility.MakeWaitInfo(0.5f),
-                CutsceneStepUtility.MakeShowWindowInfo(true, "PhotosWindow", CutsceneStepProceedType.AUTOMATIC),
+                new ShowDatePhotoCutsceneStep.Info(),
                 CutsceneStepUtility.MakeHidePuzzleGridInfo(CutsceneStepProceedType.AUTOMATIC),
                 CutsceneStepUtility.MakeWaitInfo(0.5f),
             }

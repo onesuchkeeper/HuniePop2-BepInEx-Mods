@@ -9,7 +9,7 @@ public static class FavHoliday
 
     public static void AddDataMods()
     {
-        ModInterface.AddDataMod(new QuestionDataMod(Hp2BaseMod.Favorites.Holiday, Hp2BaseMod.Utility.InsertStyle.append)
+        ModInterface.AddDataMod(new FavQuestionDataMod(Hp2BaseMod.Favorites.Holiday, Hp2BaseMod.Utility.InsertStyle.append)
         {
             QuestionAnswers = new() {
                 {None, "None"},

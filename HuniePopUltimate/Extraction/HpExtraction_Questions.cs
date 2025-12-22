@@ -6,12 +6,12 @@ using AssetStudio.Extractor;
 using Hp2BaseMod;
 using Hp2BaseMod.Extension;
 using Hp2BaseMod.GameDataInfo;
+using Hp2BaseMod.GameDataInfo.Interface;
 
 namespace HuniePopUltimate;
 
 public partial class HpExtraction
 {
-    // Why would you make them all in random orders?
     private static readonly Dictionary<RelativeId, List<RelativeId>> FavoriteQuestionOrder = new()
     {
         {Girls.Aiko,
@@ -220,16 +220,138 @@ public partial class HpExtraction
         },
     };
 
-    private void ExtractQueries(RelativeId girlId, OrderedDictionary girlDef, SerializedFile file, Dictionary<RelativeId, IDialogLineDataMod> favoriteDialogLines)
+    private void ExtractQuestions(OrderedDictionary girlDef, SerializedFile file, Dictionary<RelativeId, IHerQuestionDataInfo> questions)
     {
-        if (!FavoriteQuestionOrder.TryGetValue(girlId, out var questionOrder))
+        var questionCount = 0;
+        if (girlDef.TryGetValue("talkQuestions", out List<object> talkQuestions))
         {
-            ModInterface.Log.Warning($"Failed to find query order for girl {girlId}");
-            return;
+            foreach (var talkQ in talkQuestions.OfType<OrderedDictionary>())
+            {
+                var questionId = new RelativeId(Plugin.ModId, questionCount++);
+                var question = new HerQuestionInfo();
+                question.IncorrectAnswers = new();
+                questions[questionId] = question;
+
+                if (UnityAssetPath.TryExtract(talkQ, out var talkQPath)
+                    && _extractor.TryExtractMonoBehavior(file, talkQPath, out var talkQuery)
+                    && talkQuery.TryGetValue("steps", out List<object> steps))
+                {
+                    OrderedDictionary dialogStep = null;
+                    OrderedDictionary answersStep = null;
+
+                    foreach (var step in steps.OfType<OrderedDictionary>())
+                    {
+                        if (step.TryGetValue("type", out int type))
+                        {
+                            if (type == 0)// dialog line
+                            {
+                                dialogStep = step;
+                            }
+                            else if (type == 1)// response options
+                            {
+                                answersStep = step;
+                            }
+                        }
+                    }
+
+                    if (dialogStep == null || answersStep == null)
+                    {
+                        ModInterface.Log.Warning("Failed to parse questions steps");
+                    }
+
+                    if (dialogStep != null
+                        && dialogStep.TryGetValue("sceneLine", out OrderedDictionary sceneLine)
+                        && sceneLine.TryGetValue("dialogLine", out OrderedDictionary dialogLine)
+                        && TryExtractDialogLine(dialogLine, file, new RelativeId(Plugin.ModId, _dialogLineCount++), out var dialogLineMod))
+                    {
+                        question.DialogLine = dialogLineMod;
+                    }
+                    else
+                    {
+                        ModInterface.Log.Error("Failed to find dialog step");
+                        continue;
+                    }
+
+                    if (answersStep != null
+                            && answersStep.TryGetValue("responseOptions", out List<object> responseOptions))
+                    {
+                        var answerCount = 0;
+
+                        foreach (var option in responseOptions.OfType<OrderedDictionary>())
+                        {
+                            if (TryExtractAnswer(option, file, out var answerMod))
+                            {
+                                if (answerCount++ == 0)
+                                {
+                                    question.CorrectAnswer = answerMod;
+                                }
+                                else
+                                {
+                                    question.IncorrectAnswers[new RelativeId(Plugin.ModId, answerCount)] = answerMod;
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        ModInterface.Log.Error($"Failed to find answer step");
+                    }
+                }
+            }
+        }
+    }
+
+    private bool TryExtractAnswer(OrderedDictionary answerDef, SerializedFile file, out HerQuestionAnswerInfo answer)
+    {
+        if (answerDef.TryGetValue("text", out string text)
+            && answerDef.TryGetValue("secondary", out bool secondary)
+            && answerDef.TryGetValue("secondaryText", out string secondaryText)
+            && answerDef.TryGetValue("steps", out List<object> optionSteps)
+            && optionSteps.Any()
+            && optionSteps[0] is OrderedDictionary step
+            && step.TryGetValue("type", out int type))
+        {
+            answer = new()
+            {
+                text = text
+            };
+
+            if (secondary) answer.altText = secondaryText;
+
+            if (type == 11
+                )//&& step.TryGetValue("dialogTrigger", out OrderedDictionary dialogTrigger)
+                 //&& UnityAssetPath.TryExtract(dialogTrigger, out var atAssetPath))
+            {
+                return true;//for now just assuming we added the dts already and ignore
+            }
+            else if (type == 0
+                && step.TryGetValue("sceneLine", out OrderedDictionary answerSceneLine)
+                && answerSceneLine.TryGetValue("dialogLine", out OrderedDictionary answerDialogLine)
+                && TryExtractDialogLine(answerDialogLine, file, new RelativeId(Plugin.ModId, _dialogLineCount++), out answer.Response))
+            {
+                return true;
+            }
+            else
+            {
+                ModInterface.Log.Error($"Unhandled step type {type}");
+                return false;
+            }
         }
 
+        answer = null;
+        return false;
+    }
+
+    private void ExtractQueries(RelativeId girlId, OrderedDictionary girlDef, SerializedFile file, Dictionary<RelativeId, IDialogLineDataMod> favoriteDialogLines)
+    {
         if (girlDef.TryGetValue("talkQueries", out List<object> talkQueries))
         {
+            if (!FavoriteQuestionOrder.TryGetValue(girlId, out var questionOrder))
+            {
+                ModInterface.Log.Warning($"Failed to find query order for girl {girlId}");
+                return;
+            }
+
             var questionOrderEnum = questionOrder.GetEnumerator();
             foreach (var talkQ in talkQueries.OfType<OrderedDictionary>())
             {
@@ -271,9 +393,10 @@ public partial class HpExtraction
                                         if (conditionalBranchStep.TryGetValue("type", out int type)
                                             && type == 0
                                             && conditionalBranchStep.TryGetValue("sceneLine", out OrderedDictionary sceneLine)
-                                            && sceneLine.TryGetValue("dialogLine", out OrderedDictionary dialogLine))
+                                            && sceneLine.TryGetValue("dialogLine", out OrderedDictionary dialogLine)
+                                            && TryExtractDialogLine(dialogLine, file, new RelativeId(Plugin.ModId, _dialogLineCount++), out var dialogLineMod))
                                         {
-                                            yield return ExtractDialogLine(dialogLine, file);
+                                            yield return dialogLineMod;
                                         }
                                     }
                                 }

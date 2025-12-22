@@ -13,9 +13,9 @@ namespace Hp2BaseMod.Commands;
 [HarmonyPatch(typeof(UiCellphoneAppCode), "OnSubmitButtonPressed")]
 public static class UiCellphoneAppCode_OnSubmitButtonPressed
 {
-    private static MethodInfo m_showCodeResult = AccessTools.Method(typeof(UiCellphoneAppCode), "ShowCodeResult");
-    private static FieldInfo f_currentFieldText = AccessTools.Field(typeof(UiCellphoneAppCode), "_currentFieldText");
-    private static FieldInfo f_inputField = AccessTools.Field(typeof(UiCellphoneAppCode), "inputField");
+    private static readonly MethodInfo m_showCodeResult = AccessTools.Method(typeof(UiCellphoneAppCode), "ShowCodeResult");
+    private static readonly FieldInfo f_currentFieldText = AccessTools.Field(typeof(UiCellphoneAppCode), "_currentFieldText");
+    private static readonly FieldInfo f_inputField = AccessTools.Field(typeof(UiCellphoneAppCode), "inputField");
 
     public static bool Prefix(UiCellphoneAppCode __instance, out string __state)
     {

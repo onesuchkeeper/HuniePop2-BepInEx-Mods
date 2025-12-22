@@ -40,10 +40,10 @@ public class ExpandedItemSlotBehavior
         return expansion;
     }
 
-    private static FieldInfo f_itemDefinition = AccessTools.Field(typeof(ItemSlotBehavior), "_itemDefinition");
-    private static FieldInfo f_tooltip = AccessTools.Field(typeof(ItemSlotBehavior), "_tooltip");
-    private static FieldInfo f_offsetOverride = AccessTools.Field(typeof(ItemSlotBehavior), "_offsetOverride");
-    private static FieldInfo f_tooltipOffset = AccessTools.Field(typeof(ItemSlotBehavior), "_tooltipOffset");
+    private static readonly FieldInfo f_itemDefinition = AccessTools.Field(typeof(ItemSlotBehavior), "_itemDefinition");
+    private static readonly FieldInfo f_tooltip = AccessTools.Field(typeof(ItemSlotBehavior), "_tooltip");
+    private static readonly FieldInfo f_offsetOverride = AccessTools.Field(typeof(ItemSlotBehavior), "_offsetOverride");
+    private static readonly FieldInfo f_tooltipOffset = AccessTools.Field(typeof(ItemSlotBehavior), "_tooltipOffset");
 
     public event Action PreShowEvent;
 

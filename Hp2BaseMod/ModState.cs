@@ -19,4 +19,19 @@ public class ModState
     /// If the cellphone ui should appear on the left, same position as in the hub.
     /// </summary>
     public bool CellphoneOnLeft;
+
+    /// <summary>
+    /// The prefab for the photos window
+    /// </summary>
+    public UiWindow UiWindowPhotos;
+
+    /// <summary>
+    /// The prefab for the photos window
+    /// </summary>
+    public UiWindow KyuButtWindow;
+
+    /// <summary>
+    /// The prefab for the photos window
+    /// </summary>
+    public UiWindow ItemNotifierWindow;
 }

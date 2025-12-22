@@ -64,10 +64,6 @@ public class Plugin : Hp2BaseModPlugin
     {
         base.Awake();
 
-        var audioManager_GO = new GameObject();
-        var audioManager = audioManager_GO.AddComponent<AudioMemoryMonitor>();
-        audioManager.gameObject.transform.SetParent(this.transform);
-
         _instance = this;
         AssetStudio.Logger.Default = new Logger(new TextWriter());
 
@@ -125,13 +121,32 @@ public class Plugin : Hp2BaseModPlugin
 
         var singleDateId = ModInterface.GetSourceId(SINGLE_DATE_UUID);
 
-        if (ModInterface.TryGetInterModValue(singleDateId, "AddGirlDatePhotos", out Action<RelativeId, IEnumerable<(RelativeId, float)>> m_AddGirlDatePhotos)
-            && ModInterface.TryGetInterModValue(singleDateId, "AddGirlSexPhotos", out Action<RelativeId, IEnumerable<(RelativeId, RelativeId)>> m_AddGirlSexPhotos)
-            && ModInterface.TryGetInterModValue(singleDateId, "SetGirlCharm", out Action<RelativeId, Sprite> m_SetCharmSprite)
-            && ModInterface.TryGetInterModValue(singleDateId, "AddSexLocationBlackList", out Action<RelativeId, IEnumerable<RelativeId>> m_AddSexLocationBlackList)
-            && ModInterface.TryGetInterModValue(singleDateId, "SetCutsceneSuccessAttracted", out Action<RelativeId, RelativeId> m_SetCutsceneSuccessAttracted)
-            && ModInterface.TryGetInterModValue(singleDateId, "SetBonusRoundSuccessCutscene", out Action<RelativeId, RelativeId> m_SetBonusRoundSuccessCutscene))
+        if (!(ModInterface.TryGetInterModValue(singleDateId, "AddGirlDatePhotos", out Action<RelativeId, IEnumerable<(RelativeId, float)>> m_AddGirlDatePhotos)
+                && ModInterface.TryGetInterModValue(singleDateId, "AddGirlSexPhotos", out Action<RelativeId, IEnumerable<(RelativeId, RelativeId)>> m_AddGirlSexPhotos)
+                && ModInterface.TryGetInterModValue(singleDateId, "SetGirlCharm", out Action<RelativeId, Sprite> m_SetCharmSprite)))
         {
+            m_AddGirlDatePhotos = null;
+            m_AddGirlSexPhotos = null;
+            m_SetCharmSprite = null;
+        }
+
+        ModInterface.Log.Message("Loading HuniePop assembly (this may take a bit)");
+        var hpExtraction = new HpExtraction(HuniePopDir.Value, m_AddGirlDatePhotos, m_AddGirlSexPhotos, m_SetCharmSprite, nudeOutfitPart);
+        using (ModInterface.Log.MakeIndent("HuniePop assembly loaded successfully, beginning import:"))
+        {
+            hpExtraction.Extract();
+        }
+
+        if (ModInterface.TryGetInterModValue(singleDateId, "AddSexLocationBlackList", out Action<RelativeId, IEnumerable<RelativeId>> m_AddSexLocationBlackList)
+            && ModInterface.TryGetInterModValue(singleDateId, "SetCutsceneSuccessAttracted", out Action<RelativeId, RelativeId> m_SetCutsceneSuccessAttracted)
+            && ModInterface.TryGetInterModValue(singleDateId, "SetBonusRoundSuccessCutscene", out Action<RelativeId, RelativeId> m_SetBonusRoundSuccessCutscene)
+            && ModInterface.TryGetInterModValue(singleDateId, "MakeSexPhotoCutsceneStep", out Func<IGameDefinitionInfo<CutsceneStepSubDefinition>> m_MakeSexPhotoCutsceneStep))
+        {
+            PreSexCutscene.AddDataMods();
+            PostSexCutscene.AddDataMods();
+            SuccessAttractedCutscene.AddDataMods();
+            BonusRoundSuccessCutscene.AddDataMods(m_MakeSexPhotoCutsceneStep.Invoke());
+
             var defaultGirlStyle = new GirlStyleInfo()
             {
                 HairstyleId = RelativeId.Default,
@@ -146,22 +161,24 @@ public class Plugin : Hp2BaseModPlugin
                 SexGirlTwo = defaultGirlStyle,
             };
 
-            // var questions = new List<IGameDefinitionInfo<GirlPairFavQuestionSubDefinition>>();
-            // for (int i = 1; i <= 20; i++)
-            // {
-            //     questions.Add(new GirlPairFavQuestionInfo()
-            //     {
-            //         GirlResponseIndexOne = 1,
-            //         GirlResponseIndexTwo = 1,
-            //         QuestionDefinitionID = new RelativeId(-1, i)
-            //     });
-            // }
-
             var defaultPhoto = new RelativeId(singleDateId, 0);
             _singleDateNobodyId = new RelativeId(singleDateId, 0);
 
             void AddPairMod(ClockDaytimeType sexTime, RelativeId girlId, RelativeId pairId)
             {
+                var meetingLoc = new RelativeId(-1, 1 + (girlId.LocalId % 8));
+                var introCutsceneId = new RelativeId(singleDateId, 0);
+                if (hpExtraction.SingleDatePairData.TryGetValue(girlId, out var pairData))
+                {
+                    meetingLoc = pairData.MeetingLocation;
+                    introCutsceneId = pairData.MeetingCutscene.Id;
+                    ModInterface.AddDataMod(pairData.MeetingCutscene);
+                }
+                else
+                {
+                    ModInterface.Log.Error($"failed to find intro for {girlId}");
+                }
+
                 ModInterface.AddDataMod(new GirlPairDataMod(pairId, InsertStyle.assignNull, 1)
                 {
                     GirlDefinitionOneID = SingleDateNobodyId,
@@ -172,17 +189,16 @@ public class Plugin : Hp2BaseModPlugin
                     IntroSidesFlipped = false,
                     HasMeetingStyleOne = false,
                     HasMeetingStyleTwo = false,
-                    MeetingLocationDefinitionID = new RelativeId(-1, 1 + (girlId.LocalId % 8)),//temp
+                    MeetingLocationDefinitionID = meetingLoc,
                     SexDayTime = sexTime,
                     Styles = defaultPairStyle,
-                    //FavQuestions = questions,
                     SexLocationDefinitionID = null,
 
                     BonusSuccessCutsceneDefinitionID = Cutscenes.BonusRoundSuccess,
                     AttractSuccessCutsceneDefinitionID = Cutscenes.SuccessAttracted,
                     SuccessCutsceneDefinitionID = new RelativeId(singleDateId, 4),
 
-                    IntroRelationshipCutsceneDefinitionID = new RelativeId(singleDateId, 0),
+                    IntroRelationshipCutsceneDefinitionID = introCutsceneId,
                     AttractRelationshipCutsceneDefinitionID = new RelativeId(singleDateId, 1),
                     PreSexRelationshipCutsceneDefinitionID = Cutscenes.PreSex,
                     PostSexRelationshipCutsceneDefinitionID = Cutscenes.PostSex,
@@ -201,11 +217,9 @@ public class Plugin : Hp2BaseModPlugin
                 yield return Girls.Audrey;
                 yield return Girls.Nikki;
                 yield return Girls.Beli;
-                yield return Hp2BaseMod.Girls.KyuId;
                 yield return Girls.Celeste;
                 yield return Girls.Venus;
             }
-            ;// ide why do you force this on the newline? What did I ever do to you?
 
             foreach (var girl in AllHp1NormalSingleDates())
             {
@@ -215,22 +229,12 @@ public class Plugin : Hp2BaseModPlugin
             AddPairMod(ClockDaytimeType.EVENING, Girls.Momo, Girls.Momo);
             AddPairMod(ClockDaytimeType.NIGHT, Hp2BaseMod.Girls.LolaId, new RelativeId(singleDateId, Hp2BaseMod.Girls.LolaId.LocalId));
             AddPairMod(ClockDaytimeType.NIGHT, Hp2BaseMod.Girls.JessieId, new RelativeId(singleDateId, Hp2BaseMod.Girls.JessieId.LocalId));
-        }
-        else
-        {
-            m_AddGirlDatePhotos = null;
-            m_AddGirlSexPhotos = null;
-            m_SetCharmSprite = null;
+            AddPairMod(ClockDaytimeType.NIGHT, Hp2BaseMod.Girls.KyuId, new RelativeId(singleDateId, Hp2BaseMod.Girls.KyuId.LocalId));
         }
 
         new Harmony(MyPluginInfo.PLUGIN_GUID).PatchAll();
 
-        ModInterface.Log.Message("Loading HuniePop assembly (this may take a bit)");
-        var hpExtraction = new HpExtraction(HuniePopDir.Value, m_AddGirlDatePhotos, m_AddGirlSexPhotos, m_SetCharmSprite, nudeOutfitPart);
-        using (ModInterface.Log.MakeIndent("HuniePop assembly loaded successfully, beginning import:"))
-        {
-            hpExtraction.Extract();
-        }
+
 
         var whiteVal = 248f / 255f;
         var whiteCol = new Color(whiteVal, whiteVal, whiteVal);
@@ -332,12 +336,6 @@ public class Plugin : Hp2BaseModPlugin
             ForceType = DialogTriggerForceType.NONE,
         });
 
-        //cutscenes
-        PreSexCutscene.AddDataMods();
-        PostSexCutscene.AddDataMods();
-        SuccessAttractedCutscene.AddDataMods();
-        BonusRoundSuccessCutscene.AddDataMods();
-
         ModInterface.Events.RequestUnlockedPhotos += On_RequestUnlockedPhotos;
         ModInterface.Events.PreLoadPlayerFile += On_PreLoadPlayerFile;
 
@@ -351,16 +349,17 @@ public class Plugin : Hp2BaseModPlugin
         switch (time)
         {
             case ClockDaytimeType.MORNING:
-                args.RemoveGirlFromAllPools(Girls.Audrey);
                 args.RemoveGirlFromAllPools(Girls.Celeste);
                 break;
             case ClockDaytimeType.AFTERNOON:
-                args.RemoveGirlFromAllPools(Girls.Celeste);
-                break;
-            case ClockDaytimeType.EVENING:
                 args.RemoveGirlFromAllPools(Girls.Momo);
                 break;
+            case ClockDaytimeType.EVENING:
+
+                break;
             case ClockDaytimeType.NIGHT:
+                args.RemoveGirlFromAllPools(Girls.Celeste);
+                args.RemoveGirlFromAllPools(Girls.Audrey);
                 break;
         }
     }
@@ -388,14 +387,14 @@ public class Plugin : Hp2BaseModPlugin
                 var girlId = ModInterface.Data.GetDataId(GameDataType.Girl, fileGirl.girlDefinition.id);
                 var expansion = ExpandedGirlDefinition.Get(girlId);
 
-                foreach (var outfitId_Index in expansion.OutfitIdToIndex.Where(x => x.Key.SourceId == ModId))
+                foreach (var outfitId in expansion.OutfitLookup.Ids.Where(x => x.SourceId == ModId))
                 {
-                    fileGirl.UnlockOutfit(outfitId_Index.Value);
+                    fileGirl.UnlockOutfit(expansion.OutfitLookup[outfitId]);
                 }
 
-                foreach (var hairstyleId_index in expansion.HairstyleIdToIndex.Where(x => x.Key.SourceId == ModId))
+                foreach (var hairstyleId in expansion.HairstyleLookup.Ids.Where(x => x.SourceId == ModId))
                 {
-                    fileGirl.UnlockHairstyle(hairstyleId_index.Value);
+                    fileGirl.UnlockHairstyle(expansion.HairstyleLookup[hairstyleId]);
                 }
             }
         }

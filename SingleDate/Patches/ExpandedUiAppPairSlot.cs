@@ -43,13 +43,13 @@ internal class ExpandedUiAppPairSlot
         return expansion;
     }
 
-    private static FieldInfo f_playerFileGirlPair = AccessTools.Field(typeof(UiAppPairSlot), "_playerFileGirlPair");
-    private static FieldInfo f_tooltip = AccessTools.Field(typeof(UiAppPairSlot), "_tooltip");
+    private static readonly FieldInfo f_playerFileGirlPair = AccessTools.Field(typeof(UiAppPairSlot), "_playerFileGirlPair");
+    private static readonly FieldInfo f_tooltip = AccessTools.Field(typeof(UiAppPairSlot), "_tooltip");
 
-    private static FieldInfo f_transitionDef = AccessTools.Field(typeof(ButtonStateTransition), "_transitionDef");
-    private static FieldInfo f_origSprite = AccessTools.Field(typeof(ButtonStateTransition), "_origSprite");
+    private static readonly FieldInfo f_transitionDef = AccessTools.Field(typeof(ButtonStateTransition), "_transitionDef");
+    private static readonly FieldInfo f_origSprite = AccessTools.Field(typeof(ButtonStateTransition), "_origSprite");
 
-    private static FieldInfo f_overTransitions = AccessTools.Field(typeof(ButtonBehavior), "_overTransitions");
+    private static readonly FieldInfo f_overTransitions = AccessTools.Field(typeof(ButtonBehavior), "_overTransitions");
 
     private ButtonStateTransitionDef _singleOverDef;
     private ButtonStateTransitionDef _defaultOverDef;

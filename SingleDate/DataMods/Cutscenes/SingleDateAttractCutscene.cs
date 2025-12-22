@@ -1,5 +1,10 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using HarmonyLib;
 using Hp2BaseMod;
+using Hp2BaseMod.Extension;
 using Hp2BaseMod.GameDataInfo;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
@@ -7,6 +12,10 @@ namespace SingleDate;
 
 public static class SingleDateAttractCutscene
 {
+    private static readonly FieldInfo f_currentWindow = AccessTools.Field(typeof(WindowManager), "_currentWindow");
+    private static readonly FieldInfo f_bigPhotoDefinition = AccessTools.Field(typeof(UiWindowPhotos), "_bigPhotoDefinition");
+    private static readonly MethodInfo m_refreshBigPhoto = AccessTools.Method(typeof(UiWindowPhotos), "RefreshBigPhoto");
+
     public static void AddDataMods()
     {
         ModInterface.AddDataMod(new CutsceneDataMod(CutsceneIds.Attract, InsertStyle.replace)
@@ -15,9 +24,9 @@ public static class SingleDateAttractCutscene
             Steps = new List<IGameDefinitionInfo<CutsceneStepSubDefinition>>()
             {
                 // big move dialogue
-                CutsceneStepUtility.MakeDialogTriggerInfo(new RelativeId(-1, 34), CutsceneStepProceedType.AUTOMATIC, CutsceneStepDollTargetType.RANDOM),
+                CutsceneStepUtility.MakeDialogTriggerInfo(Hp2BaseMod.DialogTriggers.BigMove, CutsceneStepProceedType.AUTOMATIC, CutsceneStepDollTargetType.RANDOM),
                 CutsceneStepUtility.MakeWaitInfo(0.5f),
-                CutsceneStepUtility.MakeShowWindowInfo(true, "PhotosWindow", CutsceneStepProceedType.AUTOMATIC),
+                new ShowDatePhotoCutsceneStep.Info()
             }
         });
     }

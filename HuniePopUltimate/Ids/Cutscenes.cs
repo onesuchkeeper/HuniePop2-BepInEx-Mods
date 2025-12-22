@@ -15,4 +15,6 @@ public static class Cutscenes
 
     public static RelativeId BonusRoundSuccess => _bonusRoundSuccess;
     private static readonly RelativeId _bonusRoundSuccess = new RelativeId(Plugin.ModId, 3);
+
+    internal static int NextCutsceneId = 4;
 }

@@ -8,8 +8,8 @@ namespace SingleDate;
 [HarmonyPatch(typeof(UiWindowActionBubbles))]
 internal static class UiWindowActionBubblesPatch
 {
-    private static FieldInfo f_highlightedBubble = AccessTools.Field(typeof(UiWindowActionBubbles), "_highlightedBubble");
-    private static FieldInfo f_tooltip = AccessTools.Field(typeof(UiWindowActionBubbles), "_tooltip");
+    private static readonly FieldInfo f_highlightedBubble = AccessTools.Field(typeof(UiWindowActionBubbles), "_highlightedBubble");
+    private static readonly FieldInfo f_tooltip = AccessTools.Field(typeof(UiWindowActionBubbles), "_tooltip");
 
     [HarmonyPatch("OnActionBubbleEnter")]
     [HarmonyPrefix]

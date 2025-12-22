@@ -37,7 +37,7 @@ internal class ExpandedUiPuzzleDateGiftSlot
         return expansion;
     }
 
-    private static MethodInfo m_onTooltipPreShow = AccessTools.Method(typeof(UiPuzzleDateGiftSlot), "OnTooltipPreShow");
+    private static readonly MethodInfo m_onTooltipPreShow = AccessTools.Method(typeof(UiPuzzleDateGiftSlot), "OnTooltipPreShow");
 
     protected UiPuzzleDateGiftSlot _core;
     private ExpandedUiPuzzleDateGiftSlot(UiPuzzleDateGiftSlot core)

@@ -21,7 +21,7 @@ public static class Birthday
 
     public static void AddDataMods()
     {
-        ModInterface.AddDataMod(new QuestionDataMod(Questions.Birthday, Hp2BaseMod.Utility.InsertStyle.append)
+        ModInterface.AddDataMod(new FavQuestionDataMod(Questions.Birthday, Hp2BaseMod.Utility.InsertStyle.append)
         {
             QuestionName = "Birthday",
             QuestionText = "When is [[highlight]your birthday]?",

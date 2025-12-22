@@ -21,28 +21,6 @@ namespace Hp2BaseMod.GameDataInfo
 
         public List<IGameDefinitionInfo<CutsceneStepSubDefinition>> Steps;
 
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        public CutsceneDialogOptionInfo() { }
-
-        /// <summary>
-        /// Constructor from a definition instance.
-        /// </summary>
-        /// <param name="def">The definition.</param>
-        /// <param name="assetProvider">Asset provider containing the assets referenced by the definition.</param>
-        public CutsceneDialogOptionInfo(CutsceneDialogOptionSubDefinition def, AssetProvider assetProvider)
-        {
-            if (def == null) { throw new ArgumentNullException(nameof(def)); }
-            if (assetProvider == null) { throw new ArgumentNullException(nameof(assetProvider)); }
-
-            DialogOptionText = def.dialogOptionText;
-            Yuri = def.yuri;
-            YuriDialogOptionText = def.yuriDialogOptionText;
-
-            if (def.steps != null) { Steps = def.steps.Select(x => (IGameDefinitionInfo<CutsceneStepSubDefinition>)new CutsceneStepInfo(x, assetProvider)).ToList(); }
-        }
-
         /// <inheritdoc/>
         public void SetData(ref CutsceneDialogOptionSubDefinition def, GameDefinitionProvider gameDataProvider, AssetProvider assetProvider, InsertStyle insertStyle)
         {

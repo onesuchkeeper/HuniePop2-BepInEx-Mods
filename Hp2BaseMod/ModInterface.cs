@@ -57,8 +57,8 @@ public static class ModInterface
     internal static IEnumerable<IGameDataMod<PhotoDefinition>> PhotoDataMods => _photoDataMods;
     private static List<IGameDataMod<PhotoDefinition>> _photoDataMods = new List<IGameDataMod<PhotoDefinition>>();
 
-    internal static IEnumerable<IQuestionDataMod> QuestionDataMods => _questionDataMods;
-    private static List<IQuestionDataMod> _questionDataMods = new();
+    internal static IEnumerable<IFavQuestionDataMod> QuestionDataMods => _questionDataMods;
+    private static List<IFavQuestionDataMod> _questionDataMods = new();
 
     internal static IEnumerable<IGameDataMod<TokenDefinition>> TokenDataMods => _tokenDataMods;
     private static List<IGameDataMod<TokenDefinition>> _tokenDataMods = new List<IGameDataMod<TokenDefinition>>();
@@ -116,7 +116,7 @@ public static class ModInterface
     internal static ModSaveData Save => _modSaveData;
     private static ModSaveData _modSaveData;
 
-    private static SetManager<int> _idPool;
+    private static RangeSet<int> _idPool;
     private static Dictionary<int, string> _sourceId_GUID;
 
     internal static void Init()
@@ -141,7 +141,7 @@ public static class ModInterface
         }
         _modSaveData.SourceGUID_Id["HP2"] = -1;
 
-        _idPool = new SetManager<int>(new IntOpHandler(), _modSaveData.SourceGUID_Id.Values);
+        _idPool = new(new IntOperator(), _modSaveData.SourceGUID_Id.Values);
 
         _sourceId_GUID = new Dictionary<int, string>();
         foreach (var guid_id in _modSaveData.SourceGUID_Id)
@@ -192,7 +192,7 @@ public static class ModInterface
             return sourceId;
         }
 
-        sourceId = _idPool.AddUnusedItem();
+        sourceId = _idPool.AddUnused();
         Log.Message($"Added new source id {sourceId} for previously unregistered GUID {sourceGUID}");
         _modSaveData.SourceGUID_Id.Add(sourceGUID, sourceId);
         _sourceId_GUID.Add(sourceId, sourceGUID);
@@ -384,7 +384,7 @@ public static class ModInterface
         _photoDataMods.Add(mod);
         _data.TryRegisterDataId(GameDataType.Photo, mod.Id);
     }
-    public static void AddDataMod(IQuestionDataMod mod)
+    public static void AddDataMod(IFavQuestionDataMod mod)
     {
         if (mod == null) { return; }
         _questionDataMods.Add(mod);
@@ -403,7 +403,7 @@ public static class ModInterface
     public static void RegisterInterModValue(int modId, string name, object value)
     {
         ModInterface.Log.Message($"Registering interop value with name {name}, for mod with id {modId}.");
-        ModInterface.Log.InNull(_interModValues, nameof(_interModValues));
+        ModInterface.Log.IsNull(_interModValues, nameof(_interModValues));
         _interModValues.GetOrNew(modId)[name] = value;
     }
 

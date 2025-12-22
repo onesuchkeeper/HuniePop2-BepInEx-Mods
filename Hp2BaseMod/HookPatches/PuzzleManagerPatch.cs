@@ -8,12 +8,12 @@ namespace Hp2BaseMod;
 [HarmonyPatch(typeof(PuzzleManager))]
 public static class PuzzleMangerPatch
 {
-    private static FieldInfo f_roundOverCutscene = AccessTools.Field(typeof(PuzzleManager), "_roundOverCutscene");
-    private static FieldInfo f_newRoundCutscene = AccessTools.Field(typeof(PuzzleManager), "_newRoundCutscene");
-    private static FieldInfo f_gameOver = AccessTools.Field(typeof(PuzzleStatus), "_gameOver");
-    private static FieldInfo f_roundState = AccessTools.Field(typeof(UiPuzzleGrid), "_roundState");
-    private static MethodInfo m_handleCutscenes = AccessTools.Method(typeof(PuzzleMangerPatch), nameof(HandleCutscenes));
-    private static MethodInfo m_checkRelationShip = AccessTools.Method(typeof(PuzzleMangerPatch), nameof(CheckRelationship));
+    private static readonly FieldInfo f_roundOverCutscene = AccessTools.Field(typeof(PuzzleManager), "_roundOverCutscene");
+    private static readonly FieldInfo f_newRoundCutscene = AccessTools.Field(typeof(PuzzleManager), "_newRoundCutscene");
+    private static readonly FieldInfo f_gameOver = AccessTools.Field(typeof(PuzzleStatus), "_gameOver");
+    private static readonly FieldInfo f_roundState = AccessTools.Field(typeof(UiPuzzleGrid), "_roundState");
+    private static readonly MethodInfo m_handleCutscenes = AccessTools.Method(typeof(PuzzleMangerPatch), nameof(HandleCutscenes));
+    private static readonly MethodInfo m_checkRelationShip = AccessTools.Method(typeof(PuzzleMangerPatch), nameof(CheckRelationship));
 
     private static PuzzleRoundOverArgs _args;
 
@@ -69,9 +69,21 @@ public static class PuzzleMangerPatch
         switch (Game.Session.Puzzle.puzzleStatus.statusType)
         {
             case PuzzleStatusType.NORMAL:
-                _args.LevelUpType = playerFileGirlPair.relationshipType == GirlPairRelationshipType.COMPATIBLE
-                    ? PuzzleRoundOverArgs.CutsceneType.CompatToAttract
-                    : PuzzleRoundOverArgs.CutsceneType.AttractToLovers;
+                switch (playerFileGirlPair.relationshipType)
+                {
+                    case GirlPairRelationshipType.UNKNOWN:
+                        _args.LevelUpType = PuzzleRoundOverArgs.CutsceneType.None;
+                        break;
+                    case GirlPairRelationshipType.COMPATIBLE:
+                        _args.LevelUpType = PuzzleRoundOverArgs.CutsceneType.CompatToAttract;
+                        break;
+                    case GirlPairRelationshipType.ATTRACTED:
+                        _args.LevelUpType = PuzzleRoundOverArgs.CutsceneType.AttractToLovers;
+                        break;
+                    case GirlPairRelationshipType.LOVERS:
+                        _args.LevelUpType = PuzzleRoundOverArgs.CutsceneType.None;
+                        break;
+                }
                 break;
             case PuzzleStatusType.NONSTOP:
             case PuzzleStatusType.BOSS:

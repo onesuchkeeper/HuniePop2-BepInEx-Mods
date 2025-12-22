@@ -81,7 +81,7 @@ internal class Plugin : Hp2BaseModPlugin
 
     private void On_PostPersistenceReset(SaveData data)
     {
-        CodeUtility.ValidateCode(data, Constants.LocalCodeId, LoversLocationRequirement.Value);
+        CodeUtility.ValidateCode(data, Constants.LocalCodeId, !LoversLocationRequirement.Value);
         CodeUtility.ValidateCode(data, Constants.NudeCodeId, IsBonusRoundNude.Value);
     }
 

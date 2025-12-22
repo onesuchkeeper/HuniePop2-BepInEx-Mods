@@ -24,13 +24,6 @@ namespace Hp2BaseMod.GameDataInfo
         {
         }
 
-        internal CutsceneDataMod(CutsceneDefinition def, AssetProvider assetProvider)
-            : base(new RelativeId(def), InsertStyle.replace, 0)
-        {
-            CleanUpType = def.cleanUpType;
-            Steps = def.steps?.Select(x => (IGameDefinitionInfo<CutsceneStepSubDefinition>)new CutsceneStepInfo(x, assetProvider)).ToList();
-        }
-
         /// <inheritdoc/>
         public void SetData(CutsceneDefinition def, GameDefinitionProvider gameDataProvider, AssetProvider assetProvider)
         {

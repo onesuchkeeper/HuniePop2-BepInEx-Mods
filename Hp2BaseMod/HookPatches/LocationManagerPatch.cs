@@ -10,8 +10,8 @@ namespace Hp2BaseMod;
 [HarmonyPatch(typeof(LocationManager))]
 internal static class LocationManagerPatch
 {
-    private static FieldInfo f_isLocked = AccessTools.Field(typeof(LocationManager), "_isLocked");
-    private static FieldInfo f_arrivalCutscene = AccessTools.Field(typeof(LocationManager), "_arrivalCutscene");
+    private static readonly FieldInfo f_isLocked = AccessTools.Field(typeof(LocationManager), "_isLocked");
+    private static readonly FieldInfo f_arrivalCutscene = AccessTools.Field(typeof(LocationManager), "_arrivalCutscene");
     private static readonly FieldInfo f_currentGirlPair = AccessTools.Field(typeof(LocationManager), "_currentGirlPair");
     private static readonly FieldInfo f_currentSidesFlipped = AccessTools.Field(typeof(LocationManager), "_currentSidesFlipped");
     private static readonly FieldInfo f_currentLocation = AccessTools.Field(typeof(LocationManager), "_currentLocation");
@@ -69,18 +69,18 @@ internal static class LocationManagerPatch
 
             var hubStyle = new GirlStyleInfo()
             {
-                OutfitId = girlExpansion.OutfitIndexToId[outfitIndex],
+                OutfitId = girlExpansion.OutfitLookup[outfitIndex],
             };
 
             if (outfit.pairHairstyleIndex != -1)
             {
-                hubStyle.HairstyleId = girlExpansion.HairstyleIndexToId[outfit.pairHairstyleIndex];
+                hubStyle.HairstyleId = girlExpansion.HairstyleLookup[outfit.pairHairstyleIndex];
             }
             else
             {
                 i = 0;
                 var randomIndex = Game.Session.Hub.hubGirlDefinition.hairstyles.Select(x => (x, i++)).Where(x => x.Item1 != null).ToArray().GetRandom().Item2;
-                hubStyle.HairstyleId = girlExpansion.HairstyleIndexToId[randomIndex];
+                hubStyle.HairstyleId = girlExpansion.HairstyleLookup[randomIndex];
             }
 
             var args = ModInterface.Events.NotifyRequestStyleChange(Game.Session.Hub.hubGirlDefinition, currentLocation, 0.1f, hubStyle);
@@ -103,8 +103,10 @@ internal static class LocationManagerPatch
             var leftGirlDef = flipped ? currentGirlPair.girlDefinitionTwo : currentGirlPair.girlDefinitionOne;
             var rightGirlDef = flipped ? currentGirlPair.girlDefinitionOne : currentGirlPair.girlDefinitionTwo;
 
-            GirlStyleInfo leftStyle = null;
-            GirlStyleInfo rightStyle = null;
+            var locationExp = currentLocation.Expansion();
+
+            GirlStyleInfo leftStyle = new GirlStyleInfo(locationExp.DefaultStyle);
+            GirlStyleInfo rightStyle = leftStyle;
 
             if (playerFileGirlPair.relationshipType == GirlPairRelationshipType.UNKNOWN)
             {

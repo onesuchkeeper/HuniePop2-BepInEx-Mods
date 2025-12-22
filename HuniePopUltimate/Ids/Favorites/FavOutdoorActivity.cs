@@ -9,7 +9,7 @@ public static class FavOutdoorActivity
 
     public static void AddDataMods()
     {
-        ModInterface.AddDataMod(new QuestionDataMod(Hp2BaseMod.Favorites.OutdoorActivity, Hp2BaseMod.Utility.InsertStyle.append)
+        ModInterface.AddDataMod(new FavQuestionDataMod(Hp2BaseMod.Favorites.OutdoorActivity, Hp2BaseMod.Utility.InsertStyle.append)
         {
             QuestionAnswers = new() {
                 {Biking, "Biking"},

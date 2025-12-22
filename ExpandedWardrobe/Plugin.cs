@@ -134,14 +134,14 @@ internal class Plugin : BaseUnityPlugin
                 var girlId = ModInterface.Data.GetDataId(GameDataType.Girl, fileGirl.girlDefinition.id);
                 var expansion = ExpandedGirlDefinition.Get(girlId);
 
-                foreach (var outfitId_Index in expansion.OutfitIdToIndex.Where(x => x.Key.SourceId == Ids.ModId))
+                foreach (var outfitId in expansion.OutfitLookup.Ids.Where(x => x.SourceId == Ids.ModId))
                 {
-                    fileGirl.UnlockOutfit(outfitId_Index.Value);
+                    fileGirl.UnlockOutfit(expansion.OutfitLookup[outfitId]);
                 }
 
-                foreach (var hairstyleId_index in expansion.HairstyleIdToIndex.Where(x => x.Key.SourceId == Ids.ModId))
+                foreach (var hairstyleId in expansion.HairstyleLookup.Ids.Where(x => x.SourceId == Ids.ModId))
                 {
-                    fileGirl.UnlockHairstyle(hairstyleId_index.Value);
+                    fileGirl.UnlockHairstyle(expansion.HairstyleLookup[hairstyleId]);
                 }
             }
         }

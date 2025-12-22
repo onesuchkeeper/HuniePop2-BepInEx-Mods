@@ -20,7 +20,7 @@ public static class LastName
 
     public static void AddDataMods()
     {
-        ModInterface.AddDataMod(new QuestionDataMod(Questions.LastName, Hp2BaseMod.Utility.InsertStyle.append)
+        ModInterface.AddDataMod(new FavQuestionDataMod(Questions.LastName, Hp2BaseMod.Utility.InsertStyle.append)
         {
             QuestionName = "Last Name",
             QuestionText = "What is your [[highlight]last name]?",

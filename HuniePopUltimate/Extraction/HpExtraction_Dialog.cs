@@ -2,15 +2,35 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
 using AssetStudio;
+using AssetStudio.Extractor;
 using Hp2BaseMod;
 using Hp2BaseMod.Extension;
 using Hp2BaseMod.GameDataInfo;
+using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
 
 namespace HuniePopUltimate;
 
 public partial class HpExtraction
 {
+    // cutscene outfit changes are done by the part's index, and I don't wanna deal with that
+    // so for the intro cutscenes this looks up their intended style sequences
+    private Dictionary<RelativeId, (RelativeId outfit, RelativeId hairstyle)[]> _hackyStyleLookup = new()
+    {
+        {Girls.Aiko, [(Hp2BaseMod.Styles.Activity, Hp2BaseMod.Styles.Activity), (Hp2BaseMod.Styles.Activity, Hp2BaseMod.Styles.Activity)]},
+        {Girls.Audrey, [(Hp2BaseMod.Styles.Activity, Hp2BaseMod.Styles.Activity), (Hp2BaseMod.Styles.Activity, Hp2BaseMod.Styles.Activity)]},
+        {Girls.Beli, [(Hp2BaseMod.Styles.Water, Hp2BaseMod.Styles.Water), (Hp2BaseMod.Styles.Water, Hp2BaseMod.Styles.Water), (Hp2BaseMod.Styles.Activity, Hp2BaseMod.Styles.Activity)]},
+        {Girls.Celeste, []},
+        {Hp2BaseMod.Girls.JessieId, [(Hp2BaseMod.Styles.Activity, Hp2BaseMod.Styles.Activity), (Hp2BaseMod.Styles.Activity, Hp2BaseMod.Styles.Activity)]},
+        {Girls.Kyanna, [(Hp2BaseMod.Styles.Activity, Hp2BaseMod.Styles.Activity), (Hp2BaseMod.Styles.Activity, Hp2BaseMod.Styles.Activity)]},
+        {Hp2BaseMod.Girls.KyuId, []},
+        {Hp2BaseMod.Girls.LolaId, [(Hp2BaseMod.Styles.Activity, Hp2BaseMod.Styles.Activity), (Hp2BaseMod.Styles.Activity, Hp2BaseMod.Styles.Activity)]},
+        {Girls.Momo, []},
+        {Girls.Nikki, []},
+        {Girls.Tiffany, [(Hp2BaseMod.Styles.Activity, Hp2BaseMod.Styles.Activity), (Hp2BaseMod.Styles.Activity, Hp2BaseMod.Styles.Activity)]},
+        {Girls.Venus, [(Hp2BaseMod.Styles.Activity, Hp2BaseMod.Styles.Activity)]},
+    };
+
     private void ExtractDialogTrigger(OrderedDictionary dtDef, SerializedFile file)
     {
         if (!dtDef.TryGetValue("lineSets", out List<object> lineSetsList))
@@ -27,7 +47,7 @@ public partial class HpExtraction
                 case "AskDate":
                     if (lineSets.Length > 0)
                     {
-                        ExtractDialogLineSet(new RelativeId(-1, 13), lineSets[0], file);//ask date
+                        ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.AskDate, lineSets[0], file);
                     }
                     break;
                 case "DateGreeting":
@@ -37,7 +57,7 @@ public partial class HpExtraction
                         //12 - bonus round loc (use for cutscene instead)
                         for (int i = 0; i < 12; i++)// TODO map these properly to the locations
                         {
-                            ExtractDialogLineSet(new RelativeId(-1, 15), lineSets[i], file);
+                            ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.DateGreeting, lineSets[i], file);
                         }
                         ExtractDialogLineSet(DialogTriggers.PreSex, lineSets[12], file);
                     }
@@ -48,8 +68,8 @@ public partial class HpExtraction
                         //0 - success
                         //1 - fail
                         //2 - goToBonus round - I'll have to repurpose this for cutscenes
-                        ExtractDialogLineSet(new RelativeId(-1, 16), lineSets[0], file);//date success
-                        ExtractDialogLineSet(new RelativeId(-1, 17), lineSets[1], file);//date fail
+                        ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.DateSuccess, lineSets[0], file);
+                        ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.DateFailure, lineSets[1], file);
                         ExtractDialogLineSet(DialogTriggers.PreBedroom, lineSets[2], file);
                     }
                     break;
@@ -58,10 +78,10 @@ public partial class HpExtraction
                     {
                         //0 - success
                         //1 - fail
-                        ExtractDialogLineSet(new RelativeId(-1, 30), lineSets[0], file);//date gift accept
-                        ExtractDialogLineSet(new RelativeId(-1, 31), lineSets[0], file);//date gift sexy
-                        ExtractDialogLineSet(new RelativeId(-1, 32), lineSets[0], file);//date gift weird
-                        ExtractDialogLineSet(new RelativeId(-1, 33), lineSets[1], file);//date gift reject
+                        ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.DateGiftAccept, lineSets[0], file);
+                        ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.DateGiftSexy, lineSets[0], file);
+                        ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.DateGiftWeird, lineSets[0], file);
+                        ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.DateGiftReject, lineSets[1], file);
                     }
                     break;
                 case "GivenDrink":
@@ -71,9 +91,9 @@ public partial class HpExtraction
                         //1 - appetite == 0, too hungry
                         //2 - not at drinking location
                         //3 - default
-                        ExtractDialogLineSet(new RelativeId(-1, 18), lineSets[3], file);//smoothie accept
-                        ExtractDialogLineSet(new RelativeId(-1, 19), lineSets[1], file);//smoothie full
-                        ExtractDialogLineSet(new RelativeId(-1, 20), lineSets[2], file);//smoothie reject
+                        ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.SmoothieAccept, lineSets[3], file);
+                        ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.SmoothieFull, lineSets[1], file);
+                        ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.SmoothieReject, lineSets[2], file);
                     }
                     break;
                 case "GivenFood":
@@ -83,8 +103,8 @@ public partial class HpExtraction
                         //1 - loves
                         //2 - likes
                         //3 - default
-                        ExtractDialogLineSet(new RelativeId(-1, 21), lineSets[2], file);//food accept
-                        ExtractDialogLineSet(new RelativeId(-1, 22), lineSets[3], file);//food reject
+                        ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.FoodAccept, lineSets[2], file);//food accept
+                        ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.FoodReject, lineSets[3], file);//food reject
                     }
                     break;
                 case "GivenGift":
@@ -97,14 +117,14 @@ public partial class HpExtraction
                         //4 - default? maybe reject?
                         //5 - dirty magazine given to kyu
 
-                        ExtractDialogLineSet(new RelativeId(-1, 23), lineSets[3], file);//unique accept
-                        ExtractDialogLineSet(new RelativeId(-1, 23), lineSets[4], file);//unique reject
+                        ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.UniqueAccept, lineSets[3], file);
+                        ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.UniqueReject, lineSets[4], file);
 
-                        ExtractDialogLineSet(new RelativeId(-1, 25), lineSets[1], file);//shoes accept
-                        ExtractDialogLineSet(new RelativeId(-1, 25), lineSets[4], file);//shoes reject
+                        ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.ShoesAccept, lineSets[1], file);
+                        ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.ShoesReject, lineSets[4], file);
 
-                        ExtractDialogLineSet(new RelativeId(-1, 27), lineSets[2], file);//shell accept
-                        ExtractDialogLineSet(new RelativeId(-1, 27), lineSets[4], file);//shell reject
+                        ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.ShellAccept, lineSets[2], file);
+                        ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.ShellReject, lineSets[4], file);
                     }
                     break;
                 case "Greeting":
@@ -115,23 +135,23 @@ public partial class HpExtraction
                         // 2 - evening
                         // 3 - night
                         // 4 - post sex (use this in cutscene)
-                        ExtractDialogLineSet(new RelativeId(-1, 9), lineSets[0], file);//greeting morning
-                        ExtractDialogLineSet(new RelativeId(-1, 10), lineSets[1], file);//greeting afternoon
-                        ExtractDialogLineSet(new RelativeId(-1, 11), lineSets[2], file);//greeting evening
-                        ExtractDialogLineSet(new RelativeId(-1, 12), lineSets[3], file);//greeting night
+                        ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.GreetingMorning, lineSets[0], file);
+                        ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.GreetingAfternoon, lineSets[1], file);
+                        ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.GreetingEvening, lineSets[2], file);
+                        ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.GreetingNight, lineSets[3], file);
                         ExtractDialogLineSet(DialogTriggers.PostSex, lineSets[4], file);
                     }
                     break;
                 case "InventoryFull":
                     if (lineSets.Length > 0)
                     {
-                        ExtractDialogLineSet(new RelativeId(-1, 29), lineSets[0], file);//inventory full
+                        ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.InventoryFull, lineSets[0], file);
                     }
                     break;
                 case "IsTooHungry":
                     if (lineSets.Length > 0)
                     {
-                        ExtractDialogLineSet(new RelativeId(-1, 35), lineSets[0], file);//stamina insufficient
+                        ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.StaminaInsufficient, lineSets[0], file);
                     }
                     break;
                 case "KyuSpecial":
@@ -144,19 +164,19 @@ public partial class HpExtraction
                     {
                         //0 - big move
                         //1 - broken heart
-                        ExtractDialogLineSet(new RelativeId(-1, 34), lineSets[0], file);//big move
-                        ExtractDialogLineSet(new RelativeId(-1, 39), lineSets[1], file);//broken exhausted
+                        ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.BigMove, lineSets[0], file);
+                        ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.BrokenExhausted, lineSets[1], file);
                     }
                     break;
                 case "SexualSounds":
                     if (lineSets.Length > 4)
                     {
                         // 0 - 3 - sex moans
-                        ExtractDialogLineSet(new RelativeId(-1, 43), lineSets[0], file);//sex moans 1
-                        ExtractDialogLineSet(new RelativeId(-1, 44), lineSets[1], file);//sex moans 2
-                        ExtractDialogLineSet(new RelativeId(-1, 45), lineSets[2], file);//sex moans 3
-                        ExtractDialogLineSet(new RelativeId(-1, 46), lineSets[3], file);//sex moans 4
-                        ExtractDialogLineSet(new RelativeId(-1, 47), lineSets[4], file);//sex climax
+                        ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.SexMoans1, lineSets[0], file);
+                        ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.SexMoans2, lineSets[1], file);
+                        ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.SexMoans3, lineSets[2], file);
+                        ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.SexMoans4, lineSets[3], file);
+                        ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.SexClimax, lineSets[4], file);
                     }
                     break;
                 case "Valediction"://leave without dating
@@ -166,34 +186,32 @@ public partial class HpExtraction
                         // 1 afternoon
                         // 2 evening
                         // 3 night
-                        ExtractDialogLineSet(new RelativeId(-1, 14), lineSets[0], file);
-                        ExtractDialogLineSet(new RelativeId(-1, 14), lineSets[1], file);
-                        ExtractDialogLineSet(new RelativeId(-1, 14), lineSets[2], file);
+                        ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.Valediction, lineSets[0], file);
+                        ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.Valediction, lineSets[1], file);
+                        ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.Valediction, lineSets[2], file);
                     }
                     break;
                 //I think queries are the player asking about a trait
                 case "QueryDuplicate":
                     break;
                 case "QueryIntro":
-                    ExtractDialogLineSet(new RelativeId(-1, 4), lineSets[0], file);//favQuestionIntro
+                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.FavQuestionIntro, lineSets[0], file);
                     break;
                 //I think questions are the abstract general questions unique to each
                 case "QuestionBadChoice":
-                    ExtractDialogLineSet(new RelativeId(-1, 3), lineSets[0], file);//herQuestionBadResponse
+                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.HerQuestionBadResponse, lineSets[0], file);
                     break;
                 case "QuestionCorrect":
-                    ExtractDialogLineSet(new RelativeId(-1, 8), lineSets[0], file);//herQuestionGoodResponse
+                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.HerQuestionGoodResponse, lineSets[0], file);
                     break;
                 case "QuestionIncorrect":
-                    ExtractDialogLineSet(new RelativeId(-1, 3), lineSets[0], file);//herQuestionBadResponse
+                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.HerQuestionBadResponse, lineSets[0], file);
                     break;
                 case "QuestionIntro":
-                    ExtractDialogLineSet(new RelativeId(-1, 2), lineSets[0], file);//herQuestionIntro
+                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.HerQuestionIntro, lineSets[0], file);
                     break;
-                //I think quiz it the "Remember the stuff I told you" bit
                 case "QuizCorrect":
-                    // ExtractDialogLineSet(new RelativeId(-1, 6), lineSets[0], file);//favQuestionAgree
-                    // ExtractDialogLineSet(new RelativeId(-1, 5), lineSets[0], file);//favQuestionResponse
+                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.FavQuestionAgreement, lineSets[0], file);
                     break;
                 case "QuizIncorrect":
                     break;
@@ -206,12 +224,9 @@ public partial class HpExtraction
         }
     }
 
-    int _dialogLineCount = 0;
-
-    private void ExtractDialogLineSet(RelativeId dtId, OrderedDictionary lineSetDef, SerializedFile file)
+    private void ExtractDialogLineSet(RelativeId dtId, OrderedDictionary lineSetDef, SerializedFile file, bool onlySpecials = false)
     {
         //dtLineSets have a collection of lines. A line can be specified or is chosen at random
-
         if (!lineSetDef.TryGetValue("lines", out List<object> lines))
         {
             return;
@@ -225,18 +240,27 @@ public partial class HpExtraction
                 int index = 1;
                 foreach (var dialogLine in dialogLines.OfType<OrderedDictionary>())
                 {
-                    var girlMod = GetGirlMod(index++);
-
-                    var lineMod = new DialogLineDataMod(new RelativeId(Plugin.ModId, _dialogLineCount++));
-                    girlMod.linesByDialogTriggerId ??= new();
-
-                    var lineMods = girlMod.linesByDialogTriggerId.FirstOrDefault(x => x.Item1 == dtId).Item2;
-                    if (lineMods == null)
+                    if (onlySpecials && !Girls.IsSpecial(index))
                     {
-                        lineMods = new();
-                        girlMod.linesByDialogTriggerId.Add((dtId, lineMods));
+                        continue;
                     }
-                    lineMods.Add(ExtractDialogLine(dialogLine, file));
+
+                    if (TryExtractDialogLine(dialogLine, file, new RelativeId(Plugin.ModId, _dialogLineCount++), out var lineMod))
+                    {
+                        var girlMod = GetGirlMod(index);
+
+                        girlMod.LinesByDialogTriggerId ??= new();
+
+                        var lineMods = girlMod.LinesByDialogTriggerId.FirstOrDefault(x => x.Item1 == dtId).Item2;
+                        if (lineMods == null)
+                        {
+                            lineMods = new();
+                            girlMod.LinesByDialogTriggerId.Add((dtId, lineMods));
+                        }
+
+                        lineMods.Add(lineMod);
+                    }
+                    index++;
                 }
             }
         }
@@ -300,94 +324,440 @@ public partial class HpExtraction
         return expression;
     }
 
-    private void ExtractDialogScene(OrderedDictionary dialogSceneDef)
+    private bool TryExtractDialogScene(OrderedDictionary dialogSceneDef, SerializedFile file, RelativeId girlId, out CutsceneDataMod cutsceneMod)
     {
         if (dialogSceneDef.TryGetValue("steps", out List<object> steps))
         {
+            cutsceneMod = new(new RelativeId(Plugin.ModId, Cutscenes.NextCutsceneId++), InsertStyle.append);
+            cutsceneMod.Steps = new();
+            var hackyStyleEnum = ((IEnumerable<(RelativeId outfit, RelativeId hairstyle)>)_hackyStyleLookup[girlId]).GetEnumerator();
+            UnityAssetPath currentAltGirl = UnityAssetPath.NullPath;
             foreach (var step in steps.OfType<OrderedDictionary>())
             {
-
+                if (TryExtractDialogSceneStep(step, file, girlId, hackyStyleEnum, ref currentAltGirl, out var stepMods))
+                {
+                    cutsceneMod.Steps.AddRange(stepMods);
+                }
             }
+
+            return true;
+        }
+        else
+        {
+            ModInterface.Log.Warning("Failed to extract dialog scene");
+        }
+
+        cutsceneMod = null;
+        return false;
+    }
+
+    private void ExtractIntroCutscene(RelativeId girlId, OrderedDictionary girlDef, SerializedFile file, SingleDatePairData pair)
+    {
+        if (girlDef.TryGetValue("introScene", out OrderedDictionary introScene)
+            && UnityAssetPath.TryExtract(introScene, out var introScenePath)
+            && _extractor.TryExtractMonoBehavior(file, introScenePath, out var introSceneDef)
+            && TryExtractDialogScene(introSceneDef, file, girlId, out var introSceneMod))
+        {
+            pair.MeetingCutscene = introSceneMod;
+        }
+        else
+        {
+            ModInterface.Log.Warning("failed to extract intro cutscene");
         }
     }
 
-    private void ExtractDialogSceneStep(OrderedDictionary dialogSceneStep)
+    private bool TryExtractDialogSceneStep(OrderedDictionary dialogSceneStep,
+        SerializedFile file,
+        RelativeId girlId,
+        IEnumerator<(RelativeId outfit, RelativeId hairstyle)> styleEnum,
+        ref UnityAssetPath altGirlId,
+        out CutsceneStepInfo[] stepMods)
     {
         if (dialogSceneStep.TryGetValue("type", out int type))
         {
             switch (type)
             {
                 case 0://dialog line
+                    {
+                        if (dialogSceneStep.TryGetValue("sceneLine", out OrderedDictionary sceneLineDef)
+                            && sceneLineDef.TryGetValue("altGirl", out bool altGirl)
+                            && sceneLineDef.TryGetValue("dialogLine", out OrderedDictionary dialogLine)
+                            && TryExtractDialogLine(dialogLine, file, new RelativeId(Plugin.ModId, _dialogLineCount++), out var lineMod))
+                        {
+                            var stepMod = CutsceneStepUtility.MakeDialogLineInfo(lineMod, false, CutsceneStepProceedType.AUTOMATIC, CutsceneStepDollTargetType.ORIENTATION_TYPE);
+                            stepMod.TargetDollOrientation = altGirl ? DollOrientationType.LEFT : DollOrientationType.RIGHT;
+                            stepMods = [stepMod];
+                            return true;
+                        }
+                        else
+                        {
+                            ModInterface.Log.Warning("failed to extract \"dialog line\" dialog step");
+                        }
+                    }
                     break;
                 case 1://response options
+                    {
+                        if (dialogSceneStep.TryGetValue("preventOptionShuffle", out bool preventOptionShuffle)
+                            && dialogSceneStep.TryGetValue("responseOptions", out List<object> responseOptions))
+                        {
+                            var options = new List<IGameDefinitionInfo<CutsceneDialogOptionSubDefinition>>();
+
+                            foreach (var responseOption in responseOptions.OfType<OrderedDictionary>())
+                            {
+                                if (TryExtractResponseOption(responseOption, file, girlId, styleEnum, ref altGirlId, out CutsceneDialogOptionInfo dialogOption))
+                                {
+                                    options.Add(dialogOption);
+                                }
+                            }
+
+                            var stepMod = CutsceneStepUtility.MakeDialogOptionsInfo(options, !preventOptionShuffle, CutsceneStepProceedType.AUTOMATIC);
+                            stepMods = [stepMod];
+                            return true;
+                        }
+                        else
+                        {
+                            ModInterface.Log.Warning("failed to extract \"response options\" dialog step");
+                        }
+                    }
                     break;
                 case 2://branch dialog
+                    {
+                        if (dialogSceneStep.TryGetValue("hasBestBranch", out bool hasBestBranch)
+                            && dialogSceneStep.TryGetValue("conditionalBranchs", out List<object> conditionalBranches))// the og has it spelled wrong
+                        {
+                            var branches = new List<IGameDefinitionInfo<CutsceneBranchSubDefinition>>();
+
+                            foreach (var branch in conditionalBranches.OfType<OrderedDictionary>())
+                            {
+                                if (TryExtractConditionalBranch(branch, file, girlId, styleEnum, ref altGirlId, out var branchMod))
+                                {
+                                    branches.Add(branchMod);
+                                }
+                            }
+
+                            var stepMod = CutsceneStepUtility.MakeBranchInfo(branches, CutsceneStepProceedType.AUTOMATIC);
+                            stepMods = [stepMod];
+                            return true;
+                        }
+                        else
+                        {
+                            ModInterface.Log.Warning("failed to extract \"branch dialog\" dialog step");
+                        }
+                    }
                     break;
                 case 3://show alt girl
+                    {
+                        if (dialogSceneStep.TryGetValue("altGirl", out OrderedDictionary altGirl)
+                            && UnityAssetPath.TryExtract(altGirl, out var altGirlPath)
+                            && dialogSceneStep.TryGetValue("showGirlStyles", out string showGirlStyles)
+                            && dialogSceneStep.TryGetValue("hideOppositeSpeechBubble", out bool hideOppositeSpeechBubble))
+                        {
+                            var initialShow = altGirlId == UnityAssetPath.NullPath;
+                            var steps = new List<CutsceneStepInfo>();
+
+                            if (altGirlPath != altGirlId)
+                            {
+                                altGirlId = altGirlPath;
+                                steps.Add(CutsceneStepUtility.MakeDollMoveInfo(DollPositionType.HIDDEN, DollOrientationType.LEFT, initialShow ? CutsceneStepProceedType.INSTANT : CutsceneStepProceedType.AUTOMATIC));
+                                var loadStep = CutsceneStepUtility.MakeLoadGirlInfo(Girls.FromUnityPath(altGirlId), CutsceneStepDollTargetType.ORIENTATION_TYPE, CutsceneStepProceedType.AUTOMATIC);
+                                loadStep.TargetDollOrientation = DollOrientationType.LEFT;
+                                steps.Add(loadStep);
+
+                                if (!string.IsNullOrWhiteSpace(showGirlStyles) && styleEnum.MoveNext())
+                                {
+                                    loadStep.HairstyleId = styleEnum.Current.hairstyle;
+                                    loadStep.OutfitId = styleEnum.Current.outfit;
+                                }
+                            }
+                            else if (!string.IsNullOrWhiteSpace(showGirlStyles))
+                            {
+                                var loadStep = CutsceneStepUtility.MakeLoadGirlInfo(Girls.FromUnityPath(altGirlId), CutsceneStepDollTargetType.ORIENTATION_TYPE, CutsceneStepProceedType.AUTOMATIC);
+                                loadStep.TargetDollOrientation = DollOrientationType.LEFT;
+                                steps.Add(loadStep);
+
+                                if (!string.IsNullOrWhiteSpace(showGirlStyles) && styleEnum.MoveNext())
+                                {
+                                    loadStep.HairstyleId = styleEnum.Current.hairstyle;
+                                    loadStep.OutfitId = styleEnum.Current.outfit;
+                                }
+                            }
+
+                            steps.Add(CutsceneStepUtility.MakeDollMoveInfo(DollPositionType.INNER, DollOrientationType.LEFT, CutsceneStepProceedType.AUTOMATIC));
+
+                            stepMods = steps.ToArray();
+                            return true;
+                        }
+                        else
+                        {
+                            ModInterface.Log.Warning("failed to extract \"show alt girl\" dialog step");
+                        }
+                    }
                     break;
                 case 4://hide alt girl
-                    break;
+                    {
+                        var stepMod = CutsceneStepUtility.MakeDollMoveInfo(DollPositionType.HIDDEN, DollOrientationType.LEFT, CutsceneStepProceedType.AUTOMATIC);
+                        stepMods = [stepMod];
+                        return true;
+                    }
                 case 5://show girl
+                    {
+                        if (dialogSceneStep.TryGetValue("showGirlStyles", out string showGirlStyles)
+                            && dialogSceneStep.TryGetValue("hideOppositeSpeechBubble", out bool hideOppositeSpeechBubble))
+                        {
+                            var steps = new List<CutsceneStepInfo>();
+
+                            if (!string.IsNullOrWhiteSpace(showGirlStyles))
+                            {
+                                var loadStep = CutsceneStepUtility.MakeLoadGirlInfo(girlId, CutsceneStepDollTargetType.ORIENTATION_TYPE, CutsceneStepProceedType.AUTOMATIC);
+                                steps.Add(loadStep);
+
+                                loadStep.TargetDollOrientation = DollOrientationType.RIGHT;
+
+                                if (styleEnum.MoveNext())
+                                {
+                                    loadStep.HairstyleId = styleEnum.Current.hairstyle;
+                                    loadStep.OutfitId = styleEnum.Current.outfit;
+                                }
+                            }
+
+                            var initialShow = altGirlId == UnityAssetPath.NullPath;
+                            steps.Add(CutsceneStepUtility.MakeDollMoveInfo(DollPositionType.INNER, DollOrientationType.RIGHT, initialShow ? CutsceneStepProceedType.INSTANT : CutsceneStepProceedType.INSTANT));
+                            stepMods = steps.ToArray();
+                            return true;
+                        }
+                        else
+                        {
+                            ModInterface.Log.Warning("failed to extract \"show girl\" dialog step");
+                        }
+                    }
                     break;
                 case 6://hide girl
-                    break;
+                    {
+                        var stepMod = CutsceneStepUtility.MakeDollMoveInfo(DollPositionType.HIDDEN, DollOrientationType.RIGHT, CutsceneStepProceedType.AUTOMATIC);
+                        stepMods = [stepMod];
+                        return true;
+                    }
                 case 7://insert scene
+                    ModInterface.Log.Warning("\"insert scene\" dialog step unimplemented");
                     break;
                 case 8://wait
+                    {
+                        if (dialogSceneStep.TryGetValue("waitTime", out int waitTime))
+                        {
+                            var stepMod = CutsceneStepUtility.MakeWaitInfo(waitTime);
+                            stepMods = [stepMod];
+                            return true;
+                        }
+                        else
+                        {
+                            ModInterface.Log.Warning("failed to extract \"wait\" dialog step");
+                        }
+                    }
                     break;
                 case 9://set next loc
+                    ModInterface.Log.Warning("\"set next location\" dialog step unimplemented");
                     break;
                 case 10://set met status
-                    break;
+                    {
+                        if (dialogSceneStep.TryGetValue("girlDefinition", out OrderedDictionary girlDefinition)
+                            && UnityAssetPath.TryExtract(girlDefinition, out var girlDefUap))
+                        {
+                            stepMods = [
+                                CutsceneStepUtility.MakeGameActionInfo(
+                                    new LogicActionInfo()
+                                    {
+                                        Type = LogicActionType.SET_GIRL_MET,
+                                        GirlDefinitionID = Girls.FromUnityPath(girlDefUap),
+                                        BoolValue = true
+                                    },
+                                    CutsceneStepProceedType.INSTANT)
+                            ];
+                            return true;
+                        }
+                        break;
+                    }
                 case 11://dialog trigger
+                    ModInterface.Log.Warning("\"dialog trigger\" dialog step unimplemented");
                     break;
                 case 12://know girl detail
+                    ModInterface.Log.Warning("\"know girl detail\" dialog step unimplemented");
                     break;
                 case 13://step back
+                    ModInterface.Log.Warning("\"step back\" dialog step unimplemented");
                     break;
                 case 14://add item
+                    ModInterface.Log.Warning("\"add item\" dialog step unimplemented");
                     break;
                 case 15://remove item
+                    ModInterface.Log.Warning("\"remove item\" dialog step unimplemented");
                     break;
                 case 16://wait for cellphone close
+                    ModInterface.Log.Warning("\"wait for cellphone close\" dialog step unimplemented");
                     break;
                 case 17://wait for token match
+                    ModInterface.Log.Warning("\"wait for token match\" dialog step unimplemented");
                     break;
                 case 18://wait for date gift
+                    ModInterface.Log.Warning("\"wait for date gift\" dialog step unimplemented");
                     break;
                 case 19://unlock cellphone
+                    ModInterface.Log.Warning("\"unlock cellphone\" dialog step unimplemented");
                     break;
                 case 20://make game pausable
+                    ModInterface.Log.Warning("\"make game pausable\" dialog step unimplemented");
                     break;
                 case 21://particle emitter
+                    ModInterface.Log.Warning("\"particle emitter\" dialog step unimplemented");
                     break;
                 case 22://send message
+                    ModInterface.Log.Warning("\"send message\" dialog step unimplemented");
                     break;
             }
         }
+
+        stepMods = null;
+        return false;
     }
 
-    private CutsceneStepInfo ExtractDialogSceneLine(OrderedDictionary dialogSceneLineDef)
+    private bool TryExtractConditionalBranch(OrderedDictionary branch, SerializedFile file, RelativeId girlId, IEnumerator<(RelativeId outfit, RelativeId hairstyle)> styleEnum, ref UnityAssetPath altGirl, out CutsceneBranchInfo branchMod)
     {
-        if (dialogSceneLineDef.TryGetValue("altGirl", out bool altGirl)
-            && dialogSceneLineDef.TryGetValue("dialogLine", out OrderedDictionary dialogLine))
+        if (branch.TryGetValue("type", out int type)
+            && branch.TryGetValue("steps", out List<object> steps))
         {
-            var step = CutsceneStepUtility.MakeDialogLineInfo(new RelativeId(), false, CutsceneStepProceedType.AUTOMATIC, CutsceneStepDollTargetType.ORIENTATION_TYPE);
-            step.TargetDollOrientation = altGirl ? DollOrientationType.LEFT : DollOrientationType.RIGHT;
-            return step;
+            branchMod = new();
+
+            // I'm just going to ignore the conditions for now.
+            // I don't think any of the cutscenes I'm extracting need them
+            // and their conditions don't really match hp2
+            switch (type)
+            {
+                case 0://else (always treated as true and cannot be inverted...)
+                    break;
+                case 1://girl met status count
+                    if (branch.TryGetValue("girlMetStatus", out int girlMetStatus))
+                    {
+                        branchMod = new();
+
+                        switch (girlMetStatus)
+                        {
+                            case 0: //locked
+                                break;
+                            case 1: //unmet
+                                break;
+                            case 2: //unknown
+                                break;
+                            case 3: //met
+                                break;
+                        }
+
+                        // I'm just going to ignore these for now
+                        //branchMod.Conditions.Add(new LogicConditionInfo());
+                    }
+                    break;
+                case 2://girl detail known
+                    if (branch.TryGetValue("girlDetailType", out int girlDetailType))
+                    {
+                        switch (girlDetailType)
+                        {
+                            case 0: //last name
+                                break;
+                            case 1: //age
+                                break;
+                            case 2: //education
+                                break;
+                            case 3: //height
+                                break;
+                            case 4: //weight
+                                break;
+                            case 5: //occupation
+                                break;
+                            case 6: //cup size
+                                break;
+                            case 7: //birthday
+                                break;
+                            case 8: //hobby
+                                break;
+                            case 9: //fav color
+                                break;
+                            case 10: //fav season
+                                break;
+                            case 11: //fav hangout
+                                break;
+                        }
+                    }
+                    break;
+                default:
+                    ModInterface.Log.Warning($"unhandled conditional branch type {type}");
+                    branchMod = null;
+                    return false;
+            }
+
+            branchMod.Steps = new();
+
+            foreach (var step in steps.OfType<OrderedDictionary>())
+            {
+                if (TryExtractDialogSceneStep(step, file, girlId, styleEnum, ref altGirl, out var stepMods))
+                {
+                    branchMod.Steps.AddRange(stepMods);
+                }
+            }
         }
 
-        return new();
+        branchMod = null;
+        return false;
     }
 
-    private DialogLineDataMod ExtractDialogLine(OrderedDictionary dialogLine, SerializedFile file)
+    private bool TryExtractResponseOption(OrderedDictionary responseOption, SerializedFile file, RelativeId girlId, IEnumerator<(RelativeId outfit, RelativeId hairstyle)> styleEnum, ref UnityAssetPath altGirlId, out CutsceneDialogOptionInfo dialogOption)
     {
-        var lineMod = new DialogLineDataMod(new RelativeId(Plugin.ModId, _dialogLineCount++));
+        if (responseOption.TryGetValue("text", out string text)
+            && responseOption.TryGetValue("secondary", out bool secondary)
+            && responseOption.TryGetValue("secondaryText", out string secondaryText)
+            && responseOption.TryGetValue("steps", out List<object> steps))
+        {
+            dialogOption = new();
+            dialogOption.DialogOptionText = text;
+            dialogOption.Yuri = secondary;
+            dialogOption.YuriDialogOptionText = secondaryText;
+            dialogOption.Steps = new();
+
+            foreach (var step in steps.OfType<OrderedDictionary>())
+            {
+                if (TryExtractDialogSceneStep(step, file, girlId, styleEnum, ref altGirlId, out var stepMods))
+                {
+                    dialogOption.Steps.AddRange(stepMods);
+                }
+            }
+
+            return true;
+        }
+
+        dialogOption = null;
+        return false;
+    }
+
+    private int _dialogLineCount = 0;
+
+    private bool TryExtractDialogLine(OrderedDictionary dialogLine, SerializedFile file, RelativeId id, out DialogLineDataMod lineMod)
+    {
+        lineMod = new DialogLineDataMod(id);
 
         //the text may cause a bit of trouble here, it's formatted for the mouth movements
         //so we'll see how this goes...
-        dialogLine.TryGetValue("text", out lineMod.DialogText);
-        lineMod.DialogText = CleanText(lineMod.DialogText);
+        if (dialogLine.TryGetValue("text", out lineMod.DialogText))
+        {
+            lineMod.DialogText = CleanText(lineMod.DialogText);
+        }
+        else
+        {
+            ModInterface.Log.Warning("Failed to get straight line!");
+            LogAll(dialogLine);
+            return false;
+        }
+
+        if (lineMod.DialogText == "Dialog...")
+        {
+            return false;
+        }
 
         if (dialogLine.TryGetValue("audioDefinition", out OrderedDictionary audioDefinition)
             && TryExtractAudioDef(audioDefinition, file, out var clipInfo))
@@ -397,13 +767,23 @@ public partial class HpExtraction
 
         if (dialogLine.TryGetValue("secondary", out bool secondary)
             && secondary
-            && dialogLine.TryGetValue("secondaryAudioDefinition", out OrderedDictionary secondaryAudioDefinition)
-            && TryExtractAudioDef(secondaryAudioDefinition, file, out var yuriClipInfo))
+            )
         {
-            dialogLine.TryGetValue("secondaryText", out lineMod.YuriDialogText);
-            lineMod.YuriDialogText = CleanText(lineMod.YuriDialogText);
-            lineMod.Yuri = true;
-            lineMod.YuriAudioClipInfo = yuriClipInfo;
+            if (dialogLine.TryGetValue("secondaryText", out lineMod.YuriDialogText)
+                && lineMod.YuriDialogText != null // some of the entries are wrong...
+                && dialogLine.TryGetValue("secondaryAudioDefinition", out OrderedDictionary secondaryAudioDefinition)
+                && TryExtractAudioDef(secondaryAudioDefinition, file, out var yuriClipInfo))
+            {
+                ModInterface.Log.IsNull(lineMod.YuriDialogText);
+                lineMod.YuriDialogText = CleanText(lineMod.YuriDialogText);
+                lineMod.Yuri = true;
+                lineMod.YuriAudioClipInfo = yuriClipInfo;
+            }
+            else
+            {
+                ModInterface.Log.Warning("Failed to get yuri line!");
+                return false;
+            }
         }
 
         var charCount = 1f / (lineMod.DialogText?.Length ?? 100);
@@ -426,6 +806,6 @@ public partial class HpExtraction
                 .ToList();
         }
 
-        return lineMod;
+        return true;
     }
 }

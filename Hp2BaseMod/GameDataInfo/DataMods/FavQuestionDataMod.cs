@@ -1,6 +1,7 @@
 ﻿// Hp2BaseMod 2021, By OneSuchKeeper
 
 using System.Collections.Generic;
+using Hp2BaseMod.Extension;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
 
@@ -9,7 +10,7 @@ namespace Hp2BaseMod.GameDataInfo
     /// <summary>
     /// Serializable information to make a QuestionDefinition
     /// </summary>
-    public class QuestionDataMod : DataMod, IQuestionDataMod
+    public class FavQuestionDataMod : DataMod, IFavQuestionDataMod
     {
         public string QuestionName;
 
@@ -18,14 +19,14 @@ namespace Hp2BaseMod.GameDataInfo
         public Dictionary<RelativeId, string> QuestionAnswers;
 
         /// <inheritdoc/>
-        public QuestionDataMod() { }
+        public FavQuestionDataMod() { }
 
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="id"></param>
         /// <param name="insertStyle">The way in which mod data should be applied to the data instance.</param>
-        public QuestionDataMod(RelativeId id, InsertStyle insertStyle, int loadPriority = 0)
+        public FavQuestionDataMod(RelativeId id, InsertStyle insertStyle, int loadPriority = 0)
             : base(id, insertStyle, loadPriority)
         {
         }
@@ -34,7 +35,7 @@ namespace Hp2BaseMod.GameDataInfo
         /// Constructor from a definition instance.
         /// </summary>
         /// <param name="def">The definition.</param>
-        internal QuestionDataMod(QuestionDefinition def)
+        internal FavQuestionDataMod(QuestionDefinition def)
             : base(new RelativeId(def), InsertStyle.replace, 0)
         {
             QuestionName = def.questionName;
@@ -54,13 +55,12 @@ namespace Hp2BaseMod.GameDataInfo
             ValidatedSet.SetValue(ref def.questionName, QuestionName, InsertStyle);
             ValidatedSet.SetValue(ref def.questionText, QuestionText, InsertStyle);
 
-            var expansion = def.Expansion();
-
             if (QuestionAnswers != null)
             {
+                var expansion = def.Expansion();
                 foreach (var id_answer in QuestionAnswers)
                 {
-                    def.questionAnswers[expansion.AnswerIdToIndex[id_answer.Key]] = id_answer.Value;
+                    def.questionAnswers.FillSet(expansion.AnswerLookup[id_answer.Key], id_answer.Value);
                 }
             }
         }

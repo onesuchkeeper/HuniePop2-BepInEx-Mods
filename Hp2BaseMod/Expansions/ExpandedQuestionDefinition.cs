@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Hp2BaseMod.Extension;
+using Hp2BaseMod.GameDataInfo;
 
 namespace Hp2BaseMod;
 
@@ -11,6 +12,9 @@ public static class QuestionDefinition_Ext
 
 public class ExpandedQuestionDefinition
 {
+    public static IdIndexMap DialogTriggerIndexes => _dialogTriggerIndexes;
+    private static IdIndexMap _dialogTriggerIndexes = new();
+
     private static Dictionary<RelativeId, ExpandedQuestionDefinition> _expansions
         = new Dictionary<RelativeId, ExpandedQuestionDefinition>();
 
@@ -22,17 +26,8 @@ public class ExpandedQuestionDefinition
 
     public static ExpandedQuestionDefinition Get(RelativeId id) => _expansions.GetOrNew(id);
 
-    public Dictionary<RelativeId, int> AnswerIdToIndex = new Dictionary<RelativeId, int>()
-    {
-        {RelativeId.Default, -1}
-    };
+    public IdIndexMap AnswerLookup => _answerLookup;
+    private IdIndexMap _answerLookup = new();
 
-    public Dictionary<int, RelativeId> AnswerIndexToId = new Dictionary<int, RelativeId>()
-    {
-        {-1, RelativeId.Default}
-    };
-
-    public string GetAnswer(QuestionDefinition def, RelativeId answerId) => def.questionAnswers[AnswerIdToIndex[answerId]];
-
-    public int DialogTriggerIndex = -1;
+    public string GetAnswer(QuestionDefinition def, RelativeId answerId) => def.questionAnswers[_answerLookup[answerId]];
 }

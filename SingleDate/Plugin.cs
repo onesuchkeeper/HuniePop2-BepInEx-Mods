@@ -7,6 +7,7 @@ using HarmonyLib;
 using Hp2BaseMod;
 using Hp2BaseMod.Extension;
 using Hp2BaseMod.GameDataInfo;
+using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
 using UnityEngine;
 
@@ -53,7 +54,7 @@ internal partial class Plugin : Hp2BaseModPlugin
         _instance = this;
 
         _showSingleUpsetHint = Config.Bind(GENERAL_CONFIG_CAT, nameof(ShowSingleUpsetHint), false, "If upset hints are shown on single dates.");
-        _singleDateBaggage = Config.Bind(GENERAL_CONFIG_CAT, nameof(SingleDateBaggage), false, "If baggage is active on single dates.");
+        _singleDateBaggage = Config.Bind(GENERAL_CONFIG_CAT, nameof(SingleDateBaggage), true, "If baggage is active on single dates.");
         _requireLoversBeforeThreesome = Config.Bind(GENERAL_CONFIG_CAT, nameof(RequireLoversBeforeThreesome), false, "If both characters must reach lovers on single dates before a threesome can occur.");
         _maxSingleGirlRelationshipLevel = Config.Bind(GENERAL_CONFIG_CAT, nameof(MaxSingleGirlRelationshipLevel), 3, "Maximum relationship level for single dates. Maximum level must be reached for lovers status.");
         _maxSensitivityLevel = Config.Bind(GENERAL_CONFIG_CAT, nameof(MaxSensitivityLevel), 4, "Maximum level for sensitivity.");
@@ -65,11 +66,10 @@ internal partial class Plugin : Hp2BaseModPlugin
 
         SingleDateMeetingCutscene.AddDataMods();
         SingleDateAttractCutscene.AddDataMods();
-        SingleDateAttractNoPhotoCutscene.AddDataMods();
         SingleDatePreSexCutscene.AddDataMods();
         SingleDatePostSexCutscene.AddDataMods();
         SingleDateSuccessCutscene.AddDataMods();
-        SingleDateSuccessNoPhotoCutscene.AddDataMods();
+        BonusRoundSuccessCutscene.AddDataMods();
 
         PhotoDefault.AddDataMods();
         PhotoAbia.AddDataMods();
@@ -106,9 +106,9 @@ internal partial class Plugin : Hp2BaseModPlugin
         ModInterface.Events.LocationArriveSequence += ModEventHandles.On_LocationArriveSequence;
         ModInterface.Events.RandomDollSelected += ModEventHandles.On_RandomDollSelected;
         ModInterface.Events.DateLocationSelected += ModEventHandles.On_DateLocationSelected;
-        ModInterface.Events.SinglePhotoDisplayed += ModEventHandles.On_SinglePhotoDisplayed;
         ModInterface.Events.RequestUnlockedPhotos += ModEventHandles.On_RequestUnlockedPhotos;
         ModInterface.Events.PreDateDollReset += ModEventHandles.On_PreDateDollsRefresh;
+        ModInterface.Events.FavQuestionResponse += ModEventHandles.On_TalkFavQuestionResponse;
 
         new Harmony(MyPluginInfo.PLUGIN_GUID).PatchAll();
     }
@@ -153,6 +153,12 @@ internal partial class Plugin : Hp2BaseModPlugin
     [InteropMethod]
     public static bool IsSexDateValid(RelativeId girlId) => State.SaveFile.GetGirl(girlId).RelationshipLevel >= (MaxSensitivityLevel.Value - 1);
 
+    [InteropMethod]
+    public static IGameDefinitionInfo<CutsceneStepSubDefinition> MakeSexPhotoCutsceneStep() => new ShowSexPhotoCutsceneStep.Info();
+
+    [InteropMethod]
+    public static IGameDefinitionInfo<CutsceneStepSubDefinition> MakeDatePhotoCutsceneStep() => new ShowDatePhotoCutsceneStep.Info();
+
     public static SingleDateGirl GetSingleDateGirl(RelativeId girlId)
             => _instance._singleDateGirls.GetOrNew(girlId);
 
@@ -178,13 +184,9 @@ internal partial class Plugin : Hp2BaseModPlugin
             SexGirlTwo = defaultGirlStyle,
         };
 
-        //pairs
+        // base game girl pairs
         for (int i = 1; i < 13; i++)
         {
-            var girlId = new RelativeId(State.ModId, i);
-            var hasSingleDateGirl = _singleDateGirls.TryGetValue(girlId, out var singleDateGirl);
-            var hasDatePhotos = hasSingleDateGirl && singleDateGirl.DatePhotos.Any();
-
             var mod = new GirlPairDataMod(new RelativeId(State.ModId, i), InsertStyle.replace)
             {
                 GirlDefinitionOneID = GirlNobody.Id,
@@ -197,16 +199,13 @@ internal partial class Plugin : Hp2BaseModPlugin
                 HasMeetingStyleTwo = false,
                 MeetingLocationDefinitionID = new RelativeId(-1, 1 + (i % 8)),
                 SexDayTime = ClockDaytimeType.NIGHT,
-                SexLocationDefinitionID = new RelativeId(-1, 20),//royal suite
+                SexLocationDefinitionID = Locations.RoyalSuite,
                 IntroRelationshipCutsceneDefinitionID = CutsceneIds.Meeting,
-                AttractRelationshipCutsceneDefinitionID = hasDatePhotos
-                    ? CutsceneIds.Attract
-                    : CutsceneIds.AttractNoPhoto,
+                AttractRelationshipCutsceneDefinitionID = CutsceneIds.Attract,
                 PreSexRelationshipCutsceneDefinitionID = CutsceneIds.PreSex,
                 PostSexRelationshipCutsceneDefinitionID = CutsceneIds.PostSex,
-                SuccessCutsceneDefinitionID = hasDatePhotos
-                    ? CutsceneIds.Success
-                    : CutsceneIds.SuccessNoPhoto,
+                SuccessCutsceneDefinitionID = CutsceneIds.Success,
+                BonusSuccessCutsceneDefinitionID = CutsceneIds.BonusSuccess,
                 Styles = defaultPairStyle
             };
 

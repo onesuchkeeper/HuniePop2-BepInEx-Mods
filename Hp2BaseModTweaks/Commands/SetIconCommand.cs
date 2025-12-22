@@ -8,7 +8,7 @@ namespace Hp2BaseModTweaks;
 
 public class SetIconCommand : ICommand
 {
-    private static FieldInfo f_saveDataAccess = AccessTools.Field(typeof(GamePersistence), "_saveData");
+    private static readonly FieldInfo f_saveDataAccess = AccessTools.Field(typeof(GamePersistence), "_saveData");
 
     public string Name => "seticon";
 

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Hp2BaseMod.Extension;
 using Hp2BaseMod.GameDataInfo;
 using UnityEngine;
 
@@ -43,10 +44,7 @@ public class GirlBodySubDefinition : SubDefinition
     /// </summary>
     public float Scale = 1;
 
-    public GirlBodySubDefinition()
-    {
-
-    }
+    public GirlBodySubDefinition() { }
 
     internal GirlBodySubDefinition(GirlDefinition def)
     {
@@ -105,59 +103,39 @@ public class GirlBodySubDefinition : SubDefinition
         def.parts = Parts;
     }
 
-    /// <summary>
-    /// Maps a part id to its index within the def. 
-    /// Use <see cref="GetPart"/> unless you must access the full collection.
-    /// </summary>
-    public Dictionary<RelativeId, int> PartIdToIndex = new()
-    {
-        {RelativeId.Default, -1}
-    };
-
-    /// <summary>
-    /// Maps a part index to its id within the def. 
-    /// Use <see cref="GetPart"/> unless you must access the full collection.
-    /// </summary>
-    public Dictionary<int, RelativeId> PartIndexToId = new()
-    {
-        {-1, RelativeId.Default}
-    };
+    public IdIndexMap PartLookup => _partLookup;
+    private IdIndexMap _partLookup = new();
 
     /// <summary>
     /// Given an id, returns the associated part.
     /// </summary>
     public GirlPartSubDefinition GetPart(RelativeId id)
     {
-        var index = PartIdToIndex[id];
+        var index = _partLookup[id];
 
-        return index == -1
+        return index < 0
             ? null
             : Parts[index];
     }
 
-    /// <summary>
-    /// Maps a hairstyle id to its index within the def. 
-    /// Use <see cref="GetHairstyle"/> unless you must access the full collection.
-    /// </summary>
-    public Dictionary<RelativeId, int> SpecialPartIdToIndex = new()
-    {
-        {RelativeId.Default, -1}
-    };
+    internal GirlPartSubDefinition GetOrNewPart(RelativeId id) => Parts.GetOrNew(_partLookup[id]);
 
-    /// <summary>
-    /// Maps a hairstyle index to its id within the def. 
-    /// Use <see cref="GetHairstyle"/> unless you must access the full collection
-    /// </summary>
-    public Dictionary<int, RelativeId> SpecialPartIndexToId = new()
-    {
-        {-1, RelativeId.Default}
-    };
+    public IdIndexMap SpecialPartLookup => _specialPartLookup;
+    private IdIndexMap _specialPartLookup = new();
 
     /// <summary>
     /// Given an id, returns the associated hairstyle.
     /// </summary>
     public GirlSpecialPartSubDefinition GetSpecialPart(RelativeId id)
-        => SpecialParts[SpecialPartIdToIndex[id]];
+    {
+        var index = _specialPartLookup[id];
+
+        return index < 0
+            ? null
+            : SpecialParts[index];
+    }
+
+    internal GirlSpecialPartSubDefinition GetOrNewSpecialPart(RelativeId id) => SpecialParts.GetOrNew(_specialPartLookup[id]);
 
     /// <summary>
     /// Maps location ids to the default outfit

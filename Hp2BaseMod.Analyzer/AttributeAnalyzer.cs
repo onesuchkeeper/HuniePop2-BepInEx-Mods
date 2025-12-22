@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -7,26 +9,48 @@ namespace Hp2BaseMod.Analyzer
     internal static class AttributeAnalyzer
     {
         private const string InteropMethodAttributeName = "InteropMethodAttribute";
+        private const string InteropMethodShortName = "InteropMethod";
         private const string Hp2BaseModPluginTypeName = "Hp2BaseModPlugin";
 
-        public static void AnalyzeAttributes(
+        public static void AnalyzeAttributesWithCaching(
             SourceProductionContext context,
             Compilation compilation,
-            ImmutableArray<MemberDeclarationSyntax> membersWithAttributes)
+            ImmutableDictionary<SyntaxTree, ImmutableArray<MemberDeclarationSyntax>> membersBySyntaxTree)
         {
-            foreach (var memberSyntax in membersWithAttributes)
+            // Cache semantic models by syntax tree - major performance optimization
+            var semanticModelCache = new Dictionary<SyntaxTree, SemanticModel>(membersBySyntaxTree.Count);
+
+            foreach (var entry in membersBySyntaxTree)
             {
-                var semanticModel = compilation.GetSemanticModel(memberSyntax.SyntaxTree);
-                var memberSymbol = semanticModel.GetDeclaredSymbol(memberSyntax, context.CancellationToken);
-
-                if (memberSymbol == null)
-                    continue;
-
-                // Check for InteropMethodAttribute on methods
-                if (memberSymbol is IMethodSymbol methodSymbol)
+                // Get or create semantic model once per syntax tree
+                if (!semanticModelCache.TryGetValue(entry.Key, out var semanticModel))
                 {
-                    AnalyzeInteropMethodAttribute(context, methodSymbol, memberSyntax);
+                    semanticModel = compilation.GetSemanticModel(entry.Key);
+                    semanticModelCache[entry.Key] = semanticModel;
                 }
+
+                // Process all members in this file with the cached semantic model
+                foreach (var memberSyntax in entry.Value)
+                {
+                    AnalyzeMember(context, memberSyntax, semanticModel);
+                }
+            }
+        }
+
+        private static void AnalyzeMember(
+            SourceProductionContext context,
+            MemberDeclarationSyntax memberSyntax,
+            SemanticModel semanticModel)
+        {
+            var memberSymbol = semanticModel.GetDeclaredSymbol(memberSyntax, context.CancellationToken);
+
+            if (memberSymbol == null)
+                return;
+
+            // Check for InteropMethodAttribute on methods
+            if (memberSymbol is IMethodSymbol methodSymbol)
+            {
+                AnalyzeInteropMethodAttribute(context, methodSymbol, memberSyntax);
             }
         }
 
@@ -35,9 +59,10 @@ namespace Hp2BaseMod.Analyzer
             IMethodSymbol methodSymbol,
             MemberDeclarationSyntax syntax)
         {
-            // Check if method has InteropMethodAttribute
-            var interopMethodAttr = GetAttributeSyntax(methodSymbol, syntax, InteropMethodAttributeName);
-            if (interopMethodAttr == null)
+            // Combined check: find attribute data and syntax in single pass
+            var (hasAttribute, attributeSyntax) = FindInteropMethodAttribute(methodSymbol, syntax);
+
+            if (!hasAttribute || attributeSyntax == null)
                 return;
 
             // Check if containing class inherits from Hp2BaseModPlugin
@@ -51,80 +76,85 @@ namespace Hp2BaseMod.Analyzer
                     defaultSeverity: DiagnosticSeverity.Error,
                     isEnabledByDefault: true);
 
-                var location = GetAttributeLocation(interopMethodAttr);
+                var location = Location.Create(attributeSyntax.SyntaxTree, attributeSyntax.Name.Span);
                 context.ReportDiagnostic(
                     Diagnostic.Create(descriptor, location, methodSymbol.Name));
             }
         }
 
-        private static AttributeSyntax GetAttributeSyntax(ISymbol symbol, MemberDeclarationSyntax syntax, string attributeName)
+        // Optimized: Combined attribute check and syntax lookup in single pass
+        private static (bool hasAttribute, AttributeSyntax attributeSyntax) FindInteropMethodAttribute(
+            ISymbol symbol,
+            MemberDeclarationSyntax syntax)
         {
-            // First check if symbol has the attribute
-            if (!HasAttribute(symbol, attributeName))
-                return null;
-
-            // Find the matching attribute syntax node
-            foreach (var attributeList in syntax.AttributeLists)
-            {
-                foreach (var attribute in attributeList.Attributes)
-                {
-                    var name = attribute.Name.ToString();
-                    var nameWithoutSuffix = name.EndsWith("Attribute")
-                        ? name.Substring(0, name.Length - "Attribute".Length)
-                        : name;
-
-                    var searchNameWithoutSuffix = attributeName.EndsWith("Attribute")
-                        ? attributeName.Substring(0, attributeName.Length - "Attribute".Length)
-                        : attributeName;
-
-                    if (name == attributeName ||
-                        nameWithoutSuffix == searchNameWithoutSuffix ||
-                        name == searchNameWithoutSuffix ||
-                        nameWithoutSuffix == attributeName)
-                    {
-                        return attribute;
-                    }
-                }
-            }
-
-            return null;
-        }
-
-        private static Location GetAttributeLocation(AttributeSyntax attribute)
-        {
-            return Location.Create(attribute.SyntaxTree, attribute.Name.Span);
-        }
-
-        private static bool HasAttribute(ISymbol symbol, string attributeName)
-        {
-            var attributes = symbol.GetAttributes();
-            foreach (var attr in attributes)
+            // First check symbol attributes
+            var hasAttr = false;
+            foreach (var attr in symbol.GetAttributes())
             {
                 if (attr.AttributeClass == null)
                     continue;
 
-                var name = attr.AttributeClass.Name;
-                var fullName = attr.AttributeClass.ToDisplayString();
-
-                var nameWithoutSuffix = name.EndsWith("Attribute")
-                    ? name.Substring(0, name.Length - "Attribute".Length)
-                    : name;
-
-                var searchNameWithoutSuffix = attributeName.EndsWith("Attribute")
-                    ? attributeName.Substring(0, attributeName.Length - "Attribute".Length)
-                    : attributeName;
-
-                // Check both simple name and full name
-                if (name == attributeName ||
-                    nameWithoutSuffix == searchNameWithoutSuffix ||
-                    name == searchNameWithoutSuffix ||
-                    nameWithoutSuffix == attributeName ||
-                    fullName.EndsWith(attributeName) ||
-                    fullName.EndsWith(searchNameWithoutSuffix))
+                if (IsInteropMethodAttribute(attr.AttributeClass))
                 {
-                    return true;
+                    hasAttr = true;
+                    break;
                 }
             }
+
+            if (!hasAttr)
+                return (false, null);
+
+            // Find matching syntax node
+            foreach (var attributeList in syntax.AttributeLists)
+            {
+                foreach (var attribute in attributeList.Attributes)
+                {
+                    if (IsInteropMethodAttributeSyntax(attribute.Name))
+                        return (true, attribute);
+                }
+            }
+
+            return (false, null);
+        }
+
+        // Optimized: Fast-path string comparisons with early exits
+        private static bool IsInteropMethodAttribute(INamedTypeSymbol attributeClass)
+        {
+            var name = attributeClass.Name;
+
+            // Fast path: exact matches
+            if (name == InteropMethodAttributeName || name == InteropMethodShortName)
+                return true;
+
+            // Check with "Attribute" suffix stripped
+            if (name.Length > 9 && name.EndsWith("Attribute", StringComparison.Ordinal))
+            {
+                var nameWithoutSuffix = name.Substring(0, name.Length - 9);
+                if (nameWithoutSuffix == InteropMethodShortName)
+                    return true;
+            }
+
+            // Check full name
+            var fullName = attributeClass.ToDisplayString();
+            return fullName.EndsWith(InteropMethodAttributeName, StringComparison.Ordinal) ||
+                   fullName.EndsWith(InteropMethodShortName, StringComparison.Ordinal);
+        }
+
+        private static bool IsInteropMethodAttributeSyntax(NameSyntax nameSyntax)
+        {
+            var name = nameSyntax.ToString();
+
+            // Fast path: exact matches
+            if (name == InteropMethodAttributeName || name == InteropMethodShortName)
+                return true;
+
+            // Check with "Attribute" suffix stripped
+            if (name.Length > 9 && name.EndsWith("Attribute", StringComparison.Ordinal))
+            {
+                var nameWithoutSuffix = name.Substring(0, name.Length - 9);
+                return nameWithoutSuffix == InteropMethodShortName;
+            }
+
             return false;
         }
 

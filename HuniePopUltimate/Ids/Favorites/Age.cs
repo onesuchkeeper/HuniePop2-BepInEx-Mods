@@ -20,7 +20,7 @@ public static class Age
 
     public static void AddDataMods()
     {
-        ModInterface.AddDataMod(new QuestionDataMod(Questions.Age, Hp2BaseMod.Utility.InsertStyle.append)
+        ModInterface.AddDataMod(new FavQuestionDataMod(Questions.Age, Hp2BaseMod.Utility.InsertStyle.append)
         {
             QuestionName = "Age",
             QuestionText = "How [[highlight]old are you]?",

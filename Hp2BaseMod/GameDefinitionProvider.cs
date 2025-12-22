@@ -1,7 +1,9 @@
 ﻿// Hp2BaseMod 2021, By OneSuchKeeper
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using Hp2BaseMod.GameDataInfo;
 
 namespace Hp2BaseMod
 {
@@ -11,6 +13,8 @@ namespace Hp2BaseMod
     public class GameDefinitionProvider
     {
         private GameData _gameData;
+
+        internal Dictionary<RelativeId, UiDollSpecialEffect> _specialEffects = new();
 
         /// <summary>
         /// Constructor
@@ -116,6 +120,8 @@ namespace Hp2BaseMod
         public QuestionDefinition GetQuestion(int runtimeId) => _gameData.Questions.Get(runtimeId);
         public TokenDefinition GetToken(RelativeId id) => _gameData.Tokens.Get(ModInterface.Data.GetRuntimeDataId(GameDataType.Token, id));
         public TokenDefinition GetToken(RelativeId? id) => id.HasValue ? _gameData.Tokens.Get(ModInterface.Data.GetRuntimeDataId(GameDataType.Token, id.Value)) : null;
+        public UiDollSpecialEffect GetSpecialEffect(RelativeId id) => _specialEffects.TryGetValue(id, out var value) ? value : null;
+        public UiDollSpecialEffect GetSpecialEffect(RelativeId? id) => id.HasValue ? GetSpecialEffect(id.Value) : null;
 
         /// <summary>
         /// Checks if the code is unlocked

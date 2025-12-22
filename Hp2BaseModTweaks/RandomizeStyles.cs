@@ -31,13 +31,13 @@ public static class RandomizeStyles
 
     private static void RandomizeStyle(ExpandedGirlDefinition girlExpansion, PlayerFileGirl playerFileGirl, bool unpaired, bool nsfw, out GirlStyleInfo style)
     {
-        ICollection<RelativeId> hairstyles;
-        ICollection<RelativeId> outfits;
+        IEnumerable<RelativeId> hairstyles;
+        IEnumerable<RelativeId> outfits;
 
         if (playerFileGirl == null)
         {
-            outfits = girlExpansion.OutfitIdToIndex.Keys;
-            hairstyles = girlExpansion.HairstyleIdToIndex.Keys;
+            outfits = girlExpansion.OutfitLookup.Ids;
+            hairstyles = girlExpansion.HairstyleLookup.Ids;
         }
         else
         {
@@ -48,7 +48,7 @@ public static class RandomizeStyles
 
             foreach (var index in playerFileGirl.unlockedOutfits)
             {
-                if (girlExpansion.OutfitIndexToId.TryGetValue(index, out var id))
+                if (girlExpansion.OutfitLookup.TryGetId(index, out var id))
                 {
                     outfitPool.Add(id);
                 }
@@ -56,7 +56,7 @@ public static class RandomizeStyles
 
             foreach (var index in playerFileGirl.unlockedHairstyles)
             {
-                if (girlExpansion.HairstyleIndexToId.TryGetValue(index, out var id))
+                if (girlExpansion.HairstyleLookup.TryGetId(index, out var id))
                 {
                     hairstylePool.Add(id);
                 }
@@ -87,7 +87,7 @@ public static class RandomizeStyles
         RelativeId hairStyleId;
         if (!unpaired && selectedOutfit.pairHairstyleIndex != -1)
         {
-            hairStyleId = girlExpansion.HairstyleIndexToId[selectedOutfit.pairHairstyleIndex];
+            hairStyleId = girlExpansion.HairstyleLookup[selectedOutfit.pairHairstyleIndex];
         }
         else
         {

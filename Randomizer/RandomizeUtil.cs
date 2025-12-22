@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using HarmonyLib;
 using Hp2BaseMod;
 using Hp2BaseMod.Extension;
 
@@ -8,6 +10,13 @@ namespace Hp2Randomizer;
 
 public static class RandomizeUtil
 {
+    private static readonly FieldInfo f_hairstyleLookup = AccessTools.Field(typeof(ExpandedGirlDefinition), "_hairstyleLookup");
+    private static readonly FieldInfo f_outfitLookup = AccessTools.Field(typeof(ExpandedGirlDefinition), "_outfitLookup");
+    private static readonly FieldInfo f_expressionLookup = AccessTools.Field(typeof(ExpandedGirlDefinition), "_expressionLookup");
+    private static readonly FieldInfo f_herQuestionIdToIndex = AccessTools.Field(typeof(ExpandedGirlDefinition), "_herQuestionIdToIndex");
+    private static readonly FieldInfo f_herQuestionGoodResponseIdToIndex = AccessTools.Field(typeof(ExpandedGirlDefinition), "_herQuestionGoodResponseIdToIndex");
+    private static readonly FieldInfo f_herQuestionBadResponseIdToIndex = AccessTools.Field(typeof(ExpandedGirlDefinition), "_herQuestionBadResponseIdToIndex");
+
     /// <summary>
     /// if randomization has made a girl's saved outfit invalid, sets it to the default
     /// </summary>
@@ -191,31 +200,26 @@ public static class RandomizeUtil
             var specialGirlExpanded = specialGirl.Expansion();
             var targetGirlExpanded = targetGirl.Expansion();
 
-            //hairstyle
-            Swap(ref specialGirlExpanded.HairstyleIndexToId, ref targetGirlExpanded.HairstyleIndexToId);
-            Swap(ref specialGirlExpanded.HairstyleIdToIndex, ref targetGirlExpanded.HairstyleIdToIndex);
+            // TODO these need real logic, only swap things that both have valid values, otherwise we need to copy
+            SwapField(f_hairstyleLookup, specialGirlExpanded, targetGirlExpanded);
+            SwapField(f_outfitLookup, specialGirlExpanded, targetGirlExpanded);
+            SwapField(f_expressionLookup, specialGirlExpanded, targetGirlExpanded);
+            SwapField(f_herQuestionIdToIndex, specialGirlExpanded, targetGirlExpanded);
+            SwapField(f_herQuestionGoodResponseIdToIndex, specialGirlExpanded, targetGirlExpanded);
+            SwapField(f_herQuestionBadResponseIdToIndex, specialGirlExpanded, targetGirlExpanded);
 
-            //outfit
-            Swap(ref specialGirlExpanded.OutfitIndexToId, ref targetGirlExpanded.OutfitIndexToId);
-            Swap(ref specialGirlExpanded.OutfitIdToIndex, ref targetGirlExpanded.OutfitIdToIndex);
-
-            //expressions
-            Swap(ref specialGirlExpanded.ExpressionIndexToId, ref targetGirlExpanded.ExpressionIndexToId);
-            Swap(ref specialGirlExpanded.ExpressionIdToIndex, ref targetGirlExpanded.ExpressionIdToIndex);
-
-            //others
-            Swap(ref specialGirlExpanded.Bodies, ref targetGirlExpanded.Bodies);
-            Swap(ref specialGirl.cellphoneHead, ref targetGirl.cellphoneHead);
-            Swap(ref specialGirl.cellphoneHeadAlt, ref targetGirl.cellphoneHeadAlt);
-            Swap(ref specialGirl.cellphoneMiniHead, ref targetGirl.cellphoneMiniHead);
-            Swap(ref specialGirl.cellphoneMiniHeadAlt, ref targetGirl.cellphoneMiniHeadAlt);
-            Swap(ref specialGirl.cellphonePortrait, ref targetGirl.cellphonePortrait);
-            Swap(ref specialGirl.cellphonePortraitAlt, ref targetGirl.cellphonePortraitAlt);
-            Swap(ref specialGirl.hasAltStyles, ref targetGirl.hasAltStyles);
-            Swap(ref specialGirl.altStylesFlagName, ref targetGirl.altStylesFlagName);
-            Swap(ref specialGirl.altStylesCodeDefinition, ref targetGirl.altStylesCodeDefinition);
-            Swap(ref specialGirl.unlockStyleCodeDefinition, ref targetGirl.unlockStyleCodeDefinition);
-            Swap(ref specialGirlExpanded.FavQuestionIdToAnswerId, ref targetGirlExpanded.FavQuestionIdToAnswerId);
+            SwapRef(ref specialGirlExpanded.Bodies, ref targetGirlExpanded.Bodies);
+            SwapRef(ref specialGirl.cellphoneHead, ref targetGirl.cellphoneHead);
+            SwapRef(ref specialGirl.cellphoneHeadAlt, ref targetGirl.cellphoneHeadAlt);
+            SwapRef(ref specialGirl.cellphoneMiniHead, ref targetGirl.cellphoneMiniHead);
+            SwapRef(ref specialGirl.cellphoneMiniHeadAlt, ref targetGirl.cellphoneMiniHeadAlt);
+            SwapRef(ref specialGirl.cellphonePortrait, ref targetGirl.cellphonePortrait);
+            SwapRef(ref specialGirl.cellphonePortraitAlt, ref targetGirl.cellphonePortraitAlt);
+            SwapVal(ref specialGirl.hasAltStyles, ref targetGirl.hasAltStyles);
+            SwapRef(ref specialGirl.altStylesFlagName, ref targetGirl.altStylesFlagName);
+            SwapRef(ref specialGirl.altStylesCodeDefinition, ref targetGirl.altStylesCodeDefinition);
+            SwapRef(ref specialGirl.unlockStyleCodeDefinition, ref targetGirl.unlockStyleCodeDefinition);
+            SwapRef(ref specialGirlExpanded.FavQuestionIdToAnswerId, ref targetGirlExpanded.FavQuestionIdToAnswerId);
         }
 
         var handledCutscenes = new HashSet<CutsceneDefinition>();
@@ -396,10 +400,13 @@ public static class RandomizeUtil
 
     private static bool SwapNymphojinn(GirlDefinition nymphojinnDef, GirlDefinition otherGirlDef, bool keepSwappedWings)
     {
-        var nymphoExpansion = nymphojinnDef.Expansion();
-        var otherGirlExpansion = otherGirlDef.Expansion();
+        var nymphojinnId = ModInterface.Data.GetDataId(GameDataType.Girl, nymphojinnDef.id);
+        var otherId = ModInterface.Data.GetDataId(GameDataType.Girl, otherGirlDef.id);
 
-        //find the neutral glowing eyes to use for expressions that don't have glowing eyes
+        var nymphoExpansion = ExpandedGirlDefinition.Get(nymphojinnId);
+        var otherGirlExpansion = ExpandedGirlDefinition.Get(otherId);
+
+        // find the neutral glowing eyes to use for expressions that don't have glowing eyes
         foreach (var body in otherGirlExpansion.Bodies.Values)
         {
             body.SpecialEffectPrefab = nymphojinnDef.specialEffectPrefab;
@@ -431,26 +438,20 @@ public static class RandomizeUtil
             }
         }
 
-        foreach (var dt in Game.Data.DialogTriggers.GetAll())
-        {
-            var kyuLines = dt.dialogLineSets[nymphoExpansion.DialogTriggerIndex];
-            if (kyuLines.dialogLines.Count != 0)
-            {
-                dt.dialogLineSets[nymphoExpansion.DialogTriggerIndex] = dt.dialogLineSets[otherGirlExpansion.DialogTriggerIndex];
-                dt.dialogLineSets[otherGirlExpansion.DialogTriggerIndex] = kyuLines;
-            }
-        }
-
         nymphojinnDef.defaultHairstyleIndex = 0;
         nymphojinnDef.defaultOutfitIndex = 0;
 
-        HandleSpecialCharDtSwap(nymphojinnDef.Expansion(), otherGirlDef.Expansion());
+        HandleSpecialCharDtSwap(ExpandedGirlDefinition.DialogTriggerIndexes[nymphojinnId], ExpandedGirlDefinition.DialogTriggerIndexes[otherId]);
+        HandleSpecialCharFavQuestionSwap(nymphoExpansion, otherGirlExpansion);
 
         return true;
     }
 
     private static bool SwapKyu(GirlDefinition kyuDef, GirlDefinition otherGirlDef, bool keepSwappedWings)
     {
+        var kyuId = ModInterface.Data.GetDataId(GameDataType.Girl, kyuDef.id);
+        var otherId = ModInterface.Data.GetDataId(GameDataType.Girl, otherGirlDef.id);
+
         kyuDef.defaultHairstyleIndex = 1;
         kyuDef.defaultOutfitIndex = 1;
 
@@ -462,35 +463,83 @@ public static class RandomizeUtil
             }
         }
 
-        HandleSpecialCharDtSwap(kyuDef.Expansion(), otherGirlDef.Expansion());
+        HandleSpecialCharDtSwap(ExpandedGirlDefinition.DialogTriggerIndexes[kyuId], ExpandedGirlDefinition.DialogTriggerIndexes[otherId]);
+        HandleSpecialCharFavQuestionSwap(ExpandedGirlDefinition.Get(kyuId), ExpandedGirlDefinition.Get(otherId));
         return true;
     }
 
-    public static void HandleSpecialCharDtSwap(ExpandedGirlDefinition special, ExpandedGirlDefinition other)
+    // copy the other girls favorites if special doesn't have their own
+    public static void HandleSpecialCharFavQuestionSwap(ExpandedGirlDefinition special, ExpandedGirlDefinition other)
+    {
+        //swap one or the other, no need to do both
+        if (!(special.FavQuestionIdToAnswerId?.Any() ?? false))
+        {
+            special.FavQuestionIdToAnswerId = new Dictionary<RelativeId, RelativeId>(other.FavQuestionIdToAnswerId);
+        }
+        else if (!(other.FavQuestionIdToAnswerId?.Any() ?? false))
+        {
+            other.FavQuestionIdToAnswerId = new Dictionary<RelativeId, RelativeId>(special.FavQuestionIdToAnswerId);
+        }
+    }
+
+    // copy the other girl's dts if special doesn't have their own
+    // we don't want to just swap dt's so we can preserve as much
+    // of their unique dialog as we can
+    public static void HandleSpecialCharDtSwap(int specialDtIndex, int otherDtIndex)
     {
         foreach (var dt in Game.Data.DialogTriggers.GetAll())
         {
-            var specialLines = dt.dialogLineSets[special.DialogTriggerIndex];
+            // // if both are outside the range, skip em
+            // if (specialDtIndex >= dt.dialogLineSets.Count
+            //     && otherDtIndex >= dt.dialogLineSets.Count)
+            // {
+            //     continue;
+            // }
 
+            // otherwise swap
+            var specialLines = dt.dialogLineSets.GetOrNew(specialDtIndex);
+            var otherLines = dt.dialogLineSets.GetOrNew(otherDtIndex);
+
+            //this doesn't work
+            //maybe we say just literally swap em all?
+            //but then other stuff won't work...
+
+            // only apply dts that aren't empty, otherwise they get assigned
+            // that way the most data is set
             if (specialLines.dialogLines.Count != 0)
             {
-                var otherLines = dt.dialogLineSets[other.DialogTriggerIndex];
+                dt.dialogLineSets[otherDtIndex] = specialLines;
+            }
 
-                if (otherLines.dialogLines.Count != 0)
-                {
-                    dt.dialogLineSets[special.DialogTriggerIndex] = otherLines;
-                }
-
-                dt.dialogLineSets[other.DialogTriggerIndex] = specialLines;
+            if (otherLines.dialogLines.Count != 0)
+            {
+                dt.dialogLineSets[specialDtIndex] = otherLines;
             }
         }
     }
 
-    private static void Swap<T>(ref T a, ref T b)
+    private static void SwapVal<T>(ref T a, ref T b)
+        where T : struct
     {
         var hold = a;
         a = b;
         b = hold;
     }
 
+    private static void SwapRef<T>(ref T a, ref T b)
+        where T : class
+    {
+        var hold = a;
+        if (b != null) a = b;
+        if (hold != null) b = hold;
+    }
+
+    private static void SwapField(FieldInfo fieldInfo, object a, object b)
+    {
+        var aValue = fieldInfo.GetValue(a);
+        var bValue = fieldInfo.GetValue(b);
+
+        if (aValue != null) fieldInfo.SetValue(b, aValue);
+        if (bValue != null) fieldInfo.SetValue(a, bValue);
+    }
 }

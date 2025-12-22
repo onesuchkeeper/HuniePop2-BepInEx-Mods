@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Hp2BaseMod.Extension;
 
-public static partial class IListExtension
+public static partial class IList_Ext
 {
     public static T GetRandom<T>(this IList<T> source)
         => source[UnityEngine.Random.Range(0, source.Count)];

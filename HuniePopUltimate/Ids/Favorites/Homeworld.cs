@@ -13,7 +13,7 @@ public static class Homeworld
 
     public static void AddDataMods()
     {
-        ModInterface.AddDataMod(new QuestionDataMod(Questions.HomeWorld, Hp2BaseMod.Utility.InsertStyle.append)
+        ModInterface.AddDataMod(new FavQuestionDataMod(Questions.HomeWorld, Hp2BaseMod.Utility.InsertStyle.append)
         {
             QuestionName = "Homeworld",
             QuestionText = "Where [[highlight]are you from]?",

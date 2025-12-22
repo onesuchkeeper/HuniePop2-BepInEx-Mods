@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using HarmonyLib;
@@ -51,6 +52,11 @@ class UiDoll_ChangeStyle
 
         return false;
     }
+
+    [HarmonyPatch(nameof(UiDoll.ReadDialogTrigger))]
+    [HarmonyPrefix()]
+    public static void ReadDialogTrigger(UiDoll __instance, DialogTriggerDefinition dialogTriggerDef, DialogLineFormat format, ref int lineIndex)
+        => ExpandedUiDoll.Get(__instance).ReadDialogTrigger(dialogTriggerDef, ref lineIndex);
 }
 
 /// <summary>
@@ -193,7 +199,7 @@ public class ExpandedUiDoll
     /// </summary>
     public void PostChangeOutfit()
     {
-        RefreshSpecialParts(_core.girlDefinition.Expansion().HairstyleIndexToId[_core.currentHairstyleIndex]);
+        RefreshSpecialParts(_core.girlDefinition.Expansion().HairstyleLookup[_core.currentHairstyleIndex]);
     }
 
     public bool ChangeHairstyle(int hairstyleIndex)
@@ -242,7 +248,7 @@ public class ExpandedUiDoll
             var newParts = new List<UiDollPartSpecial>(_core.partSpecials);
             var sample = _core.partSpecials[0];
 
-            for (int i = _core.girlDefinition.specialParts.Count - _core.partSpecials.Length; i < 0; i--)
+            for (int i = _core.girlDefinition.specialParts.Count - _core.partSpecials.Length; i > 0; i--)
             {
                 newParts.Add(GameObject.Instantiate(sample));
             }
@@ -250,7 +256,7 @@ public class ExpandedUiDoll
             _core.partSpecials = newParts.ToArray();
         }
 
-        var hairId = _core.girlDefinition.Expansion().HairstyleIndexToId[_core.currentHairstyleIndex];
+        var hairId = _core.girlDefinition.Expansion().HairstyleLookup[_core.currentHairstyleIndex];
 
         RefreshSpecialParts(hairId);
 
@@ -305,5 +311,25 @@ public class ExpandedUiDoll
         }
 
         _expansions.Remove(_core);
+    }
+
+    internal void ReadDialogTrigger(DialogTriggerDefinition dialogTriggerDef, ref int lineIndex)
+    {
+        // when no index is specified, pick a random one that isn't null
+        if (!dialogTriggerDef.Expansion()
+            .TryGetLineSet(dialogTriggerDef, ModInterface.Data.GetDataId(GameDataType.Girl, _core.girlDefinition.id), out var lineSet))
+        {
+            throw new Exception("Failed to find dt line set");
+        }
+
+        if (lineIndex > -1
+            && lineSet.dialogLines.Count > lineIndex
+            && lineSet.dialogLines[lineIndex] != null)
+        {
+            return;
+        }
+
+        var i = 0;
+        lineIndex = lineSet.dialogLines.Select(line => (line, i++)).Where(x => x.line != null).ToArray().GetRandom().Item2;
     }
 }

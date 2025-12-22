@@ -19,17 +19,20 @@ public partial class HpExtraction : BaseExtraction
     public static readonly string _dataDir = "HuniePop_Data";
     public static readonly string _assemblyDir = Path.Combine(_dataDir, "Managed");
 
+    public IReadOnlyDictionary<RelativeId, SingleDatePairData> SingleDatePairData => _singleDatePairData;
+    private Dictionary<RelativeId, SingleDatePairData> _singleDatePairData = new();
 
     private Dictionary<SerializedFile, Dictionary<UnityAssetPath, TextureInfoRaw>> _textureInfo = new();
     private Dictionary<SerializedFile, Dictionary<UnityAssetPath, AudioClipInfoVorbisLazy>> _audioInfo = new();
-    //private Dictionary<SerializedFile, Dictionary<UnityAssetPath, OrderedDictionary>> _cutscenes = new();
     private Dictionary<int, GirlDataMod> _hpGirlIdToMod = new();
+
     private Dictionary<UnityAssetPath, PuzzleAffectionType> _affectionTypes = new(){
         {new UnityAssetPath(){ FileId = 0, PathId = 9371}, PuzzleAffectionType.TALENT},
         {new UnityAssetPath(){ FileId = 0, PathId = 9370}, PuzzleAffectionType.SEXUALITY},
         {new UnityAssetPath(){ FileId = 0, PathId = 9368}, PuzzleAffectionType.ROMANCE},
         {new UnityAssetPath(){ FileId = 0, PathId = 9366}, PuzzleAffectionType.FLIRTATION},
     };
+
     private GirlDataMod GetGirlMod(int nativeId)
     {
         if (!_hpGirlIdToMod.TryGetValue(nativeId, out var girlMod))
@@ -152,10 +155,14 @@ public partial class HpExtraction : BaseExtraction
             {
                 using (ModInterface.Log.MakeIndent(keys.Current.ToString()))
                 {
+                    int i = 0;
                     foreach (var entry in list)
                     {
-                        if (entry is OrderedDictionary orderedDict) LogAll(orderedDict);
-                        else ModInterface.Log.Message($"{vals.Current?.ToString() ?? "null"}");
+                        using (ModInterface.Log.MakeIndent($"{i++}"))
+                        {
+                            if (entry is OrderedDictionary orderedDict) LogAll(orderedDict);
+                            else ModInterface.Log.Message($"{vals.Current?.ToString() ?? "null"}");
+                        }
                     }
                 }
             }
@@ -193,6 +200,7 @@ public partial class HpExtraction : BaseExtraction
             return;
         }
 
+        var id = Girls.FromHp1Id(nativeId);
         var girlMod = GetGirlMod(nativeId);
 
         switch (nativeId)
@@ -236,10 +244,28 @@ public partial class HpExtraction : BaseExtraction
         using (ModInterface.Log.MakeIndent("talkQueries"))
         {
             ExtractQueries(Girls.FromHp1Id(nativeId), girlDef, file, girlMod.FavoriteDialogLines);
-            foreach (var foo in girlMod.FavoriteDialogLines.Keys)
+        }
+
+        girlMod.HerQuestions = new();
+        using (ModInterface.Log.MakeIndent("HerQuestions"))
+        {
+            ExtractQuestions(girlDef, file, girlMod.HerQuestions);
+        }
+
+        using (ModInterface.Log.MakeIndent("Intro Scene"))
+        {
+            var pair = _singleDatePairData.GetOrNew(id);
+
+            using (ModInterface.Log.MakeIndent("intro loc"))
             {
-                ModInterface.Log.Message(foo.ToString());
+                if (girlDef.TryGetValue("introLocation", out OrderedDictionary introLocation)
+                    && UnityAssetPath.TryExtract(introLocation, out var introLocationPath))
+                {
+                    pair.MeetingLocation = LocationIds.FromUnityPath(introLocationPath);
+                }
             }
+
+            ExtractIntroCutscene(id, girlDef, file, pair);
         }
 
         using (ModInterface.Log.MakeIndent("body"))
@@ -281,8 +307,8 @@ public partial class HpExtraction : BaseExtraction
                 }
 
                 //pieces
-                var outfitCount = 0;
-                var hairstyleCount = 0;
+                var outfitSequence = StyleSequence.GetEnumerator();
+                var hairstyleSequence = StyleSequence.GetEnumerator();
                 if (girlDef.TryGetValue("pieces", out List<object> pieces))
                 {
                     var piecesLookup = pieces.OfType<OrderedDictionary>().ToArray();
@@ -302,9 +328,8 @@ public partial class HpExtraction : BaseExtraction
                                 && TryMakePartDataMod(GirlPartType.OUTFIT, outfitPartDef, spriteLookup, spriteTextureInfo,
                                     out var outfitPart, out var outfitSpriteInfo))
                             {
-                                ModInterface.Log.Message($"Outfit {outfitName} - {outfitCount}");
-
-                                body.outfits.Add(new OutfitDataMod(new RelativeId(Plugin.ModId, outfitCount++), InsertStyle.append)
+                                outfitSequence.MoveNext();
+                                body.outfits.Add(new OutfitDataMod(outfitSequence.Current, InsertStyle.append)
                                 {
                                     Name = outfitName,
                                     OutfitPart = outfitPart,
@@ -333,7 +358,8 @@ public partial class HpExtraction : BaseExtraction
                                 && art[0] is OrderedDictionary frontPartDef
                                 && TryMakePartDataMod(GirlPartType.FRONTHAIR, frontPartDef, spriteLookup, spriteTextureInfo, out var frontPart, out var frontSpriteInfo))
                             {
-                                var hairstyleMod = new HairstyleDataMod(new RelativeId(Plugin.ModId, hairstyleCount++), InsertStyle.append)
+                                hairstyleSequence.MoveNext();
+                                var hairstyleMod = new HairstyleDataMod(hairstyleSequence.Current, InsertStyle.append)
                                 {
                                     Name = hairName,
                                     FrontHairPart = frontPart,
@@ -643,7 +669,8 @@ public partial class HpExtraction : BaseExtraction
                     //pre render the sprite so that we can make the sprite sheets readonly after
                     ((SpriteInfoTexture)underwearPart.SpriteInfo).GetSprite();
 
-                    body.outfits.Add(new OutfitDataMod(new RelativeId(Plugin.ModId, outfitCount++), InsertStyle.append)
+                    outfitSequence.MoveNext();
+                    body.outfits.Add(new OutfitDataMod(outfitSequence.Current, InsertStyle.append)
                     {
                         Name = GetUnderwearName(nativeId),
                         OutfitPart = underwearPart,
@@ -653,7 +680,8 @@ public partial class HpExtraction : BaseExtraction
                         HideNipples = true,
                     });
 
-                    body.outfits.Add(new OutfitDataMod(new RelativeId(Plugin.ModId, outfitCount++), InsertStyle.append)
+                    outfitSequence.MoveNext();
+                    body.outfits.Add(new OutfitDataMod(outfitSequence.Current, InsertStyle.append)
                     {
                         Name = "Topless",
                         OutfitPart = pantiesPartMod,
@@ -667,6 +695,7 @@ public partial class HpExtraction : BaseExtraction
                 //nude
                 if (_nudeOutfitPart != null)
                 {
+                    outfitSequence.MoveNext();
                     body.outfits.Add(new OutfitDataMod(_nudeOutfitPart.Id, InsertStyle.append)
                     {
                         Name = "Nude",

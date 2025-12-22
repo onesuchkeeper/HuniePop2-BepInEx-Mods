@@ -17,7 +17,7 @@ public static class Height
 
     public static void AddDataMods()
     {
-        ModInterface.AddDataMod(new QuestionDataMod(Questions.Height, Hp2BaseMod.Utility.InsertStyle.append)
+        ModInterface.AddDataMod(new FavQuestionDataMod(Questions.Height, Hp2BaseMod.Utility.InsertStyle.append)
         {
             QuestionName = "Height",
             QuestionText = "How [[highlight]tall are you]?",

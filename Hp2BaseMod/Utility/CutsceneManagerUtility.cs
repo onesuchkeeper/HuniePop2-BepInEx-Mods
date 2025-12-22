@@ -9,22 +9,22 @@ namespace Hp2BaseMod.Utility;
 
 public static class CutsceneManagerUtility
 {
-    private static FieldInfo f_specialStep = AccessTools.Field(typeof(CutsceneManager), "_specialStep");
-    private static FieldInfo f_bannerText = AccessTools.Field(typeof(CutsceneManager), "_bannerText");
-    private static FieldInfo f_innerCutsceneDefinition = AccessTools.Field(typeof(CutsceneManager), "_innerCutsceneDefinition");
-    private static FieldInfo f_emitterBehavior = AccessTools.Field(typeof(CutsceneManager), "_emitterBehavior");
-    private static FieldInfo f_targetDoll = AccessTools.Field(typeof(CutsceneManager), "_targetDoll");
-    private static FieldInfo f_isWaiting = AccessTools.Field(typeof(CutsceneManager), "_isWaiting");
-    private static FieldInfo f_waitDuration = AccessTools.Field(typeof(CutsceneManager), "_waitDuration");
-    private static FieldInfo f_waitTimestamp = AccessTools.Field(typeof(CutsceneManager), "_waitTimestamp");
-    private static FieldInfo f_isOnStandby = AccessTools.Field(typeof(CutsceneManager), "_isOnStandby");
-    private static FieldInfo f_standbyProceed = AccessTools.Field(typeof(CutsceneManager), "_standbyProceed");
-    private static FieldInfo f_checkStepProceed = AccessTools.Field(typeof(CutsceneManager), "_checkStepProceed");
-    private static FieldInfo f_audioLink = AccessTools.Field(typeof(CutsceneManager), "_audioLink");
-    private static FieldInfo f_currentStep = AccessTools.Field(typeof(CutsceneManager), "_currentStep");
-    private static FieldInfo f_branchStepIndices = AccessTools.Field(typeof(CutsceneManager), "_branchStepIndices");
-    private static FieldInfo f_branches = AccessTools.Field(typeof(CutsceneManager), "_branches");
-    private static MethodInfo m_nextStep = AccessTools.Method(typeof(CutsceneManager), "NextStep");
+    private static readonly FieldInfo f_specialStep = AccessTools.Field(typeof(CutsceneManager), "_specialStep");
+    private static readonly FieldInfo f_bannerText = AccessTools.Field(typeof(CutsceneManager), "_bannerText");
+    private static readonly FieldInfo f_innerCutsceneDefinition = AccessTools.Field(typeof(CutsceneManager), "_innerCutsceneDefinition");
+    private static readonly FieldInfo f_emitterBehavior = AccessTools.Field(typeof(CutsceneManager), "_emitterBehavior");
+    private static readonly FieldInfo f_targetDoll = AccessTools.Field(typeof(CutsceneManager), "_targetDoll");
+    private static readonly FieldInfo f_isWaiting = AccessTools.Field(typeof(CutsceneManager), "_isWaiting");
+    private static readonly FieldInfo f_waitDuration = AccessTools.Field(typeof(CutsceneManager), "_waitDuration");
+    private static readonly FieldInfo f_waitTimestamp = AccessTools.Field(typeof(CutsceneManager), "_waitTimestamp");
+    private static readonly FieldInfo f_isOnStandby = AccessTools.Field(typeof(CutsceneManager), "_isOnStandby");
+    private static readonly FieldInfo f_standbyProceed = AccessTools.Field(typeof(CutsceneManager), "_standbyProceed");
+    private static readonly FieldInfo f_checkStepProceed = AccessTools.Field(typeof(CutsceneManager), "_checkStepProceed");
+    private static readonly FieldInfo f_audioLink = AccessTools.Field(typeof(CutsceneManager), "_audioLink");
+    private static readonly FieldInfo f_currentStep = AccessTools.Field(typeof(CutsceneManager), "_currentStep");
+    private static readonly FieldInfo f_branchStepIndices = AccessTools.Field(typeof(CutsceneManager), "_branchStepIndices");
+    private static readonly FieldInfo f_branches = AccessTools.Field(typeof(CutsceneManager), "_branches");
+    private static readonly MethodInfo m_nextStep = AccessTools.Method(typeof(CutsceneManager), "NextStep");
 
     /// <summary>
     /// Handles the function of CutsceneManager.NextStep() 
@@ -46,8 +46,8 @@ public static class CutsceneManagerUtility
     {
         var _cutsceneManager = Game.Session.Cutscenes;
 
-        bool flag = false;//isBannerTextNull
-        bool flag2 = false;//window
+        var isBannerTextNull = false;
+        var windowShown = false;
 
         switch (currentStep.stepType)
         {
@@ -245,7 +245,7 @@ public static class CutsceneManagerUtility
                     }
                     else
                     {
-                        flag = true;
+                        isBannerTextNull = true;
                     }
                 }
                 else if (bannerText != null)
@@ -254,7 +254,7 @@ public static class CutsceneManagerUtility
                 }
                 else
                 {
-                    flag = true;
+                    isBannerTextNull = true;
                 }
                 break;
             case CutsceneStepType.PUZZLE_REFOCUS:
@@ -316,7 +316,7 @@ public static class CutsceneManagerUtility
                 else if (!Game.Manager.Windows.IsWindowActive(null, true, true))
                 {
                     Game.Manager.Windows.ShowWindow(currentStep.windowPrefab, false);
-                    flag2 = true;
+                    windowShown = true;
                 }
                 else
                 {
@@ -375,7 +375,7 @@ public static class CutsceneManagerUtility
                 }
         }
 
-        if (flag)
+        if (isBannerTextNull)
         {
             m_nextStep.Invoke(_cutsceneManager, [true]);
             return;
@@ -453,7 +453,7 @@ public static class CutsceneManagerUtility
                         }
                         else
                         {
-                            if (flag2)
+                            if (windowShown)
                             {
                                 Game.Manager.Windows.WindowShownEvent += OnWindowShown;
                             }

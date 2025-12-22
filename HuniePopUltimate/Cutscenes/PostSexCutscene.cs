@@ -24,7 +24,7 @@ public static class PostSexCutscene
                 }),
 
                 CutsceneStepUtility.MakeBannerTextHideInfo(CutsceneStepProceedType.INSTANT),
-                CutsceneStepUtility.MakeDollMoveInfo( DollPositionType.HIDDEN, CutsceneStepDollTargetType.RANDOM, CutsceneStepProceedType.INSTANT ),
+                CutsceneStepUtility.MakeRandomDollMoveInfo( DollPositionType.HIDDEN, CutsceneStepProceedType.INSTANT ),
                 CutsceneStepUtility.MakeToggleHeaderInfo(true, CutsceneStepProceedType.INSTANT),
                 CutsceneStepUtility.MakeHidePuzzleGridInfo(CutsceneStepProceedType.AUTOMATIC),
 
@@ -41,7 +41,7 @@ public static class PostSexCutscene
                 }),
 
                 CutsceneStepUtility.MakeToggleHeaderInfo(true, CutsceneStepProceedType.INSTANT),
-                CutsceneStepUtility.MakeDollMoveInfo(DollPositionType.INNER, CutsceneStepDollTargetType.RANDOM, CutsceneStepProceedType.AUTOMATIC),
+                CutsceneStepUtility.MakeRandomDollMoveInfo(DollPositionType.INNER, CutsceneStepProceedType.AUTOMATIC),
 
                 CutsceneStepUtility.MakeWaitInfo(0.25f),
 

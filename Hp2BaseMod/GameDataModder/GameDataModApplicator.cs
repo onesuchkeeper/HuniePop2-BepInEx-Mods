@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Hp2BaseMod.Extension;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.ModGameData;
 
@@ -67,14 +68,14 @@ internal class GameDataModApplicator
                         {
                             foreach (var bodyId_Mods in girlId_BodyToMods.Value)
                             {
-                                var body = expansion.Bodies[bodyId_Mods.Key];
+                                var body = expansion.Bodies.GetOrNew(bodyId_Mods.Key);
                                 using (ModInterface.Log.MakeIndent($"Body {bodyId_Mods.Key} - {girl.girlName}"))
                                 {
-                                    SetSubDefMods(bodyId_Mods.Value.partMods, gameDataProvider, assetProvider, girlId_BodyToMods.Key, body, body.GetPart);
-                                    SetSubDefMods(bodyId_Mods.Value.specialPartMods, gameDataProvider, assetProvider, girlId_BodyToMods.Key, body, body.GetSpecialPart);
-                                    SetSubDefMods(bodyId_Mods.Value.outfitMods, gameDataProvider, assetProvider, girlId_BodyToMods.Key, body, (x) => expansion.GetOutfit(body, x));
-                                    SetSubDefMods(bodyId_Mods.Value.hairstyleMods, gameDataProvider, assetProvider, girlId_BodyToMods.Key, body, (x) => expansion.GetHairstyle(body, x));
-                                    SetSubDefMods(bodyId_Mods.Value.expressionMods, gameDataProvider, assetProvider, girlId_BodyToMods.Key, body, (x) => expansion.GetExpression(body, x));
+                                    SetSubDefMods(bodyId_Mods.Value.partMods, gameDataProvider, assetProvider, girlId_BodyToMods.Key, body, body.GetOrNewPart);
+                                    SetSubDefMods(bodyId_Mods.Value.specialPartMods, gameDataProvider, assetProvider, girlId_BodyToMods.Key, body, body.GetOrNewSpecialPart);
+                                    SetSubDefMods(bodyId_Mods.Value.outfitMods, gameDataProvider, assetProvider, girlId_BodyToMods.Key, body, (x) => expansion.GetOrNewOutfit(body, x));
+                                    SetSubDefMods(bodyId_Mods.Value.hairstyleMods, gameDataProvider, assetProvider, girlId_BodyToMods.Key, body, (x) => expansion.GetOrNewHairstyle(body, x));
+                                    SetSubDefMods(bodyId_Mods.Value.expressionMods, gameDataProvider, assetProvider, girlId_BodyToMods.Key, body, (x) => expansion.GetOrNewExpression(body, x));
 
                                     foreach (var mod in bodyId_Mods.Value.bodyMods)
                                     {
@@ -98,12 +99,11 @@ internal class GameDataModApplicator
 
                         foreach (var lineId_Mods in dialogTriggerId_ModsById.Value)
                         {
-                            if (dtExpansion.TryGetLine(dialogTrigger, girlId_ModsByIdByDialogTrigger.Key, lineId_Mods.Key, out var line))
+                            var line = dtExpansion.GetLineOrNew(dialogTrigger, girlId_ModsByIdByDialogTrigger.Key, lineId_Mods.Key);
+
+                            foreach (var mod in lineId_Mods.Value.OrderBy(x => x.LoadPriority))
                             {
-                                foreach (var mod in lineId_Mods.Value.OrderBy(x => x.LoadPriority))
-                                {
-                                    mod.SetData(line, gameDataProvider, assetProvider);
-                                }
+                                mod.SetData(line, gameDataProvider, assetProvider);
                             }
                         }
                     }

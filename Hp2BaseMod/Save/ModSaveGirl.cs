@@ -62,7 +62,7 @@ namespace Hp2BaseMod.Save
                 saveFileGirl.activeBaggageIndex = saveFileGirl.learnedBaggage.First();
             }
 
-            if (!girlExpanded.HairstyleIndexToId.TryGetValue(saveFileGirl.hairstyleIndex, out HairstyleId))
+            if (!girlExpanded.HairstyleLookup.TryGetId(saveFileGirl.hairstyleIndex, out HairstyleId))
             {
                 HairstyleId = RelativeId.Default;
                 saveFileGirl.hairstyleIndex = -1;
@@ -72,7 +72,7 @@ namespace Hp2BaseMod.Save
                 saveFileGirl.hairstyleIndex = -1;
             }
 
-            if (!girlExpanded.OutfitIndexToId.TryGetValue(saveFileGirl.outfitIndex, out OutfitId))
+            if (!girlExpanded.OutfitLookup.TryGetId(saveFileGirl.outfitIndex, out OutfitId))
             {
                 OutfitId = RelativeId.Default;
                 saveFileGirl.outfitIndex = -1;
@@ -118,7 +118,7 @@ namespace Hp2BaseMod.Save
             UnlockedOutfits = new List<RelativeId>();
             foreach (var outfitIndex in saveFileGirl.unlockedOutfits)
             {
-                if (girlExpanded.OutfitIndexToId.TryGetValue(outfitIndex, out var id))
+                if (girlExpanded.OutfitLookup.TryGetId(outfitIndex, out var id))
                 {
                     UnlockedOutfits.Add(id);
                 }
@@ -129,7 +129,7 @@ namespace Hp2BaseMod.Save
             UnlockedHairstyles = new List<RelativeId>();
             foreach (var hairstyle in saveFileGirl.unlockedHairstyles)
             {
-                if (girlExpanded.HairstyleIndexToId.TryGetValue(hairstyle, out var id))
+                if (girlExpanded.HairstyleLookup.TryGetId(hairstyle, out var id))
                 {
                     UnlockedHairstyles.Add(id);
                 }
@@ -207,12 +207,12 @@ namespace Hp2BaseMod.Save
         {
             var girlExpanded = ExpandedGirlDefinition.Get(save.girlId);
 
-            if (girlExpanded.HairstyleIdToIndex.TryGetValue(HairstyleId, out var hairstyleIndex))
+            if (girlExpanded.HairstyleLookup.TryGetIndex(HairstyleId, out var hairstyleIndex))
             {
                 save.hairstyleIndex = hairstyleIndex;
             }
 
-            if (girlExpanded.OutfitIdToIndex.TryGetValue(OutfitId, out var outfitIndex))
+            if (girlExpanded.OutfitLookup.TryGetIndex(OutfitId, out var outfitIndex))
             {
                 save.outfitIndex = outfitIndex;
             }
@@ -225,7 +225,7 @@ namespace Hp2BaseMod.Save
 
             foreach (var unlockedOutfit in UnlockedOutfits.OrEmptyIfNull())
             {
-                if (girlExpanded.OutfitIdToIndex.TryGetValue(unlockedOutfit, out var index))
+                if (girlExpanded.OutfitLookup.TryGetIndex(unlockedOutfit, out var index))
                 {
                     save.unlockedOutfits.Add(index);
                 }
@@ -233,7 +233,7 @@ namespace Hp2BaseMod.Save
 
             foreach (var unlockedHairstyle in UnlockedHairstyles.OrEmptyIfNull())
             {
-                if (girlExpanded.HairstyleIdToIndex.TryGetValue(unlockedHairstyle, out var index))
+                if (girlExpanded.HairstyleLookup.TryGetIndex(unlockedHairstyle, out var index))
                 {
                     save.unlockedHairstyles.Add(index);
                 }

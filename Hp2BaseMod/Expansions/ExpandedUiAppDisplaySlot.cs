@@ -37,7 +37,7 @@ internal class ExpandedUiAppDisplaySlot
         return expansion;
     }
 
-    private static MethodInfo m_onTooltipPreShow = AccessTools.Method(typeof(UiAppDisplaySlot), "OnTooltipPreShow");
+    private static readonly MethodInfo m_onTooltipPreShow = AccessTools.Method(typeof(UiAppDisplaySlot), "OnTooltipPreShow");
 
     protected UiAppDisplaySlot _core;
     private ExpandedUiAppDisplaySlot(UiAppDisplaySlot core)

@@ -15,7 +15,7 @@ public static class CupSize
 
     public static void AddDataMods()
     {
-        ModInterface.AddDataMod(new QuestionDataMod(Questions.CupSize, Hp2BaseMod.Utility.InsertStyle.append)
+        ModInterface.AddDataMod(new FavQuestionDataMod(Questions.CupSize, Hp2BaseMod.Utility.InsertStyle.append)
         {
             QuestionName = "Cup Size",
             QuestionText = "What [[highlight]cup size] you rockin'?",

@@ -18,9 +18,6 @@ public static class CutsceneIds
     public static RelativeId Success => _success;
     private static RelativeId _success = new RelativeId(State.ModId, 4);
 
-    public static RelativeId AttractNoPhoto => _attractNoPhoto;
-    private static RelativeId _attractNoPhoto = new RelativeId(State.ModId, 5);
-
-    public static RelativeId SuccessNoPhoto => _successNoPhoto;
-    private static RelativeId _successNoPhoto = new RelativeId(State.ModId, 6);
+    public static RelativeId BonusSuccess => _bonusSuccess;
+    private static RelativeId _bonusSuccess = new RelativeId(State.ModId, 5);
 }

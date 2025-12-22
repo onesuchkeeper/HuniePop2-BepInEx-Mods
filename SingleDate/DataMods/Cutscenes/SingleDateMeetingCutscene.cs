@@ -14,8 +14,7 @@ public static class SingleDateMeetingCutscene
             CleanUpType = CutsceneCleanUpType.NONE,
             Steps = new List<IGameDefinitionInfo<CutsceneStepSubDefinition>>()
             {
-                //afternoon greeting
-                CutsceneStepUtility.MakeDialogTriggerInfo(new RelativeId(-1, 10), CutsceneStepProceedType.AUTOMATIC, CutsceneStepDollTargetType.RANDOM),
+                CutsceneStepUtility.MakeDialogTriggerInfo(Hp2BaseMod.DialogTriggers.GreetingAfternoon, CutsceneStepProceedType.AUTOMATIC, CutsceneStepDollTargetType.RANDOM),
             }
         });
     }

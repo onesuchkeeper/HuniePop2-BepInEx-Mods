@@ -62,7 +62,7 @@ namespace Hp2BaseMod.GameDataInfo
             ValidatedSet.SetValue(ref def.sortingPartType, SortingPartType);
             ValidatedSet.SetValue(ref def.animType, AnimType);
 
-            ValidatedSet.SetValue(ref def.partIndexSpecial, bodyDef.PartIdToIndex, Part?.Id);
+            ValidatedSet.SetValue(ref def.partIndexSpecial, bodyDef.PartLookup, Part?.Id);
         }
 
         /// <inheritdoc/>

@@ -19,27 +19,6 @@ namespace Hp2BaseMod.GameDataInfo
 
         public List<IGameDefinitionInfo<CutsceneStepSubDefinition>> Steps;
 
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        public CutsceneBranchInfo() { }
-
-        /// <summary>
-        /// Constructor from a definition instance.
-        /// </summary>
-        /// <param name="def">The definition.</param>
-        /// <param name="assetProvider">Asset provider containing the assets referenced by the definition.</param>
-        public CutsceneBranchInfo(CutsceneBranchSubDefinition def, AssetProvider assetProvider)
-        {
-            if (def == null) { throw new ArgumentNullException(nameof(def)); }
-            if (assetProvider == null) { throw new ArgumentNullException(nameof(assetProvider)); }
-
-            CutsceneDefinitionID = new RelativeId(def.cutsceneDefinition);
-
-            if (def.conditions != null) { Conditions = def.conditions.Select(x => (IGameDefinitionInfo<LogicCondition>)new LogicConditionInfo(x)).ToList(); }
-            if (def.steps != null) { Steps = def.steps.Select(x => (IGameDefinitionInfo<CutsceneStepSubDefinition>)new CutsceneStepInfo(x, assetProvider)).ToList(); }
-        }
-
         /// <inheritdoc/>
         public void SetData(ref CutsceneBranchSubDefinition def, GameDefinitionProvider gameDataProvider, AssetProvider assetProvider, InsertStyle insertStyle)
         {

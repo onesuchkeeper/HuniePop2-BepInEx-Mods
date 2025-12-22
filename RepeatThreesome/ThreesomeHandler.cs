@@ -10,15 +10,18 @@ namespace RepeatThreesome
 {
     public static class ThreesomeHandler
     {
-        private static FieldInfo f_newRoundCutscene = AccessTools.Field(typeof(PuzzleManager), "_newRoundCutscene");
+        private static readonly FieldInfo f_newRoundCutscene = AccessTools.Field(typeof(PuzzleManager), "_newRoundCutscene");
 
         public static void OnPuzzleRoundOver(PuzzleRoundOverArgs args)
         {
             if (Game.Session.Puzzle.puzzleStatus.statusType == PuzzleStatusType.NORMAL)
             {
+                ModInterface.Log.Message($"repeat threesome is here woot");
                 var currentGirlPair = Game.Session.Location.currentGirlPair;
 
                 var playerFileGirlPair = Game.Persistence.playerFile.GetPlayerFileGirlPair(currentGirlPair);
+
+                ModInterface.Log.Message($"playerFileGirlPair {playerFileGirlPair != null}, {Game.Session.Puzzle.puzzleGrid.roundState}, {playerFileGirlPair.relationshipType}, doesn't require loc? {ModInterface.GameData.IsCodeUnlocked(Constants.LocalCodeId)}");
 
                 if (playerFileGirlPair != null
                     && Game.Session.Puzzle.puzzleGrid.roundState == PuzzleRoundState.SUCCESS
@@ -28,6 +31,7 @@ namespace RepeatThreesome
                 {
                     args.IsSexDate = true;
                     args.IsGameOver = Game.Session.Puzzle.puzzleStatus.bonusRound;
+                    ModInterface.Log.Message($"repeat threesome, is game over? {args.IsGameOver}");
                 }
             }
 
@@ -88,7 +92,7 @@ namespace RepeatThreesome
 
             var expansion = ExpandedGirlDefinition.Get(girl.girlDefinition);
 
-            if (!expansion.OutfitIdToIndex.TryGetValue(Constants.NudeOutfitId, out var nudeOutfitIndex))
+            if (!expansion.OutfitLookup.TryGetIndex(Constants.NudeOutfitId, out var nudeOutfitIndex))
             {
                 ModInterface.Log.Warning($"Failed to find nude outfit for Girl {girl.girlDefinition.girlName}.");
                 return false;

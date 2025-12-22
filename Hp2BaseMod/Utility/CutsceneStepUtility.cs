@@ -171,14 +171,14 @@ public static class CutsceneStepUtility
         };
     }
 
-    public static CutsceneStepInfo MakeDialogLineInfo(RelativeId dialogLineId, bool isDialogBoxLocked, CutsceneStepProceedType proceedType, CutsceneStepDollTargetType dollTargetType)
+    public static CutsceneStepInfo MakeDialogLineInfo(IDialogLineDataMod dialogLine, bool isDialogBoxLocked, CutsceneStepProceedType proceedType, CutsceneStepDollTargetType dollTargetType)
     {
         return new CutsceneStepInfo()
         {
             StepType = CutsceneStepType.DIALOG_LINE,
             BoolValue = isDialogBoxLocked,
             ProceedType = proceedType,
-            DialogLineId = dialogLineId,
+            DialogLine = dialogLine,
             DollTargetType = dollTargetType
         };
     }
@@ -251,26 +251,50 @@ public static class CutsceneStepUtility
         };
     }
 
-    public static CutsceneStepSubDefinition MakeDollMove(DollPositionType positionType, CutsceneStepDollTargetType dollTargetType, CutsceneStepProceedType proceedType, float duration = 1f)
+    public static CutsceneStepSubDefinition MakeRandomDollMove(DollPositionType positionType, CutsceneStepProceedType proceedType, float duration = 1f)
     {
         return new CutsceneStepSubDefinition()
         {
             stepType = CutsceneStepType.DOLL_MOVE,
             dollPositionType = positionType,
             floatValue = duration,
-            dollTargetType = dollTargetType,
+            dollTargetType = CutsceneStepDollTargetType.RANDOM,
             proceedType = proceedType
         };
     }
 
-    public static CutsceneStepInfo MakeDollMoveInfo(DollPositionType positionType, CutsceneStepDollTargetType dollTargetType, CutsceneStepProceedType proceedType, float duration = 1f)
+    public static CutsceneStepInfo MakeRandomDollMoveInfo(DollPositionType positionType, CutsceneStepProceedType proceedType, float duration = 1f)
     {
         return new CutsceneStepInfo()
         {
             StepType = CutsceneStepType.DOLL_MOVE,
             DollPositionType = positionType,
             FloatValue = duration,
-            DollTargetType = dollTargetType,
+            DollTargetType = CutsceneStepDollTargetType.RANDOM,
+            ProceedType = proceedType
+        };
+    }
+
+    public static CutsceneStepSubDefinition MakeFocusedDollMove(DollPositionType positionType, CutsceneStepProceedType proceedType, float duration = 1f)
+    {
+        return new CutsceneStepSubDefinition()
+        {
+            stepType = CutsceneStepType.DOLL_MOVE,
+            dollPositionType = positionType,
+            floatValue = duration,
+            dollTargetType = CutsceneStepDollTargetType.FOCUSED,
+            proceedType = proceedType
+        };
+    }
+
+    public static CutsceneStepInfo MakeFocusedDollMoveInfo(DollPositionType positionType, CutsceneStepProceedType proceedType, float duration = 1f)
+    {
+        return new CutsceneStepInfo()
+        {
+            StepType = CutsceneStepType.DOLL_MOVE,
+            DollPositionType = positionType,
+            FloatValue = duration,
+            DollTargetType = CutsceneStepDollTargetType.FOCUSED,
             ProceedType = proceedType
         };
     }

@@ -16,7 +16,7 @@ public static class PreSexCutscene
             {
                 CutsceneStepUtility.MakeDialogTriggerInfo(DialogTriggers.PreBedroom, CutsceneStepProceedType.AUTOMATIC, CutsceneStepDollTargetType.RANDOM),
 
-                CutsceneStepUtility.MakeDollMoveInfo(DollPositionType.HIDDEN, CutsceneStepDollTargetType.RANDOM, CutsceneStepProceedType.INSTANT),
+                CutsceneStepUtility.MakeRandomDollMoveInfo(DollPositionType.HIDDEN, CutsceneStepProceedType.INSTANT),
                 CutsceneStepUtility.MakeToggleHeaderInfo(true, CutsceneStepProceedType.INSTANT),
                 CutsceneStepUtility.MakeHidePuzzleGridInfo(CutsceneStepProceedType.AUTOMATIC),
 
@@ -25,12 +25,12 @@ public static class PreSexCutscene
                 // change outfit
                 new FunctionalCutsceneStepInfo((complete) => {
                     var doll = Game.Session.gameCanvas.dollRight;
-                    doll.ChangeOutfit(doll.girlDefinition.Expansion().GetOutfitIndex(new RelativeId(Plugin.ModId,5)));
+                    doll.ChangeOutfit(doll.girlDefinition.Expansion().GetOutfitIndex(Hp2BaseMod.Styles.Sexy));
 
                     complete.Invoke();
                 }),
 
-                CutsceneStepUtility.MakeDollMoveInfo(DollPositionType.INNER, CutsceneStepDollTargetType.RANDOM, CutsceneStepProceedType.AUTOMATIC),
+                CutsceneStepUtility.MakeRandomDollMoveInfo(DollPositionType.INNER, CutsceneStepProceedType.AUTOMATIC),
 
                 CutsceneStepUtility.MakeWaitInfo(0.5f),
 

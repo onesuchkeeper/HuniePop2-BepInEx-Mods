@@ -32,7 +32,7 @@ namespace Hp2BaseMod
             { GameDataType.Token, new Dictionary<RelativeId, int>() { { RelativeId.Default, -1}, { RelativeId.Zero, 0 } } },
             { GameDataType.Fruit, new Dictionary<RelativeId, int>() { { RelativeId.Default, -1} } },
             { GameDataType.Affection, new Dictionary<RelativeId, int>() { { RelativeId.Default, -1} } },
-            { GameDataType.SpecialPart, new Dictionary<RelativeId, int>() { { RelativeId.Default, -1} } }
+            { GameDataType.SpecialEffect, new Dictionary<RelativeId, int>() { { RelativeId.Default, -1} } }
         };
 
         private readonly Dictionary<GameDataType, Dictionary<int, RelativeId>> _runtimeIdToRelativeId = new Dictionary<GameDataType, Dictionary<int, RelativeId>>()
@@ -53,7 +53,7 @@ namespace Hp2BaseMod
             { GameDataType.Token, new Dictionary<int, RelativeId>() { { -1, RelativeId.Default }, { 0, RelativeId.Zero } } },
             { GameDataType.Fruit, new Dictionary<int, RelativeId>() { { -1, RelativeId.Default } } },
             { GameDataType.Affection, new Dictionary<int, RelativeId>() { { -1, RelativeId.Default } } },
-            { GameDataType.SpecialPart, new Dictionary<int, RelativeId>() { { -1, RelativeId.Default } } },
+            { GameDataType.SpecialEffect, new Dictionary<int, RelativeId>() { { -1, RelativeId.Default } } },
         };
 
         /// <summary>
@@ -79,7 +79,7 @@ namespace Hp2BaseMod
             { GameDataType.Token, 1000000},
             { GameDataType.Fruit, 1000000},
             { GameDataType.Affection, 1000000},
-            { GameDataType.SpecialPart, 1000000},
+            { GameDataType.SpecialEffect, 1000000},
         };
 
         /// <summary>
@@ -124,7 +124,7 @@ namespace Hp2BaseMod
             { GameDataType.Token, new HashSet<RelativeId>() },
             { GameDataType.Fruit, new HashSet<RelativeId>() },
             { GameDataType.Affection, new HashSet<RelativeId>() },
-            { GameDataType.SpecialPart, new HashSet<RelativeId>() },
+            { GameDataType.SpecialEffect, new HashSet<RelativeId>() },
         };
 
         #region registration

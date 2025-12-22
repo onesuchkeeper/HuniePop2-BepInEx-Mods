@@ -62,7 +62,7 @@ public partial class Plugin : Hp2BaseModPlugin
         _includeNymphojinn = Config.Bind(GENERAL_CONFIG_CAT, nameof(IncludeKyu), true, "If the Nymphojinn should be included in the randomized characters.");
         _forceNormalSpecialSwap = Config.Bind(GENERAL_CONFIG_CAT, nameof(ForceNormalSpecialSwap), true, "If special characters should always be swapped with a normal character.");
         _swappedSpecialKeepWings = Config.Bind(GENERAL_CONFIG_CAT, nameof(SwappedSpecialKeepWings), true, "If special characters should keep their wings when swapped.");
-        _disable = Config.Bind(GENERAL_CONFIG_CAT, nameof(Disable), true, "Disables the randomizer entirely.");
+        _disable = Config.Bind(GENERAL_CONFIG_CAT, nameof(Disable), false, "Disables the randomizer entirely.");
 
         ModInterface.AddCommand(new SetSeedCommand());
 

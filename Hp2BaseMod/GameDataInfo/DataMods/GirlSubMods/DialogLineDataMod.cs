@@ -30,27 +30,11 @@ namespace Hp2BaseMod.GameDataInfo
         public List<DialogLineExpression> Expressions;
 
         public DialogLineDataMod() { }
+
         public DialogLineDataMod(RelativeId id, InsertStyle insertStyle = InsertStyle.append, int priority = 0)
-        : base(id, InsertStyle.replace, priority)
+        : base(id, insertStyle, priority)
         {
 
-        }
-
-        internal DialogLineDataMod(DialogLine def, AssetProvider assetProvider, RelativeId id)
-        : base(id, InsertStyle.replace, 0)
-        {
-            if (def == null) { throw new ArgumentNullException(nameof(def)); }
-            if (assetProvider == null) { throw new ArgumentNullException(nameof(assetProvider)); }
-
-            DialogText = def.dialogText;
-            Yuri = def.yuri;
-            YuriDialogText = def.yuriDialogText;
-            StartExpression = def.startExpression;
-            Expressions = def.expressions;
-            EndExpression = def.endExpression;
-
-            if (def.yuriAudioClip != null) { YuriAudioClipInfo = new AudioClipInfo(def.yuriAudioClip, assetProvider); }
-            if (def.audioClip != null) { AudioClipInfo = new AudioClipInfo(def.audioClip, assetProvider); }
         }
 
         /// <inheritdoc/>

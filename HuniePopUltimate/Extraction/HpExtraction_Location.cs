@@ -72,6 +72,11 @@ public partial class HpExtraction
             locationMod.AllowNormal = false;
         }
 
+        if (id == LocationIds.Beach)
+        {
+            locationMod.DefaultStyle = Hp2BaseMod.Styles.Water;
+        }
+
         if (locationDef.TryGetValue("name", out string locationName))
         {
             locationMod.LocationName = locationName;
@@ -80,8 +85,7 @@ public partial class HpExtraction
         if (_locationIdToIconOutlined.TryGetValue(id, out var iconOutlinedName))
         {
             locationMod.FinderLocationIcon = new SpriteInfoTexture(
-                new TextureInfoCache(
-                    Path.Combine(Plugin.IMAGES_DIR, $"{locationName}_icon.png"),
+                new TextureInfoCache(Path.Combine(Plugin.IMAGES_DIR, $"{locationName}_icon.png"),
                     new TextureInfoSprite(new SpriteInfoInternal(iconOutlinedName), false, false, true, _finderIconSteps)
                 )
             );
@@ -146,7 +150,11 @@ public partial class HpExtraction
                 }
                 else
                 {
-                    locationMod.Backgrounds = [defaultBg, defaultBg];
+                    var blurBg = new SpriteInfoTexture(new TextureInfoCache(Path.Combine(Plugin.IMAGES_DIR, $"{locationName}_blur.png"),
+                            new TextureInfoSprite(defaultBg, false, false, true, [new TextureRsBlur(36)])));//super inefficient...
+                    //pre render so we can later make readonly
+                    blurBg.GetSprite();
+                    locationMod.Backgrounds = [defaultBg, blurBg];
                 }
             }
 

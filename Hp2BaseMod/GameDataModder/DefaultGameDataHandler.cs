@@ -46,8 +46,7 @@ internal static class DefaultGameDataHandler
         out Dictionary<int, LocationDefinition> locationDataDict,
         out Dictionary<int, PhotoDefinition> photoDataDict,
         out Dictionary<int, QuestionDefinition> questionDataDict,
-        out Dictionary<int, TokenDefinition> tokenDataDict
-        )
+        out Dictionary<int, TokenDefinition> tokenDataDict)
     {
         //grab dicts
         abilityDataDict = GetDataDict<AbilityDefinition>(gameData, typeof(AbilityData), "_abilityData");
@@ -72,32 +71,17 @@ internal static class DefaultGameDataHandler
             {
                 foreach (var dt in dialogTriggerDataDict.Values)
                 {
-                    var expansion = ExpandedDialogTriggerDefinition.Get(dt);
+                    var dialogTriggerExp = ExpandedDialogTriggerDefinition.Get(dt);
                     var id = new RelativeId(-1, dt.id);
 
                     if (GirlSubDataModder.IsGirlDialogTrigger(dt))
                     {
-                        // lines are looked up by trigger id and girl id.
-                        var girlIndex = 0;//each line set corresponds with a girl
+                        var girlIndex = 1;
                         foreach (var lineSet in dt.dialogLineSets)
                         {
-                            var girlId = new RelativeId(-1, girlIndex);
-
-                            var lineIndexLookup = expansion.GirlIdToLineIdToLineIndex.GetOrNew(girlId);
-                            var lineIdLookup = expansion.GirlIdToLineIndexToLineId.GetOrNew(girlId);
-
-                            var lineIndex = 0;
-                            foreach (var line in lineSet.dialogLines)
-                            {
-                                var lineId = new RelativeId(-1, lineIndex);
-
-                                lineIndexLookup[lineId] = lineIndex;
-                                lineIdLookup[lineIndex] = lineId;
-
-                                lineIndex++;
-                            }
-
-                            girlIndex++;
+                            var girlId = new RelativeId(-1, girlIndex++);
+                            var lineMap = dialogTriggerExp.GetGirlLineMap(girlId);
+                            lineMap.MapRelativeIdRange(lineSet.dialogLines.Count);
                         }
                     }
                 }
@@ -105,9 +89,18 @@ internal static class DefaultGameDataHandler
 
             using (ModInterface.Log.MakeIndent("girls"))
             {
+                var herQuestionsDt = dialogTriggerDataDict[DialogTriggers.HerQuestion.LocalId];
+                var herQuestionsDtExp = herQuestionsDt.Expansion();
+                var herQuestionsGoodRespDt = dialogTriggerDataDict[DialogTriggers.HerQuestionGoodResponse.LocalId];
+                var herQuestionsGoodRespDtExp = herQuestionsGoodRespDt.Expansion();
+                var herQuestionsBadRespDt = dialogTriggerDataDict[DialogTriggers.HerQuestionBadResponse.LocalId];
+                var herQuestionsBadRespDtExp = herQuestionsBadRespDt.Expansion();
+
+                ExpandedGirlDefinition.DialogTriggerIndexes.MapRelativeIdRange(girlDataDict.Count, 1);
+
                 foreach (var girl in girlDataDict.Values)
                 {
-                    using (ModInterface.Log.MakeIndent($"Id: {girl.id}, Name: {girl.name}"))
+                    using (ModInterface.Log.MakeIndent($"Id: {girl.id}, Name: {girl.name}, DialogTriggerTab: {girl.dialogTriggerTab}"))
                     {
                         void defaultStyleExpansion(ExpandedStyleDefinition expansion, int index)
                         {
@@ -116,8 +109,8 @@ internal static class DefaultGameDataHandler
                             expansion.IsCodeUnlocked = index == 6;
                         }
 
-                        var expansion = ExpandedGirlDefinition.Get(girl);
                         var id = new RelativeId(-1, girl.id);
+                        var expansion = ExpandedGirlDefinition.Get(id);
 
                         var body = new GirlBodySubDefinition(girl)
                         {
@@ -140,18 +133,18 @@ internal static class DefaultGameDataHandler
                         };
                         expansion.Bodies.Add(new RelativeId(-1, 0), body);
 
-                        expansion.DialogTriggerIndex = girl.id;
-                        MapRelativeIdRange(body.PartIdToIndex, body.PartIndexToId, girl.parts.Count);
-                        MapRelativeIdRange(expansion.ExpressionIdToIndex, expansion.ExpressionIndexToId, girl.expressions.Count);
-                        MapRelativeIdRange(expansion.HairstyleIdToIndex, expansion.HairstyleIndexToId, girl.hairstyles.Count);
-                        MapRelativeIdRange(expansion.OutfitIdToIndex, expansion.OutfitIndexToId, girl.outfits.Count);
-                        MapRelativeIdRange(body.SpecialPartIdToIndex, body.SpecialPartIndexToId, girl.specialParts.Count);
+                        body.PartLookup.MapRelativeIdRange(girl.parts.Count);
+                        body.SpecialPartLookup.MapRelativeIdRange(girl.specialParts.Count);
+
+                        expansion.ExpressionLookup.MapRelativeIdRange(girl.expressions.Count);
+                        expansion.HairstyleLookup.MapRelativeIdRange(girl.hairstyles.Count);
+                        expansion.OutfitLookup.MapRelativeIdRange(girl.outfits.Count);
 
                         int i = 0;
                         var hairShowingSpecials = new List<RelativeId>();
                         foreach (var hairstyle in girl.hairstyles)
                         {
-                            var hairstyleId = expansion.HairstyleIndexToId[i];
+                            var hairstyleId = expansion.HairstyleLookup[i];
                             var hairstyleExpansion = hairstyle.Expansion();
                             defaultStyleExpansion(hairstyleExpansion, i++);
 
@@ -167,9 +160,19 @@ internal static class DefaultGameDataHandler
                         if (id == Girls.KyuId)
                         {
                             body.BackPos = girl.specialEffectOffset;
+                            ModInterface.GameData._specialEffects[SpecialParts.KyuWingId] = girl.specialEffectPrefab;
                         }
                         else
                         {
+                            if (id == Girls.MoxieId)
+                            {
+                                ModInterface.GameData._specialEffects[SpecialParts.MoxieWingId] = girl.specialEffectPrefab;
+                            }
+                            else if (id == Girls.JewnId)
+                            {
+                                ModInterface.GameData._specialEffects[SpecialParts.JewnWingId] = girl.specialEffectPrefab;
+                            }
+
                             body.HeadPos = girl.specialEffectOffset;
                         }
 
@@ -182,6 +185,14 @@ internal static class DefaultGameDataHandler
                         {
                             expansion.FavQuestionIdToAnswerId[new RelativeId(-1, i + 1)] = new RelativeId(-1, girl.favAnswers[i]);
                         }
+
+                        var herQuestionsSet = herQuestionsDtExp.GetLineSetOrNew(herQuestionsDt, id);
+                        var herQuestionsGoodRespSet = herQuestionsGoodRespDtExp.GetLineSetOrNew(herQuestionsGoodRespDt, id);
+                        var herQuestionsBadRespSet = herQuestionsBadRespDtExp.GetLineSetOrNew(herQuestionsBadRespDt, id);
+
+                        expansion.HerQuestionIdToIndex.MapRelativeIdRange(herQuestionsSet.dialogLines.Count);
+                        expansion.HerQuestionGoodResponseIdToDtIndex.MapRelativeIdRange(herQuestionsGoodRespSet.dialogLines.Count);
+                        expansion.HerQuestionBadResponseIdToDtIndex.MapRelativeIdRange(herQuestionsBadRespSet.dialogLines.Count);
                     }
                 }
             }
@@ -193,6 +204,8 @@ internal static class DefaultGameDataHandler
 
             using (ModInterface.Log.MakeIndent("locations"))
             {
+                ExpandedLocationDefinition.DialogTriggerIndexes.MapRelativeIdRange(locationDataDict.Count, 1);
+
                 foreach (var def in locationDataDict.Values)
                 {
                     var expansion = def.Expansion();
@@ -209,16 +222,19 @@ internal static class DefaultGameDataHandler
                         expansion.DateTimes ??= new List<ClockDaytimeType>();
                         expansion.DateTimes.Add(time);
                     }
+
+                    expansion.DefaultStyle = new RelativeId(-1, (int)def.dateGirlStyleType);
                 }
             }
 
             using (ModInterface.Log.MakeIndent("Questions"))
             {
+                ExpandedQuestionDefinition.DialogTriggerIndexes.MapRelativeIdRange(questionDataDict.Count, 0, 1);
+
                 foreach (var id_def in questionDataDict)
                 {
                     var expansion = id_def.Value.Expansion();
-                    expansion.DialogTriggerIndex = id_def.Key - 1;
-                    MapRelativeIdRange(expansion.AnswerIdToIndex, expansion.AnswerIndexToId, id_def.Value.questionAnswers.Count);
+                    expansion.AnswerLookup.MapRelativeIdRange(id_def.Value.questionAnswers.Count);
                 }
             }
         }
@@ -228,13 +244,4 @@ internal static class DefaultGameDataHandler
                 => AccessTools.DeclaredField(dataType, "_definitions")
                               .GetValue(AccessTools.DeclaredField(typeof(GameData), dataName)
                               .GetValue(gameData)) as Dictionary<int, T>;
-
-    private static void MapRelativeIdRange(IDictionary<RelativeId, int> idToIndex, IDictionary<int, RelativeId> indexToId, int count, int startingIndex = 0)
-    {
-        for (int i = startingIndex; i < startingIndex + count; i++)
-        {
-            idToIndex[new RelativeId(-1, i)] = i;
-            indexToId[i] = new RelativeId(-1, i);
-        }
-    }
 }

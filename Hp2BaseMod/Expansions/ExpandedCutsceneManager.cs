@@ -33,12 +33,12 @@ public class ExpandedCutsceneManager
         return expansion;
     }
 
-    private static FieldInfo f_currentStep = AccessTools.Field(typeof(CutsceneManager), "_currentStep");
-    private static FieldInfo f_branchStepIndices = AccessTools.Field(typeof(CutsceneManager), "_branchStepIndices");
-    private static FieldInfo f_branches = AccessTools.Field(typeof(CutsceneManager), "_branches");
-    private static FieldInfo f_audioLink = AccessTools.Field(typeof(CutsceneManager), "_audioLink");
-    private static FieldInfo f_stepSequence = AccessTools.Field(typeof(CutsceneManager), "_stepSequence");
-    private static MethodInfo m_nextStep = AccessTools.Method(typeof(CutsceneManager), "NextStep");
+    private static readonly FieldInfo f_currentStep = AccessTools.Field(typeof(CutsceneManager), "_currentStep");
+    private static readonly FieldInfo f_branchStepIndices = AccessTools.Field(typeof(CutsceneManager), "_branchStepIndices");
+    private static readonly FieldInfo f_branches = AccessTools.Field(typeof(CutsceneManager), "_branches");
+    private static readonly FieldInfo f_audioLink = AccessTools.Field(typeof(CutsceneManager), "_audioLink");
+    private static readonly FieldInfo f_stepSequence = AccessTools.Field(typeof(CutsceneManager), "_stepSequence");
+    private static readonly MethodInfo m_nextStep = AccessTools.Method(typeof(CutsceneManager), "NextStep");
 
     protected CutsceneManager _core;
     private ExpandedCutsceneManager(CutsceneManager core)

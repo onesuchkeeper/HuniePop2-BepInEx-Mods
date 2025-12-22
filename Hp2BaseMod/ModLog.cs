@@ -111,7 +111,7 @@ namespace Hp2BaseMod
         /// Returns true if the target is null, false otherwise.
         /// </summary>
         /// <param name="line"></param>
-        public bool InNull(object target, string name = null)
+        public bool IsNull(object target, string name = null)
         {
             var isNull = target == null;
             if (isNull)

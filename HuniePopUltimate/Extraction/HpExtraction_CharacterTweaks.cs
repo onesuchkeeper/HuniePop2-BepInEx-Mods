@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Hp2BaseMod;
 using Hp2BaseMod.GameDataInfo;
 
@@ -64,32 +65,32 @@ public partial class HpExtraction
                 };
 
                 body.LocationIdToStyleInfo = new Dictionary<RelativeId, GirlStyleInfo>() {
-                    {LocationIds.FarmersMarket, new GirlStyleInfo(new RelativeId(Plugin.ModId, 1))},
-                    {LocationIds.Casino, new GirlStyleInfo(new RelativeId(Plugin.ModId, 0))},
-                    {LocationIds.OutdoorLounge, new GirlStyleInfo(new RelativeId(Plugin.ModId, 3))},
-                    {LocationIds.BotanicalGarden, new GirlStyleInfo(new RelativeId(Plugin.ModId, 1))},
-                    {LocationIds.HotSprings, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
-                    {LocationIds.HikingTrail, new GirlStyleInfo(new RelativeId(Plugin.ModId, 3))},
-                    {LocationIds.IceRink, new GirlStyleInfo(new RelativeId(Plugin.ModId, 2))},
-                    {LocationIds.WaterPark, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
-                    {LocationIds.TennisCourts, new GirlStyleInfo(new RelativeId(Plugin.ModId, 2))},
-                    {LocationIds.ScenicOverlook, new GirlStyleInfo(new RelativeId(Plugin.ModId, 3))},
-                    {LocationIds.Restaurant, new GirlStyleInfo(new RelativeId(Plugin.ModId, 1))},
-                    {LocationIds.BedRoomDate, new GirlStyleInfo(new RelativeId(Plugin.ModId, 5))},
+                    {LocationIds.FarmersMarket, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)},
+                    {LocationIds.Casino, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)},
+                    {LocationIds.OutdoorLounge, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
+                    {LocationIds.BotanicalGarden, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)},
+                    {LocationIds.HotSprings, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
+                    {LocationIds.HikingTrail, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
+                    {LocationIds.IceRink, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)},
+                    {LocationIds.WaterPark, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
+                    {LocationIds.TennisCourts, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)},
+                    {LocationIds.ScenicOverlook, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
+                    {LocationIds.Restaurant, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)},
+                    {LocationIds.BedRoomDate, new GirlStyleInfo(Hp2BaseMod.Styles.Sexy)},
 
-                    {Locations.MassageSpa, new GirlStyleInfo(new RelativeId(Plugin.ModId, 3))},
-                    {Locations.Aquarium, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
-                    {Locations.SecludedCabana, new GirlStyleInfo(new RelativeId(Plugin.ModId, 3))},
-                    {Locations.PoolsideBar, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
-                    {Locations.GolfCourse, new GirlStyleInfo(new RelativeId(Plugin.ModId, 0))},
-                    {Locations.CruiseShip, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
-                    {Locations.RooftopLounge, new GirlStyleInfo(new RelativeId(Plugin.ModId, 2))},
-                    {Locations.Casino, new GirlStyleInfo(new RelativeId(Plugin.ModId, 2))},
-                    {Locations.PrivateTable, new GirlStyleInfo(new RelativeId(Plugin.ModId, 1))},
-                    {Locations.SecretGrotto, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
-                    {Locations.RoyalSuite, new GirlStyleInfo(new RelativeId(Plugin.ModId, 5))},
-                    {Locations.AirplaneBathroom, new GirlStyleInfo(new RelativeId(Plugin.ModId, 1))},
-                    {Locations.OuterSpace, new GirlStyleInfo(new RelativeId(Plugin.ModId, 0))},
+                    {Locations.MassageSpa, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
+                    {Locations.Aquarium, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
+                    {Locations.SecludedCabana, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
+                    {Locations.PoolsideBar, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
+                    {Locations.GolfCourse, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)},
+                    {Locations.CruiseShip, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
+                    {Locations.RooftopLounge, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)},
+                    {Locations.Casino, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)},
+                    {Locations.PrivateTable, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)},
+                    {Locations.SecretGrotto, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
+                    {Locations.RoyalSuite, new GirlStyleInfo(Hp2BaseMod.Styles.Sexy)},
+                    {Locations.AirplaneBathroom, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)},
+                    {Locations.OuterSpace, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)},
                 };
 
                 break;
@@ -136,47 +137,47 @@ public partial class HpExtraction
                 };
 
                 body.LocationIdToStyleInfo = new Dictionary<RelativeId, GirlStyleInfo>() {
-                    {LocationIds.BotanicalGarden, new GirlStyleInfo(new RelativeId(Plugin.ModId, 3))},
-                    {LocationIds.HikingTrail, new GirlStyleInfo(new RelativeId(Plugin.ModId, 2))},
-                    {LocationIds.FarmersMarket, new GirlStyleInfo(new RelativeId(Plugin.ModId, 3))},
+                    {LocationIds.BotanicalGarden, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
+                    {LocationIds.HikingTrail, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)},
+                    {LocationIds.FarmersMarket, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
 
-                    {LocationIds.IceRink, new GirlStyleInfo(new RelativeId(Plugin.ModId, 2))},
-                    {LocationIds.WaterPark, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
-                    {LocationIds.TennisCourts, new GirlStyleInfo(new RelativeId(Plugin.ModId, 2))},
+                    {LocationIds.IceRink, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)},
+                    {LocationIds.WaterPark, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
+                    {LocationIds.TennisCourts, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)},
 
-                    {LocationIds.ScenicOverlook, new GirlStyleInfo(new RelativeId(Plugin.ModId, 1))},
-                    {LocationIds.Casino, new GirlStyleInfo(new RelativeId(Plugin.ModId, 0))},
-                    {LocationIds.HotSprings, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
+                    {LocationIds.ScenicOverlook, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)},
+                    {LocationIds.Casino, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)},
+                    {LocationIds.HotSprings, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
 
-                    {LocationIds.OutdoorLounge, new GirlStyleInfo(new RelativeId(Plugin.ModId, 1))},
-                    {LocationIds.Carnival, new GirlStyleInfo(new RelativeId(Plugin.ModId, 3))},
-                    {LocationIds.Restaurant, new GirlStyleInfo(new RelativeId(Plugin.ModId, 1))},
+                    {LocationIds.OutdoorLounge, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)},
+                    {LocationIds.Carnival, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
+                    {LocationIds.Restaurant, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)},
 
-                    {LocationIds.BedRoomDate, new GirlStyleInfo(new RelativeId(Plugin.ModId, 5))},
+                    {LocationIds.BedRoomDate, new GirlStyleInfo(Hp2BaseMod.Styles.Sexy)},
 
-                    {Locations.MassageSpa, new GirlStyleInfo(new RelativeId(Plugin.ModId, 3))},
-                    {Locations.Aquarium, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
-                    {Locations.SecludedCabana, new GirlStyleInfo(new RelativeId(Plugin.ModId, 3))},
-                    {Locations.PoolsideBar, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
-                    {Locations.GolfCourse, new GirlStyleInfo(new RelativeId(Plugin.ModId, 0))},
-                    {Locations.CruiseShip, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
-                    {Locations.RooftopLounge, new GirlStyleInfo(new RelativeId(Plugin.ModId, 2))},
-                    {Locations.Casino, new GirlStyleInfo(new RelativeId(Plugin.ModId, 2))},
-                    {Locations.PrivateTable, new GirlStyleInfo(new RelativeId(Plugin.ModId, 1))},
-                    {Locations.SecretGrotto, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
-                    {Locations.RoyalSuite, new GirlStyleInfo(new RelativeId(Plugin.ModId, 5))},
-                    {Locations.AirplaneBathroom, new GirlStyleInfo(new RelativeId(Plugin.ModId, 1))},
-                    {Locations.OuterSpace, new GirlStyleInfo(new RelativeId(Plugin.ModId, 0))},
+                    {Locations.MassageSpa, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
+                    {Locations.Aquarium, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
+                    {Locations.SecludedCabana, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
+                    {Locations.PoolsideBar, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
+                    {Locations.GolfCourse, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)},
+                    {Locations.CruiseShip, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
+                    {Locations.RooftopLounge, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)},
+                    {Locations.Casino, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)},
+                    {Locations.PrivateTable, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)},
+                    {Locations.SecretGrotto, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
+                    {Locations.RoyalSuite, new GirlStyleInfo(Hp2BaseMod.Styles.Sexy)},
+                    {Locations.AirplaneBathroom, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)},
+                    {Locations.OuterSpace, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)},
                 };
 
                 break;
             case 3://kyanna
                 girlMod.GirlAge = 23;
                 ((GirlSpecialPartDataMod)body.specialParts[1]).RequiredHairstyles = new List<RelativeId>(){
-                    new RelativeId(Plugin.ModId, 0),
-                    new RelativeId(Plugin.ModId, 2),
-                    new RelativeId(Plugin.ModId, 3),
-                    new RelativeId(Plugin.ModId, 4),
+                    Hp2BaseMod.Styles.Activity,
+                    Hp2BaseMod.Styles.Romantic,
+                    Hp2BaseMod.Styles.Party,
+                    Hp2BaseMod.Styles.Water,
                 };
 
                 SetImages("kyanna");
@@ -220,44 +221,44 @@ public partial class HpExtraction
                 };
 
                 body.LocationIdToStyleInfo = new Dictionary<RelativeId, GirlStyleInfo>() {
-                    {LocationIds.BotanicalGarden, new GirlStyleInfo(new RelativeId(Plugin.ModId, 2))},
-                    {LocationIds.HikingTrail, new GirlStyleInfo(new RelativeId(Plugin.ModId, 1))},
-                    {LocationIds.FarmersMarket, new GirlStyleInfo(new RelativeId(Plugin.ModId, 2))},
+                    {LocationIds.BotanicalGarden, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)},
+                    {LocationIds.HikingTrail, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)},
+                    {LocationIds.FarmersMarket, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)},
 
-                    {LocationIds.IceRink, new GirlStyleInfo(new RelativeId(Plugin.ModId, 1))},
-                    {LocationIds.WaterPark, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
-                    {LocationIds.TennisCourts, new GirlStyleInfo(new RelativeId(Plugin.ModId, 0))},
+                    {LocationIds.IceRink, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)},
+                    {LocationIds.WaterPark, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
+                    {LocationIds.TennisCourts, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)},
 
-                    {LocationIds.ScenicOverlook, new GirlStyleInfo(new RelativeId(Plugin.ModId, 3))},
-                    {LocationIds.Casino, new GirlStyleInfo(new RelativeId(Plugin.ModId, 1))},
-                    {LocationIds.HotSprings, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
+                    {LocationIds.ScenicOverlook, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
+                    {LocationIds.Casino, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)},
+                    {LocationIds.HotSprings, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
 
-                    {LocationIds.OutdoorLounge, new GirlStyleInfo(new RelativeId(Plugin.ModId, 3))},
-                    {LocationIds.Carnival, new GirlStyleInfo(new RelativeId(Plugin.ModId, 3))},
-                    {LocationIds.Restaurant, new GirlStyleInfo(new RelativeId(Plugin.ModId, 2))},
+                    {LocationIds.OutdoorLounge, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
+                    {LocationIds.Carnival, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
+                    {LocationIds.Restaurant, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)},
 
-                    {LocationIds.BedRoomDate, new GirlStyleInfo(new RelativeId(Plugin.ModId, 5))},
+                    {LocationIds.BedRoomDate, new GirlStyleInfo(Hp2BaseMod.Styles.Sexy)},
 
-                    {Locations.MassageSpa, new GirlStyleInfo(new RelativeId(Plugin.ModId, 3))},
-                    {Locations.Aquarium, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
-                    {Locations.SecludedCabana, new GirlStyleInfo(new RelativeId(Plugin.ModId, 3))},
-                    {Locations.PoolsideBar, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
-                    {Locations.GolfCourse, new GirlStyleInfo(new RelativeId(Plugin.ModId, 0))},
-                    {Locations.CruiseShip, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
-                    {Locations.RooftopLounge, new GirlStyleInfo(new RelativeId(Plugin.ModId, 2))},
-                    {Locations.Casino, new GirlStyleInfo(new RelativeId(Plugin.ModId, 2))},
-                    {Locations.PrivateTable, new GirlStyleInfo(new RelativeId(Plugin.ModId, 1))},
-                    {Locations.SecretGrotto, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
-                    {Locations.RoyalSuite, new GirlStyleInfo(new RelativeId(Plugin.ModId, 5))},
-                    {Locations.AirplaneBathroom, new GirlStyleInfo(new RelativeId(Plugin.ModId, 1))},
-                    {Locations.OuterSpace, new GirlStyleInfo(new RelativeId(Plugin.ModId, 0))},
+                    {Locations.MassageSpa, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
+                    {Locations.Aquarium, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
+                    {Locations.SecludedCabana, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
+                    {Locations.PoolsideBar, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
+                    {Locations.GolfCourse, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)},
+                    {Locations.CruiseShip, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
+                    {Locations.RooftopLounge, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)},
+                    {Locations.Casino, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)},
+                    {Locations.PrivateTable, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)},
+                    {Locations.SecretGrotto, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
+                    {Locations.RoyalSuite, new GirlStyleInfo(Hp2BaseMod.Styles.Sexy)},
+                    {Locations.AirplaneBathroom, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)},
+                    {Locations.OuterSpace, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)},
                 };
 
                 break;
             case 4://audrey
                 girlMod.GirlAge = 21;
                 ((GirlSpecialPartDataMod)body.specialParts[1]).RequiredHairstyles = new List<RelativeId>(){
-                            new RelativeId(Plugin.ModId, 0)
+                            Hp2BaseMod.Styles.Activity
                 };
 
                 SetImages("audrey");
@@ -300,37 +301,37 @@ public partial class HpExtraction
                 };
 
                 body.LocationIdToStyleInfo = new Dictionary<RelativeId, GirlStyleInfo>() {
-                    {LocationIds.BotanicalGarden, new GirlStyleInfo(new RelativeId(Plugin.ModId, 0))},
-                    {LocationIds.HikingTrail, new GirlStyleInfo(new RelativeId(Plugin.ModId, 0))},
-                    {LocationIds.FarmersMarket, new GirlStyleInfo(new RelativeId(Plugin.ModId, 0))},
+                    {LocationIds.BotanicalGarden, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)},
+                    {LocationIds.HikingTrail, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)},
+                    {LocationIds.FarmersMarket, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)},
 
-                    {LocationIds.IceRink, new GirlStyleInfo(new RelativeId(Plugin.ModId, 3))},
-                    {LocationIds.WaterPark, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
-                    {LocationIds.TennisCourts, new GirlStyleInfo(new RelativeId(Plugin.ModId, 1))},
+                    {LocationIds.IceRink, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
+                    {LocationIds.WaterPark, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
+                    {LocationIds.TennisCourts, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)},
 
-                    {LocationIds.ScenicOverlook, new GirlStyleInfo(new RelativeId(Plugin.ModId, 3))},
-                    {LocationIds.Casino, new GirlStyleInfo(new RelativeId(Plugin.ModId, 2))},
-                    {LocationIds.HotSprings, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
+                    {LocationIds.ScenicOverlook, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
+                    {LocationIds.Casino, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)},
+                    {LocationIds.HotSprings, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
 
-                    {LocationIds.OutdoorLounge, new GirlStyleInfo(new RelativeId(Plugin.ModId, 1))},
-                    {LocationIds.Carnival, new GirlStyleInfo(new RelativeId(Plugin.ModId, 0))},
-                    {LocationIds.Restaurant, new GirlStyleInfo(new RelativeId(Plugin.ModId, 2))},
+                    {LocationIds.OutdoorLounge, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)},
+                    {LocationIds.Carnival, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)},
+                    {LocationIds.Restaurant, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)},
 
-                    {LocationIds.BedRoomDate, new GirlStyleInfo(new RelativeId(Plugin.ModId, 5))},
+                    {LocationIds.BedRoomDate, new GirlStyleInfo(Hp2BaseMod.Styles.Sexy)},
 
-                    {Locations.MassageSpa, new GirlStyleInfo(new RelativeId(Plugin.ModId, 3))},
-                    {Locations.Aquarium, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
-                    {Locations.SecludedCabana, new GirlStyleInfo(new RelativeId(Plugin.ModId, 3))},
-                    {Locations.PoolsideBar, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
-                    {Locations.GolfCourse, new GirlStyleInfo(new RelativeId(Plugin.ModId, 0))},
-                    {Locations.CruiseShip, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
-                    {Locations.RooftopLounge, new GirlStyleInfo(new RelativeId(Plugin.ModId, 2))},
-                    {Locations.Casino, new GirlStyleInfo(new RelativeId(Plugin.ModId, 2))},
-                    {Locations.PrivateTable, new GirlStyleInfo(new RelativeId(Plugin.ModId, 1))},
-                    {Locations.SecretGrotto, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
-                    {Locations.RoyalSuite, new GirlStyleInfo(new RelativeId(Plugin.ModId, 5))},
-                    {Locations.AirplaneBathroom, new GirlStyleInfo(new RelativeId(Plugin.ModId, 1))},
-                    {Locations.OuterSpace, new GirlStyleInfo(new RelativeId(Plugin.ModId, 0))},
+                    {Locations.MassageSpa, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
+                    {Locations.Aquarium, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
+                    {Locations.SecludedCabana, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
+                    {Locations.PoolsideBar, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
+                    {Locations.GolfCourse, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)},
+                    {Locations.CruiseShip, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
+                    {Locations.RooftopLounge, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)},
+                    {Locations.Casino, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)},
+                    {Locations.PrivateTable, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)},
+                    {Locations.SecretGrotto, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
+                    {Locations.RoyalSuite, new GirlStyleInfo(Hp2BaseMod.Styles.Sexy)},
+                    {Locations.AirplaneBathroom, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)},
+                    {Locations.OuterSpace, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)},
                 };
 
                 break;
@@ -353,37 +354,37 @@ public partial class HpExtraction
                 body.HeadPosition = new VectorInfo(230, 780);
 
                 body.LocationIdToStyleInfo = new Dictionary<RelativeId, GirlStyleInfo>() {
-                    {LocationIds.BotanicalGarden, new GirlStyleInfo(new RelativeId(Plugin.ModId, 2))},
-                    {LocationIds.HikingTrail, new GirlStyleInfo(new RelativeId(Plugin.ModId, 3))},
-                    {LocationIds.FarmersMarket, new GirlStyleInfo(new RelativeId(Plugin.ModId, 3))},
+                    {LocationIds.BotanicalGarden, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)},
+                    {LocationIds.HikingTrail, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
+                    {LocationIds.FarmersMarket, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
 
-                    {LocationIds.IceRink, new GirlStyleInfo(new RelativeId(Plugin.ModId, 2))},
-                    {LocationIds.WaterPark, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
-                    {LocationIds.TennisCourts, new GirlStyleInfo(new RelativeId(Plugin.ModId, 3))},
+                    {LocationIds.IceRink, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)},
+                    {LocationIds.WaterPark, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
+                    {LocationIds.TennisCourts, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
 
-                    {LocationIds.ScenicOverlook, new GirlStyleInfo(new RelativeId(Plugin.ModId, 2))},
-                    {LocationIds.Casino, new GirlStyleInfo(new RelativeId(Plugin.ModId, 1))},
-                    {LocationIds.HotSprings, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
+                    {LocationIds.ScenicOverlook, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)},
+                    {LocationIds.Casino, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)},
+                    {LocationIds.HotSprings, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
 
-                    {LocationIds.OutdoorLounge, new GirlStyleInfo(new RelativeId(Plugin.ModId, 1))},
-                    {LocationIds.Carnival, new GirlStyleInfo(new RelativeId(Plugin.ModId, 0))},
-                    {LocationIds.Restaurant, new GirlStyleInfo(new RelativeId(Plugin.ModId, 1))},
+                    {LocationIds.OutdoorLounge, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)},
+                    {LocationIds.Carnival, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)},
+                    {LocationIds.Restaurant, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)},
 
-                    {LocationIds.BedRoomDate, new GirlStyleInfo(new RelativeId(Plugin.ModId, 5))},
+                    {LocationIds.BedRoomDate, new GirlStyleInfo(Hp2BaseMod.Styles.Sexy)},
 
-                    {Locations.MassageSpa, new GirlStyleInfo(new RelativeId(Plugin.ModId, 3))},
-                    {Locations.Aquarium, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
-                    {Locations.SecludedCabana, new GirlStyleInfo(new RelativeId(Plugin.ModId, 3))},
-                    {Locations.PoolsideBar, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
-                    {Locations.GolfCourse, new GirlStyleInfo(new RelativeId(Plugin.ModId, 0))},
-                    {Locations.CruiseShip, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
-                    {Locations.RooftopLounge, new GirlStyleInfo(new RelativeId(Plugin.ModId, 2))},
-                    {Locations.Casino, new GirlStyleInfo(new RelativeId(Plugin.ModId, 2))},
-                    {Locations.PrivateTable, new GirlStyleInfo(new RelativeId(Plugin.ModId, 1))},
-                    {Locations.SecretGrotto, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
-                    {Locations.RoyalSuite, new GirlStyleInfo(new RelativeId(Plugin.ModId, 5))},
-                    {Locations.AirplaneBathroom, new GirlStyleInfo(new RelativeId(Plugin.ModId, 1))},
-                    {Locations.OuterSpace, new GirlStyleInfo(new RelativeId(Plugin.ModId, 0))},
+                    {Locations.MassageSpa, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
+                    {Locations.Aquarium, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
+                    {Locations.SecludedCabana, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
+                    {Locations.PoolsideBar, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
+                    {Locations.GolfCourse, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)},
+                    {Locations.CruiseShip, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
+                    {Locations.RooftopLounge, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)},
+                    {Locations.Casino, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)},
+                    {Locations.PrivateTable, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)},
+                    {Locations.SecretGrotto, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
+                    {Locations.RoyalSuite, new GirlStyleInfo(Hp2BaseMod.Styles.Sexy)},
+                    {Locations.AirplaneBathroom, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)},
+                    {Locations.OuterSpace, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)},
                 };
                 break;
             case 6://nikki
@@ -429,37 +430,37 @@ public partial class HpExtraction
                 };
 
                 body.LocationIdToStyleInfo = new Dictionary<RelativeId, GirlStyleInfo>() {
-                    {LocationIds.BotanicalGarden, new GirlStyleInfo(new RelativeId(Plugin.ModId, 1))},
-                    {LocationIds.HikingTrail, new GirlStyleInfo(new RelativeId(Plugin.ModId, 2))},
-                    {LocationIds.FarmersMarket, new GirlStyleInfo(new RelativeId(Plugin.ModId, 3))},
+                    {LocationIds.BotanicalGarden, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)},
+                    {LocationIds.HikingTrail, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)},
+                    {LocationIds.FarmersMarket, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
 
-                    {LocationIds.IceRink, new GirlStyleInfo(new RelativeId(Plugin.ModId, 2))},
-                    {LocationIds.WaterPark, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
-                    {LocationIds.TennisCourts, new GirlStyleInfo(new RelativeId(Plugin.ModId, 2))},
+                    {LocationIds.IceRink, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)},
+                    {LocationIds.WaterPark, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
+                    {LocationIds.TennisCourts, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)},
 
-                    {LocationIds.ScenicOverlook, new GirlStyleInfo(new RelativeId(Plugin.ModId, 0))},
-                    {LocationIds.Casino, new GirlStyleInfo(new RelativeId(Plugin.ModId, 3))},
-                    {LocationIds.HotSprings, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
+                    {LocationIds.ScenicOverlook, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)},
+                    {LocationIds.Casino, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
+                    {LocationIds.HotSprings, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
 
-                    {LocationIds.OutdoorLounge, new GirlStyleInfo(new RelativeId(Plugin.ModId, 1))},
-                    {LocationIds.Carnival, new GirlStyleInfo(new RelativeId(Plugin.ModId, 1))},
-                    {LocationIds.Restaurant, new GirlStyleInfo(new RelativeId(Plugin.ModId, 3))},
+                    {LocationIds.OutdoorLounge, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)},
+                    {LocationIds.Carnival, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)},
+                    {LocationIds.Restaurant, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
 
-                    {LocationIds.BedRoomDate, new GirlStyleInfo(new RelativeId(Plugin.ModId, 5))},
+                    {LocationIds.BedRoomDate, new GirlStyleInfo(Hp2BaseMod.Styles.Sexy)},
 
-                    {Locations.MassageSpa, new GirlStyleInfo(new RelativeId(Plugin.ModId, 3))},
-                    {Locations.Aquarium, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
-                    {Locations.SecludedCabana, new GirlStyleInfo(new RelativeId(Plugin.ModId, 3))},
-                    {Locations.PoolsideBar, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
-                    {Locations.GolfCourse, new GirlStyleInfo(new RelativeId(Plugin.ModId, 0))},
-                    {Locations.CruiseShip, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
-                    {Locations.RooftopLounge, new GirlStyleInfo(new RelativeId(Plugin.ModId, 2))},
-                    {Locations.Casino, new GirlStyleInfo(new RelativeId(Plugin.ModId, 2))},
-                    {Locations.PrivateTable, new GirlStyleInfo(new RelativeId(Plugin.ModId, 1))},
-                    {Locations.SecretGrotto, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
-                    {Locations.RoyalSuite, new GirlStyleInfo(new RelativeId(Plugin.ModId, 5))},
-                    {Locations.AirplaneBathroom, new GirlStyleInfo(new RelativeId(Plugin.ModId, 1))},
-                    {Locations.OuterSpace, new GirlStyleInfo(new RelativeId(Plugin.ModId, 0))},
+                    {Locations.MassageSpa, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
+                    {Locations.Aquarium, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
+                    {Locations.SecludedCabana, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
+                    {Locations.PoolsideBar, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
+                    {Locations.GolfCourse, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)},
+                    {Locations.CruiseShip, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
+                    {Locations.RooftopLounge, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)},
+                    {Locations.Casino, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)},
+                    {Locations.PrivateTable, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)},
+                    {Locations.SecretGrotto, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
+                    {Locations.RoyalSuite, new GirlStyleInfo(Hp2BaseMod.Styles.Sexy)},
+                    {Locations.AirplaneBathroom, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)},
+                    {Locations.OuterSpace, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)},
                 };
 
                 break;
@@ -479,7 +480,7 @@ public partial class HpExtraction
                 };
 
                 ((GirlSpecialPartDataMod)body.specialParts[0]).RequiredHairstyles = new List<RelativeId>(){
-                            new RelativeId(Plugin.ModId, 1)
+                            Hp2BaseMod.Styles.Relaxing
                         };
                 var celebrityFrontHair = (GirlPartDataMod)((HairstyleDataMod)body.hairstyles[3]).FrontHairPart;
                 celebrityFrontHair.X = celebrityFrontHair.X.Value + 82;
@@ -488,37 +489,37 @@ public partial class HpExtraction
                 body.HeadPosition = new VectorInfo(230, 780);
 
                 body.LocationIdToStyleInfo = new Dictionary<RelativeId, GirlStyleInfo>() {
-                    {LocationIds.BotanicalGarden, new GirlStyleInfo(new RelativeId(Plugin.ModId, 2))},
-                    {LocationIds.HikingTrail, new GirlStyleInfo(new RelativeId(Plugin.ModId, 1))},
-                    {LocationIds.FarmersMarket, new GirlStyleInfo(new RelativeId(Plugin.ModId, 1))},
+                    {LocationIds.BotanicalGarden, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)},
+                    {LocationIds.HikingTrail, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)},
+                    {LocationIds.FarmersMarket, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)},
 
-                    {LocationIds.IceRink, new GirlStyleInfo(new RelativeId(Plugin.ModId, 2))},
-                    {LocationIds.WaterPark, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
-                    {LocationIds.TennisCourts, new GirlStyleInfo(new RelativeId(Plugin.ModId, 2))},
+                    {LocationIds.IceRink, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)},
+                    {LocationIds.WaterPark, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
+                    {LocationIds.TennisCourts, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)},
 
-                    {LocationIds.ScenicOverlook, new GirlStyleInfo(new RelativeId(Plugin.ModId, 3))},
-                    {LocationIds.Casino, new GirlStyleInfo(new RelativeId(Plugin.ModId, 3))},
-                    {LocationIds.HotSprings, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
+                    {LocationIds.ScenicOverlook, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
+                    {LocationIds.Casino, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
+                    {LocationIds.HotSprings, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
 
-                    {LocationIds.OutdoorLounge, new GirlStyleInfo(new RelativeId(Plugin.ModId, 3))},
-                    {LocationIds.Carnival, new GirlStyleInfo(new RelativeId(Plugin.ModId, 1))},
-                    {LocationIds.Restaurant, new GirlStyleInfo(new RelativeId(Plugin.ModId, 0))},
+                    {LocationIds.OutdoorLounge, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
+                    {LocationIds.Carnival, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)},
+                    {LocationIds.Restaurant, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)},
 
-                    {LocationIds.BedRoomDate, new GirlStyleInfo(new RelativeId(Plugin.ModId, 5))},
+                    {LocationIds.BedRoomDate, new GirlStyleInfo(Hp2BaseMod.Styles.Sexy)},
 
-                    {Locations.MassageSpa, new GirlStyleInfo(new RelativeId(Plugin.ModId, 3))},
-                    {Locations.Aquarium, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
-                    {Locations.SecludedCabana, new GirlStyleInfo(new RelativeId(Plugin.ModId, 3))},
-                    {Locations.PoolsideBar, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
-                    {Locations.GolfCourse, new GirlStyleInfo(new RelativeId(Plugin.ModId, 0))},
-                    {Locations.CruiseShip, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
-                    {Locations.RooftopLounge, new GirlStyleInfo(new RelativeId(Plugin.ModId, 2))},
-                    {Locations.Casino, new GirlStyleInfo(new RelativeId(Plugin.ModId, 2))},
-                    {Locations.PrivateTable, new GirlStyleInfo(new RelativeId(Plugin.ModId, 1))},
-                    {Locations.SecretGrotto, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
-                    {Locations.RoyalSuite, new GirlStyleInfo(new RelativeId(Plugin.ModId, 5))},
-                    {Locations.AirplaneBathroom, new GirlStyleInfo(new RelativeId(Plugin.ModId, 1))},
-                    {Locations.OuterSpace, new GirlStyleInfo(new RelativeId(Plugin.ModId, 0))},
+                    {Locations.MassageSpa, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
+                    {Locations.Aquarium, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
+                    {Locations.SecludedCabana, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
+                    {Locations.PoolsideBar, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
+                    {Locations.GolfCourse, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)},
+                    {Locations.CruiseShip, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
+                    {Locations.RooftopLounge, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)},
+                    {Locations.Casino, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)},
+                    {Locations.PrivateTable, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)},
+                    {Locations.SecretGrotto, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
+                    {Locations.RoyalSuite, new GirlStyleInfo(Hp2BaseMod.Styles.Sexy)},
+                    {Locations.AirplaneBathroom, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)},
+                    {Locations.OuterSpace, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)},
                 };
                 break;
             case 8: //beli
@@ -564,37 +565,37 @@ public partial class HpExtraction
                 };
 
                 body.LocationIdToStyleInfo = new Dictionary<RelativeId, GirlStyleInfo>() {
-                    {LocationIds.BotanicalGarden, new GirlStyleInfo(new RelativeId(Plugin.ModId, 0))},
-                    {LocationIds.HikingTrail, new GirlStyleInfo(new RelativeId(Plugin.ModId, 2))},
-                    {LocationIds.FarmersMarket, new GirlStyleInfo(new RelativeId(Plugin.ModId, 2))},
+                    {LocationIds.BotanicalGarden, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)},
+                    {LocationIds.HikingTrail, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)},
+                    {LocationIds.FarmersMarket, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)},
 
-                    {LocationIds.IceRink, new GirlStyleInfo(new RelativeId(Plugin.ModId, 1))},
-                    {LocationIds.WaterPark, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
-                    {LocationIds.TennisCourts, new GirlStyleInfo(new RelativeId(Plugin.ModId, 3))},
+                    {LocationIds.IceRink, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)},
+                    {LocationIds.WaterPark, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
+                    {LocationIds.TennisCourts, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
 
-                    {LocationIds.ScenicOverlook, new GirlStyleInfo(new RelativeId(Plugin.ModId, 3))},
-                    {LocationIds.Casino, new GirlStyleInfo(new RelativeId(Plugin.ModId, 1))},
-                    {LocationIds.HotSprings, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
+                    {LocationIds.ScenicOverlook, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
+                    {LocationIds.Casino, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)},
+                    {LocationIds.HotSprings, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
 
-                    {LocationIds.OutdoorLounge, new GirlStyleInfo(new RelativeId(Plugin.ModId, 3))},
-                    {LocationIds.Carnival, new GirlStyleInfo(new RelativeId(Plugin.ModId, 1))},
-                    {LocationIds.Restaurant, new GirlStyleInfo(new RelativeId(Plugin.ModId, 2))},
+                    {LocationIds.OutdoorLounge, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
+                    {LocationIds.Carnival, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)},
+                    {LocationIds.Restaurant, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)},
 
-                    {LocationIds.BedRoomDate, new GirlStyleInfo(new RelativeId(Plugin.ModId, 5))},
+                    {LocationIds.BedRoomDate, new GirlStyleInfo(Hp2BaseMod.Styles.Sexy)},
 
-                    {Locations.MassageSpa, new GirlStyleInfo(new RelativeId(Plugin.ModId, 3))},
-                    {Locations.Aquarium, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
-                    {Locations.SecludedCabana, new GirlStyleInfo(new RelativeId(Plugin.ModId, 3))},
-                    {Locations.PoolsideBar, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
-                    {Locations.GolfCourse, new GirlStyleInfo(new RelativeId(Plugin.ModId, 0))},
-                    {Locations.CruiseShip, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
-                    {Locations.RooftopLounge, new GirlStyleInfo(new RelativeId(Plugin.ModId, 2))},
-                    {Locations.Casino, new GirlStyleInfo(new RelativeId(Plugin.ModId, 2))},
-                    {Locations.PrivateTable, new GirlStyleInfo(new RelativeId(Plugin.ModId, 1))},
-                    {Locations.SecretGrotto, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
-                    {Locations.RoyalSuite, new GirlStyleInfo(new RelativeId(Plugin.ModId, 5))},
-                    {Locations.AirplaneBathroom, new GirlStyleInfo(new RelativeId(Plugin.ModId, 1))},
-                    {Locations.OuterSpace, new GirlStyleInfo(new RelativeId(Plugin.ModId, 0))},
+                    {Locations.MassageSpa, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
+                    {Locations.Aquarium, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
+                    {Locations.SecludedCabana, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
+                    {Locations.PoolsideBar, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
+                    {Locations.GolfCourse, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)},
+                    {Locations.CruiseShip, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
+                    {Locations.RooftopLounge, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)},
+                    {Locations.Casino, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)},
+                    {Locations.PrivateTable, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)},
+                    {Locations.SecretGrotto, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
+                    {Locations.RoyalSuite, new GirlStyleInfo(Hp2BaseMod.Styles.Sexy)},
+                    {Locations.AirplaneBathroom, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)},
+                    {Locations.OuterSpace, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)},
                 };
                 break;
             case 9://kyu
@@ -602,7 +603,7 @@ public partial class HpExtraction
                 body.BackPosition = new VectorInfo(245f, 454f);
                 body.HeadPosition = new VectorInfo(230, 780);
                 girlMod.SpecialCharacter = false;
-                body.SpecialEffectName = "FairyWingsKyu";
+                body.SpecialEffect = SpecialParts.KyuWingId;
 
                 girlMod.FavAnswers = new()
                 {
@@ -641,37 +642,37 @@ public partial class HpExtraction
                 };
 
                 body.LocationIdToStyleInfo = new Dictionary<RelativeId, GirlStyleInfo>() {
-                    {LocationIds.BotanicalGarden, new GirlStyleInfo(new RelativeId(Plugin.ModId, 0))},
-                    {LocationIds.HikingTrail, new GirlStyleInfo(new RelativeId(Plugin.ModId, 1))},
-                    {LocationIds.FarmersMarket, new GirlStyleInfo(new RelativeId(Plugin.ModId, 2))},
+                    {LocationIds.BotanicalGarden, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)},
+                    {LocationIds.HikingTrail, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)},
+                    {LocationIds.FarmersMarket, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)},
 
-                    {LocationIds.IceRink, new GirlStyleInfo(new RelativeId(Plugin.ModId, 1))},
-                    {LocationIds.WaterPark, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
-                    {LocationIds.TennisCourts, new GirlStyleInfo(new RelativeId(Plugin.ModId, 2))},
+                    {LocationIds.IceRink, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)},
+                    {LocationIds.WaterPark, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
+                    {LocationIds.TennisCourts, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)},
 
-                    {LocationIds.ScenicOverlook, new GirlStyleInfo(new RelativeId(Plugin.ModId, 2))},
-                    {LocationIds.Casino, new GirlStyleInfo(new RelativeId(Plugin.ModId, 3))},
-                    {LocationIds.HotSprings, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
+                    {LocationIds.ScenicOverlook, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)},
+                    {LocationIds.Casino, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
+                    {LocationIds.HotSprings, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
 
-                    {LocationIds.OutdoorLounge, new GirlStyleInfo(new RelativeId(Plugin.ModId, 3))},
-                    {LocationIds.Carnival, new GirlStyleInfo(new RelativeId(Plugin.ModId, 1))},
-                    {LocationIds.Restaurant, new GirlStyleInfo(new RelativeId(Plugin.ModId, 3))},
+                    {LocationIds.OutdoorLounge, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
+                    {LocationIds.Carnival, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)},
+                    {LocationIds.Restaurant, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
 
-                    {LocationIds.BedRoomDate, new GirlStyleInfo(new RelativeId(Plugin.ModId, 5))},
+                    {LocationIds.BedRoomDate, new GirlStyleInfo(Hp2BaseMod.Styles.Sexy)},
 
-                    {Locations.MassageSpa, new GirlStyleInfo(new RelativeId(Plugin.ModId, 3))},
-                    {Locations.Aquarium, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
-                    {Locations.SecludedCabana, new GirlStyleInfo(new RelativeId(Plugin.ModId, 3))},
-                    {Locations.PoolsideBar, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
-                    {Locations.GolfCourse, new GirlStyleInfo(new RelativeId(Plugin.ModId, 0))},
-                    {Locations.CruiseShip, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
-                    {Locations.RooftopLounge, new GirlStyleInfo(new RelativeId(Plugin.ModId, 2))},
-                    {Locations.Casino, new GirlStyleInfo(new RelativeId(Plugin.ModId, 2))},
-                    {Locations.PrivateTable, new GirlStyleInfo(new RelativeId(Plugin.ModId, 1))},
-                    {Locations.SecretGrotto, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
-                    {Locations.RoyalSuite, new GirlStyleInfo(new RelativeId(Plugin.ModId, 5))},
-                    {Locations.AirplaneBathroom, new GirlStyleInfo(new RelativeId(Plugin.ModId, 1))},
-                    {Locations.OuterSpace, new GirlStyleInfo(new RelativeId(Plugin.ModId, 0))},
+                    {Locations.MassageSpa, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
+                    {Locations.Aquarium, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
+                    {Locations.SecludedCabana, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
+                    {Locations.PoolsideBar, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
+                    {Locations.GolfCourse, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)},
+                    {Locations.CruiseShip, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
+                    {Locations.RooftopLounge, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)},
+                    {Locations.Casino, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)},
+                    {Locations.PrivateTable, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)},
+                    {Locations.SecretGrotto, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
+                    {Locations.RoyalSuite, new GirlStyleInfo(Hp2BaseMod.Styles.Sexy)},
+                    {Locations.AirplaneBathroom, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)},
+                    {Locations.OuterSpace, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)},
                 };
 
                 break;
@@ -718,37 +719,37 @@ public partial class HpExtraction
                 };
 
                 body.LocationIdToStyleInfo = new Dictionary<RelativeId, GirlStyleInfo>() {
-                    {LocationIds.BotanicalGarden, new GirlStyleInfo(new RelativeId(Plugin.ModId, 2))},
-                    {LocationIds.HikingTrail, new GirlStyleInfo(new RelativeId(Plugin.ModId, 0))},
-                    {LocationIds.FarmersMarket, new GirlStyleInfo(new RelativeId(Plugin.ModId, 1))},
+                    {LocationIds.BotanicalGarden, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)},
+                    {LocationIds.HikingTrail, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)},
+                    {LocationIds.FarmersMarket, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)},
 
-                    {LocationIds.IceRink, new GirlStyleInfo(new RelativeId(Plugin.ModId, 2))},
-                    {LocationIds.WaterPark, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
-                    {LocationIds.TennisCourts, new GirlStyleInfo(new RelativeId(Plugin.ModId, 1))},
+                    {LocationIds.IceRink, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)},
+                    {LocationIds.WaterPark, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
+                    {LocationIds.TennisCourts, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)},
 
-                    {LocationIds.ScenicOverlook, new GirlStyleInfo(new RelativeId(Plugin.ModId, 3))},
-                    {LocationIds.Casino, new GirlStyleInfo(new RelativeId(Plugin.ModId, 3))},
-                    {LocationIds.HotSprings, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
+                    {LocationIds.ScenicOverlook, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
+                    {LocationIds.Casino, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
+                    {LocationIds.HotSprings, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
 
-                    {LocationIds.OutdoorLounge, new GirlStyleInfo(new RelativeId(Plugin.ModId, 3))},
-                    {LocationIds.Carnival, new GirlStyleInfo(new RelativeId(Plugin.ModId, 2))},
-                    {LocationIds.Restaurant, new GirlStyleInfo(new RelativeId(Plugin.ModId, 1))},
+                    {LocationIds.OutdoorLounge, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
+                    {LocationIds.Carnival, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)},
+                    {LocationIds.Restaurant, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)},
 
-                    {LocationIds.BedRoomDate, new GirlStyleInfo(new RelativeId(Plugin.ModId, 5))},
+                    {LocationIds.BedRoomDate, new GirlStyleInfo(Hp2BaseMod.Styles.Sexy)},
 
-                    {Locations.MassageSpa, new GirlStyleInfo(new RelativeId(Plugin.ModId, 3))},
-                    {Locations.Aquarium, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
-                    {Locations.SecludedCabana, new GirlStyleInfo(new RelativeId(Plugin.ModId, 3))},
-                    {Locations.PoolsideBar, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
-                    {Locations.GolfCourse, new GirlStyleInfo(new RelativeId(Plugin.ModId, 0))},
-                    {Locations.CruiseShip, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
-                    {Locations.RooftopLounge, new GirlStyleInfo(new RelativeId(Plugin.ModId, 2))},
-                    {Locations.Casino, new GirlStyleInfo(new RelativeId(Plugin.ModId, 2))},
-                    {Locations.PrivateTable, new GirlStyleInfo(new RelativeId(Plugin.ModId, 1))},
-                    {Locations.SecretGrotto, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
-                    {Locations.RoyalSuite, new GirlStyleInfo(new RelativeId(Plugin.ModId, 5))},
-                    {Locations.AirplaneBathroom, new GirlStyleInfo(new RelativeId(Plugin.ModId, 1))},
-                    {Locations.OuterSpace, new GirlStyleInfo(new RelativeId(Plugin.ModId, 0))},
+                    {Locations.MassageSpa, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
+                    {Locations.Aquarium, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
+                    {Locations.SecludedCabana, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
+                    {Locations.PoolsideBar, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
+                    {Locations.GolfCourse, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)},
+                    {Locations.CruiseShip, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
+                    {Locations.RooftopLounge, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)},
+                    {Locations.Casino, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)},
+                    {Locations.PrivateTable, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)},
+                    {Locations.SecretGrotto, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
+                    {Locations.RoyalSuite, new GirlStyleInfo(Hp2BaseMod.Styles.Sexy)},
+                    {Locations.AirplaneBathroom, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)},
+                    {Locations.OuterSpace, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)},
                 };
 
                 break;
@@ -795,37 +796,37 @@ public partial class HpExtraction
                 };
 
                 body.LocationIdToStyleInfo = new Dictionary<RelativeId, GirlStyleInfo>() {
-                    {LocationIds.BotanicalGarden, new GirlStyleInfo(new RelativeId(Plugin.ModId, 0))},
-                    {LocationIds.HikingTrail, new GirlStyleInfo(new RelativeId(Plugin.ModId, 0))},
-                    {LocationIds.FarmersMarket, new GirlStyleInfo(new RelativeId(Plugin.ModId, 0))},
+                    {LocationIds.BotanicalGarden, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)},
+                    {LocationIds.HikingTrail, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)},
+                    {LocationIds.FarmersMarket, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)},
 
-                    {LocationIds.IceRink, new GirlStyleInfo(new RelativeId(Plugin.ModId, 0))},
-                    {LocationIds.WaterPark, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},//in case of non-stop dates
-                    {LocationIds.TennisCourts, new GirlStyleInfo(new RelativeId(Plugin.ModId, 0))},
+                    {LocationIds.IceRink, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)},
+                    {LocationIds.WaterPark, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},//in case of non-stop dates
+                    {LocationIds.TennisCourts, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)},
 
-                    {LocationIds.ScenicOverlook, new GirlStyleInfo(new RelativeId(Plugin.ModId, 2))},
-                    {LocationIds.Casino, new GirlStyleInfo(new RelativeId(Plugin.ModId, 2))},
-                    {LocationIds.HotSprings, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
+                    {LocationIds.ScenicOverlook, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)},
+                    {LocationIds.Casino, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)},
+                    {LocationIds.HotSprings, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
 
-                    {LocationIds.OutdoorLounge, new GirlStyleInfo(new RelativeId(Plugin.ModId, 1))},
-                    {LocationIds.Carnival, new GirlStyleInfo(new RelativeId(Plugin.ModId, 1))},
-                    {LocationIds.Restaurant, new GirlStyleInfo(new RelativeId(Plugin.ModId, 3))},
+                    {LocationIds.OutdoorLounge, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)},
+                    {LocationIds.Carnival, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)},
+                    {LocationIds.Restaurant, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
 
-                    {LocationIds.BedRoomDate, new GirlStyleInfo(new RelativeId(Plugin.ModId, 5))},
+                    {LocationIds.BedRoomDate, new GirlStyleInfo(Hp2BaseMod.Styles.Sexy)},
 
-                    {Locations.MassageSpa, new GirlStyleInfo(new RelativeId(Plugin.ModId, 3))},
-                    {Locations.Aquarium, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
-                    {Locations.SecludedCabana, new GirlStyleInfo(new RelativeId(Plugin.ModId, 3))},
-                    {Locations.PoolsideBar, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
-                    {Locations.GolfCourse, new GirlStyleInfo(new RelativeId(Plugin.ModId, 0))},
-                    {Locations.CruiseShip, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
-                    {Locations.RooftopLounge, new GirlStyleInfo(new RelativeId(Plugin.ModId, 2))},
-                    {Locations.Casino, new GirlStyleInfo(new RelativeId(Plugin.ModId, 2))},
-                    {Locations.PrivateTable, new GirlStyleInfo(new RelativeId(Plugin.ModId, 1))},
-                    {Locations.SecretGrotto, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
-                    {Locations.RoyalSuite, new GirlStyleInfo(new RelativeId(Plugin.ModId, 5))},
-                    {Locations.AirplaneBathroom, new GirlStyleInfo(new RelativeId(Plugin.ModId, 1))},
-                    {Locations.OuterSpace, new GirlStyleInfo(new RelativeId(Plugin.ModId, 0))},
+                    {Locations.MassageSpa, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
+                    {Locations.Aquarium, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
+                    {Locations.SecludedCabana, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
+                    {Locations.PoolsideBar, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
+                    {Locations.GolfCourse, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)},
+                    {Locations.CruiseShip, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
+                    {Locations.RooftopLounge, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)},
+                    {Locations.Casino, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)},
+                    {Locations.PrivateTable, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)},
+                    {Locations.SecretGrotto, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
+                    {Locations.RoyalSuite, new GirlStyleInfo(Hp2BaseMod.Styles.Sexy)},
+                    {Locations.AirplaneBathroom, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)},
+                    {Locations.OuterSpace, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)},
                 };
 
                 break;
@@ -872,42 +873,57 @@ public partial class HpExtraction
                 };
 
                 body.LocationIdToStyleInfo = new Dictionary<RelativeId, GirlStyleInfo>() {
-                    {LocationIds.BotanicalGarden, new GirlStyleInfo(new RelativeId(Plugin.ModId, 0))},
-                    {LocationIds.HikingTrail, new GirlStyleInfo(new RelativeId(Plugin.ModId, 3))},
-                    {LocationIds.FarmersMarket, new GirlStyleInfo(new RelativeId(Plugin.ModId, 2))},
+                    {LocationIds.BotanicalGarden, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)},
+                    {LocationIds.HikingTrail, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
+                    {LocationIds.FarmersMarket, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)},
 
-                    {LocationIds.IceRink, new GirlStyleInfo(new RelativeId(Plugin.ModId, 2))},
-                    {LocationIds.WaterPark, new GirlStyleInfo(new RelativeId(Plugin.ModId, 0))},
-                    {LocationIds.TennisCourts, new GirlStyleInfo(new RelativeId(Plugin.ModId, 3))},
+                    {LocationIds.IceRink, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)},
+                    {LocationIds.WaterPark, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)},
+                    {LocationIds.TennisCourts, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
 
-                    {LocationIds.ScenicOverlook, new GirlStyleInfo(new RelativeId(Plugin.ModId, 1))},
-                    {LocationIds.Casino, new GirlStyleInfo(new RelativeId(Plugin.ModId, 1))},
-                    {LocationIds.HotSprings, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
+                    {LocationIds.ScenicOverlook, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)},
+                    {LocationIds.Casino, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)},
+                    {LocationIds.HotSprings, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
 
-                    {LocationIds.OutdoorLounge, new GirlStyleInfo(new RelativeId(Plugin.ModId, 1))},
-                    {LocationIds.Carnival, new GirlStyleInfo(new RelativeId(Plugin.ModId, 3))},
-                    {LocationIds.Restaurant, new GirlStyleInfo(new RelativeId(Plugin.ModId, 2))},
+                    {LocationIds.OutdoorLounge, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)},
+                    {LocationIds.Carnival, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
+                    {LocationIds.Restaurant, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)},
 
-                    {LocationIds.BedRoomDate, new GirlStyleInfo(new RelativeId(Plugin.ModId, 5))},
+                    {LocationIds.BedRoomDate, new GirlStyleInfo(Hp2BaseMod.Styles.Sexy)},
 
-                    {Locations.MassageSpa, new GirlStyleInfo(new RelativeId(Plugin.ModId, 3))},
-                    {Locations.Aquarium, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
-                    {Locations.SecludedCabana, new GirlStyleInfo(new RelativeId(Plugin.ModId, 3))},
-                    {Locations.PoolsideBar, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
-                    {Locations.GolfCourse, new GirlStyleInfo(new RelativeId(Plugin.ModId, 0))},
-                    {Locations.CruiseShip, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
-                    {Locations.RooftopLounge, new GirlStyleInfo(new RelativeId(Plugin.ModId, 2))},
-                    {Locations.Casino, new GirlStyleInfo(new RelativeId(Plugin.ModId, 2))},
-                    {Locations.PrivateTable, new GirlStyleInfo(new RelativeId(Plugin.ModId, 1))},
-                    {Locations.SecretGrotto, new GirlStyleInfo(new RelativeId(Plugin.ModId, 4))},
-                    {Locations.RoyalSuite, new GirlStyleInfo(new RelativeId(Plugin.ModId, 5))},
-                    {Locations.AirplaneBathroom, new GirlStyleInfo(new RelativeId(Plugin.ModId, 1))},
-                    {Locations.OuterSpace, new GirlStyleInfo(new RelativeId(Plugin.ModId, 0))},
+                    {Locations.MassageSpa, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
+                    {Locations.Aquarium, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
+                    {Locations.SecludedCabana, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
+                    {Locations.PoolsideBar, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
+                    {Locations.GolfCourse, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)},
+                    {Locations.CruiseShip, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
+                    {Locations.RooftopLounge, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)},
+                    {Locations.Casino, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)},
+                    {Locations.PrivateTable, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)},
+                    {Locations.SecretGrotto, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
+                    {Locations.RoyalSuite, new GirlStyleInfo(Hp2BaseMod.Styles.Sexy)},
+                    {Locations.AirplaneBathroom, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)},
+                    {Locations.OuterSpace, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)},
                 };
 
                 break;
         }
 
-
+        // if (nativeId == 12 || nativeId == 11 || nativeId == 10 || nativeId == 9)
+        // {
+        //     foreach (var herQuestion in girlMod.HerQuestions.Values.OfType<HerQuestionInfo>())
+        //     {
+        //         using (ModInterface.Log.MakeIndent(herQuestion.DialogLine.DialogText))
+        //         {
+        //             ModInterface.Log.Error(herQuestion.CorrectAnswer.text);
+        //             foreach (var answer in herQuestion.IncorrectAnswers.Values.OfType<HerQuestionAnswerInfo>())
+        //             {
+        //                 ModInterface.Log.Error(answer.text);
+        //                 if (answer.Response != null) ModInterface.Log.Error("\t" + answer.Response?.DialogText);
+        //                 else ModInterface.Log.Error("\trandom");
+        //             }
+        //         }
+        //     }
+        // }
     }
 }

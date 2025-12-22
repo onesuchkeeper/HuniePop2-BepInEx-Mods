@@ -69,8 +69,8 @@ namespace Hp2BaseMod.GameDataInfo
             ValidatedSet.SetValue(ref def.hideNipples, HideNipples);
             ValidatedSet.SetValue(ref expansion.HideSpecial, HideSpecial);
 
-            ValidatedSet.SetValue(ref def.partIndexOutfit, bodyDef.PartIdToIndex, OutfitPart?.Id);
-            ValidatedSet.SetValue(ref def.pairHairstyleIndex, girlExpansion.HairstyleIdToIndex, PairHairstyleId);
+            ValidatedSet.SetValue(ref def.partIndexOutfit, bodyDef.PartLookup, OutfitPart?.Id);
+            ValidatedSet.SetValue(ref def.pairHairstyleIndex, girlExpansion.HairstyleLookup, PairHairstyleId);
         }
 
         /// <inheritdoc/>

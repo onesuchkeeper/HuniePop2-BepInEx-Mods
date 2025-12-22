@@ -20,7 +20,7 @@ namespace Hp2BaseMod.GameDataInfo
         public List<IBodySubDataMod<GirlOutfitSubDefinition>> outfits;
         public List<IBodySubDataMod<GirlSpecialPartSubDefinition>> specialParts;
 
-        public string SpecialEffectName;
+        public RelativeId? SpecialEffect;
 
         public IGameDefinitionInfo<Vector2> HeadPosition;
         public IGameDefinitionInfo<Vector2> BackPosition;
@@ -62,120 +62,6 @@ namespace Hp2BaseMod.GameDataInfo
         {
         }
 
-        internal GirlBodyDataMod(GirlDefinition def, AssetProvider assetProvider)
-        : base(new RelativeId(-1, 0), InsertStyle.replace, 0)
-        {
-            assetProvider.NameAndAddAsset(ref SpecialEffectName, def.specialEffectPrefab);
-
-            DefaultExpressionId = new RelativeId(-1, def.defaultExpressionIndex);
-            FailureExpressionId = new RelativeId(-1, def.failureExpressionIndex);
-
-            PartBody = new GirlPartDataMod(def.partIndexBody, assetProvider, def);
-            PartNipples = new GirlPartDataMod(def.partIndexNipples, assetProvider, def);
-            PartBlushLight = new GirlPartDataMod(def.partIndexBlushLight, assetProvider, def);
-            PartBlushHeavy = new GirlPartDataMod(def.partIndexBlushHeavy, assetProvider, def);
-            PartBlink = new GirlPartDataMod(def.partIndexBlink, assetProvider, def);
-            PartMouthNeutral = new GirlPartDataMod(def.partIndexMouthNeutral, assetProvider, def);
-
-            if (def.partIndexesPhonemes != null)
-            {
-                var it = def.partIndexesPhonemes.GetEnumerator();
-                it.MoveNext();
-                Phonemes_aeil = new GirlPartDataMod(it.Current, assetProvider, def);
-                it.MoveNext();
-                Phonemes_neutral = new GirlPartDataMod(it.Current, assetProvider, def);
-                it.MoveNext();
-                Phonemes_oquw = new GirlPartDataMod(it.Current, assetProvider, def);
-                it.MoveNext();
-                Phonemes_fv = new GirlPartDataMod(it.Current, assetProvider, def);
-                it.MoveNext();
-                Phonemes_other = new GirlPartDataMod(it.Current, assetProvider, def);
-            }
-
-            if (def.partIndexesPhonemesTeeth != null)
-            {
-                var it = def.partIndexesPhonemesTeeth.GetEnumerator();
-                it.MoveNext();
-                PhonemesTeeth_aeil = new GirlPartDataMod(it.Current, assetProvider, def);
-                it.MoveNext();
-                PhonemesTeeth_neutral = new GirlPartDataMod(it.Current, assetProvider, def);
-                it.MoveNext();
-                PhonemesTeeth_oquw = new GirlPartDataMod(it.Current, assetProvider, def);
-                it.MoveNext();
-                PhonemesTeeth_fv = new GirlPartDataMod(it.Current, assetProvider, def);
-                it.MoveNext();
-                PhonemesTeeth_other = new GirlPartDataMod(it.Current, assetProvider, def);
-            }
-
-            DefaultHairstyleId = new RelativeId(-1, def.defaultHairstyleIndex);
-            DefaultOutfitId = new RelativeId(-1, def.defaultOutfitIndex);
-
-            if (def.breathEmitterPos != null) { BreathEmitterPos = new VectorInfo(def.breathEmitterPos); }
-            if (def.upsetEmitterPos != null) { UpsetEmitterPos = new VectorInfo(def.upsetEmitterPos); }
-
-            if (def.specialEffectOffset != null)
-            {
-                //Kyu's specialEffectOffset is for her back not her head
-                if (def.id == Girls.KyuId.LocalId)
-                {
-                    BackPosition = new VectorInfo(def.specialEffectOffset);
-                }
-                else
-                {
-                    HeadPosition = new VectorInfo(def.specialEffectOffset);
-                }
-            }
-
-            int i;
-            if (def.expressions != null)
-            {
-                i = 0;
-                expressions = def.expressions
-                    .Select(x => (IBodySubDataMod<GirlExpressionSubDefinition>)new GirlExpressionDataMod(i++, assetProvider, def))
-                    .ToList();
-            }
-
-            if (def.outfits != null)
-            {
-                i = 0;
-                outfits = def.outfits
-                    .Select(x => (IBodySubDataMod<GirlOutfitSubDefinition>)new OutfitDataMod(i++, def, assetProvider))
-                    .ToList();
-            }
-
-            if (def.hairstyles != null)
-            {
-                i = 0;
-                hairstyles = def.hairstyles
-                    .Select(x => (IBodySubDataMod<GirlHairstyleSubDefinition>)new HairstyleDataMod(i++, def, assetProvider))
-                    .ToList();
-            }
-
-            if (def.specialParts != null)
-            {
-                i = 0;
-                specialParts = def.specialParts
-                    .Select(x => (IBodySubDataMod<GirlSpecialPartSubDefinition>)new GirlSpecialPartDataMod(i++, def, assetProvider))
-                    .ToList();
-            }
-
-            LocationIdToStyleInfo = new(){
-                {Locations.MassageSpa, new GirlStyleInfo() { HairstyleId = Styles.Relaxing, OutfitId = Styles.Relaxing}},
-                {Locations.Aquarium, new GirlStyleInfo() { HairstyleId = Styles.Activity, OutfitId = Styles.Activity}},
-                {Locations.SecludedCabana, new GirlStyleInfo() { HairstyleId = Styles.Relaxing, OutfitId = Styles.Relaxing}},
-                {Locations.PoolsideBar, new GirlStyleInfo() { HairstyleId = Styles.Water, OutfitId = Styles.Water}},
-                {Locations.GolfCourse, new GirlStyleInfo() { HairstyleId = Styles.Activity, OutfitId = Styles.Activity}},
-                {Locations.CruiseShip, new GirlStyleInfo() { HairstyleId = Styles.Water, OutfitId = Styles.Water}},
-                {Locations.RooftopLounge, new GirlStyleInfo() { HairstyleId = Styles.Romantic, OutfitId = Styles.Romantic}},
-                {Locations.Casino, new GirlStyleInfo() { HairstyleId = Styles.Party, OutfitId = Styles.Party}},
-                {Locations.PrivateTable, new GirlStyleInfo() { HairstyleId = Styles.Romantic, OutfitId = Styles.Romantic}},
-                {Locations.SecretGrotto, new GirlStyleInfo() { HairstyleId = Styles.Water, OutfitId = Styles.Water}},
-                {Locations.RoyalSuite, new GirlStyleInfo() { HairstyleId = Styles.Sexy, OutfitId = Styles.Sexy}},
-                {Locations.AirplaneBathroom, new GirlStyleInfo() { HairstyleId = Styles.Activity, OutfitId = Styles.Activity}},
-                {Locations.OuterSpace, new GirlStyleInfo() { HairstyleId = Styles.Sexy, OutfitId = Styles.Sexy}},
-            };
-        }
-
         /// <inheritdoc/>
         public void SetData(GirlBodySubDefinition def,
                             GameDefinitionProvider gameData,
@@ -187,18 +73,18 @@ namespace Hp2BaseMod.GameDataInfo
 
             ValidatedSet.SetValue(ref def.Scale, Scale);
             ValidatedSet.SetValue(ref def.BodyName, bodyName, InsertStyle);
-            ValidatedSet.SetValue(ref def.PartIndexBody, def.PartIdToIndex, PartBody?.Id);
-            ValidatedSet.SetValue(ref def.PartIndexNipples, def.PartIdToIndex, PartNipples?.Id);
-            ValidatedSet.SetValue(ref def.PartIndexBlushLight, def.PartIdToIndex, PartBlushLight?.Id);
-            ValidatedSet.SetValue(ref def.PartIndexBlushHeavy, def.PartIdToIndex, PartBlushHeavy?.Id);
-            ValidatedSet.SetValue(ref def.PartIndexBlink, def.PartIdToIndex, PartBlink?.Id);
-            ValidatedSet.SetValue(ref def.PartIndexMouthNeutral, def.PartIdToIndex, PartMouthNeutral?.Id);
+            ValidatedSet.SetValue(ref def.PartIndexBody, def.PartLookup, PartBody?.Id);
+            ValidatedSet.SetValue(ref def.PartIndexNipples, def.PartLookup, PartNipples?.Id);
+            ValidatedSet.SetValue(ref def.PartIndexBlushLight, def.PartLookup, PartBlushLight?.Id);
+            ValidatedSet.SetValue(ref def.PartIndexBlushHeavy, def.PartLookup, PartBlushHeavy?.Id);
+            ValidatedSet.SetValue(ref def.PartIndexBlink, def.PartLookup, PartBlink?.Id);
+            ValidatedSet.SetValue(ref def.PartIndexMouthNeutral, def.PartLookup, PartMouthNeutral?.Id);
 
-            ValidatedSet.SetValue(ref def.DefaultExpressionIndex, expansion.ExpressionIdToIndex, DefaultExpressionId);
-            ValidatedSet.SetValue(ref def.FailureExpressionIndex, expansion.ExpressionIdToIndex, FailureExpressionId);
+            ValidatedSet.SetValue(ref def.DefaultExpressionIndex, expansion.ExpressionLookup, DefaultExpressionId);
+            ValidatedSet.SetValue(ref def.FailureExpressionIndex, expansion.ExpressionLookup, FailureExpressionId);
 
-            ValidatedSet.SetValue(ref def.DefaultHairstyleIndex, expansion.HairstyleIdToIndex, DefaultHairstyleId);
-            ValidatedSet.SetValue(ref def.DefaultOutfitIndex, expansion.OutfitIdToIndex, DefaultOutfitId);
+            ValidatedSet.SetValue(ref def.DefaultHairstyleIndex, expansion.HairstyleLookup, DefaultHairstyleId);
+            ValidatedSet.SetValue(ref def.DefaultOutfitIndex, expansion.OutfitLookup, DefaultOutfitId);
 
             var partIdsPhonemes = new[]
             {
@@ -210,7 +96,7 @@ namespace Hp2BaseMod.GameDataInfo
             };
 
             ValidatedSet.SetListValue(ref def.PartIndexesPhonemes, partIdsPhonemes
-                .Select(x => x != null ? (int?)def.PartIdToIndex[x.Id] : null), InsertStyle.replace);
+                .Select(x => x != null ? (int?)def.PartLookup[x.Id] : null), InsertStyle.replace);
 
             var partIdsPhonemesTeeth = new[]
             {
@@ -222,7 +108,7 @@ namespace Hp2BaseMod.GameDataInfo
             };
 
             ValidatedSet.SetListValue(ref def.PartIndexesPhonemesTeeth, partIdsPhonemesTeeth
-                .Select(x => x != null ? (int?)def.PartIdToIndex[x.Id] : null), InsertStyle.replace);
+                .Select(x => x != null ? (int?)def.PartLookup[x.Id] : null), InsertStyle.replace);
 
             ValidatedSet.SetValue(ref def.BreathEmitterPos, BreathEmitterPos, InsertStyle, gameData, assetProvider);
             ValidatedSet.SetValue(ref def.UpsetEmitterPos, UpsetEmitterPos, InsertStyle, gameData, assetProvider);
@@ -232,7 +118,10 @@ namespace Hp2BaseMod.GameDataInfo
             ValidatedSet.SetValue(ref def.HeadPos, HeadPosition, InsertStyle, gameData, assetProvider);
             ValidatedSet.SetValue(ref def.BackPos, BackPosition, InsertStyle, gameData, assetProvider);
 
-            ValidatedSet.SetValue(ref def.SpecialEffectPrefab, assetProvider.GetInternalAsset<UiDollSpecialEffect>(SpecialEffectName), InsertStyle);
+            if (SpecialEffect.HasValue)
+            {
+                def.SpecialEffectPrefab = gameData.GetSpecialEffect(SpecialEffect.Value);
+            }
 
             ValidatedSet.SetDictValues(ref def.LocationIdToOutfitId, LocationIdToStyleInfo, InsertStyle);
         }

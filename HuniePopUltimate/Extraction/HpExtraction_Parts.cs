@@ -12,6 +12,21 @@ namespace HuniePopUltimate;
 
 public partial class HpExtraction
 {
+    private List<RelativeId> StyleSequence = new()
+    {
+        Hp2BaseMod.Styles.Activity,
+        Hp2BaseMod.Styles.Relaxing,
+        Hp2BaseMod.Styles.Romantic,
+        Hp2BaseMod.Styles.Party,
+        Hp2BaseMod.Styles.Water,
+        Hp2BaseMod.Styles.Sexy,
+        Styles.Topless,
+        Hp2BaseMod.Styles.Bonus1,
+        Hp2BaseMod.Styles.Bonus2,
+        Hp2BaseMod.Styles.Bonus3,
+        Hp2BaseMod.Styles.Bonus4,
+    };
+
     private string GetUnderwearName(int nativeId)
     {
         switch (nativeId)

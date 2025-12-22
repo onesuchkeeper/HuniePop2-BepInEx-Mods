@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Hp2BaseMod.GameDataInfo;
 using Hp2BaseMod.GameDataInfo.Interface;
 
 namespace Hp2BaseMod.Utility
@@ -53,24 +54,12 @@ namespace Hp2BaseMod.Utility
             }
         }
 
-        public static void SetValue<Tt, Tv>(ref Tt target, IDictionary<Tv, Tt> lookup, Tv value, InsertStyle style)
-            where Tt : class
+        public static void SetValue(ref int target, IdIndexMap lookup, RelativeId value, InsertStyle style)
         {
-            if (value == null)
-            {
-                if (style == InsertStyle.assignNull)
-                {
-                    target = null;
-                }
-            }
-            else
-            {
-                target = lookup[value];
-            }
+            target = lookup[value];
         }
 
-        public static void SetValue<Tt, Tv>(ref Tt target, IDictionary<Tv, Tt> lookup, Tv? value)
-            where Tv : struct
+        public static void SetValue(ref int target, IdIndexMap lookup, RelativeId? value)
         {
             try
             {

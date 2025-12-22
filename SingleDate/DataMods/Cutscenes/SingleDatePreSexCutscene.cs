@@ -15,7 +15,7 @@ public static class SingleDatePreSexCutscene
             Steps = new List<IGameDefinitionInfo<CutsceneStepSubDefinition>>()
             {
                 //moan
-                CutsceneStepUtility.MakeDialogTriggerInfo(new RelativeId(-1, 43), CutsceneStepProceedType.AUTOMATIC, CutsceneStepDollTargetType.RANDOM),
+                CutsceneStepUtility.MakeDialogTriggerInfo(Hp2BaseMod.DialogTriggers.SexMoans1, CutsceneStepProceedType.AUTOMATIC, CutsceneStepDollTargetType.RANDOM),
             }
         });
     }

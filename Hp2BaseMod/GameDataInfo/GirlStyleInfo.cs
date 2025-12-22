@@ -2,6 +2,7 @@
 using Hp2BaseMod.Utility;
 
 namespace Hp2BaseMod.GameDataInfo;
+
 public class GirlStyleInfo
 {
     public RelativeId? OutfitId;
@@ -52,14 +53,14 @@ public class GirlStyleInfo
 
         if (OutfitId.HasValue)
         {
-            doll.ChangeOutfit(expandedGirl.OutfitIdToIndex.TryGetValue(OutfitId.Value, out var index)
+            doll.ChangeOutfit(expandedGirl.OutfitLookup.TryGetIndex(OutfitId.Value, out var index)
                 ? index
                 : defaultOutfitIndex);
         }
 
         if (HairstyleId.HasValue)
         {
-            doll.ChangeHairstyle(expandedGirl.HairstyleIdToIndex.TryGetValue(HairstyleId.Value, out var index)
+            doll.ChangeHairstyle(expandedGirl.HairstyleLookup.TryGetIndex(HairstyleId.Value, out var index)
                 ? index
                 : defaultHairstyleIndex);
         }

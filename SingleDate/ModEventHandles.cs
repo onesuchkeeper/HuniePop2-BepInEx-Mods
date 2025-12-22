@@ -172,7 +172,7 @@ internal static class ModEventHandles
             {
                 args.DenyDate = true;
                 // exhausted
-                Game.Session.gameCanvas.GetDoll(true).ReadDialogTrigger(ModInterface.GameData.GetDialogTrigger(new RelativeId(-1, 35)), DialogLineFormat.PASSIVE);
+                Game.Session.gameCanvas.GetDoll(true).ReadDialogTrigger(ModInterface.GameData.GetDialogTrigger(Hp2BaseMod.DialogTriggers.StaminaInsufficient), DialogLineFormat.PASSIVE);
                 return;
             }
 
@@ -242,77 +242,6 @@ internal static class ModEventHandles
         }
     }
 
-    internal static void On_SinglePhotoDisplayed(SinglePhotoDisplayArgs args)
-    {
-        var playerFileGirlPair = Game.Persistence.playerFile.GetPlayerFileGirlPair(Game.Session.Location.currentGirlPair);
-
-        if (playerFileGirlPair == null
-            || !State.IsSingle(playerFileGirlPair.girlPairDefinition))
-        {
-            return;
-        }
-
-        var girlId = ModInterface.Data.GetDataId(playerFileGirlPair.girlPairDefinition.girlDefinitionTwo);
-        var girlSave = State.SaveFile.GetGirl(girlId);
-        var singleDateGirl = Plugin.GetSingleDateGirl(girlId);
-
-        if (Game.Session.Puzzle.puzzleStatus.bonusRound)
-        {
-            if (!singleDateGirl.SexPhotos.Any())
-            {
-                args.BigPhotoId = PhotoDefault.Id;
-                return;
-            }
-
-            var locId = ModInterface.Data.GetDataId(GameDataType.Location, Game.Session.Location.currentLocation.id);
-
-            var sexPhotos = singleDateGirl.SexPhotos.Where(x => x.LocationId == locId).Select(x => x.PhotoId).ToArray();
-
-            if (sexPhotos.Length == 0)
-            {
-                sexPhotos = singleDateGirl.SexPhotos.Select(x => x.PhotoId).ToArray();
-            }
-
-            if (sexPhotos.Length == 0)
-            {
-                sexPhotos = [PhotoDefault.Id];
-            }
-
-            var photoPool = sexPhotos.Except(girlSave.UnlockedPhotos).ToArray();
-            args.BigPhotoId = photoPool.Length == 0
-                ? sexPhotos.GetRandom()
-                : photoPool.GetRandom();
-        }
-        else
-        {
-            var datePercentage = girlSave.RelationshipLevel / (float)Plugin.MaxSingleGirlRelationshipLevel.Value;
-
-            if (!singleDateGirl.DatePhotos.Any())
-            {
-                args.BigPhotoId = PhotoDefault.Id;
-                return;
-            }
-
-            var validDatePhotos = singleDateGirl.DatePhotos.Where(x => x.RelationshipPercentage <= datePercentage).Select(x => x.PhotoId).ToArray();
-
-            if (validDatePhotos.Length == 0)
-            {
-                validDatePhotos = [PhotoDefault.Id];
-            }
-
-            var lockedDatePhotos = girlSave.UnlockedPhotos == null
-                ? validDatePhotos
-                : validDatePhotos.Except(girlSave.UnlockedPhotos).ToArray();
-
-            args.BigPhotoId = lockedDatePhotos.Length == 0
-                ? validDatePhotos.GetRandom()
-                : lockedDatePhotos.GetRandom();
-        }
-
-        girlSave.UnlockedPhotos ??= new();
-        girlSave.UnlockedPhotos.Add(args.BigPhotoId);
-    }
-
     internal static void On_RequestUnlockedPhotos(RequestUnlockedPhotosEventArgs args)
     {
         args.UnlockedPhotos ??= new List<PhotoDefinition>();
@@ -345,6 +274,14 @@ internal static class ModEventHandles
             {
                 args.Style = PreDateDollResetArgs.StyleType.Sex;
             }
+        }
+    }
+
+    internal static void On_TalkFavQuestionResponse(TalkFavQuestionResponseArgs args)
+    {
+        if (State.IsSingleDate)
+        {
+            args.OtherGirlResponds = false;
         }
     }
 }

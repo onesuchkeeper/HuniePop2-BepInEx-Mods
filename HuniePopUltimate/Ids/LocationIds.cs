@@ -1,4 +1,5 @@
 using System;
+using AssetStudio.Extractor;
 using Hp2BaseMod;
 
 namespace HuniePopUltimate;
@@ -80,5 +81,36 @@ public static class LocationIds
         }
 
         return new RelativeId(Plugin.ModId, hp1LocId);
+    }
+
+    public static RelativeId FromUnityPath(UnityAssetPath path)
+    {
+        if (path.FileId != 0) return RelativeId.Default;
+
+        switch (path.PathId)
+        {
+            case 9290: return Park;
+            case 9289: return NightClub;
+            case 9288: return Mall;
+            case 9287: return Gym;
+            case 9286: return Campus;
+            case 9285: return Cafe;
+            case 9284: return Beach;
+            case 9283: return Bar;
+            case 9282: return BedRoom;
+            case 9281: return WaterPark;
+            case 9279: return ScenicOverlook;
+            case 9278: return OutdoorLounge;
+            case 9277: return IceRink;
+            case 9276: return HotSprings;
+            case 9275: return HikingTrail;
+            case 9274: return FarmersMarket;
+            case 9273: return Restaurant;
+            case 9272: return Casino;
+            case 9271: return Carnival;
+            case 9270: return BotanicalGarden;
+        }
+
+        return RelativeId.Default;
     }
 }

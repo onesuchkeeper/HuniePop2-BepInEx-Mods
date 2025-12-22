@@ -9,7 +9,7 @@ namespace Hp2BaseMod;
 [HarmonyPatch(typeof(UiWindowActionBubbles))]
 internal static class UiWindowActionBubblesPatch
 {
-    private static FieldInfo f_selectedBubble = AccessTools.Field(typeof(UiWindowActionBubbles), "_selectedBubble");
+    private static readonly FieldInfo f_selectedBubble = AccessTools.Field(typeof(UiWindowActionBubbles), "_selectedBubble");
 
     [HarmonyPatch("OnActionBubblePressed")]
     [HarmonyPrefix]

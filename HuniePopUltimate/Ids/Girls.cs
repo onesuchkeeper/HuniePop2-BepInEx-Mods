@@ -1,3 +1,4 @@
+using AssetStudio.Extractor;
 using Hp2BaseMod;
 
 namespace HuniePopUltimate;
@@ -63,5 +64,42 @@ public static class Girls
                 ModInterface.Log.Error($"UNHANDLED Hp1 girl id {hp1Id}");
                 return RelativeId.Default;
         }
+    }
+
+    public static bool IsSpecial(int hp1Id)
+    {
+        switch (hp1Id)
+        {
+            case 9://kyu
+            case 10://momo
+            case 11://celeste
+            case 12://venus
+                return true;
+        }
+
+        return false;
+    }
+
+    public static RelativeId FromUnityPath(UnityAssetPath path)
+    {
+        if (path.FileId != 0) return RelativeId.Default;
+
+        switch (path.PathId)
+        {
+            case 9036: return Aiko;
+            case 9037: return Audrey;
+            case 9038: return Beli;
+            case 9039: return Celeste;
+            case 9040: return Hp2BaseMod.Girls.JessieId;
+            case 9041: return Kyanna;
+            case 9042: return Hp2BaseMod.Girls.KyuId;
+            case 9043: return Hp2BaseMod.Girls.LolaId;
+            case 9044: return Momo;
+            case 9045: return Nikki;
+            case 9046: return Tiffany;
+            case 9047: return Venus;
+        }
+
+        return RelativeId.Default;
     }
 }

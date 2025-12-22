@@ -15,7 +15,7 @@ public static class Education
 
     public static void AddDataMods()
     {
-        ModInterface.AddDataMod(new QuestionDataMod(Questions.Education, Hp2BaseMod.Utility.InsertStyle.append)
+        ModInterface.AddDataMod(new FavQuestionDataMod(Questions.Education, Hp2BaseMod.Utility.InsertStyle.append)
         {
             QuestionName = "Education",
             QuestionText = "What kind of [[highlight]education do you have]?",

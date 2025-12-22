@@ -21,7 +21,7 @@ namespace Hp2BaseMod
                 var gameDataProvider = ModInterface.GameData;
                 var context = new GameDataContext();
 
-                using (ModInterface.Log.MakeIndent("Modifying GameData"))
+                using (ModInterface.Log.MakeIndent("Gathering base GameData"))
                 {
                     DefaultGameDataHandler.CollectDefaultData(gameData,
                         out context.abilityDataDict,
@@ -52,6 +52,14 @@ namespace Hp2BaseMod
                         foreach (var entry in context.tokenDataDict) assetProvider.Load(entry.Value);
                     }
 
+                    // these are only referenced in the cutscenes
+                    ModInterface.State.UiWindowPhotos = context.cutsceneDataDict[107].steps[4].windowPrefab;
+                    ModInterface.State.KyuButtWindow = context.cutsceneDataDict[167].steps[25].windowPrefab;
+                    ModInterface.State.ItemNotifierWindow = context.cutsceneDataDict[171].steps[4].windowPrefab;
+                }
+
+                using (ModInterface.Log.MakeIndent("Modifying GameData"))
+                {
                     // grab data mods
                     ModInterface.Log.Message("grabbing data mods from the mod interface");
                     ModInterface.Log.IncreaseIndent();
@@ -94,23 +102,6 @@ namespace Hp2BaseMod
                         PreProcess(context.questionDataDict, context.questionDataMods, GameDataType.Question, assetProvider);
                         PreProcess(context.tokenDataDict, context.tokenDataMods, GameDataType.Token, assetProvider);
                     }
-
-                    using (ModInterface.Log.MakeIndent("registering question dt indexes"))
-                    {
-                        foreach (var question in context.questionDataDict.Values)
-                        {
-                            var expansion = question.Expansion();
-                            if (expansion.DialogTriggerIndex == -1) expansion.DialogTriggerIndex = nextQuestionIndex++;
-                        }
-                    }
-
-                    GirlSubDataModder.HandleSubMods(context.girlDataDict,
-                        context.girlDataMods,
-                        GirlToBodyToMods,
-                        context.questionDataDict,
-                        context.questionDataMods,
-                        context.dialogTriggerDataDict,
-                        dialogLineModsByIdByDialogTriggerByGirlId);
 
                     using (ModInterface.Log.MakeIndent("cataloging internal assets"))
                     {

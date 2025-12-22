@@ -8,8 +8,8 @@ namespace SingleDate;
 [HarmonyPatch(typeof(LocationManager))]
 internal static class LocationManagerPatch
 {
-    private static FieldInfo f_isLocked = AccessTools.Field(typeof(LocationManager), "_isLocked");
-    private static FieldInfo f_arrivalCutscene = AccessTools.Field(typeof(LocationManager), "_arrivalCutscene");
+    private static readonly FieldInfo f_isLocked = AccessTools.Field(typeof(LocationManager), "_isLocked");
+    private static readonly FieldInfo f_arrivalCutscene = AccessTools.Field(typeof(LocationManager), "_arrivalCutscene");
     private static CutsceneDefinition _baseCutsceneMeeting;
     private static CutsceneDefinition _singleCutsceneMeeting;
 

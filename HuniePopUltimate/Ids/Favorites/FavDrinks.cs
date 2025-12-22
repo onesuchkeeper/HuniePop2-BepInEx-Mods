@@ -10,7 +10,7 @@ public static class FavDrink
 
     public static void AddDataMods()
     {
-        ModInterface.AddDataMod(new QuestionDataMod(Hp2BaseMod.Favorites.Drink, Hp2BaseMod.Utility.InsertStyle.append)
+        ModInterface.AddDataMod(new FavQuestionDataMod(Hp2BaseMod.Favorites.Drink, Hp2BaseMod.Utility.InsertStyle.append)
         {
             QuestionAnswers = new() {
                 {Soda, "Soda"},

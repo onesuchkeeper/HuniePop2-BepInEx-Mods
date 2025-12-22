@@ -1,6 +1,7 @@
 ﻿// Hp2BaseMod 2025, By OneSuchKeeper
 
 using System;
+using System.Linq;
 using HarmonyLib;
 
 namespace Hp2BaseMod.EnumExpansion
@@ -19,9 +20,9 @@ namespace Hp2BaseMod.EnumExpansion
             {
                 var girlExpansion = ExpandedGirlDefinition.Get(girlDef);
 
-                var set = __instance.dialogLineSets[girlExpansion.DialogTriggerIndex];
+                var set = __instance.dialogLineSets[ExpandedGirlDefinition.DialogTriggerIndexes[ModInterface.Data.GetDataId(GameDataType.Girl, girlDef.id)]];
 
-                if (set.dialogLines.Count > 0)
+                if (set.dialogLines.Any(x => x != null))
                 {
                     __result = set;
                 }

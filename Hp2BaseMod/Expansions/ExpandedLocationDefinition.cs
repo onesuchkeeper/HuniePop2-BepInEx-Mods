@@ -17,6 +17,9 @@ public static class LocationDefinition_Ext
 /// </summary>
 public class ExpandedLocationDefinition
 {
+    public static IdIndexMap DialogTriggerIndexes => _dialogTriggerIndexes;
+    private static IdIndexMap _dialogTriggerIndexes = new();
+
     private static Dictionary<RelativeId, ExpandedLocationDefinition> _expansions
         = new Dictionary<RelativeId, ExpandedLocationDefinition>();
 
@@ -65,4 +68,6 @@ public class ExpandedLocationDefinition
         => AllowNormal
             && (!PostBoss || Game.Persistence.playerFile.storyProgress >= 12)
             && DateTimes.Contains(time);
+
+    public RelativeId DefaultStyle;
 }

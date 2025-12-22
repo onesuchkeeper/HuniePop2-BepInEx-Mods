@@ -3,7 +3,7 @@ using System.Collections.Generic;
 namespace Hp2BaseMod.Extension;
 
 
-public static partial class IListExtension
+public static partial class IList_Ext
 {
     /// <summary>
     /// Attempts to get the item at the given index

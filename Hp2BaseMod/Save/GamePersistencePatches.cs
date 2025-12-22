@@ -11,9 +11,9 @@ namespace Hp2BaseMod.Save
     [HarmonyPatch(typeof(GamePersistence))]
     internal static class GamePersistencePatches
     {
-        private static FieldInfo f_saveData = AccessTools.Field(typeof(GamePersistence), "_saveData");
-        private static FieldInfo f_inited = AccessTools.Field(typeof(GamePersistence), "_inited");
-        private static FieldInfo f_debugMode = AccessTools.Field(typeof(GamePersistence), "_debugMode");
+        private static readonly FieldInfo f_saveData = AccessTools.Field(typeof(GamePersistence), "_saveData");
+        private static readonly FieldInfo f_inited = AccessTools.Field(typeof(GamePersistence), "_inited");
+        private static readonly FieldInfo f_debugMode = AccessTools.Field(typeof(GamePersistence), "_debugMode");
 
         [HarmonyPrefix]
         [HarmonyPatch("Save")]

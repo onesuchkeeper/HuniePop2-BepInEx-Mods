@@ -94,5 +94,8 @@ namespace Hp2BaseMod
 
         public event Action<PreDateDollResetArgs> PreDateDollReset;
         internal void NotifyPreDateDollReset(PreDateDollResetArgs args) => PreDateDollReset?.Invoke(args);
+
+        public event Action<TalkFavQuestionResponseArgs> FavQuestionResponse;
+        internal void NotifyFavQuestionResponse(TalkFavQuestionResponseArgs args) => FavQuestionResponse?.Invoke(args);
     }
 }

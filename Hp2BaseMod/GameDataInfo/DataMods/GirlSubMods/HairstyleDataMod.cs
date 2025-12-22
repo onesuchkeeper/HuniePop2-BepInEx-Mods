@@ -67,9 +67,9 @@ namespace Hp2BaseMod.GameDataInfo
             ValidatedSet.SetValue(ref expansion.IsCodeUnlocked, IsCodeUnlocked);
             ValidatedSet.SetValue(ref expansion.IsPurchased, IsPurchased);
 
-            ValidatedSet.SetValue(ref def.pairOutfitIndex, girlExpansion.OutfitIdToIndex, PairOutfitId);
-            ValidatedSet.SetValue(ref def.partIndexBackhair, bodyDef.PartIdToIndex, BackHairPart?.Id);
-            ValidatedSet.SetValue(ref def.partIndexFronthair, bodyDef.PartIdToIndex, FrontHairPart?.Id);
+            ValidatedSet.SetValue(ref def.pairOutfitIndex, girlExpansion.OutfitLookup, PairOutfitId);
+            ValidatedSet.SetValue(ref def.partIndexBackhair, bodyDef.PartLookup, BackHairPart?.Id);
+            ValidatedSet.SetValue(ref def.partIndexFronthair, bodyDef.PartLookup, FrontHairPart?.Id);
         }
 
         /// <inheritdoc/>

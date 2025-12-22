@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Hp2BaseMod.Extension;
@@ -37,6 +38,12 @@ public class ExpandedGirlDefinition
 
         return expansion;
     }
+
+    /// <summary>
+    /// The girl's index within a <see cref="DialogTriggerDefinition"/>.
+    /// </summary>
+    public static IdIndexMap DialogTriggerIndexes => _dialogTriggerIndexes;
+    private static IdIndexMap _dialogTriggerIndexes = new();
 
     private RelativeId _id;
     private GirlDefinition _def;
@@ -84,28 +91,8 @@ public class ExpandedGirlDefinition
         }
     }
 
-    /// <summary>
-    /// The girl's index within a <see cref="DialogTriggerDefinition"/>.
-    /// </summary>
-    public int DialogTriggerIndex = -1;
-
-    /// <summary>
-    /// Maps an expression id to its index within the def. 
-    /// Use <see cref="GetExpression"/> unless you must access the full collection.
-    /// </summary>
-    public Dictionary<RelativeId, int> ExpressionIdToIndex = new Dictionary<RelativeId, int>()
-    {
-        {RelativeId.Default, -1}
-    };
-
-    /// <summary>
-    /// Maps an expression index to its id within the def. 
-    /// Use <see cref="GetExpression"/> unless you must access the full collection.
-    /// </summary>
-    public Dictionary<int, RelativeId> ExpressionIndexToId = new Dictionary<int, RelativeId>()
-    {
-        {-1, RelativeId.Default}
-    };
+    public IdIndexMap ExpressionLookup => _expressionLookup;
+    private IdIndexMap _expressionLookup = new();
 
     /// <summary>
     /// Given an id, returns the associated expression.
@@ -119,7 +106,7 @@ public class ExpandedGirlDefinition
 
     public GirlExpressionSubDefinition GetExpression(GirlBodySubDefinition body, RelativeId expressionId)
     {
-        if (body.Expressions.TryGet(ExpressionIdToIndex[expressionId], out var expression))
+        if (body.Expressions.TryGet(ExpressionLookup[expressionId], out var expression))
         {
             return expression;
         }
@@ -127,38 +114,27 @@ public class ExpandedGirlDefinition
         return body.Expressions[body.DefaultExpressionIndex];
     }
 
-    /// <summary>
-    /// Maps an outfit id to its index within the def. 
-    /// Use <see cref="GetOutfit"/> unless you must access the full collection.
-    /// </summary>
-    public Dictionary<RelativeId, int> OutfitIdToIndex = new Dictionary<RelativeId, int>()
-    {
-        {RelativeId.Default, -1}
-    };
+    internal GirlExpressionSubDefinition GetOrNewExpression(GirlBodySubDefinition body, RelativeId expressionId)
+        => body.Expressions.GetOrNew(ExpressionLookup[expressionId]);
 
-    /// <summary>
-    /// Maps an outfit index to its id within the def. 
-    /// Use <see cref="GetOutfit"/> unless you must access the full collection.
-    /// </summary>
-    public Dictionary<int, RelativeId> OutfitIndexToId = new Dictionary<int, RelativeId>()
-    {
-        {-1, RelativeId.Default}
-    };
+    public IdIndexMap OutfitLookup => _outfitLookup;
+    private IdIndexMap _outfitLookup = new();
 
     /// <summary>
     /// Given an id, returns the associated outfit.
     /// </summary>
     public GirlOutfitSubDefinition GetOutfit(RelativeId outfitId) => GetOutfit(GetCurrentBody(), outfitId);
-    public GirlOutfitSubDefinition GetOutfit(RelativeId bodyId, RelativeId outfitId) => GetOutfit(Bodies[bodyId], outfitId);
+    public GirlOutfitSubDefinition GetOutfit(RelativeId bodyId, RelativeId outfitId)
+        => GetOutfit(Bodies[bodyId], outfitId);
 
-    public int GetOutfitIndex(RelativeId outfitId) => OutfitIdToIndex[outfitId];
+    public int GetOutfitIndex(RelativeId outfitId) => OutfitLookup[outfitId];
 
     /// <summary>
     /// Given an id, returns the associated outfit.
     /// </summary>
     public GirlOutfitSubDefinition GetOutfit(GirlBodySubDefinition body, RelativeId id)
     {
-        if (!body.Outfits.TryGet(OutfitIdToIndex[id], out var outfit))
+        if (!body.Outfits.TryGet(OutfitLookup[id], out var outfit))
         {
             outfit = body.Outfits[body.DefaultOutfitIndex];
         }
@@ -166,23 +142,10 @@ public class ExpandedGirlDefinition
         return outfit;
     }
 
-    /// <summary>
-    /// Maps a hairstyle id to its index within the def. 
-    /// Use <see cref="GetHairstyle"/> unless you must access the full collection.
-    /// </summary>
-    public Dictionary<RelativeId, int> HairstyleIdToIndex = new Dictionary<RelativeId, int>()
-    {
-        {RelativeId.Default, -1}
-    };
+    internal GirlOutfitSubDefinition GetOrNewOutfit(GirlBodySubDefinition body, RelativeId id) => body.Outfits.GetOrNew(OutfitLookup[id]);
 
-    /// <summary>
-    /// Maps a hairstyle index to its id within the def. 
-    /// Use <see cref="GetHairstyle"/> unless you must access the full collection
-    /// </summary>
-    public Dictionary<int, RelativeId> HairstyleIndexToId = new Dictionary<int, RelativeId>()
-    {
-        {-1, RelativeId.Default}
-    };
+    public IdIndexMap HairstyleLookup => _hairstyleLookup;
+    private IdIndexMap _hairstyleLookup = new();
 
     /// <summary>
     /// Given an id, returns the associated hairstyle.
@@ -192,7 +155,7 @@ public class ExpandedGirlDefinition
 
     public GirlHairstyleSubDefinition GetHairstyle(GirlBodySubDefinition body, RelativeId id)
     {
-        if (!body.Hairstyles.TryGet(HairstyleIdToIndex[id], out var hairstyle))
+        if (!body.Hairstyles.TryGet(HairstyleLookup[id], out var hairstyle))
         {
             hairstyle = body.Hairstyles[body.DefaultHairstyleIndex];
         }
@@ -200,5 +163,20 @@ public class ExpandedGirlDefinition
         return hairstyle;
     }
 
+    internal GirlHairstyleSubDefinition GetOrNewHairstyle(GirlBodySubDefinition body, RelativeId id) => body.Hairstyles.GetOrNew(HairstyleLookup[id]);
+
     public Dictionary<RelativeId, RelativeId> FavQuestionIdToAnswerId = new();
+
+    public IdIndexMap GetQuestionAnswerIndexMap(RelativeId questionId)
+        => _questionAnswerIndexes.GetOrNew(questionId, () => new(1));//start at 1, 0 is hard coded correct answer
+    private Dictionary<RelativeId, IdIndexMap> _questionAnswerIndexes = new();
+
+    public IdIndexMap HerQuestionIdToIndex => _herQuestionIdToIndex;
+    private IdIndexMap _herQuestionIdToIndex = new();
+
+    public IdIndexMap HerQuestionGoodResponseIdToDtIndex => _herQuestionGoodResponseIdToIndex;
+    private IdIndexMap _herQuestionGoodResponseIdToIndex = new();
+
+    public IdIndexMap HerQuestionBadResponseIdToDtIndex => _herQuestionBadResponseIdToIndex;
+    private IdIndexMap _herQuestionBadResponseIdToIndex = new();
 }

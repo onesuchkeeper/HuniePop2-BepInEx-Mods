@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace Hp2BaseMod.Extension;
 
-public static partial class IListExtension
+public static partial class IList_Ext
 {
     /// <summary>
     /// Inserts the given value at the given index by first expanding the list by adding

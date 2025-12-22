@@ -21,7 +21,7 @@ public static class Weight
 
     public static void AddDataMods()
     {
-        ModInterface.AddDataMod(new QuestionDataMod(Questions.Weight, Hp2BaseMod.Utility.InsertStyle.append)
+        ModInterface.AddDataMod(new FavQuestionDataMod(Questions.Weight, Hp2BaseMod.Utility.InsertStyle.append)
         {
             QuestionName = "Weight",
             QuestionText = "How much [[highlight]do you weigh]?",

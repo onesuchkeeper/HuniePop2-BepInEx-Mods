@@ -63,11 +63,11 @@ namespace Hp2BaseMod.GameDataInfo
             ValidatedSet.SetValue(ref def.eyesClosed, EyesClosed);
             ValidatedSet.SetValue(ref def.mouthOpen, MouthOpen);
 
-            ValidatedSet.SetValue(ref def.partIndexEyebrows, bodyDef.PartIdToIndex, PartEyebrows?.Id);
-            ValidatedSet.SetValue(ref def.partIndexEyes, bodyDef.PartIdToIndex, PartEyes?.Id);
-            ValidatedSet.SetValue(ref def.partIndexEyesGlow, bodyDef.PartIdToIndex, PartEyesGlow?.Id);
-            ValidatedSet.SetValue(ref def.partIndexMouthClosed, bodyDef.PartIdToIndex, PartMouthClosed?.Id);
-            ValidatedSet.SetValue(ref def.partIndexMouthOpen, bodyDef.PartIdToIndex, PartMouthOpen?.Id);
+            ValidatedSet.SetValue(ref def.partIndexEyebrows, bodyDef.PartLookup, PartEyebrows?.Id);
+            ValidatedSet.SetValue(ref def.partIndexEyes, bodyDef.PartLookup, PartEyes?.Id);
+            ValidatedSet.SetValue(ref def.partIndexEyesGlow, bodyDef.PartLookup, PartEyesGlow?.Id);
+            ValidatedSet.SetValue(ref def.partIndexMouthClosed, bodyDef.PartLookup, PartMouthClosed?.Id);
+            ValidatedSet.SetValue(ref def.partIndexMouthOpen, bodyDef.PartLookup, PartMouthOpen?.Id);
         }
 
         /// <inheritdoc/>
