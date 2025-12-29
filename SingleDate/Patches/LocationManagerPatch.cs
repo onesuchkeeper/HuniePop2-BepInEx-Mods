@@ -72,8 +72,7 @@ internal static class LocationManagerPatch
     bool sidesFlipped,
     bool initialArrive = false)
     {
-        if (__instance.currentLocation.locationType == LocationType.SPECIAL
-            || __instance.currentLocation.locationType == LocationType.HUB
+        if (__instance.AtLocationType(LocationType.SPECIAL, LocationType.HUB)
             || !State.IsSingleDate)
         {
             return;

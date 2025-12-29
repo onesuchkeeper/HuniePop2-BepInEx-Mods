@@ -53,9 +53,9 @@ namespace Hp2BaseMod
                     }
 
                     // these are only referenced in the cutscenes
-                    ModInterface.State.UiWindowPhotos = context.cutsceneDataDict[107].steps[4].windowPrefab;
-                    ModInterface.State.KyuButtWindow = context.cutsceneDataDict[167].steps[25].windowPrefab;
-                    ModInterface.State.ItemNotifierWindow = context.cutsceneDataDict[171].steps[4].windowPrefab;
+                    assetProvider.PhotosWindow = context.cutsceneDataDict[107].steps[4].windowPrefab;
+                    assetProvider.KyuButtWindow = context.cutsceneDataDict[167].steps[25].windowPrefab;
+                    assetProvider.ItemNotifierWindow = context.cutsceneDataDict[171].steps[4].windowPrefab;
                 }
 
                 using (ModInterface.Log.MakeIndent("Modifying GameData"))
@@ -162,7 +162,10 @@ namespace Hp2BaseMod
             }
         }
 
-        private static void PreProcess<D>(Dictionary<int, D> dict, IEnumerable<IGameDataMod<D>> mods, GameDataType type, AssetProvider assetProvider)
+        private static void PreProcess<D>(Dictionary<int, D> dict,
+            IEnumerable<IGameDataMod<D>> mods,
+            GameDataType type,
+            AssetProvider assetProvider)
             where D : Definition, new()
         {
             foreach (var mod in mods)

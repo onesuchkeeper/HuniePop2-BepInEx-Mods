@@ -9,6 +9,9 @@ public static class DialogTriggerDefinition_Ext
 {
     public static ExpandedDialogTriggerDefinition Expansion(this DialogTriggerDefinition def)
         => ExpandedDialogTriggerDefinition.Get(def);
+
+    public static RelativeId ModId(this DialogTriggerDefinition def)
+        => ModInterface.Data.GetDataId(GameDataType.DialogTrigger, def.id);
 }
 
 /// <summary>
@@ -28,21 +31,6 @@ public class ExpandedDialogTriggerDefinition
         => Get(ModInterface.Data.GetDataId(GameDataType.DialogTrigger, runtimeId));
 
     public static ExpandedDialogTriggerDefinition Get(RelativeId id) => _expansions.GetOrNew(id);
-
-    // /// <summary>
-    // /// Maps a girl id to a map of line id to line index.
-    // /// use <see cref="TryGetLine"/> unless you must access the full collection.
-    // /// </summary>
-    // public Dictionary<RelativeId, Dictionary<RelativeId, int>> GirlIdToLineIdToLineIndex = new Dictionary<RelativeId, Dictionary<RelativeId, int>>();
-
-    // /// <summary>
-    // /// Maps a girl id to a map of line index to line id.
-    // /// use <see cref="TryGetLineSet"/> or <see cref="TryGetLine"/> unless you must access the full collection.
-    // /// </summary>
-    // public Dictionary<RelativeId, Dictionary<int, RelativeId>> GirlIdToLineIndexToLineId = new Dictionary<RelativeId, Dictionary<int, RelativeId>>();
-
-    internal IdIndexMap GetGirlLineMap(RelativeId girlId)
-        => _girlToLineIndexes.GetOrNew(girlId, () => new(1));
 
     private Dictionary<RelativeId, IdIndexMap> _girlToLineIndexes = new();
 

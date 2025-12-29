@@ -8,6 +8,9 @@ public static class QuestionDefinition_Ext
 {
     public static ExpandedQuestionDefinition Expansion(this QuestionDefinition def)
         => ExpandedQuestionDefinition.Get(def);
+
+    public static RelativeId ModId(this QuestionDefinition def)
+        => ModInterface.Data.GetDataId(GameDataType.Question, def.id);
 }
 
 public class ExpandedQuestionDefinition

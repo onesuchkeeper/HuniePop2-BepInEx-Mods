@@ -97,5 +97,8 @@ namespace Hp2BaseMod
 
         public event Action<TalkFavQuestionResponseArgs> FavQuestionResponse;
         internal void NotifyFavQuestionResponse(TalkFavQuestionResponseArgs args) => FavQuestionResponse?.Invoke(args);
+
+        public event Action<StoreProductsPopulateArgs> PopulateStoreProducts;
+        internal void NotifyPopulateStoreProducts(StoreProductsPopulateArgs args) => PopulateStoreProducts?.Invoke(args);
     }
 }

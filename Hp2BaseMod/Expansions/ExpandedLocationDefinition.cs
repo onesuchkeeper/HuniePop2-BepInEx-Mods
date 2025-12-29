@@ -8,6 +8,9 @@ public static class LocationDefinition_Ext
 {
     public static ExpandedLocationDefinition Expansion(this LocationDefinition def)
         => ExpandedLocationDefinition.Get(def);
+
+    public static RelativeId ModId(this LocationDefinition def)
+        => ModInterface.Data.GetDataId(GameDataType.Location, def.id);
 }
 
 /// <summary>
@@ -17,9 +20,6 @@ public static class LocationDefinition_Ext
 /// </summary>
 public class ExpandedLocationDefinition
 {
-    public static IdIndexMap DialogTriggerIndexes => _dialogTriggerIndexes;
-    private static IdIndexMap _dialogTriggerIndexes = new();
-
     private static Dictionary<RelativeId, ExpandedLocationDefinition> _expansions
         = new Dictionary<RelativeId, ExpandedLocationDefinition>();
 

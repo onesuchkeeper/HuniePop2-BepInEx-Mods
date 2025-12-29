@@ -113,4 +113,37 @@ public static class LocationIds
 
         return RelativeId.Default;
     }
+
+    internal static RelativeId FromGreetingDtIndex(int index)
+    {
+        switch (index)
+        {
+            case 0:
+                return BotanicalGarden;
+            case 1:
+                return HikingTrail;
+            case 2:
+                return FarmersMarket;
+            case 3:
+                return IceRink;
+            case 4:
+                return WaterPark;
+            case 5:
+                return TennisCourts;
+            case 6:
+                return HotSprings;
+            case 7:
+                return ScenicOverlook;
+            case 8:
+                return Casino;
+            case 9:
+                return OutdoorLounge;
+            case 10:
+                return Carnival;
+            case 11:
+                return Restaurant;
+            default:
+                return RelativeId.Default;
+        }
+    }
 }

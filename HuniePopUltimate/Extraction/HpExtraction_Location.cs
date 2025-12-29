@@ -99,11 +99,9 @@ public partial class HpExtraction
         {
             if (locationDef.TryGetValue("type", out int locationType))
             {
-                locationMod.LocationType = locationMod.Id == LocationIds.BedRoomDate
-                    ? LocationType.SPECIAL
-                    : (locationType == 0
-                        ? LocationType.SIM
-                        : LocationType.DATE);
+                locationMod.LocationType = locationType == 0
+                    ? LocationType.SIM
+                    : LocationType.DATE;
             }
 
             ModInterface.Log.Message($"{hp1Id} {locationName}, - Loc type locationType{locationType} {locationMod.LocationType}");
@@ -126,8 +124,10 @@ public partial class HpExtraction
                         backgroundSprites[(ClockDaytimeType)dayTime] = spriteInfo;
                     }
 
+                    var bgMusicPath = Path.Combine(Plugin.ROOT_DIR, "audio", "locations");
+
                     if (background.TryGetValue("musicDefinition", out OrderedDictionary musicDef)
-                        && TryExtractAudioDef(musicDef, file, out var clipInfo)
+                        && TryExtractAudioDefStreamed(musicDef, file, bgMusicPath, out var clipInfo)
                         && background.TryGetValue("musicVolume", out float musicVolume))
                     {
                         locationMod.BgMusic = new AudioKlipInfo()

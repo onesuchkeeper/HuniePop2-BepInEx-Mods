@@ -189,7 +189,7 @@ public class Plugin : BaseUnityPlugin
             },
             AllowNonStop = true,
             AllowNormal = true,
-            PostBoss = false,
+            PostBoss = true,
             DateTimes = new List<ClockDaytimeType>() {
                 ClockDaytimeType.NIGHT
             }

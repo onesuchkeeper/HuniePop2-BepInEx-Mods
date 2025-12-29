@@ -10,8 +10,8 @@ public static class State
     private static readonly float _baseBrokenMult = 0.12f;
     private static readonly float _deltaBrokenMult = 0.01f;
 
-    public static Vector3 DefaultPuzzleGridPosition => _defaultPuzzleGridPosition;
-    private static Vector3 _defaultPuzzleGridPosition;
+    public static Vector2 DefaultPuzzleGridPosition => _defaultPuzzleGridPosition;
+    private static Vector2 _defaultPuzzleGridPosition;
 
     public static int ModId => _modId;
     private static int _modId;
@@ -25,6 +25,15 @@ public static class State
                 var saveFile = new SingleSaveFile();
                 saveFile.Clean();
                 _save.SaveFiles.Add(saveFile);
+            }
+
+            var save = _save.SaveFiles[Game.Persistence.loadedFileIndex];
+
+            //temp
+            foreach (var girlId in ModInterface.Data.GetIds(GameDataType.Girl))
+            {
+                var girlSave = save.GetGirl(girlId);
+                if (girlSave != null) girlSave.RelationshipLevel = Plugin.MaxSingleGirlRelationshipLevel.Value;
             }
 
             return _save.SaveFiles[Game.Persistence.loadedFileIndex];
@@ -54,7 +63,7 @@ public static class State
 
     public static void On_UiPuzzleGrid_Start(UiPuzzleGrid uiPuzzleGrid)
     {
-        _defaultPuzzleGridPosition = uiPuzzleGrid.transform.position;
+        _defaultPuzzleGridPosition = uiPuzzleGrid.GetComponent<RectTransform>().anchoredPosition;
     }
 
     public static void On_LocationManger_Arrive(GirlPairDefinition pair)

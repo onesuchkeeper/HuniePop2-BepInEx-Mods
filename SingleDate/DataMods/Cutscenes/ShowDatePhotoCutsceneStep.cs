@@ -84,7 +84,7 @@ public class ShowDatePhotoCutsceneStep : CutsceneStepSubDefinition, IFunctionalC
 
         Game.Manager.Windows.WindowHideEvent += OnWindowHideEvent;
 
-        Game.Manager.Windows.ShowWindow(ModInterface.State.UiWindowPhotos, false);
+        Game.Manager.Windows.ShowWindow(ModInterface.Assets.PhotosWindow, false);
 
         var window = f_currentWindow.GetValue(Game.Manager.Windows);
 

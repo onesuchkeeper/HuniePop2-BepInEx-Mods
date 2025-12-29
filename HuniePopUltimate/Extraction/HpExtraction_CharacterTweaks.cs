@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using Hp2BaseMod;
 using Hp2BaseMod.GameDataInfo;
+using Hp2BaseMod.Utility;
 
 namespace HuniePopUltimate;
 
@@ -24,6 +25,19 @@ public partial class HpExtraction
         switch (nativeId)
         {
             case 1://tiffany
+                girlMod.LocationGreetingDialogLines[Locations.MassageSpa] = girlMod.LocationGreetingDialogLines[LocationIds.BotanicalGarden];//pretty smell nice
+                girlMod.LocationGreetingDialogLines[Locations.Aquarium] = girlMod.LocationGreetingDialogLines[LocationIds.OutdoorLounge];//chill
+                girlMod.LocationGreetingDialogLines[Locations.SecludedCabana] = girlMod.LocationGreetingDialogLines[LocationIds.OutdoorLounge];//chill
+                girlMod.LocationGreetingDialogLines[Locations.PoolsideBar] = girlMod.LocationGreetingDialogLines[LocationIds.HotSprings];//water nice
+                girlMod.LocationGreetingDialogLines[Locations.GolfCourse] = girlMod.LocationGreetingDialogLines[LocationIds.OutdoorLounge];//chill
+                girlMod.LocationGreetingDialogLines[Locations.CruiseShip] = girlMod.LocationGreetingDialogLines[LocationIds.HotSprings];//water nice
+                girlMod.LocationGreetingDialogLines[Locations.RooftopLounge] = girlMod.LocationGreetingDialogLines[LocationIds.ScenicOverlook];//beautiful from up here
+                girlMod.LocationGreetingDialogLines[Locations.Casino] = girlMod.LocationGreetingDialogLines[LocationIds.Casino];//nikki would love
+                girlMod.LocationGreetingDialogLines[Locations.PrivateTable] = girlMod.LocationGreetingDialogLines[LocationIds.Restaurant];//expensive
+                girlMod.LocationGreetingDialogLines[Locations.SecretGrotto] = girlMod.LocationGreetingDialogLines[LocationIds.HotSprings];//water nice
+                girlMod.LocationGreetingDialogLines[Locations.StripClub] = girlMod.LocationGreetingDialogLines[LocationIds.Restaurant];//expensive fast food
+                girlMod.LocationGreetingDialogLines[Locations.RoyalSuite] = girlMod.LocationGreetingDialogLines[LocationIds.HikingTrail];//glad asked out
+
                 girlMod.GirlAge = 22;
                 SetImages("tiffany");
                 body.BackPosition = new VectorInfo(230, 450);
@@ -95,6 +109,19 @@ public partial class HpExtraction
 
                 break;
             case 2://aiko
+                girlMod.LocationGreetingDialogLines[Locations.MassageSpa] = girlMod.LocationGreetingDialogLines[LocationIds.BotanicalGarden];
+                girlMod.LocationGreetingDialogLines[Locations.Aquarium] = girlMod.LocationGreetingDialogLines[LocationIds.ScenicOverlook];
+                girlMod.LocationGreetingDialogLines[Locations.SecludedCabana] = girlMod.LocationGreetingDialogLines[LocationIds.OutdoorLounge];
+                girlMod.LocationGreetingDialogLines[Locations.PoolsideBar] = girlMod.LocationGreetingDialogLines[LocationIds.HotSprings];
+                girlMod.LocationGreetingDialogLines[Locations.GolfCourse] = girlMod.LocationGreetingDialogLines[LocationIds.BotanicalGarden];
+                girlMod.LocationGreetingDialogLines[Locations.CruiseShip] = girlMod.LocationGreetingDialogLines[LocationIds.WaterPark];
+                girlMod.LocationGreetingDialogLines[Locations.RooftopLounge] = girlMod.LocationGreetingDialogLines[LocationIds.ScenicOverlook];
+                girlMod.LocationGreetingDialogLines[Locations.Casino] = girlMod.LocationGreetingDialogLines[LocationIds.Carnival];
+                girlMod.LocationGreetingDialogLines[Locations.PrivateTable] = girlMod.LocationGreetingDialogLines[LocationIds.OutdoorLounge];
+                girlMod.LocationGreetingDialogLines[Locations.SecretGrotto] = girlMod.LocationGreetingDialogLines[LocationIds.HotSprings];
+                girlMod.LocationGreetingDialogLines[Locations.StripClub] = girlMod.LocationGreetingDialogLines[LocationIds.HikingTrail];
+                girlMod.LocationGreetingDialogLines[Locations.RoyalSuite] = girlMod.LocationGreetingDialogLines[LocationIds.Restaurant];
+
                 girlMod.GirlAge = 30;
                 SetImages("aiko");
                 body.BackPosition = new VectorInfo(240, 450);
@@ -172,6 +199,19 @@ public partial class HpExtraction
 
                 break;
             case 3://kyanna
+                girlMod.LocationGreetingDialogLines[Locations.MassageSpa] = girlMod.LocationGreetingDialogLines[LocationIds.Carnival];//don't get to go out
+                girlMod.LocationGreetingDialogLines[Locations.Aquarium] = girlMod.LocationGreetingDialogLines[LocationIds.BotanicalGarden];//neat ideA
+                girlMod.LocationGreetingDialogLines[Locations.SecludedCabana] = girlMod.LocationGreetingDialogLines[LocationIds.OutdoorLounge];
+                girlMod.LocationGreetingDialogLines[Locations.PoolsideBar] = girlMod.LocationGreetingDialogLines[LocationIds.HotSprings];//bikini
+                girlMod.LocationGreetingDialogLines[Locations.GolfCourse] = girlMod.LocationGreetingDialogLines[LocationIds.TennisCourts];//emasculeted
+                girlMod.LocationGreetingDialogLines[Locations.CruiseShip] = girlMod.LocationGreetingDialogLines[LocationIds.HotSprings];//bikini
+                girlMod.LocationGreetingDialogLines[Locations.RooftopLounge] = girlMod.LocationGreetingDialogLines[LocationIds.ScenicOverlook];//
+                girlMod.LocationGreetingDialogLines[Locations.Casino] = girlMod.LocationGreetingDialogLines[LocationIds.Casino];//gamble
+                girlMod.LocationGreetingDialogLines[Locations.PrivateTable] = girlMod.LocationGreetingDialogLines[LocationIds.Restaurant];//nicer than food court
+                girlMod.LocationGreetingDialogLines[Locations.SecretGrotto] = girlMod.LocationGreetingDialogLines[LocationIds.HotSprings];//bikini
+                girlMod.LocationGreetingDialogLines[Locations.StripClub] = girlMod.LocationGreetingDialogLines[LocationIds.Restaurant];//uhh nicer that lunch?
+                girlMod.LocationGreetingDialogLines[Locations.RoyalSuite] = girlMod.LocationGreetingDialogLines[LocationIds.OutdoorLounge];//seduced
+
                 girlMod.GirlAge = 23;
                 ((GirlSpecialPartDataMod)body.specialParts[1]).RequiredHairstyles = new List<RelativeId>(){
                     Hp2BaseMod.Styles.Activity,
@@ -256,6 +296,19 @@ public partial class HpExtraction
 
                 break;
             case 4://audrey
+                girlMod.LocationGreetingDialogLines[Locations.MassageSpa] = girlMod.LocationGreetingDialogLines[LocationIds.HotSprings];//get used to this
+                girlMod.LocationGreetingDialogLines[Locations.Aquarium] = girlMod.LocationGreetingDialogLines[LocationIds.ScenicOverlook];//gaaaayyy
+                girlMod.LocationGreetingDialogLines[Locations.SecludedCabana] = girlMod.LocationGreetingDialogLines[LocationIds.OutdoorLounge];
+                girlMod.LocationGreetingDialogLines[Locations.PoolsideBar] = girlMod.LocationGreetingDialogLines[LocationIds.IceRink];//cold
+                girlMod.LocationGreetingDialogLines[Locations.GolfCourse] = girlMod.LocationGreetingDialogLines[LocationIds.TennisCourts];//sweaty
+                girlMod.LocationGreetingDialogLines[Locations.CruiseShip] = girlMod.LocationGreetingDialogLines[LocationIds.WaterPark];//sunscreen
+                girlMod.LocationGreetingDialogLines[Locations.RooftopLounge] = girlMod.LocationGreetingDialogLines[LocationIds.Restaurant];//really impressive
+                girlMod.LocationGreetingDialogLines[Locations.Casino] = girlMod.LocationGreetingDialogLines[LocationIds.Casino];//smoke in here
+                girlMod.LocationGreetingDialogLines[Locations.PrivateTable] = girlMod.LocationGreetingDialogLines[LocationIds.Carnival];//idea of a date
+                girlMod.LocationGreetingDialogLines[Locations.SecretGrotto] = girlMod.LocationGreetingDialogLines[LocationIds.HotSprings];//get used to this
+                girlMod.LocationGreetingDialogLines[Locations.StripClub] = girlMod.LocationGreetingDialogLines[LocationIds.Casino];//smoke in here
+                girlMod.LocationGreetingDialogLines[Locations.RoyalSuite] = girlMod.LocationGreetingDialogLines[LocationIds.BotanicalGarden];//im here what now
+
                 girlMod.GirlAge = 21;
                 ((GirlSpecialPartDataMod)body.specialParts[1]).RequiredHairstyles = new List<RelativeId>(){
                             Hp2BaseMod.Styles.Activity
@@ -388,6 +441,19 @@ public partial class HpExtraction
                 };
                 break;
             case 6://nikki
+                girlMod.LocationGreetingDialogLines[Locations.MassageSpa] = girlMod.LocationGreetingDialogLines[LocationIds.OutdoorLounge];
+                girlMod.LocationGreetingDialogLines[Locations.Aquarium] = girlMod.LocationGreetingDialogLines[LocationIds.OutdoorLounge];//not my scene
+                girlMod.LocationGreetingDialogLines[Locations.SecludedCabana] = girlMod.LocationGreetingDialogLines[LocationIds.WaterPark];//burn alive
+                girlMod.LocationGreetingDialogLines[Locations.PoolsideBar] = girlMod.LocationGreetingDialogLines[LocationIds.WaterPark];//burn alive
+                girlMod.LocationGreetingDialogLines[Locations.GolfCourse] = girlMod.LocationGreetingDialogLines[LocationIds.BotanicalGarden];//allergies
+                girlMod.LocationGreetingDialogLines[Locations.CruiseShip] = girlMod.LocationGreetingDialogLines[LocationIds.WaterPark];//burn alive
+                girlMod.LocationGreetingDialogLines[Locations.RooftopLounge] = girlMod.LocationGreetingDialogLines[LocationIds.ScenicOverlook];//romantic
+                girlMod.LocationGreetingDialogLines[Locations.Casino] = girlMod.LocationGreetingDialogLines[LocationIds.Casino];//not an arcade
+                girlMod.LocationGreetingDialogLines[Locations.PrivateTable] = girlMod.LocationGreetingDialogLines[LocationIds.Restaurant];//dishes gross
+                girlMod.LocationGreetingDialogLines[Locations.SecretGrotto] = girlMod.LocationGreetingDialogLines[LocationIds.HotSprings];//water nice
+                girlMod.LocationGreetingDialogLines[Locations.StripClub] = girlMod.LocationGreetingDialogLines[LocationIds.IceRink];//might be fun
+                girlMod.LocationGreetingDialogLines[Locations.RoyalSuite] = girlMod.LocationGreetingDialogLines[LocationIds.OutdoorLounge];//not my scene but nice
+
                 girlMod.GirlAge = 20;
                 SetImages("nikki");
                 body.BackPosition = new VectorInfo(195, 440);
@@ -523,6 +589,19 @@ public partial class HpExtraction
                 };
                 break;
             case 8: //beli
+                girlMod.LocationGreetingDialogLines[Locations.MassageSpa] = girlMod.LocationGreetingDialogLines[LocationIds.HotSprings];//relaxing
+                girlMod.LocationGreetingDialogLines[Locations.Aquarium] = girlMod.LocationGreetingDialogLines[LocationIds.HotSprings];//relaxing
+                girlMod.LocationGreetingDialogLines[Locations.SecludedCabana] = girlMod.LocationGreetingDialogLines[LocationIds.OutdoorLounge];//
+                girlMod.LocationGreetingDialogLines[Locations.PoolsideBar] = girlMod.LocationGreetingDialogLines[LocationIds.Carnival];//junk food
+                girlMod.LocationGreetingDialogLines[Locations.GolfCourse] = girlMod.LocationGreetingDialogLines[LocationIds.TennisCourts];//if I win
+                girlMod.LocationGreetingDialogLines[Locations.CruiseShip] = girlMod.LocationGreetingDialogLines[LocationIds.WaterPark];//bikini
+                girlMod.LocationGreetingDialogLines[Locations.RooftopLounge] = girlMod.LocationGreetingDialogLines[LocationIds.Restaurant];
+                girlMod.LocationGreetingDialogLines[Locations.Casino] = girlMod.LocationGreetingDialogLines[LocationIds.TennisCourts];//if I win
+                girlMod.LocationGreetingDialogLines[Locations.PrivateTable] = girlMod.LocationGreetingDialogLines[LocationIds.Restaurant];//fancy
+                girlMod.LocationGreetingDialogLines[Locations.SecretGrotto] = girlMod.LocationGreetingDialogLines[LocationIds.OutdoorLounge];//private oasis
+                girlMod.LocationGreetingDialogLines[Locations.StripClub] = girlMod.LocationGreetingDialogLines[LocationIds.Casino];//carried away
+                girlMod.LocationGreetingDialogLines[Locations.RoyalSuite] = girlMod.LocationGreetingDialogLines[LocationIds.Restaurant];//fancy
+
                 girlMod.GirlAge = 26;
                 SetImages("beli");
                 body.BackPosition = new VectorInfo(200, 450);
@@ -599,6 +678,19 @@ public partial class HpExtraction
                 };
                 break;
             case 9://kyu
+                girlMod.LocationGreetingDialogLines[Locations.MassageSpa] = girlMod.LocationGreetingDialogLines[LocationIds.ScenicOverlook];//seduce
+                girlMod.LocationGreetingDialogLines[Locations.Aquarium] = girlMod.LocationGreetingDialogLines[LocationIds.FarmersMarket];//nothing I like
+                girlMod.LocationGreetingDialogLines[Locations.SecludedCabana] = girlMod.LocationGreetingDialogLines[LocationIds.ScenicOverlook];//seduce
+                girlMod.LocationGreetingDialogLines[Locations.PoolsideBar] = girlMod.LocationGreetingDialogLines[LocationIds.WaterPark];//leaf bikini
+                girlMod.LocationGreetingDialogLines[Locations.GolfCourse] = girlMod.LocationGreetingDialogLines[LocationIds.TennisCourts];//dont know about game
+                girlMod.LocationGreetingDialogLines[Locations.CruiseShip] = girlMod.LocationGreetingDialogLines[LocationIds.WaterPark];//leaf bikini
+                girlMod.LocationGreetingDialogLines[Locations.RooftopLounge] = girlMod.LocationGreetingDialogLines[LocationIds.ScenicOverlook];//seduce
+                girlMod.LocationGreetingDialogLines[Locations.Casino] = girlMod.LocationGreetingDialogLines[LocationIds.Casino];//hunie
+                girlMod.LocationGreetingDialogLines[Locations.PrivateTable] = girlMod.LocationGreetingDialogLines[LocationIds.Restaurant];//eating alone
+                girlMod.LocationGreetingDialogLines[Locations.SecretGrotto] = girlMod.LocationGreetingDialogLines[LocationIds.HotSprings];//staple
+                girlMod.LocationGreetingDialogLines[Locations.StripClub] = girlMod.LocationGreetingDialogLines[LocationIds.Carnival];//fit in
+                girlMod.LocationGreetingDialogLines[Locations.RoyalSuite] = girlMod.LocationGreetingDialogLines[LocationIds.ScenicOverlook];//seduce
+
                 girlMod.GirlAge = 386;
                 body.BackPosition = new VectorInfo(245f, 454f);
                 body.HeadPosition = new VectorInfo(230, 780);
@@ -677,6 +769,19 @@ public partial class HpExtraction
 
                 break;
             case 10://momo
+                girlMod.LocationGreetingDialogLines[Locations.MassageSpa] = girlMod.LocationGreetingDialogLines[LocationIds.OutdoorLounge];
+                girlMod.LocationGreetingDialogLines[Locations.Aquarium] = girlMod.LocationGreetingDialogLines[LocationIds.Carnival];//fish game
+                girlMod.LocationGreetingDialogLines[Locations.SecludedCabana] = girlMod.LocationGreetingDialogLines[LocationIds.OutdoorLounge];//happy tobe here
+                girlMod.LocationGreetingDialogLines[Locations.PoolsideBar] = girlMod.LocationGreetingDialogLines[LocationIds.WaterPark];//ear get wet
+                girlMod.LocationGreetingDialogLines[Locations.GolfCourse] = girlMod.LocationGreetingDialogLines[LocationIds.TennisCourts];//chase ball
+                girlMod.LocationGreetingDialogLines[Locations.CruiseShip] = girlMod.LocationGreetingDialogLines[LocationIds.WaterPark];//ear get wet
+                girlMod.LocationGreetingDialogLines[Locations.RooftopLounge] = girlMod.LocationGreetingDialogLines[LocationIds.ScenicOverlook];
+                girlMod.LocationGreetingDialogLines[Locations.Casino] = girlMod.LocationGreetingDialogLines[LocationIds.Casino];//ask for id
+                girlMod.LocationGreetingDialogLines[Locations.PrivateTable] = girlMod.LocationGreetingDialogLines[LocationIds.Restaurant];//dessert
+                girlMod.LocationGreetingDialogLines[Locations.SecretGrotto] = girlMod.LocationGreetingDialogLines[LocationIds.HotSprings];//lot of water
+                girlMod.LocationGreetingDialogLines[Locations.StripClub] = girlMod.LocationGreetingDialogLines[LocationIds.Casino];//id
+                girlMod.LocationGreetingDialogLines[Locations.RoyalSuite] = girlMod.LocationGreetingDialogLines[LocationIds.OutdoorLounge];//happy to be here
+
                 girlMod.GirlAge = 3;
                 SetImages("momo");
                 body.BackPosition = new VectorInfo(200, 450);
@@ -754,6 +859,44 @@ public partial class HpExtraction
 
                 break;
             case 11://celeste
+                // var meetingCutscene = _singleDatePairData[girlMod.Id].MeetingCutscene;
+
+                // var loadStep = CutsceneStepUtility.MakeLoadGirlInfo(girlMod.Id, CutsceneStepDollTargetType.ORIENTATION_TYPE, CutsceneStepProceedType.INSTANT);
+                // loadStep.TargetDollOrientation = DollOrientationType.LEFT;
+
+                // meetingCutscene.Steps.InsertRange(0, [
+                //     CutsceneStepUtility.MakeHideWindowInfo(CutsceneStepProceedType.AUTOMATIC),
+                //     CutsceneStepUtility.MakeDollMoveInfo(DollPositionType.HIDDEN, DollOrientationType.RIGHT, CutsceneStepProceedType.INSTANT),
+                //     CutsceneStepUtility.MakeDollMoveInfo(DollPositionType.HIDDEN, DollOrientationType.LEFT, CutsceneStepProceedType.AUTOMATIC),
+                //     loadStep,
+                //     CutsceneStepUtility.MakeDollMoveInfo(DollPositionType.HIDDEN, DollOrientationType.LEFT, CutsceneStepProceedType.AUTOMATIC)
+                // ]);
+
+                // meetingCutscene.Steps.InsertRange(meetingCutscene.Steps.Count, [
+                //     CutsceneStepUtility.MakeShowWindowInfo(false, "UiWindowActionBubbles", CutsceneStepProceedType.AUTOMATIC),
+                // ]);
+
+                girlMod.LocationGreetingDialogLines[Locations.MassageSpa] = girlMod.LocationGreetingDialogLines[LocationIds.HotSprings];//feel amazing
+                girlMod.LocationGreetingDialogLines[Locations.Aquarium] = girlMod.LocationGreetingDialogLines[LocationIds.ScenicOverlook];//beautiful planet
+                girlMod.LocationGreetingDialogLines[Locations.SecludedCabana] = girlMod.LocationGreetingDialogLines[LocationIds.OutdoorLounge];//
+                girlMod.LocationGreetingDialogLines[Locations.PoolsideBar] = girlMod.LocationGreetingDialogLines[LocationIds.Restaurant];//too many peeps
+                girlMod.LocationGreetingDialogLines[Locations.GolfCourse] = girlMod.LocationGreetingDialogLines[LocationIds.ScenicOverlook];//beautiful
+                girlMod.LocationGreetingDialogLines[Locations.CruiseShip] = girlMod.LocationGreetingDialogLines[LocationIds.Restaurant];//too many people
+                girlMod.LocationGreetingDialogLines[Locations.RooftopLounge] = girlMod.LocationGreetingDialogLines[LocationIds.OutdoorLounge];//thank for invite
+                girlMod.LocationGreetingDialogLines[Locations.Casino] = girlMod.LocationGreetingDialogLines[LocationIds.Carnival];//colors and lights
+                girlMod.LocationGreetingDialogLines[Locations.PrivateTable] = girlMod.LocationGreetingDialogLines[LocationIds.OutdoorLounge];//thank
+                girlMod.LocationGreetingDialogLines[Locations.SecretGrotto] = girlMod.LocationGreetingDialogLines[LocationIds.HotSprings];//feel amazing
+                girlMod.LocationGreetingDialogLines[Locations.StripClub] = girlMod.LocationGreetingDialogLines[LocationIds.Carnival];//colors and lights
+                girlMod.LocationGreetingDialogLines[Locations.RoyalSuite] = girlMod.LocationGreetingDialogLines[LocationIds.OutdoorLounge];//thank for invite
+
+                //hot spring, scenic overlook, casino, outdoor lounge, carnival, restaurant
+                girlMod.LocationGreetingDialogLines[LocationIds.BotanicalGarden] = girlMod.LocationGreetingDialogLines[LocationIds.ScenicOverlook];//beautiful
+                girlMod.LocationGreetingDialogLines[LocationIds.FarmersMarket] = girlMod.LocationGreetingDialogLines[LocationIds.Restaurant];//too many peeps
+                girlMod.LocationGreetingDialogLines[LocationIds.HikingTrail] = girlMod.LocationGreetingDialogLines[LocationIds.ScenicOverlook];//beautiful
+                girlMod.LocationGreetingDialogLines[LocationIds.IceRink] = girlMod.LocationGreetingDialogLines[LocationIds.Casino];//wut? enviroment like planet
+                girlMod.LocationGreetingDialogLines[LocationIds.WaterPark] = girlMod.LocationGreetingDialogLines[LocationIds.Carnival];//colors
+                girlMod.LocationGreetingDialogLines[LocationIds.TennisCourts] = girlMod.LocationGreetingDialogLines[LocationIds.Restaurant];//too many peeps
+
                 girlMod.GirlAge = 34;
                 SetImages("celeste");
                 body.BackPosition = new VectorInfo(200, 450);
@@ -831,6 +974,19 @@ public partial class HpExtraction
 
                 break;
             case 12://venus
+                girlMod.LocationGreetingDialogLines[Locations.MassageSpa] = girlMod.LocationGreetingDialogLines[LocationIds.HotSprings];//soothing
+                girlMod.LocationGreetingDialogLines[Locations.Aquarium] = girlMod.LocationGreetingDialogLines[LocationIds.BotanicalGarden];//pretty
+                girlMod.LocationGreetingDialogLines[Locations.SecludedCabana] = girlMod.LocationGreetingDialogLines[LocationIds.OutdoorLounge];
+                girlMod.LocationGreetingDialogLines[Locations.PoolsideBar] = girlMod.LocationGreetingDialogLines[LocationIds.HikingTrail];//watch close
+                girlMod.LocationGreetingDialogLines[Locations.GolfCourse] = girlMod.LocationGreetingDialogLines[LocationIds.TennisCourts];//not what I would have selected
+                girlMod.LocationGreetingDialogLines[Locations.CruiseShip] = girlMod.LocationGreetingDialogLines[LocationIds.WaterPark];//fun
+                girlMod.LocationGreetingDialogLines[Locations.RooftopLounge] = girlMod.LocationGreetingDialogLines[LocationIds.OutdoorLounge];//do ur worst
+                girlMod.LocationGreetingDialogLines[Locations.Casino] = girlMod.LocationGreetingDialogLines[LocationIds.Casino];//luck
+                girlMod.LocationGreetingDialogLines[Locations.PrivateTable] = girlMod.LocationGreetingDialogLines[LocationIds.FarmersMarket];//woo me
+                girlMod.LocationGreetingDialogLines[Locations.SecretGrotto] = girlMod.LocationGreetingDialogLines[LocationIds.HotSprings];//soothing
+                girlMod.LocationGreetingDialogLines[Locations.StripClub] = girlMod.LocationGreetingDialogLines[LocationIds.ScenicOverlook];//prepared for me
+                girlMod.LocationGreetingDialogLines[Locations.RoyalSuite] = girlMod.LocationGreetingDialogLines[LocationIds.Restaurant];//capable of
+
                 girlMod.GirlAge = 10000;
                 SetImages("venus");
                 body.BackPosition = new VectorInfo(230, 450);
@@ -908,22 +1064,5 @@ public partial class HpExtraction
 
                 break;
         }
-
-        // if (nativeId == 12 || nativeId == 11 || nativeId == 10 || nativeId == 9)
-        // {
-        //     foreach (var herQuestion in girlMod.HerQuestions.Values.OfType<HerQuestionInfo>())
-        //     {
-        //         using (ModInterface.Log.MakeIndent(herQuestion.DialogLine.DialogText))
-        //         {
-        //             ModInterface.Log.Error(herQuestion.CorrectAnswer.text);
-        //             foreach (var answer in herQuestion.IncorrectAnswers.Values.OfType<HerQuestionAnswerInfo>())
-        //             {
-        //                 ModInterface.Log.Error(answer.text);
-        //                 if (answer.Response != null) ModInterface.Log.Error("\t" + answer.Response?.DialogText);
-        //                 else ModInterface.Log.Error("\trandom");
-        //             }
-        //         }
-        //     }
-        // }
     }
 }

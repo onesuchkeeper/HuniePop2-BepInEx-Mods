@@ -699,6 +699,26 @@ public static class CutsceneStepUtility
         };
     }
 
+    public static CutsceneStepSubDefinition MakeHideWindow(CutsceneStepProceedType proceedType)
+    {
+        return new CutsceneStepSubDefinition()
+        {
+            stepType = CutsceneStepType.SHOW_WINDOW,
+            boolValue = false,
+            proceedType = proceedType
+        };
+    }
+
+    public static CutsceneStepInfo MakeHideWindowInfo(CutsceneStepProceedType proceedType)
+    {
+        return new CutsceneStepInfo()
+        {
+            StepType = CutsceneStepType.SHOW_WINDOW,
+            BoolValue = false,
+            ProceedType = proceedType
+        };
+    }
+
     public static CutsceneStepSubDefinition MakeUseCellphone(IEnumerable<int> freezeButtonIndexes, CutsceneStepProceedType proceedType)
     {
         return new CutsceneStepSubDefinition()

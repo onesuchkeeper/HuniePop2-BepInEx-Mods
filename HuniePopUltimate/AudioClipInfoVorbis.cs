@@ -12,9 +12,9 @@ using UnityEngine;
 /// Strategy: Decode entire audio on first play and cache PCM data.
 /// Unload PCM cache when idle, but never recreate VorbisReader.
 /// </summary>
-public class AudioClipInfoVorbisLazy : IGameDefinitionInfo<UnityEngine.AudioClip>
+public class AudioClipInfoVorbis : IGameDefinitionInfo<UnityEngine.AudioClip>
 {
-    private static readonly List<AudioClipInfoVorbisLazy> _allInstances = new List<AudioClipInfoVorbisLazy>();
+    private static readonly List<AudioClipInfoVorbis> _allInstances = new List<AudioClipInfoVorbis>();
     private static float _lastCleanupTime = 0f;
     private static readonly float _cleanupInterval = 1f;
     private static readonly float _unloadDelay = 5f;
@@ -34,7 +34,7 @@ public class AudioClipInfoVorbisLazy : IGameDefinitionInfo<UnityEngine.AudioClip
     private long _currentSamplePosition;
     private bool _hasReachedEnd;
 
-    public AudioClipInfoVorbisLazy(AssetStudio.ResourceReader resourceReader, double startSeconds = 0.0, double durationSeconds = -1.0)
+    public AudioClipInfoVorbis(AssetStudio.ResourceReader resourceReader, double startSeconds = 0.0, double durationSeconds = -1.0)
     {
         if (resourceReader == null)
             throw new ArgumentNullException(nameof(resourceReader));
@@ -233,8 +233,8 @@ public class AudioClipInfoVorbisLazy : IGameDefinitionInfo<UnityEngine.AudioClip
     {
         _lastCleanupTime = Time.realtimeSinceStartup;
 
-        var idleClips = new List<AudioClipInfoVorbisLazy>();
-        var activeClips = new List<AudioClipInfoVorbisLazy>();
+        var idleClips = new List<AudioClipInfoVorbis>();
+        var activeClips = new List<AudioClipInfoVorbis>();
 
         foreach (var instance in _allInstances)
         {

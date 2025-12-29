@@ -56,7 +56,7 @@ class UiDoll_ChangeStyle
     [HarmonyPatch(nameof(UiDoll.ReadDialogTrigger))]
     [HarmonyPrefix()]
     public static void ReadDialogTrigger(UiDoll __instance, DialogTriggerDefinition dialogTriggerDef, DialogLineFormat format, ref int lineIndex)
-        => ExpandedUiDoll.Get(__instance).ReadDialogTrigger(dialogTriggerDef, ref lineIndex);
+        => ExpandedUiDoll.Get(__instance).ReadDialogTrigger(dialogTriggerDef, format, ref lineIndex);
 }
 
 /// <summary>
@@ -313,23 +313,35 @@ public class ExpandedUiDoll
         _expansions.Remove(_core);
     }
 
-    internal void ReadDialogTrigger(DialogTriggerDefinition dialogTriggerDef, ref int lineIndex)
+    internal void ReadDialogTrigger(DialogTriggerDefinition dialogTriggerDef, DialogLineFormat format, ref int lineIndex)
     {
-        // when no index is specified, pick a random one that isn't null
-        if (!dialogTriggerDef.Expansion()
-            .TryGetLineSet(dialogTriggerDef, ModInterface.Data.GetDataId(GameDataType.Girl, _core.girlDefinition.id), out var lineSet))
+        var girlId = _core.girlDefinition.ModId();
+
+        if (!dialogTriggerDef.Expansion().TryGetLineSet(dialogTriggerDef, girlId, out var lineSet))
         {
             throw new Exception("Failed to find dt line set");
         }
 
-        if (lineIndex > -1
-            && lineSet.dialogLines.Count > lineIndex
-            && lineSet.dialogLines[lineIndex] != null)
+        // the normal index used is the index of the current location in Game.Session.Location.dateLocationDefs
+        // instead we go by identifier
+        if (lineIndex <= -1
+            && dialogTriggerDef.forceType == DialogTriggerForceType.DATE_LOCATION)
         {
-            return;
+            var girlExp = ExpandedGirlDefinition.Get(girlId);
+            var dtExp = dialogTriggerDef.Expansion();
+            var locId = Game.Session.Location.currentLocation.ModId();
+            lineIndex = girlExp.DateGreetingLocIdToDtIndex[locId];
+            ModInterface.Log.Message($"Using index {lineIndex} for date greeting at location {locId} - {Game.Session.Location.currentLocation.locationName}");
         }
 
-        var i = 0;
-        lineIndex = lineSet.dialogLines.Select(line => (line, i++)).Where(x => x.line != null).ToArray().GetRandom().Item2;
+        // when no valid index is specified, pick a random one that is
+        if (lineIndex <= -1
+            || lineSet.dialogLines.Count <= lineIndex
+            || lineSet.dialogLines[lineIndex] == null)
+        {
+            var i = 0;
+            lineIndex = lineSet.dialogLines.Select(line => (line, i++)).Where(x => x.line != null).ToArray().GetRandom().Item2;
+            ModInterface.Log.Message($"Using random index {lineIndex} to replace invalid dt index");
+        }
     }
 }

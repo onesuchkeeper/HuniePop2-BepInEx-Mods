@@ -4,7 +4,7 @@ using Hp2BaseMod.Utility;
 namespace Hp2BaseMod.Save
 {
     [Serializable]
-    public struct ModSaveStoreProduct
+    public class ModSaveStoreProduct
     {
         public RelativeId? ItemId;
         public int ItemCost;

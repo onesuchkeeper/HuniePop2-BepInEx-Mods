@@ -8,6 +8,9 @@ public static class GirlPairDefinition_Ext
 {
     public static ExpandedGirlPairDefinition Expansion(this GirlPairDefinition def)
         => ExpandedGirlPairDefinition.Get(def);
+
+    public static RelativeId ModId(this GirlPairDefinition def)
+        => ModInterface.Data.GetDataId(GameDataType.GirlPair, def.id);
 }
 
 /// <summary>

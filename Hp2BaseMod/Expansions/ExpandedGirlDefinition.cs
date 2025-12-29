@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Hp2BaseMod.Extension;
@@ -11,6 +10,9 @@ public static class GirlDefinition_Ext
 {
     public static ExpandedGirlDefinition Expansion(this GirlDefinition def)
         => ExpandedGirlDefinition.Get(def);
+
+    public static RelativeId ModId(this GirlDefinition def)
+        => ModInterface.Data.GetDataId(GameDataType.Girl, def.id);
 }
 
 /// <summary>
@@ -179,4 +181,7 @@ public class ExpandedGirlDefinition
 
     public IdIndexMap HerQuestionBadResponseIdToDtIndex => _herQuestionBadResponseIdToIndex;
     private IdIndexMap _herQuestionBadResponseIdToIndex = new();
+
+    public IdIndexMap DateGreetingLocIdToDtIndex => _dateGreetingLocIdToDtIndex;
+    private IdIndexMap _dateGreetingLocIdToDtIndex = new();
 }

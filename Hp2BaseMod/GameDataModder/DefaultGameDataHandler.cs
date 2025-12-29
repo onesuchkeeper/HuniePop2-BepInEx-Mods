@@ -67,26 +67,6 @@ internal static class DefaultGameDataHandler
         // register default sub data
         using (ModInterface.Log.MakeIndent("registering default sub data"))
         {
-            using (ModInterface.Log.MakeIndent("dialog triggers"))
-            {
-                foreach (var dt in dialogTriggerDataDict.Values)
-                {
-                    var dialogTriggerExp = ExpandedDialogTriggerDefinition.Get(dt);
-                    var id = new RelativeId(-1, dt.id);
-
-                    if (GirlSubDataModder.IsGirlDialogTrigger(dt))
-                    {
-                        var girlIndex = 1;
-                        foreach (var lineSet in dt.dialogLineSets)
-                        {
-                            var girlId = new RelativeId(-1, girlIndex++);
-                            var lineMap = dialogTriggerExp.GetGirlLineMap(girlId);
-                            lineMap.MapRelativeIdRange(lineSet.dialogLines.Count);
-                        }
-                    }
-                }
-            }
-
             using (ModInterface.Log.MakeIndent("girls"))
             {
                 var herQuestionsDt = dialogTriggerDataDict[DialogTriggers.HerQuestion.LocalId];
@@ -96,11 +76,14 @@ internal static class DefaultGameDataHandler
                 var herQuestionsBadRespDt = dialogTriggerDataDict[DialogTriggers.HerQuestionBadResponse.LocalId];
                 var herQuestionsBadRespDtExp = herQuestionsBadRespDt.Expansion();
 
+                var dateGreetingDt = dialogTriggerDataDict[DialogTriggers.DateGreeting.LocalId];
+                var dateGreetingDtExp = dateGreetingDt.Expansion();
+
                 ExpandedGirlDefinition.DialogTriggerIndexes.MapRelativeIdRange(girlDataDict.Count, 1);
 
                 foreach (var girl in girlDataDict.Values)
                 {
-                    using (ModInterface.Log.MakeIndent($"Id: {girl.id}, Name: {girl.name}, DialogTriggerTab: {girl.dialogTriggerTab}"))
+                    using (ModInterface.Log.MakeIndent($"runtime id: {girl.id}, Name: {girl.girlName}, DialogTriggerTab: {girl.dialogTriggerTab}"))
                     {
                         void defaultStyleExpansion(ExpandedStyleDefinition expansion, int index)
                         {
@@ -189,10 +172,12 @@ internal static class DefaultGameDataHandler
                         var herQuestionsSet = herQuestionsDtExp.GetLineSetOrNew(herQuestionsDt, id);
                         var herQuestionsGoodRespSet = herQuestionsGoodRespDtExp.GetLineSetOrNew(herQuestionsGoodRespDt, id);
                         var herQuestionsBadRespSet = herQuestionsBadRespDtExp.GetLineSetOrNew(herQuestionsBadRespDt, id);
+                        var dateGreetingSet = dateGreetingDtExp.GetLineSetOrNew(dateGreetingDt, id);
 
                         expansion.HerQuestionIdToIndex.MapRelativeIdRange(herQuestionsSet.dialogLines.Count);
                         expansion.HerQuestionGoodResponseIdToDtIndex.MapRelativeIdRange(herQuestionsGoodRespSet.dialogLines.Count);
                         expansion.HerQuestionBadResponseIdToDtIndex.MapRelativeIdRange(herQuestionsBadRespSet.dialogLines.Count);
+                        expansion.DateGreetingLocIdToDtIndex.MapRelativeIdRange(dateGreetingSet.dialogLines.Count, 0, 9);
                     }
                 }
             }
@@ -204,8 +189,6 @@ internal static class DefaultGameDataHandler
 
             using (ModInterface.Log.MakeIndent("locations"))
             {
-                ExpandedLocationDefinition.DialogTriggerIndexes.MapRelativeIdRange(locationDataDict.Count, 1);
-
                 foreach (var def in locationDataDict.Values)
                 {
                     var expansion = def.Expansion();
@@ -235,6 +218,29 @@ internal static class DefaultGameDataHandler
                 {
                     var expansion = id_def.Value.Expansion();
                     expansion.AnswerLookup.MapRelativeIdRange(id_def.Value.questionAnswers.Count);
+                }
+            }
+
+            using (ModInterface.Log.MakeIndent("Items"))
+            {
+                foreach (var item in itemDataDict.Values)
+                {
+                    switch (item.itemType)
+                    {
+                        case ItemType.DATE_GIFT:
+                            item.storeCost = 6;
+                            item.storeSectionPreference = true;
+                            break;
+                        case ItemType.SMOOTHIE:
+                            item.storeCost = 5;
+                            item.storeSectionPreference = true;
+                            break;
+                        case ItemType.SHOES:
+                        case ItemType.UNIQUE_GIFT:
+                            item.storeCost = 4;
+                            item.storeSectionPreference = true;
+                            break;
+                    }
                 }
             }
         }

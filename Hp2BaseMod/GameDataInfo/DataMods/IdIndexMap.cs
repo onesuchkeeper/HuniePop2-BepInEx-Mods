@@ -53,7 +53,7 @@ public class IdIndexMap
     public bool TryGetId(int index, out RelativeId id) => _indexToId.TryGetValue(index, out id);
 
     /// <summary>
-    /// Initializes the map with a range or id-index pairs.
+    /// Initializes the map with a range of id-index pairs.
     /// </summary>
     /// <param name="count">The number of entries</param>
     /// <param name="startingIndex">First index</param>
@@ -66,5 +66,14 @@ public class IdIndexMap
             _idToIndex[id] = i;
             _indexToId[i] = id;
         }
+    }
+
+    /// <summary>
+    /// Force-adds a specific id index mapping
+    /// </summary>
+    internal void ForceMap(RelativeId id, int index)
+    {
+        _idToIndex[id] = index;
+        _indexToId[index] = id;
     }
 }

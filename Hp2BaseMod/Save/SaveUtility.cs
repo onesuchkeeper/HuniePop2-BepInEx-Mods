@@ -19,6 +19,7 @@ public static class SaveUtility
         where TTarget : new()
     {
         var delta = len - target.Count;
+
         if (delta > 0)
         {
             for (var i = 0; i < delta; i++)
@@ -28,7 +29,8 @@ public static class SaveUtility
         }
         else if (delta < 0)
         {
-            target.RemoveRange(len - 1, -delta);
+            // remove only the excess tail entries; preserve index alignment
+            target.RemoveRange(len, -delta);
         }
     }
 

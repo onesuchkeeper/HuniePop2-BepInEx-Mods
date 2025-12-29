@@ -2,9 +2,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Sourceage.Element.Interface;
+using Hp2BaseMod.Elements.Interface;
 
-namespace Sourceage.Element
+namespace Hp2BaseMod.Elements
 {
     /// <summary>
     /// A set of unique values. Takes advantage of discrete set properties

@@ -19,6 +19,7 @@ internal static class ModEventHandles
         var rightOuter = Game.Session.gameCanvas.dollRight.GetPositionByType(DollPositionType.OUTER);
         var rightInnerPos = Game.Session.gameCanvas.dollRight.GetPositionByType(DollPositionType.INNER);
         var diff = rightInnerPos - rightOuter;
+        var puzzleGridRectTransform = Game.Session.Puzzle.puzzleGrid.GetComponent<RectTransform>();
 
         if (State.IsSingleDate)
         {
@@ -35,7 +36,7 @@ internal static class ModEventHandles
 
             var delta = Game.Session.gameCanvas.header.xValues.y - Game.Session.gameCanvas.header.xValues.x;
 
-            Game.Session.Puzzle.puzzleGrid.transform.position = new Vector3(
+            puzzleGridRectTransform.anchoredPosition = new Vector3(
                 State.DefaultPuzzleGridPosition.x + delta,
                 State.DefaultPuzzleGridPosition.y,
                 0);
@@ -48,7 +49,7 @@ internal static class ModEventHandles
                 Game.Session.gameCanvas.dollRight.dropZone.transform.localPosition -= new Vector3(diff.x, diff.y, 0);
             }
 
-            Game.Session.Puzzle.puzzleGrid.transform.position = State.DefaultPuzzleGridPosition;
+            puzzleGridRectTransform.anchoredPosition = State.DefaultPuzzleGridPosition;
         }
     }
 
@@ -115,10 +116,27 @@ internal static class ModEventHandles
 
         if (State.IsSingleDate)
         {
-            // correct cutscenes
-            // bonus round without required level
-            if (girlSave?.RelationshipLevel < maxSingleGirlRelationshipLevel - 1)
+            var oneUnderMaxLevel = girlSave?.RelationshipLevel >= maxSingleGirlRelationshipLevel - 1;
+
+            if ((Game.Session.Location.currentGirlPair.sexLocationDefinition == null
+                    || Game.Session.Location.currentGirlPair.sexLocationDefinition == Game.Session.Location.currentLocation)
+                && oneUnderMaxLevel
+                && Game.Session.Location.currentGirlPair.sexDaytime == (ClockDaytimeType)(Game.Persistence.playerFile.daytimeElapsed % 4))
             {
+                girlSave.RelationshipLevel = maxSingleGirlRelationshipLevel;
+
+                ModInterface.Log.Message("Enable single date bonus round");
+                args.IsSexDate = true;
+                args.LevelUpType = PuzzleRoundOverArgs.CutsceneType.AttractToLovers;
+                args.IsGameOver = Game.Session.Puzzle.puzzleStatus.bonusRound;
+            }
+            else
+            {
+                if (!oneUnderMaxLevel)
+                {
+                    girlSave.RelationshipLevel++;
+                }
+
                 ModInterface.Log.Message("Single date deny bonus round");
                 if (args.LevelUpType == PuzzleRoundOverArgs.CutsceneType.AttractToLovers)
                 {
@@ -126,16 +144,6 @@ internal static class ModEventHandles
                 }
                 args.IsSexDate = false;
                 args.IsGameOver = true;
-            }
-            // at required level at sex loc and time
-            else if ((Game.Session.Location.currentGirlPair.sexLocationDefinition == null
-                        || Game.Session.Location.currentGirlPair.sexLocationDefinition == Game.Session.Location.currentLocation)
-                    && girlSave?.RelationshipLevel >= maxSingleGirlRelationshipLevel - 1
-                    && Game.Session.Location.currentGirlPair.sexDaytime == (ClockDaytimeType)(Game.Persistence.playerFile.daytimeElapsed % 4))
-            {
-                args.IsSexDate = true;
-                args.LevelUpType = PuzzleRoundOverArgs.CutsceneType.AttractToLovers;
-                args.IsGameOver = Game.Session.Puzzle.puzzleStatus.bonusRound;
             }
         }
         else if (Plugin.RequireLoversBeforeThreesome.Value)

@@ -201,7 +201,7 @@ namespace Hp2BaseMod.GameDataInfo
 
             if (FavoriteDialogLines != null)
             {
-                var favQuestionResponse = gameDataProvider.GetDialogTrigger(new RelativeId(-1, 5));
+                var favQuestionResponse = gameDataProvider.GetDialogTrigger(DialogTriggers.FavQuestionResponse);
 
                 if (favQuestionResponse == null)
                 {
@@ -212,8 +212,28 @@ namespace Hp2BaseMod.GameDataInfo
                     var lineSet = favQuestionResponse.dialogLineSets.GetOrNew(ExpandedGirlDefinition.DialogTriggerIndexes[Id]);
                     foreach (var id_line in FavoriteDialogLines)
                     {
-                        var questionIndex = ExpandedQuestionDefinition.DialogTriggerIndexes[id_line.Key];
-                        var line = lineSet.dialogLines.GetOrNew(questionIndex);
+                        var index = ExpandedQuestionDefinition.DialogTriggerIndexes[id_line.Key];
+                        var line = lineSet.dialogLines.GetOrNew(index);
+                        id_line.Value.SetData(line, gameDataProvider, assetProvider);
+                    }
+                }
+            }
+
+            if (LocationGreetingDialogLines != null)
+            {
+                var dateGreeting = gameDataProvider.GetDialogTrigger(DialogTriggers.DateGreeting);
+
+                if (dateGreeting == null)
+                {
+                    ModInterface.Log.Error("Failed to find DateGreeting dialog trigger.");
+                }
+                else
+                {
+                    var lineSet = dateGreeting.dialogLineSets.GetOrNew(ExpandedGirlDefinition.DialogTriggerIndexes[Id]);
+                    foreach (var id_line in LocationGreetingDialogLines)
+                    {
+                        var index = girlExp.DateGreetingLocIdToDtIndex[id_line.Key];
+                        var line = lineSet.dialogLines.GetOrNew(index);
                         id_line.Value.SetData(line, gameDataProvider, assetProvider);
                     }
                 }

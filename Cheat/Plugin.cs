@@ -149,6 +149,18 @@ public partial class Plugin : Hp2BaseModPlugin
                     file.fruitCounts[i] = FruitCount.Value;
                 }
             }
+
+            // lovers all met pairs
+            foreach (var pair in file.girlPairs)
+            {
+                if (pair.girlPairDefinition.girlDefinitionTwo.girlName.ToLower() == "venus")
+                {
+                    ModInterface.Log.Message("GOTCHA!");
+                    continue;
+                }
+
+                pair.relationshipType = GirlPairRelationshipType.LOVERS;
+            }
         }
     }
 }

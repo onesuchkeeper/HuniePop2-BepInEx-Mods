@@ -29,6 +29,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hp2BaseMod.Analyzer", "Hp2B
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MidDatePhotos", "MidSingleDatePhotos\MidDatePhotos.csproj", "{352C2383-3C95-4ECC-B5B5-52910AB5D878}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AssetStudio", "..\AssetStudio\AssetStudio\AssetStudio.csproj", "{DF23E63C-1DA6-43A3-B1B2-721B8FA667AE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -195,6 +197,18 @@ Global
 		{352C2383-3C95-4ECC-B5B5-52910AB5D878}.Release|x64.Build.0 = Release|Any CPU
 		{352C2383-3C95-4ECC-B5B5-52910AB5D878}.Release|x86.ActiveCfg = Release|Any CPU
 		{352C2383-3C95-4ECC-B5B5-52910AB5D878}.Release|x86.Build.0 = Release|Any CPU
+		{DF23E63C-1DA6-43A3-B1B2-721B8FA667AE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DF23E63C-1DA6-43A3-B1B2-721B8FA667AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DF23E63C-1DA6-43A3-B1B2-721B8FA667AE}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{DF23E63C-1DA6-43A3-B1B2-721B8FA667AE}.Debug|x64.Build.0 = Debug|Any CPU
+		{DF23E63C-1DA6-43A3-B1B2-721B8FA667AE}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{DF23E63C-1DA6-43A3-B1B2-721B8FA667AE}.Debug|x86.Build.0 = Debug|Any CPU
+		{DF23E63C-1DA6-43A3-B1B2-721B8FA667AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DF23E63C-1DA6-43A3-B1B2-721B8FA667AE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DF23E63C-1DA6-43A3-B1B2-721B8FA667AE}.Release|x64.ActiveCfg = Release|Any CPU
+		{DF23E63C-1DA6-43A3-B1B2-721B8FA667AE}.Release|x64.Build.0 = Release|Any CPU
+		{DF23E63C-1DA6-43A3-B1B2-721B8FA667AE}.Release|x86.ActiveCfg = Release|Any CPU
+		{DF23E63C-1DA6-43A3-B1B2-721B8FA667AE}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

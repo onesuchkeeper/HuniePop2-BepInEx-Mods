@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -53,6 +54,11 @@ public class Plugin : Hp2BaseModPlugin
     private RelativeId _singleDateNobodyId;
 
     public static new int ModId => ((Hp2BaseModPlugin)_instance).ModId;
+
+    public static bool HasSingleDate { get; private set; }
+    public static bool ThrewOutGoldfish { get; internal set; }
+    public static bool GameStarted { get; private set; }
+    public static RelativeId KyuSingleDateId { get; private set; }
 
     internal static int _photoModCount = 0;
 
@@ -142,6 +148,8 @@ public class Plugin : Hp2BaseModPlugin
             && ModInterface.TryGetInterModValue(singleDateId, "SetBonusRoundSuccessCutscene", out Action<RelativeId, RelativeId> m_SetBonusRoundSuccessCutscene)
             && ModInterface.TryGetInterModValue(singleDateId, "MakeSexPhotoCutsceneStep", out Func<IGameDefinitionInfo<CutsceneStepSubDefinition>> m_MakeSexPhotoCutsceneStep))
         {
+            HasSingleDate = true;
+
             PreSexCutscene.AddDataMods();
             PostSexCutscene.AddDataMods();
             SuccessAttractedCutscene.AddDataMods();
@@ -227,14 +235,13 @@ public class Plugin : Hp2BaseModPlugin
             }
 
             AddPairMod(ClockDaytimeType.EVENING, Girls.Momo, Girls.Momo);
+
             AddPairMod(ClockDaytimeType.NIGHT, Hp2BaseMod.Girls.LolaId, new RelativeId(singleDateId, Hp2BaseMod.Girls.LolaId.LocalId));
             AddPairMod(ClockDaytimeType.NIGHT, Hp2BaseMod.Girls.JessieId, new RelativeId(singleDateId, Hp2BaseMod.Girls.JessieId.LocalId));
-            AddPairMod(ClockDaytimeType.NIGHT, Hp2BaseMod.Girls.KyuId, new RelativeId(singleDateId, Hp2BaseMod.Girls.KyuId.LocalId));
+
+            KyuSingleDateId = new RelativeId(ModId, Hp2BaseMod.Girls.KyuId.LocalId);
+            AddPairMod(ClockDaytimeType.NIGHT, Hp2BaseMod.Girls.KyuId, KyuSingleDateId);
         }
-
-        new Harmony(MyPluginInfo.PLUGIN_GUID).PatchAll();
-
-
 
         var whiteVal = 248f / 255f;
         var whiteCol = new Color(whiteVal, whiteVal, whiteVal);
@@ -338,8 +345,48 @@ public class Plugin : Hp2BaseModPlugin
 
         ModInterface.Events.RequestUnlockedPhotos += On_RequestUnlockedPhotos;
         ModInterface.Events.PreLoadPlayerFile += On_PreLoadPlayerFile;
-
         ModInterface.Events.FinderSlotsPopulate += On_FinderSlotsPopulate;
+        ModInterface.Events.PopulateStoreProducts += On_PopulateStoreProducts;
+
+        new Harmony(MyPluginInfo.PLUGIN_GUID).PatchAll();
+    }
+
+    // protected void Update()
+    // {
+    //     AudioClipInfoVorbisLazy.Update();
+    // }
+
+    internal static void _StartCoroutine(IEnumerator enumerator) => _instance.StartCoroutine(enumerator);
+
+    private void On_PopulateStoreProducts(StoreProductsPopulateArgs args)
+    {
+        if (UnityEngine.Random.Range(0, 100) > 10) return;
+
+        var category = new Hp2BaseMod.Elements.Category<ItemDefinition>()
+        {
+            Priority = -1,
+            TargetCount = 1,
+            Pool = new()
+        };
+
+        var playerFile = Game.Persistence.playerFile;
+
+        // var momoDef = ModInterface.GameData.GetGirl(Girls.Momo);
+        // var momoSave = playerFile.GetPlayerFileGirl(momoDef);
+        // if (!momoSave.playerMet)
+        // {
+        //     category.Pool.Add(new Hp2BaseMod.Elements.Category<ItemDefinition>.Entry(ModInterface.GameData.GetItem(Items.Goldfish), 1));
+        // }
+
+        var celesteDef = ModInterface.GameData.GetGirl(Girls.Celeste);
+        var celesteSave = playerFile.GetPlayerFileGirl(celesteDef);
+        if (!celesteSave.playerMet
+            && !playerFile.IsItemInInventory(ModInterface.GameData.GetItem(Items.WeirdThing), false))
+        {
+            category.Pool.Add(new Hp2BaseMod.Elements.Category<ItemDefinition>.Entry(ModInterface.GameData.GetItem(Items.WeirdThing), 1));
+        }
+
+        args.ItemCategories[new RelativeId(Plugin.ModId, 0)] = category;
     }
 
     private void On_FinderSlotsPopulate(FinderSlotPopulateEventArgs args)
@@ -352,14 +399,14 @@ public class Plugin : Hp2BaseModPlugin
                 args.RemoveGirlFromAllPools(Girls.Celeste);
                 break;
             case ClockDaytimeType.AFTERNOON:
-                args.RemoveGirlFromAllPools(Girls.Momo);
+                if (UnityEngine.Random.Range(0, 100) > 20) args.RemoveGirlFromAllPools(Girls.Momo);
                 break;
             case ClockDaytimeType.EVENING:
-
+                if (UnityEngine.Random.Range(0, 100) > 20) args.RemoveGirlFromAllPools(Girls.Momo);
                 break;
             case ClockDaytimeType.NIGHT:
                 args.RemoveGirlFromAllPools(Girls.Celeste);
-                args.RemoveGirlFromAllPools(Girls.Audrey);
+                if (UnityEngine.Random.Range(0, 100) > 20) args.RemoveGirlFromAllPools(Girls.Audrey);
                 break;
         }
     }
@@ -378,6 +425,8 @@ public class Plugin : Hp2BaseModPlugin
 
     private void On_PreLoadPlayerFile(PlayerFile file)
     {
+        GameStarted = true;
+
         if (!UnlockStyles.Value) return;
 
         using (ModInterface.Log.MakeIndent())

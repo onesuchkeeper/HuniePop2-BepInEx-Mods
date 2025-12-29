@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
@@ -53,11 +54,11 @@ public partial class HpExtraction
                 case "DateGreeting":
                     if (lineSets.Length > 11)
                     {
-                        //0-11 - locations
+                        //0-11 - date locations
                         //12 - bonus round loc (use for cutscene instead)
                         for (int i = 0; i < 12; i++)// TODO map these properly to the locations
                         {
-                            ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.DateGreeting, lineSets[i], file);
+                            ExtractLocGreetingDialogLineSet(LocationIds.FromGreetingDtIndex(i), lineSets[i], file);
                         }
                         ExtractDialogLineSet(DialogTriggers.PreSex, lineSets[12], file);
                     }
@@ -224,7 +225,39 @@ public partial class HpExtraction
         }
     }
 
-    private void ExtractDialogLineSet(RelativeId dtId, OrderedDictionary lineSetDef, SerializedFile file, bool onlySpecials = false)
+    private void ExtractLocGreetingDialogLineSet(RelativeId locId, OrderedDictionary lineSetDef, SerializedFile file)
+    {
+        // dtLineSets have a collection of lines. A line can be specified or is chosen at random
+        if (!lineSetDef.TryGetValue("lines", out List<object> lines))
+        {
+            return;
+        }
+
+        foreach (var line in lines.OfType<OrderedDictionary>())
+        {
+            if (line.TryGetValue("dialogLine", out List<object> dialogLines))
+            {
+                int index = 1;
+                foreach (var dialogLine in dialogLines.OfType<OrderedDictionary>())
+                {
+                    if (TryExtractDialogLine(dialogLine, file, locId, out var lineMod))
+                    {
+                        var girlMod = GetGirlMod(index);
+
+                        girlMod.LocationGreetingDialogLines ??= new();
+                        girlMod.LocationGreetingDialogLines[locId] = lineMod;
+                    }
+
+                    index++;
+                }
+            }
+        }
+    }
+
+    private void ExtractDialogLineSet(RelativeId dtId, OrderedDictionary lineSetDef, SerializedFile file)
+        => ExtractDialogLineSet(dtId, lineSetDef, file, () => new RelativeId(Plugin.ModId, _dialogLineCount++));
+
+    private void ExtractDialogLineSet(RelativeId dtId, OrderedDictionary lineSetDef, SerializedFile file, Func<RelativeId> getId)
     {
         //dtLineSets have a collection of lines. A line can be specified or is chosen at random
         if (!lineSetDef.TryGetValue("lines", out List<object> lines))
@@ -240,12 +273,7 @@ public partial class HpExtraction
                 int index = 1;
                 foreach (var dialogLine in dialogLines.OfType<OrderedDictionary>())
                 {
-                    if (onlySpecials && !Girls.IsSpecial(index))
-                    {
-                        continue;
-                    }
-
-                    if (TryExtractDialogLine(dialogLine, file, new RelativeId(Plugin.ModId, _dialogLineCount++), out var lineMod))
+                    if (TryExtractDialogLine(dialogLine, file, getId(), out var lineMod))
                     {
                         var girlMod = GetGirlMod(index);
 

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using Sourceage.Element.Interface;
+using Hp2BaseMod.Elements.Interface;
 
-namespace Sourceage.Element
+namespace Hp2BaseMod.Elements
 {
     public class IntOperator : IDiscreteValueOperator<int>
     {

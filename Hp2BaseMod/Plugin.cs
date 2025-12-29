@@ -11,6 +11,8 @@ namespace Hp2BaseMod;
 [BepInProcess("HuniePop 2 - Double Date.exe")]
 public class Plugin : BaseUnityPlugin
 {
+    public static bool BlockPersistNotif { get; internal set; } = true;
+
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSplashScreen)]
     private static void BeforeSplashScreen()
     {

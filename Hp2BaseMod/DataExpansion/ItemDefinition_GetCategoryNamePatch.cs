@@ -1,5 +1,4 @@
 ﻿// Hp2BaseMod 2022, By OneSuchKeeper
-
 using HarmonyLib;
 
 namespace Hp2BaseMod
@@ -16,7 +15,13 @@ namespace Hp2BaseMod
             // prioritize category description over all else
             if (!string.IsNullOrWhiteSpace(__instance.categoryDescription))
             {
-                __result = StringUtils.Titleize(__instance.itemType.ToString()) + " • " + __instance.categoryDescription;
+                // TODO, make a full system for handling addition types
+                // for not just make negatives misc
+                var typeStr = (int)__instance.itemType < 0
+                    ? "Misc"
+                    : __instance.itemType.ToString();
+
+                __result = StringUtils.Titleize(typeStr) + " • " + __instance.categoryDescription;
                 return false;
             }
 

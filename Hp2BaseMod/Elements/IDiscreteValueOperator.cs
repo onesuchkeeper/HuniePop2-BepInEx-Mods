@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Sourceage.Element.Interface
+namespace Hp2BaseMod.Elements.Interface
 {
     /// <summary>
     /// Implements operations on discrete sets

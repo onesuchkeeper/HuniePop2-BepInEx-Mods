@@ -58,7 +58,7 @@ internal static class LocationManagerPatch
 
         var currentLocation = f_currentLocation.GetValue(__instance) as LocationDefinition;
 
-        if (currentLocation.locationType == LocationType.HUB)
+        if (__instance.AtLocationType(LocationType.HUB))
         {
             // the base method already randomizes hub girl outfit, so just use default
             var girlExpansion = Game.Session.Hub.hubGirlDefinition.Expansion();
@@ -119,7 +119,7 @@ internal static class LocationManagerPatch
                     rightStyle = pairStyle.MeetingGirlTwo;
                 }
             }
-            else if (currentLocation.locationType == LocationType.DATE)
+            else if (__instance.AtLocationType(LocationType.DATE))
             {
                 var args = new PreDateDollResetArgs();
 

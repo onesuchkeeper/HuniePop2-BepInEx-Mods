@@ -16,12 +16,9 @@ namespace RepeatThreesome
         {
             if (Game.Session.Puzzle.puzzleStatus.statusType == PuzzleStatusType.NORMAL)
             {
-                ModInterface.Log.Message($"repeat threesome is here woot");
                 var currentGirlPair = Game.Session.Location.currentGirlPair;
 
                 var playerFileGirlPair = Game.Persistence.playerFile.GetPlayerFileGirlPair(currentGirlPair);
-
-                ModInterface.Log.Message($"playerFileGirlPair {playerFileGirlPair != null}, {Game.Session.Puzzle.puzzleGrid.roundState}, {playerFileGirlPair.relationshipType}, doesn't require loc? {ModInterface.GameData.IsCodeUnlocked(Constants.LocalCodeId)}");
 
                 if (playerFileGirlPair != null
                     && Game.Session.Puzzle.puzzleGrid.roundState == PuzzleRoundState.SUCCESS
@@ -31,7 +28,6 @@ namespace RepeatThreesome
                 {
                     args.IsSexDate = true;
                     args.IsGameOver = Game.Session.Puzzle.puzzleStatus.bonusRound;
-                    ModInterface.Log.Message($"repeat threesome, is game over? {args.IsGameOver}");
                 }
             }
 

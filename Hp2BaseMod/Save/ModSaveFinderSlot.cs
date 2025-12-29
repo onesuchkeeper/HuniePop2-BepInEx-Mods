@@ -4,7 +4,7 @@ using Hp2BaseMod.Utility;
 namespace Hp2BaseMod.Save
 {
     [Serializable]
-    public struct ModSaveFinderSlot : IModSave<SaveFileFinderSlot>
+    public class ModSaveFinderSlot : IModSave<SaveFileFinderSlot>
     {
         public RelativeId? GirlPairId;
         public bool SidesFlipped;

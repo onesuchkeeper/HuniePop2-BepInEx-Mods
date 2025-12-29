@@ -15,6 +15,21 @@ namespace Hp2BaseMod
     public sealed class AssetProvider
     {
         /// <summary>
+        /// The prefab for the photos window
+        /// </summary>
+        public UiWindow PhotosWindow;
+
+        /// <summary>
+        /// The prefab for the photos window
+        /// </summary>
+        public UiWindow KyuButtWindow;
+
+        /// <summary>
+        /// The prefab for the photos window
+        /// </summary>
+        public UiWindow ItemNotifierWindow;
+
+        /// <summary>
         /// A sprite with 0 width and 0 height
         /// </summary>
         public Sprite EmptySprite => _emptySprite;

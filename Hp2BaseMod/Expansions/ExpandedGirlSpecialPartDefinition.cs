@@ -8,18 +8,6 @@ public static class GirlSpecialPartSubDefinition_Ext
         => ExpandedGirlSpecialPartSubDefinition.Get(def);
 }
 
-// [HarmonyPatch(typeof(GirlSpecialPartSubDefinition))]
-// public static class GirlSpecialPartSubDefinitionPatch
-// {
-
-//     [HarmonyPatch(nameof(GirlSpecialPartSubDefinition.Method))]
-//     [HarmonyPostfix]
-//     public static void Method(GirlSpecialPartSubDefinition __instance)
-//     {
-
-//     }
-// }
-
 public class ExpandedGirlSpecialPartSubDefinition
 {
     private static Dictionary<GirlSpecialPartSubDefinition, ExpandedGirlSpecialPartSubDefinition> _expansions

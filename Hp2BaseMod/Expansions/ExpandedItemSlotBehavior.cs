@@ -9,6 +9,13 @@ namespace Hp2BaseMod;
 [HarmonyPatch(typeof(ItemSlotBehavior))]
 internal static class ItemSlotBehaviorPatch
 {
+    [HarmonyPatch("Start")]
+    [HarmonyPostfix]
+    public static void Start(ItemSlotBehavior __instance)
+    {
+        __instance.itemIcon.useSpriteMesh = true;
+    }
+
     [HarmonyPatch(nameof(ItemSlotBehavior.ShowTooltip))]
     [HarmonyPrefix]
     public static bool ShowTooltip(ItemSlotBehavior __instance)
@@ -55,7 +62,7 @@ public class ExpandedItemSlotBehavior
 
     public bool ShowTooltip()
     {
-        if (!(ModInterface.State.CellphoneOnLeft && _core.eastOnHub))
+        if (ModInterface.State.CellphoneOnLeft || _core.eastOnHub)
         {
             return true;
         }

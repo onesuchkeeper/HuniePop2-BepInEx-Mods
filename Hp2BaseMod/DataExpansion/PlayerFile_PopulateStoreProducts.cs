@@ -3,268 +3,328 @@
 using System.Collections.Generic;
 using System.Linq;
 using HarmonyLib;
+using Hp2BaseMod.Elements;
 using Hp2BaseMod.Extension;
-using Hp2BaseMod.GameDataInfo.Interface;
 using UnityEngine;
 
 namespace Hp2BaseMod;
 
-/// <summary>
-/// overrides store product population to allow for modded smoothies
-/// TODO: provide hook for dependant mods to alter populating items and pools
-/// </summary>
 [HarmonyPatch(typeof(PlayerFile), nameof(PlayerFile.PopulateStoreProducts))]
 public static class PlayerFile_PopulateStoreProducts
 {
-    private static int _storeItemCount => _storeItemPerTypeCount * 4;
-    private static int _storeItemPerTypeCount => 8;
+    private const int STAMINA_FOOD_ITEM_PRIORITY = 3_000_000;
+    private const int GIRL_ITEM_PRIORITY = 2_000_000;
+    private const int DATE_ITEM_PRIORITY = 1_000_000;
+    private const int FOOD_ITEM_PRIORITY = int.MaxValue;
+    private const int SMOOTHIE_ITEM_PRIORITY = 0;
+
+    private const int STORE_ITEM_COUNT = STORE_ITEMS_PER_TYPE * STORE_ITEMS_TYPE_COUNT;
+    private const int STORE_ITEMS_PER_TYPE = 8;
+    private const int STORE_ITEMS_TYPE_COUNT = 4;
+
+    /// <summary>
+    /// The number of smoothies to attempt to populate in the store.
+    /// </summary>
+    public static int StoreSmoothieTarget = 4;
+
+    /// <summary>
+    /// The number of date gifts to attempt to populate in the store.
+    /// </summary>
+    public static int StoreDateGiftTarget = 12;
+
+    /// <summary>
+    /// The number of shoes to attempt to populate in the store.
+    /// </summary>
+    public static int StoreShoeTarget = 4;
+
+    /// <summary>
+    /// The number of uniques to attempt to populate in the store.
+    /// </summary>
+    public static int StoreUniqueTarget = 4;
+
+    /// <summary>
+    /// The number of stamina foods to attempt to populate in the store.
+    /// </summary>
+    public static int StoreStaminaFoodTarget = 4;
 
     public static bool Prefix(PlayerFile __instance)
     {
-        var storeProductFiles = new List<PlayerFileStoreProduct>();
-        for (int i = 0; i < _storeItemCount; i++)
+        var args = new StoreProductsPopulateArgs();
+
+        args.ItemCategories[ItemTypes.Smoothie] = CreateSmoothiesCategory(__instance);
+        args.ItemCategories[ItemTypes.DateGift] = CreateDateGiftCategory(__instance);
+        AddGirlCategories(__instance, args);
+        AddFoodCategories(args);
+
+        ModInterface.Events.NotifyPopulateStoreProducts(args);
+
+        var affectionTypeIndexes = Enumerable.Range(0, STORE_ITEMS_TYPE_COUNT)
+            .Select(i => ListUtils.GetIndexList(STORE_ITEMS_PER_TYPE, i * STORE_ITEMS_PER_TYPE))
+            .ToArray();
+
+        var storeProductFiles = Enumerable.Range(0, STORE_ITEM_COUNT)
+            .Select(__instance.GetPlayerFileStoreProduct)
+            .ToList();
+
+        foreach (var grouping in args.ItemCategories.Values
+            .Where(x => x != null
+                && x.Pool != null
+                && x.Pool.Any()
+                && x.TargetCount > 0)
+            .GroupBy(x => x.Priority)
+            .OrderBy(x => x.Key))
         {
-            storeProductFiles.Add(__instance.GetPlayerFileStoreProduct(i));
-        }
-
-        var selectedSmoothies = new List<(ItemDefinition def, int cost, PuzzleAffectionType currencyType)>();
-        var smoothiePool = new List<(ItemDefinition value, int weight)>();
-        var modSmoothiePool = new List<(IExpInfo value, int weight)>();
-
-        foreach (var smoothie in Game.Data.Items.GetAllOfTypes(ItemType.SMOOTHIE))
-        {
-            if (ModInterface.ExpDisplays.TryGetFirst(x => smoothie == x.SmoothieItemDef, out var expDisplay))
-            {
-                modSmoothiePool.Add((expDisplay, Mathf.FloorToInt((1f - expDisplay.Percentage) * 24)));
-            }
-            else
-            {
-                var affectionLevelExp = __instance.GetAffectionLevelExp(smoothie.affectionType, false);
-                var num = Mathf.Clamp(6 + __instance.GetBaggageCountByAffectionType(smoothie.affectionType, true) * 2, 0, 24);
-
-                if (affectionLevelExp < num)
-                {
-                    smoothiePool.Add((smoothie, num - affectionLevelExp));
-                }
-            }
-        }
-
-        while (selectedSmoothies.Count < ModInterface.State.MaxStoreSmoothies
-            && (smoothiePool.Count > 0 || modSmoothiePool.Count > 0))
-        {
-            var modTotalWeight = modSmoothiePool.Sum(x => x.weight);
-            var baseTotalWeight = smoothiePool.Sum(x => x.weight);
-
-            if (WeightedBool(baseTotalWeight, modTotalWeight))
-            {
-                var randomSmoothie = PopWeighted(modSmoothiePool, modTotalWeight);
-
-                if (!selectedSmoothies.Any(x => x.def == randomSmoothie.value.SmoothieItemDef))
-                {
-                    modSmoothiePool.Add((randomSmoothie.value, randomSmoothie.weight / 2));
-                }
-
-                selectedSmoothies.Add((randomSmoothie.value.SmoothieItemDef, 5, (PuzzleAffectionType)Random.Range(0, 4)));
-            }
-            else
-            {
-                var randomSmoothie = PopWeighted(smoothiePool, baseTotalWeight);
-
-                if (!selectedSmoothies.Any(x => x.def == randomSmoothie.value))
-                {
-                    smoothiePool.Add((randomSmoothie.value, randomSmoothie.weight / 2));
-                }
-
-                selectedSmoothies.Add((randomSmoothie.value, 5, randomSmoothie.value.affectionType));
-            }
-        }
-
-        var selectedDateGifts = new List<(ItemDefinition def, int cost)>();
-        var dateGifts = Game.Data.Items.GetAllOfTypes([ItemType.DATE_GIFT]);
-        while (selectedDateGifts.Count < 12 && dateGifts.Count > 0)
-        {
-            var itemDefinition = dateGifts.PopRandom();
-
-            if (!__instance.IsItemInInventory(itemDefinition, true, 2)
-                && (!itemDefinition.difficultyExclusive
-                    || itemDefinition.difficulty == __instance.settingDifficulty))
-            {
-                selectedDateGifts.Add((itemDefinition, 6));
-            }
-        }
-
-        var normalGirls = Game.Data.Girls.GetAllBySpecial(false);
-
-        var girlsNeedShoesPool = new List<(GirlDefinition def, int weight)>();
-        foreach (var girl in normalGirls)
-        {
-            var playerFileGirl = __instance.GetPlayerFileGirl(girl);
-
-            int obtainedShoesCount = Mathf.Clamp(playerFileGirl.receivedShoes.Count + __instance.GetInventoryItemsCount(girl.shoesItemDefs, false), 0, girl.shoesItemDefs.Count);
-
-            int remainingShoes = girl.shoesItemDefs.Count - obtainedShoesCount;
-            if (remainingShoes > 0 && obtainedShoesCount < playerFileGirl.learnedBaggage.Count + 1)
-            {
-                girlsNeedShoesPool.Add((girl, remainingShoes * remainingShoes));
-            }
-        }
-
-        var selectedShoes = new List<(ItemDefinition def, int cost)>();
-        while (selectedShoes.Count < 4 && girlsNeedShoesPool.Count > 0)
-        {
-            var girlShoes = PopWeighted(girlsNeedShoesPool);
-            var playerFileGirl = __instance.GetPlayerFileGirl(girlShoes.value);
-
-            var neededShoes = girlShoes.value.shoesItemDefs
-                .Where(x => !(__instance.IsItemInInventory(x, false, 1) || playerFileGirl.HasShoes(x)))
+            var weightedCategories = grouping
+                .Select(x => x.Pool.Sum(x => x.Weight))
+                .Zip(grouping, (weight, category) => new Category<Category<ItemDefinition>>.Entry(category, weight))
+                .Where(x => x.Weight > 0)
                 .ToList();
 
-            if (neededShoes.Count > 0)
+            foreach (var entry in weightedCategories)
             {
-                var itemDefinition = neededShoes.GetRandom();
-                selectedShoes.Add((itemDefinition, 4));
-            }
-        }
-
-        var girlsNeedUniquePool = new List<(GirlDefinition def, int weight)>();
-        foreach (var girl in normalGirls)
-        {
-            var playerFileGirl = __instance.GetPlayerFileGirl(girl);
-
-            int obtainedUniqueCount = Mathf.Clamp(playerFileGirl.receivedUniques.Count + __instance.GetInventoryItemsCount(girl.uniqueItemDefs, false), 0, girl.uniqueItemDefs.Count);
-            int remainingUniques = girl.uniqueItemDefs.Count - obtainedUniqueCount;
-            if (remainingUniques > 0 && obtainedUniqueCount < playerFileGirl.learnedBaggage.Count + 1)
-            {
-                girlsNeedUniquePool.Add((girl, remainingUniques * remainingUniques));
-            }
-        }
-
-        var selectedUniques = new List<(ItemDefinition def, int cost)>();
-        while (selectedUniques.Count < 4 && girlsNeedUniquePool.Count > 0)
-        {
-            var girlUnique = PopWeighted(girlsNeedUniquePool);
-            var playerFileGirl = __instance.GetPlayerFileGirl(girlUnique.value);
-
-            var neededUniques = girlUnique.value.uniqueItemDefs
-                .Where(x => !(__instance.IsItemInInventory(x, false, 1) || playerFileGirl.HasUnique(x)))
-                .ToList();
-
-            if (neededUniques.Count > 0)
-            {
-                var itemDefinition = neededUniques[Random.Range(0, neededUniques.Count)];
-                selectedUniques.Add((itemDefinition, 4));
-            }
-        }
-
-        var affectionTypeIndexes = new List<List<int>>
-        {
-            ListUtils.GetIndexList(_storeItemPerTypeCount, 0),
-            ListUtils.GetIndexList(_storeItemPerTypeCount, _storeItemPerTypeCount),
-            ListUtils.GetIndexList(_storeItemPerTypeCount, _storeItemPerTypeCount * 2),
-            ListUtils.GetIndexList(_storeItemPerTypeCount, _storeItemPerTypeCount * 3)
-        };
-
-        foreach (var entry in selectedSmoothies)
-        {
-            var indexes = affectionTypeIndexes[(int)entry.currencyType];
-
-            if (indexes.Count > 0)
-            {
-                int selectedSlotIndex = indexes.PopRandom();
-
-                storeProductFiles[selectedSlotIndex].Populate(entry.def, entry.cost);
-            }
-        }
-
-        foreach (var entry in selectedUniques.Concat(selectedShoes).Concat(selectedDateGifts))
-        {
-            List<int> slotIndexPool = null;
-
-            switch (entry.def.itemType)
-            {
-                case ItemType.FOOD:
-                case ItemType.DATE_GIFT:
-                    if (entry.def.storeSectionPreference && affectionTypeIndexes[(int)entry.def.affectionType].Count > 0)
-                    {
-                        slotIndexPool = affectionTypeIndexes[(int)entry.def.affectionType];
-                    }
-                    break;
-                case ItemType.SHOES:
-                case ItemType.UNIQUE_GIFT:
-                    if (affectionTypeIndexes[(int)entry.def.girlDefinition.favoriteAffectionType].Count > 0)
-                    {
-                        slotIndexPool = affectionTypeIndexes[(int)entry.def.girlDefinition.favoriteAffectionType];
-                    }
-                    break;
+                ListUtils.ShuffleList(entry.Value.Pool);
             }
 
-            if (slotIndexPool == null)
+            while (weightedCategories.Any())
             {
-                var validIndexes = affectionTypeIndexes.Where(x => x.Count > 0).ToList();
-                if (validIndexes.Count == 0)
+                // if no more slots are available return
+                if (affectionTypeIndexes.All(x => x.Count == 0))
                 {
                     return false;
                 }
 
-                slotIndexPool = validIndexes.PopRandom();
-            }
+                var categoryEntry = Category<Category<ItemDefinition>>.GetWeighted(weightedCategories);
+                var category = categoryEntry.Value;
 
-            var chosenSlotIndex = slotIndexPool.PopRandom();
+                // pick an item from the pool
+                var selection = Category<ItemDefinition>.PopWeighted(category.Pool);
+                categoryEntry.Weight -= selection.Weight;
 
-            foreach (var indexes in affectionTypeIndexes)
-            {
-                indexes.Remove(chosenSlotIndex);
-            }
+                if (selection.Value == null) continue;
 
-            storeProductFiles[chosenSlotIndex].Populate(entry.def, entry.cost);
-        }
+                category.OnEntryChosen?.Invoke(selection);
 
-        var foodItems = Game.Data.Items.GetAllOfTypes([ItemType.FOOD]);
-        ListUtils.ShuffleList(foodItems);
+                if (TrySelectSlot(selection.Value, affectionTypeIndexes, storeProductFiles, out var slot))
+                {
+                    slot.Populate(selection.Value, selection.Value.storeCost);
 
-        //staminaFoodLimit is always assigned here, and this is the only place where its value is read functionally,
-        //so it's actually meaningless and its value is always 4...
-        __instance.staminaFoodLimit = 4;
-        __instance.staminaFoodLimit = Mathf.Clamp(__instance.staminaFoodLimit, 0, 4);
-        var foodPool = foodItems.Limit(__instance.staminaFoodLimit, x => x.noStaminaCost).ToList();
-
-        foreach (var index in affectionTypeIndexes.SelectMany(x => x))
-        {
-            var food = foodPool.PopFirst();
-
-            storeProductFiles[index].Populate(food, food.storeCost);
-
-            if (foodPool.Count == 0)
-            {
-                break;
+                    category.TargetCount--;
+                    if (category.TargetCount < 1)
+                    {
+                        weightedCategories.Remove(categoryEntry);
+                    }
+                }
             }
         }
 
         return false;
     }
 
-    private static (T value, int weight) PopWeighted<T>(List<(T value, int weight)> values, int totalWeight)
+    private static Category<ItemDefinition> CreateSmoothiesCategory(PlayerFile playerFile)
     {
-        var selectedWeight = Random.Range(0, totalWeight);
-        var currentWeight = 0;
-
-        foreach (var weightedValue in values)
+        var smoothiesCategory = new Category<ItemDefinition>()
         {
-            currentWeight += weightedValue.weight;
+            TargetCount = StoreSmoothieTarget,
+            Priority = SMOOTHIE_ITEM_PRIORITY,
+            Pool = new()
+        };
 
-            if (currentWeight >= selectedWeight)
+        // this is the base game's logic for smoothie items
+        var selectedSmoothies = new HashSet<ItemDefinition>();
+        smoothiesCategory.OnEntryChosen = entry =>
+        {
+            if (!selectedSmoothies.Contains(entry.Value))
             {
-                values.Remove(weightedValue);
-                return weightedValue;
+                selectedSmoothies.Add(entry.Value);
+                entry.Weight /= 2;
+                smoothiesCategory.Pool.Add(entry);
+            }
+        };
+
+        foreach (var smoothie in Game.Data.Items.GetAllOfTypes(ItemType.SMOOTHIE))
+        {
+            if (ModInterface.ExpDisplays.TryGetFirst(x => smoothie == x.SmoothieItemDef, out var expDisplay))
+            {
+                smoothiesCategory.Pool.Add(new(expDisplay.SmoothieItemDef, Mathf.FloorToInt((1f - expDisplay.Percentage) * 24)));
+            }
+            else
+            {
+                var affectionLevelExp = playerFile.GetAffectionLevelExp(smoothie.affectionType, false);
+                var num = Mathf.Clamp(6 + playerFile.GetBaggageCountByAffectionType(smoothie.affectionType, true) * 2, 0, 24);
+
+                if (affectionLevelExp < num)
+                {
+                    smoothiesCategory.Pool.Add(new(smoothie, num - affectionLevelExp));
+                }
             }
         }
 
-        throw new System.Exception("Failed to pop weighted");
+        return smoothiesCategory;
     }
 
-    private static (T value, int weight) PopWeighted<T>(List<(T value, int weight)> values)
-        => PopWeighted(values, values.Sum(x => x.weight));
+    private static Category<ItemDefinition> CreateDateGiftCategory(PlayerFile playerFile)
+    {
+        var dateGiftCategory = new Category<ItemDefinition>()
+        {
+            TargetCount = StoreDateGiftTarget,
+            Priority = DATE_ITEM_PRIORITY,
+            Pool = Game.Data.Items.GetAllOfTypes([ItemType.DATE_GIFT])
+                .Where(x => !playerFile.IsItemInInventory(x, true, 2)
+                            && (!x.difficultyExclusive
+                                || x.difficulty == playerFile.settingDifficulty))
+                .Select(x => new Category<ItemDefinition>.Entry(x, 1))
+                .ToList()
+        };
 
-    private static bool WeightedBool(int weightFalse, int weightTrue)
-        => weightTrue > Random.Range(0, weightFalse + weightTrue);
+        dateGiftCategory.Pool = Game.Data.Items.GetAllOfTypes([ItemType.DATE_GIFT])
+            .Where(x => !playerFile.IsItemInInventory(x, true, 2)
+                        && (!x.difficultyExclusive
+                            || x.difficulty == playerFile.settingDifficulty))
+            .Select(x => new Category<ItemDefinition>.Entry(x, 1))
+            .ToList();
+
+        return dateGiftCategory;
+    }
+
+    private static void AddGirlCategories(PlayerFile playerFile, StoreProductsPopulateArgs args)
+    {
+        var shoesCategory = new Category<ItemDefinition>()
+        {
+            TargetCount = StoreShoeTarget,
+            Priority = GIRL_ITEM_PRIORITY,
+            Pool = new()
+        };
+        args.ItemCategories[ItemTypes.Shoe] = shoesCategory;
+
+        var uniqueCategory = new Category<ItemDefinition>()
+        {
+            TargetCount = StoreUniqueTarget,
+            Priority = GIRL_ITEM_PRIORITY,
+            Pool = new()
+        };
+        args.ItemCategories[ItemTypes.Unique] = uniqueCategory;
+
+        foreach (var girl in Game.Data.Girls.GetAllBySpecial(false))
+        {
+            var playerFileGirl = playerFile.GetPlayerFileGirl(girl);
+
+            if (playerFileGirl.learnedBaggage.Count + 1 > playerFileGirl.receivedShoes.Count)
+            {
+                // shoes
+                var obtainedShoes = playerFileGirl.girlDefinition.shoesItemDefs
+                    .Where(x => playerFile.IsItemInInventory(x, false))
+                    .Concat(playerFileGirl.receivedShoes.Select(Game.Data.Items.Get));
+
+                var remainingShoes = playerFileGirl.girlDefinition.shoesItemDefs.Except(obtainedShoes).ToArray();
+
+                foreach (var shoe in remainingShoes)
+                {
+                    shoesCategory.Pool.Add(new(shoe, remainingShoes.Length));
+                }
+            }
+
+            if (playerFileGirl.learnedBaggage.Count + 1 > playerFileGirl.receivedUniques.Count)
+            {
+                // uniques
+                var obtainedUniques = playerFileGirl.girlDefinition.uniqueItemDefs
+                    .Where(x => playerFile.IsItemInInventory(x, false))
+                    .Concat(playerFileGirl.receivedUniques.Select(Game.Data.Items.Get));
+
+                var remainingUniques = playerFileGirl.girlDefinition.uniqueItemDefs.Except(obtainedUniques).ToArray();
+
+                foreach (var unique in remainingUniques)
+                {
+                    uniqueCategory.Pool.Add(new(unique, remainingUniques.Length));
+                }
+            }
+        }
+    }
+
+    private static void AddFoodCategories(StoreProductsPopulateArgs args)
+    {
+        var foodItems = Game.Data.Items.GetAllOfTypes([ItemType.FOOD]);
+
+        var foodCategory = new Category<ItemDefinition>()
+        {
+            TargetCount = int.MaxValue,
+            Priority = FOOD_ITEM_PRIORITY,
+            Pool = foodItems
+                .Where(x => !x.noStaminaCost)
+                .Select(x => new Category<ItemDefinition>.Entry(x, 1))
+                .ToList()
+        };
+        args.ItemCategories[ItemTypes.Food] = foodCategory;
+
+        var staminaFoodCategory = new Category<ItemDefinition>()
+        {
+            TargetCount = StoreStaminaFoodTarget,
+            Priority = STAMINA_FOOD_ITEM_PRIORITY,
+            Pool = foodItems
+                .Where(x => x.noStaminaCost)
+                .Select(x => new Category<ItemDefinition>.Entry(x, 1))
+                .ToList()
+        };
+        args.ItemCategories[ItemTypes.StaminaFood] = staminaFoodCategory;
+    }
+
+    private static bool TrySelectSlot(ItemDefinition item, List<int>[] affectionTypeIndexes, List<PlayerFileStoreProduct> storeProductFiles, out PlayerFileStoreProduct slot)
+    {
+        List<int> slotIndexPool = null;
+
+        // determine index pool
+        switch (item.itemType)
+        {
+            case ItemType.SHOES:
+            case ItemType.UNIQUE_GIFT:
+                if (item.storeSectionPreference)
+                {
+                    var typeIndex = (int)item.girlDefinition.favoriteAffectionType;
+
+                    if (typeIndex >= 0
+                        && typeIndex < affectionTypeIndexes.Length)
+                    {
+                        slotIndexPool = affectionTypeIndexes[typeIndex];
+                    }
+                    else
+                    {
+                        ModInterface.Log.Error($"Invalid affection type index on item {item.name}");
+                        slot = null;
+                        return false;
+                    }
+                }
+                break;
+            default:
+                if (item.storeSectionPreference)
+                {
+                    var typeIndex = (int)item.affectionType;
+
+                    if (typeIndex >= 0
+                        && typeIndex < affectionTypeIndexes.Length)
+                    {
+                        slotIndexPool = affectionTypeIndexes[typeIndex];
+                    }
+                    else
+                    {
+                        ModInterface.Log.Error($"Invalid affection type index on item {item.name}");
+                        slot = null;
+                        return false;
+                    }
+                }
+                break;
+        }
+
+        if (slotIndexPool == null)
+        {
+            // already confirmed that there will be at least one
+            slotIndexPool = affectionTypeIndexes.Where(x => x.Count > 0).ToArray().GetRandom();
+        }
+        else if (slotIndexPool.Count == 0)
+        {
+            slot = null;
+            return false;
+        }
+
+        slot = storeProductFiles[slotIndexPool.PopRandom()];
+        return true;
+    }
 }
