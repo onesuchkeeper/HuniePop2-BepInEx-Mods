@@ -281,30 +281,6 @@ public class ExpandedTalkManager
         }
     }
 
-    private void HerQuestionAskOptions()
-    {
-        // List<int> indexList = ListUtils.GetIndexList<GirlQuestionSubDefinition>(this._targetDoll.girlDefinition.herQuestions);
-        // if (this._targetDoll.girlDefinition == this.telepathGirlDefinition)
-        // {
-        //     indexList.Remove(this.telepathQuestionsGirlDefinitions.IndexOf(this._oppositeDoll.girlDefinition));
-        // }
-        // int num = this._fileGirl.recentHerQuestions.Count - 1;
-        // while (num >= 0 && indexList.Count > 1)
-        // {
-        //     if (indexList.Contains(this._fileGirl.recentHerQuestions[num]))
-        //     {
-        //         indexList.Remove(this._fileGirl.recentHerQuestions[num]);
-        //     }
-        //     num--;
-        // }
-        // this._herQuestionIndex = indexList[Random.Range(0, indexList.Count)];
-        // this._herQuestion = this._targetDoll.girlDefinition.herQuestions[this._herQuestionIndex];
-        // this._fileGirl.AddRecentHerQuestion(this._herQuestionIndex);
-        // this._targetDoll.ReadDialogTrigger(this.dtHerQuestion, DialogLineFormat.ACTIVE, this._herQuestionIndex);
-        // this._targetDoll.isDialogBoxLocked = true;
-        // this._targetDoll.DialogLineCompleteEvent += this.OnDialogLineComplete;
-    }
-
     private void OnDialogOptionSelected()
     {
         Game.Session.Dialog.DialogOptionSelectedEvent -= OnDialogOptionSelected;

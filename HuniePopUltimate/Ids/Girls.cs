@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using AssetStudio.Extractor;
 using Hp2BaseMod;
 
@@ -45,15 +46,15 @@ public static class Girls
             case 4://audrey
                 return Girls.Audrey;
             case 5://lola
-                return Hp2BaseMod.Girls.LolaId;
+                return Hp2BaseMod.Girls.Lola;
             case 6://nikki
                 return Girls.Nikki;
             case 7://jessie
-                return Hp2BaseMod.Girls.JessieId;
+                return Hp2BaseMod.Girls.Jessie;
             case 8://beli
                 return Girls.Beli;
             case 9://kyu
-                return Hp2BaseMod.Girls.KyuId;
+                return Hp2BaseMod.Girls.Kyu;
             case 10://momo
                 return Girls.Momo;
             case 11://celeste
@@ -90,10 +91,10 @@ public static class Girls
             case 9037: return Audrey;
             case 9038: return Beli;
             case 9039: return Celeste;
-            case 9040: return Hp2BaseMod.Girls.JessieId;
+            case 9040: return Hp2BaseMod.Girls.Jessie;
             case 9041: return Kyanna;
-            case 9042: return Hp2BaseMod.Girls.KyuId;
-            case 9043: return Hp2BaseMod.Girls.LolaId;
+            case 9042: return Hp2BaseMod.Girls.Kyu;
+            case 9043: return Hp2BaseMod.Girls.Lola;
             case 9044: return Momo;
             case 9045: return Nikki;
             case 9046: return Tiffany;
@@ -102,4 +103,24 @@ public static class Girls
 
         return RelativeId.Default;
     }
+
+    private static readonly Dictionary<RelativeId, string> _idToName = new()
+    {
+        {Girls.Tiffany, "Tiffany"},
+        {Girls.Aiko, "Aiko"},
+        {Girls.Kyanna, "Kyanna"},
+        {Girls.Audrey, "Audrey"},
+        {Hp2BaseMod.Girls.Lola, "Lola"},
+        {Girls.Nikki, "Nikki"},
+        {Hp2BaseMod.Girls.Jessie, "Jessie"},
+        {Girls.Beli, "Beli"},
+        {Hp2BaseMod.Girls.Kyu, "Kyu"},
+        {Girls.Momo, "Momo"},
+        {Girls.Celeste, "Celeste"},
+        {Girls.Venus, "Venus"}
+    };
+
+    public static string IdToName(RelativeId id) => _idToName.TryGetValue(id, out var name)
+        ? name
+        : string.Empty;
 }

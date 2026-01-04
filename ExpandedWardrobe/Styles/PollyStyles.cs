@@ -23,7 +23,7 @@ internal static partial class Styles
 
         //Milk Jugs
 
-        ModInterface.AddDataMod(new GirlDataMod(Girls.PollyId, InsertStyle.append)
+        ModInterface.AddDataMod(new GirlDataMod(Girls.Polly, InsertStyle.append)
         {
             bodies = new List<IGirlBodyDataMod>()
             {

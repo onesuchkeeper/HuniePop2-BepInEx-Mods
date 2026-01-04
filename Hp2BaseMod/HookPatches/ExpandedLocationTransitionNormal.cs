@@ -188,6 +188,7 @@ internal class ExpandedLocationTransitionNormal
 
                     if (dialogTriggerDefinition != null)
                     {
+                        ModInterface.Log.Warning("Valediction Dialog Setup");
                         uiDoll.DialogBoxHiddenEvent += OnValedictionDialogRead;
                         uiDoll.ReadDialogTrigger(dialogTriggerDefinition, DialogLineFormat.ACTIVE, -1);
                         return false;
@@ -210,7 +211,7 @@ internal class ExpandedLocationTransitionNormal
                     {
                         if (!Game.Manager.testMode)
                         {
-                            Game.Session.Location.bgMusicLink.FadeOut((float)((!Game.Persistence.playerData.unlockedCodes.Contains(Game.Session.Location.codeDefQuickTransitions)) ? 3 : 1));
+                            Game.Session.Location.bgMusicLink.FadeOut((!Game.Persistence.playerData.unlockedCodes.Contains(Game.Session.Location.codeDefQuickTransitions)) ? 3 : 1);
                         }
                         else
                         {
@@ -278,6 +279,7 @@ internal class ExpandedLocationTransitionNormal
 
     private void OnValedictionDialogRead(UiDoll doll)
     {
+        ModInterface.Log.Warning("Valediction Dialog Read");
         doll.DialogBoxHiddenEvent -= OnValedictionDialogRead;
         m_departStep.Invoke(_core, null);
     }

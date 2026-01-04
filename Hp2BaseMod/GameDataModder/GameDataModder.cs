@@ -116,45 +116,45 @@ namespace Hp2BaseMod
                         dialogLineModsByIdByDialogTriggerByGirlId);
                 }
 
-                using (ModInterface.Log.MakeIndent("verifying gamedata integrity"))
-                {
-                    var lailani = gameDataProvider.GetGirl(Girls.LailaniId);
+                // using (ModInterface.Log.MakeIndent("verifying gamedata integrity"))
+                // {
+                //     var lailani = gameDataProvider.GetGirl(Girls.LailaniId);
 
-                    using (ModInterface.Log.MakeIndent("girls"))
-                    {
+                //     using (ModInterface.Log.MakeIndent("girls"))
+                //     {
 
-                        var favorites = gameDataProvider.GetDialogTrigger(new RelativeId(-1, 5));
+                //         var favorites = gameDataProvider.GetDialogTrigger(new RelativeId(-1, 5));
 
-                        foreach (var girl in Game.Data.Girls.GetAll())
-                        {
-                            using (ModInterface.Log.MakeIndent(girl.girlName))
-                            {
-                                var girlId = ModInterface.Data.GetDataId(GameDataType.Girl, girl.id);
-                                girl.badFoodTypes ??= new();
-                                if (!girl.badFoodTypes.Any())
-                                {
-                                    girl.badFoodTypes.Add((ItemFoodType)(-1));
-                                }
+                //         foreach (var girl in Game.Data.Girls.GetAll())
+                //         {
+                //             using (ModInterface.Log.MakeIndent(girl.girlName))
+                //             {
+                //                 var girlId = ModInterface.Data.GetDataId(GameDataType.Girl, girl.id);
+                //                 girl.badFoodTypes ??= new();
+                //                 if (!girl.badFoodTypes.Any())
+                //                 {
+                //                     girl.badFoodTypes.Add((ItemFoodType)(-1));
+                //                 }
 
-                                if (girl.herQuestions.IsNullOrEmpty())
-                                {
-                                    girl.herQuestions = lailani.herQuestions;
-                                }
-                                girl.uniqueItemDefs ??= new();
-                                girl.shoesItemDefs ??= new();
-                                girl.baggageItemDefs ??= new();
-                            }
-                        }
-                    }
+                //                 if (girl.herQuestions.IsNullOrEmpty())
+                //                 {
+                //                     girl.herQuestions = lailani.herQuestions;
+                //                 }
+                //                 girl.uniqueItemDefs ??= new();
+                //                 girl.shoesItemDefs ??= new();
+                //                 girl.baggageItemDefs ??= new();
+                //             }
+                //         }
+                //     }
 
-                    using (ModInterface.Log.MakeIndent("pairs"))
-                    {
-                        foreach (var pair in Game.Data.GirlPairs.GetAll())
-                        {
-                            pair.favQuestions ??= new();
-                        }
-                    }
-                }
+                //     using (ModInterface.Log.MakeIndent("pairs"))
+                //     {
+                //         foreach (var pair in Game.Data.GirlPairs.GetAll())
+                //         {
+                //             pair.favQuestions ??= new();
+                //         }
+                //     }
+                // }
             }
             catch (Exception e)
             {

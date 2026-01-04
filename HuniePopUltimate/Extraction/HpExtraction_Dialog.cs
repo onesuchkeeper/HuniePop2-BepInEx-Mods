@@ -22,10 +22,10 @@ public partial class HpExtraction
         {Girls.Audrey, [(Hp2BaseMod.Styles.Activity, Hp2BaseMod.Styles.Activity), (Hp2BaseMod.Styles.Activity, Hp2BaseMod.Styles.Activity)]},
         {Girls.Beli, [(Hp2BaseMod.Styles.Water, Hp2BaseMod.Styles.Water), (Hp2BaseMod.Styles.Water, Hp2BaseMod.Styles.Water), (Hp2BaseMod.Styles.Activity, Hp2BaseMod.Styles.Activity)]},
         {Girls.Celeste, []},
-        {Hp2BaseMod.Girls.JessieId, [(Hp2BaseMod.Styles.Activity, Hp2BaseMod.Styles.Activity), (Hp2BaseMod.Styles.Activity, Hp2BaseMod.Styles.Activity)]},
+        {Hp2BaseMod.Girls.Jessie, [(Hp2BaseMod.Styles.Activity, Hp2BaseMod.Styles.Activity), (Hp2BaseMod.Styles.Activity, Hp2BaseMod.Styles.Activity)]},
         {Girls.Kyanna, [(Hp2BaseMod.Styles.Activity, Hp2BaseMod.Styles.Activity), (Hp2BaseMod.Styles.Activity, Hp2BaseMod.Styles.Activity)]},
-        {Hp2BaseMod.Girls.KyuId, []},
-        {Hp2BaseMod.Girls.LolaId, [(Hp2BaseMod.Styles.Activity, Hp2BaseMod.Styles.Activity), (Hp2BaseMod.Styles.Activity, Hp2BaseMod.Styles.Activity)]},
+        {Hp2BaseMod.Girls.Kyu, []},
+        {Hp2BaseMod.Girls.Lola, [(Hp2BaseMod.Styles.Activity, Hp2BaseMod.Styles.Activity), (Hp2BaseMod.Styles.Activity, Hp2BaseMod.Styles.Activity)]},
         {Girls.Momo, []},
         {Girls.Nikki, []},
         {Girls.Tiffany, [(Hp2BaseMod.Styles.Activity, Hp2BaseMod.Styles.Activity), (Hp2BaseMod.Styles.Activity, Hp2BaseMod.Styles.Activity)]},
@@ -590,6 +590,18 @@ public partial class HpExtraction
                         if (dialogSceneStep.TryGetValue("girlDefinition", out OrderedDictionary girlDefinition)
                             && UnityAssetPath.TryExtract(girlDefinition, out var girlDefUap))
                         {
+                            var metGirlId = Girls.FromUnityPath(girlDefUap);
+
+                            var showNotif = CutsceneStepUtility.MakeShowNotificationInfo(
+                                $"{Girls.IdToName(metGirlId)} has been added to the HunieBee!",
+                                CutsceneStepNotificationType.MESSAGE,
+                                2f,
+                                CutsceneStepDollTargetType.ORIENTATION_TYPE,
+                                CutsceneStepProceedType.INSTANT
+                            );
+
+                            showNotif.TargetDollOrientation = DollOrientationType.MIDDLE;
+
                             stepMods = [
                                 CutsceneStepUtility.MakeGameActionInfo(
                                     new LogicActionInfo()
@@ -598,7 +610,8 @@ public partial class HpExtraction
                                         GirlDefinitionID = Girls.FromUnityPath(girlDefUap),
                                         BoolValue = true
                                     },
-                                    CutsceneStepProceedType.INSTANT)
+                                    CutsceneStepProceedType.INSTANT),
+                                showNotif
                             ];
                             return true;
                         }
@@ -611,7 +624,13 @@ public partial class HpExtraction
                     ModInterface.Log.Warning("\"know girl detail\" dialog step unimplemented");
                     break;
                 case 13://step back
-                    ModInterface.Log.Warning("\"step back\" dialog step unimplemented");
+                    if (dialogSceneStep.TryGetValue("stepBackSteps", out int stepBackSteps))
+                    {
+                        stepMods = [
+                            CutsceneStepUtility.MakeRewindInfo(stepBackSteps, CutsceneStepProceedType.AUTOMATIC)
+                        ];
+                        return true;
+                    }
                     break;
                 case 14://add item
                     ModInterface.Log.Warning("\"add item\" dialog step unimplemented");

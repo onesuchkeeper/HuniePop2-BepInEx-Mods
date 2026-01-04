@@ -140,18 +140,18 @@ internal static class DefaultGameDataHandler
                         i = 0;
                         girl.outfits.ForEach(x => defaultStyleExpansion(x.Expansion(), i++));
 
-                        if (id == Girls.KyuId)
+                        if (id == Girls.Kyu)
                         {
                             body.BackPos = girl.specialEffectOffset;
                             ModInterface.GameData._specialEffects[SpecialParts.KyuWingId] = girl.specialEffectPrefab;
                         }
                         else
                         {
-                            if (id == Girls.MoxieId)
+                            if (id == Girls.Moxie)
                             {
                                 ModInterface.GameData._specialEffects[SpecialParts.MoxieWingId] = girl.specialEffectPrefab;
                             }
-                            else if (id == Girls.JewnId)
+                            else if (id == Girls.Jewn)
                             {
                                 ModInterface.GameData._specialEffects[SpecialParts.JewnWingId] = girl.specialEffectPrefab;
                             }

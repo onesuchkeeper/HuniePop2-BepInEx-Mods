@@ -97,6 +97,7 @@ namespace Hp2BaseMod.Save
             if ((bool)f_inited.GetValue(__instance))
             {
                 ModInterface.Events.NotifyPostPersistenceReset(f_saveData.GetValue(__instance) as SaveData);
+                ModInterface.Log.DisplayErrors();
             }
         }
 
@@ -136,12 +137,12 @@ namespace Hp2BaseMod.Save
             var wardrobeFlag = saveFile.flags.FirstOrDefault(x => x.flagName == Flags.WARDROBE_GIRL_ID);
             if (wardrobeFlag != null && !ModInterface.Data.TryGetDataId(GameDataType.Girl, wardrobeFlag.flagValue, out _))
             {
-                wardrobeFlag.flagValue = Girls.AshleyId.LocalId;
+                wardrobeFlag.flagValue = Girls.Ashley.LocalId;
             }
 
             if (!ModInterface.Data.TryGetDataId(GameDataType.Girl, saveFile.fileIconGirlId, out _))
             {
-                saveFile.fileIconGirlId = Girls.KyuId.LocalId;
+                saveFile.fileIconGirlId = Girls.Kyu.LocalId;
             }
 
             if (!ModInterface.Data.TryGetDataId(GameDataType.GirlPair, saveFile.girlPairId, out _)

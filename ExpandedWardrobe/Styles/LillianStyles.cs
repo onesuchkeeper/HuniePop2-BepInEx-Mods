@@ -41,7 +41,7 @@ internal static partial class Styles
         AddOutfit(modOutfits, "topless", "Double D's", "lillian", _lillianBodyX - 2, _lillianBodyY - 225, true, false, false, false);
         AddOutfit(modOutfits, "batMicro", "Anarchy", "lillian", _lillianBodyX + 3, _lillianBodyY - 203, true, false, false, true);
 
-        ModInterface.AddDataMod(new GirlDataMod(Girls.LillianId, InsertStyle.append)
+        ModInterface.AddDataMod(new GirlDataMod(Girls.Lillian, InsertStyle.append)
         {
             bodies = new List<IGirlBodyDataMod>()
             {

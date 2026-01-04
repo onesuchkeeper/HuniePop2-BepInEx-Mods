@@ -35,8 +35,8 @@ internal class Plugin : Hp2BaseModPlugin
 
     protected override void Awake()
     {
-        base.Awake();
         _instance = this;
+        base.Awake();
 
         _loversLocationRequirement = Config.Bind(GENERAL_CONFIG_CAT, nameof(LoversLocationRequirement), false, "If threesomes can only take place at the location their photo occurs at.");
         _isBonusRoundNude = Config.Bind(GENERAL_CONFIG_CAT, nameof(IsBonusRoundNude), true, "If characters will change to nude outfits during bonus rounds.");
@@ -47,10 +47,15 @@ internal class Plugin : Hp2BaseModPlugin
             m_addModCredit(Path.Combine(IMAGES_DIR, "CreditsLogo.png"),
             [
                 (
-                    Path.Combine(IMAGES_DIR, "onesuchkeeper_credits.png"),
-                    Path.Combine(IMAGES_DIR, "onesuchkeeper_credits_over.png"),
-                    "https://www.youtube.com/@onesuchkeeper8389"
-                )
+                    Path.Combine(IMAGES_DIR, "onesuchkeeper_credits_dev.png"),
+                    Path.Combine(IMAGES_DIR, "onesuchkeeper_credits_dev_over.png"),
+                    "https://linktr.ee/onesuchkeeper"
+                ),
+                (
+                        Path.Combine(IMAGES_DIR, "silverwoodwork_credits_art.png"),
+                        Path.Combine(IMAGES_DIR, "silverwoodwork_credits_art_over.png"),
+                        "https://twitter.com/silverwoodwork"
+                ),
             ]);
         }
 
@@ -154,7 +159,7 @@ internal class Plugin : Hp2BaseModPlugin
         foreach (var girlId in ModInterface.Data.GetIds(GameDataType.Girl).Where(x => x.SourceId == -1))
         {
             // polly has an alt
-            if (girlId == Girls.PollyId)
+            if (girlId == Girls.Polly)
             {
                 ModInterface.Log.Message($"Adding nude outfit for polly {girlId}");
 

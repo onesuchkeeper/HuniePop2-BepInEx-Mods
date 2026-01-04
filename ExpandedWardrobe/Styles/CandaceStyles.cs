@@ -5,6 +5,7 @@ using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
 
 namespace ExpandedWardrobe;
+
 internal static partial class Styles
 {
     private static readonly int _candaceBodyX = 348;
@@ -34,7 +35,7 @@ internal static partial class Styles
 
         AddOutfit(modOutfits, "topless", "Boobs", "candace", _candaceBodyX + 207, _candaceBodyY - 248, true, false, false, false);
 
-        ModInterface.AddDataMod(new GirlDataMod(Girls.CandaceId, InsertStyle.append)
+        ModInterface.AddDataMod(new GirlDataMod(Girls.Candace, InsertStyle.append)
         {
             bodies = new List<IGirlBodyDataMod>()
             {

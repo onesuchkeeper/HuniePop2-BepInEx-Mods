@@ -82,7 +82,7 @@ public partial class HpExtraction
                 Questions.Birthday,
             }
         },
-        {Hp2BaseMod.Girls.JessieId,
+        {Hp2BaseMod.Girls.Jessie,
             new()
             {
                 Questions.Weight,
@@ -116,7 +116,7 @@ public partial class HpExtraction
                 Questions.Birthday,
             }
         },
-        {Hp2BaseMod.Girls.KyuId,
+        {Hp2BaseMod.Girls.Kyu,
             new()
             {
                 Questions.FavHangout,
@@ -133,7 +133,7 @@ public partial class HpExtraction
                 Questions.Hobby,
             }
         },
-        {Hp2BaseMod.Girls.LolaId,
+        {Hp2BaseMod.Girls.Lola,
             new()
             {
                 Questions.LastName,

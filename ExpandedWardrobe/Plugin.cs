@@ -114,9 +114,9 @@ internal class Plugin : BaseUnityPlugin
                         "https://www.reddit.com/user/scallycapfan/"
                     ),
                     (
-                        Path.Combine(IMAGES_DIR, "onesuchkeeper_credits.png"),
-                        Path.Combine(IMAGES_DIR, "onesuchkeeper_credits_over.png"),
-                        "https://www.youtube.com/@onesuchkeeper8389"
+                        Path.Combine(IMAGES_DIR, "onesuchKeeper_credits_art.png"),
+                        Path.Combine(IMAGES_DIR, "onesuchKeeper_credits_art_over.png"),
+                        "https://linktr.ee/onesuchkeeper"
                     )
             ]);
         }

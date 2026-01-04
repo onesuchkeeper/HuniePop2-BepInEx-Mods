@@ -1,76 +1,16 @@
-using System;
-using System.Linq;
 using AssetStudio;
+using Hp2BaseMod;
 
 public class Logger : ILogger
 {
-    private class Indent : IDisposable
-    {
-        private Logger _parent;
-
-        public Indent(Logger parent)
-        {
-            _parent = parent;
-            _parent.IncreaseIndent();
-        }
-
-        public void Dispose()
-        {
-            _parent.DecreaseIndent();
-        }
-    }
-
     public bool ShowDebug { get; set; }
     public bool ShowVerbose { get; set; }
 
-    private int _indentLevel = 0;
+    public void Message(string value) => ModInterface.Log.Message(value);
 
-    private string _name;
-    private ITextWriter _writer;
+    public void Error(string value) => ModInterface.Log.Error(value);
 
-    public Logger(ITextWriter writer, string name = null)
-    {
-        _writer = writer ?? throw new ArgumentNullException(nameof(writer));
-        _name = name ?? "Logger";
-    }
-
-    public void DecreaseIndent()
-    {
-        _indentLevel--;
-        if (_indentLevel < 0) _indentLevel = 0;
-    }
-
-    public void IncreaseIndent() => _indentLevel++;
-
-    public IDisposable MakeIndent() => new Indent(this);
-    public IDisposable MakeIndent(string message)
-    {
-        _writer.SetColor(ConsoleColor.Green);
-        Message(message);
-        _writer.ResetColor();
-        return MakeIndent();
-    }
-
-    public void Message(string value)
-    {
-        value ??= "null";
-        value = $"[{_name}]\t{string.Concat(Enumerable.Repeat("\t", _indentLevel))}{value}";
-        _writer.WriteLine(value);
-    }
-
-    public void Error(string value)
-    {
-        _writer.SetColor(ConsoleColor.Red);
-        Message(value);
-        _writer.ResetColor();
-    }
-
-    public void Warning(string value)
-    {
-        _writer.SetColor(ConsoleColor.Yellow);
-        Message(value);
-        _writer.ResetColor();
-    }
+    public void Warning(string value) => ModInterface.Log.Warning(value);
 
     public void Log(LoggerEvent loggerEvent, string message)
     {

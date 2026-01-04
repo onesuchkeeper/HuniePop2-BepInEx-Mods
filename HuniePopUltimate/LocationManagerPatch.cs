@@ -8,6 +8,7 @@ namespace HuniePopUltimate;
 [HarmonyPatch(typeof(LocationManager))]
 public static class LocationManagerPatch
 {
+    private static bool _removeOverride;
     private static LocationTransitionFakeOut _fakeTransition = new();
     private static LocationType? _overrideLocationType;
 
@@ -25,8 +26,10 @@ public static class LocationManagerPatch
     [HarmonyPrefix]
     public static bool Depart(LocationManager __instance, LocationDefinition locationDef, ref GirlPairDefinition girlPairDef, bool sidesFlipped)
     {
+        if (!Plugin.HasSingleDate) return true;
+
         var nobodyDef = ModInterface.GameData.GetGirl(Plugin.SingleDateNobodyId);
-        var kyuDef = ModInterface.GameData.GetGirl(Hp2BaseMod.Girls.KyuId);
+        var kyuDef = ModInterface.GameData.GetGirl(Hp2BaseMod.Girls.Kyu);
         var momoDef = ModInterface.GameData.GetGirl(Girls.Momo);
         var celesteDef = ModInterface.GameData.GetGirl(Girls.Celeste);
         var currentLocId = __instance.currentLocation.ModId();
@@ -38,16 +41,30 @@ public static class LocationManagerPatch
         }
 
         var shouldOverride = KyuOverride(__instance, kyuDef, nobodyDef, locationDef, sidesFlipped)
-            || CelesteOverride(__instance, currentLocId, locationDef, celesteDef, sidesFlipped)
+            || CelesteOverride(currentLocId, locationDef, celesteDef, sidesFlipped)
             || MomoOverride(currentLocId, momoDef, locationDef, sidesFlipped);
 
         if (!shouldOverride)
         {
-            _overrideLocationType = null;
+            _removeOverride = true;
         }
 
         Plugin.ThrewOutGoldfish = false;
         return !shouldOverride;
+    }
+
+    [HarmonyPatch(nameof(LocationManager.Arrive))]
+    [HarmonyPrefix]
+    public static void Arrive()
+    {
+        // we can't remove the override when departing
+        // since it's needed for the transition, so instead
+        // remove it here
+        if (_removeOverride)
+        {
+            _removeOverride = false;
+            _overrideLocationType = null;
+        }
     }
 
     private static bool KyuOverride(LocationManager locationManager,
@@ -64,7 +81,7 @@ public static class LocationManagerPatch
                 if (locationManager.currentGirlPair.girlDefinitionOne == nobodyDef)
                 {
                     ModInterface.Log.Message("Starting Kyu cutscene");
-                    _fakeTransition.Depart(locationDef, ModInterface.GameData.GetGirlPair(Plugin.KyuSingleDateId), sidesFlipped);
+                    _fakeTransition.Depart(locationDef, ModInterface.GameData.GetGirlPair(Pairs.KyuSingleDate), sidesFlipped);
                     ModInterface.State.CellphoneOnLeft = true;
                     _overrideLocationType = LocationType.SIM;
                     return true;
@@ -109,8 +126,7 @@ public static class LocationManagerPatch
         return false;
     }
 
-    private static bool CelesteOverride(LocationManager locationManager,
-        RelativeId currentLocId,
+    private static bool CelesteOverride(RelativeId currentLocId,
         LocationDefinition locationDef,
         GirlDefinition celesteDef,
         bool sidesFlipped)

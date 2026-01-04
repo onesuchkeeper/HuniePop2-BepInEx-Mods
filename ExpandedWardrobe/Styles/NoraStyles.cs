@@ -23,7 +23,7 @@ internal static partial class Styles
             _noraBodyX, _noraBodyY,
             false, false, false, true);
 
-        ModInterface.AddDataMod(new GirlDataMod(Girls.NoraId, InsertStyle.append)
+        ModInterface.AddDataMod(new GirlDataMod(Girls.Nora, InsertStyle.append)
         {
             bodies = new List<IGirlBodyDataMod>()
             {

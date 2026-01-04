@@ -52,6 +52,12 @@ public class Category<T>
     /// <exception cref="Exception"></exception>
     public static Entry GetWeighted(List<Entry> entries, int totalWeight)
     {
+        if (entries == null || entries.Count == 0)
+            throw new ArgumentException("Entries list is empty");
+
+        if (entries.Any(e => e.Weight < 0))
+            throw new ArgumentException("Negative weights are not allowed");
+
         var selectedWeight = UnityEngine.Random.Range(0, totalWeight);
         var currentWeight = 0;
 
@@ -59,7 +65,7 @@ public class Category<T>
         {
             currentWeight += weightedValue.Weight;
 
-            if (currentWeight >= selectedWeight)
+            if (currentWeight > selectedWeight)
             {
                 return weightedValue;
             }
@@ -73,6 +79,12 @@ public class Category<T>
 
     public static Entry PopWeighted(List<Entry> entries, int totalWeight)
     {
+        if (entries == null || entries.Count == 0)
+            throw new ArgumentException("Entries list is empty");
+
+        if (entries.Any(e => e.Weight < 0))
+            throw new ArgumentException("Negative weights are not allowed");
+
         var selectedWeight = UnityEngine.Random.Range(0, totalWeight);
         var currentWeight = 0;
 
@@ -80,7 +92,7 @@ public class Category<T>
         {
             currentWeight += weightedValue.Weight;
 
-            if (currentWeight >= selectedWeight)
+            if (currentWeight > selectedWeight)
             {
                 entries.Remove(weightedValue);
                 return weightedValue;

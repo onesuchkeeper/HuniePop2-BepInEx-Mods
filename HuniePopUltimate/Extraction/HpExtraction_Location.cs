@@ -13,6 +13,24 @@ namespace HuniePopUltimate;
 
 public partial class HpExtraction
 {
+    private Dictionary<RelativeId, RelativeId> _defaultStyles = new()
+    {
+        {LocationIds.Beach, Hp2BaseMod.Styles.Water},
+
+        {LocationIds.BotanicalGarden, Hp2BaseMod.Styles.Activity},
+        {LocationIds.HikingTrail, Hp2BaseMod.Styles.Activity},
+        {LocationIds.FarmersMarket, Hp2BaseMod.Styles.Activity},
+        {LocationIds.IceRink, Hp2BaseMod.Styles.Activity},
+        {LocationIds.WaterPark, Hp2BaseMod.Styles.Water},
+        {LocationIds.TennisCourts, Hp2BaseMod.Styles.Activity},
+        {LocationIds.HotSprings, Hp2BaseMod.Styles.Water},
+        {LocationIds.ScenicOverlook, Hp2BaseMod.Styles.Romantic},
+        {LocationIds.Casino, Hp2BaseMod.Styles.Party},
+        {LocationIds.OutdoorLounge, Hp2BaseMod.Styles.Romantic},
+        {LocationIds.Carnival, Hp2BaseMod.Styles.Activity},
+        {LocationIds.Restaurant, Hp2BaseMod.Styles.Romantic}
+    };
+
     private ITextureRenderStep[] _finderIconSteps = [
         new TextureRsCellphoneOutline(4f, 0f, 1f),
     ];
@@ -72,11 +90,6 @@ public partial class HpExtraction
             locationMod.AllowNormal = false;
         }
 
-        if (id == LocationIds.Beach)
-        {
-            locationMod.DefaultStyle = Hp2BaseMod.Styles.Water;
-        }
-
         if (locationDef.TryGetValue("name", out string locationName))
         {
             locationMod.LocationName = locationName;
@@ -102,6 +115,15 @@ public partial class HpExtraction
                 locationMod.LocationType = locationType == 0
                     ? LocationType.SIM
                     : LocationType.DATE;
+            }
+
+            if (!Plugin.AddSimLocations.Value && locationMod.LocationType == LocationType.SIM)
+            {
+                return;
+            }
+            else if (!Plugin.AddDateLocations.Value && locationMod.LocationType == LocationType.DATE)
+            {
+                return;
             }
 
             ModInterface.Log.Message($"{hp1Id} {locationName}, - Loc type locationType{locationType} {locationMod.LocationType}");
@@ -161,6 +183,11 @@ public partial class HpExtraction
             if (locationMod.LocationType == LocationType.DATE && _locationIdToDateTime.TryGetValue(id, out var dateTime))
             {
                 locationMod.DateTimes = [dateTime];
+            }
+
+            if (_defaultStyles.TryGetValue(id, out var styleId))
+            {
+                locationMod.DefaultStyle = styleId;
             }
 
             ModInterface.AddDataMod(locationMod);

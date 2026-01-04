@@ -39,7 +39,8 @@ public class ExpandedDialogTriggerDefinition
     /// </summary>
     public bool TryGetLineSet(DialogTriggerDefinition def, RelativeId girlId, out DialogTriggerLineSet lineSet)
     {
-        lineSet = def.dialogLineSets[ExpandedGirlDefinition.DialogTriggerIndexes[girlId]];
+        var girlIndex = ExpandedGirlDefinition.DialogTriggerIndexes[girlId];
+        lineSet = def.dialogLineSets.GetOrNew(girlIndex);
         if (lineSet.dialogLines.Any(x => x != null))
         {
             return true;

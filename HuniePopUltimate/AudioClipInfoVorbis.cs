@@ -27,7 +27,6 @@ public class AudioClipInfoVorbis : IGameDefinitionInfo<UnityEngine.AudioClip>
     private long _startPos;
     private long _durationSamples;
 
-    // PCM cache - this is what we unload
     private float[] _pcmCache;
     private float _lastAccessTime;
     private int _readCallsSinceLastCleanup;

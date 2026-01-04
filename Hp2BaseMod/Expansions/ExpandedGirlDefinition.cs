@@ -45,7 +45,7 @@ public class ExpandedGirlDefinition
     /// The girl's index within a <see cref="DialogTriggerDefinition"/>.
     /// </summary>
     public static IdIndexMap DialogTriggerIndexes => _dialogTriggerIndexes;
-    private static IdIndexMap _dialogTriggerIndexes = new();
+    private static IdIndexMap _dialogTriggerIndexes = new(1);
 
     private RelativeId _id;
     private GirlDefinition _def;

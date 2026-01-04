@@ -1,5 +1,6 @@
 using Hp2BaseMod;
 namespace ExtraLocations;
+
 public static class Locations
 {
     public static readonly RelativeId HiddenWaterfall = new RelativeId(Plugin.ModId, 0);

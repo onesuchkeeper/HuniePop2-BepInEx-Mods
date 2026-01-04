@@ -100,10 +100,6 @@ internal class ExpandedUiCellphoneAppStatus
         // Remove left and relationship slot
         _girlId = ModInterface.Data.GetDataId(GameDataType.Girl, Game.Session.Puzzle.puzzleStatus.girlStatusRight.girlDefinition.id);
 
-        _uiCellphoneAppStatus.canvasGroupLeft.transform.SetParent(canvasRect, false);
-        _uiCellphoneAppStatus.statusPortraitLeft.transform.SetParent(canvasRect, false);
-        _uiCellphoneAppStatus.relationshipSlot.transform.SetParent(canvasRect, false);
-
         // Hide stamina on dates
         if (Game.Session.Location.AtLocationType(LocationType.DATE))
         {
@@ -124,8 +120,24 @@ internal class ExpandedUiCellphoneAppStatus
         charmBG_transform.SetParent(canvasRect, false);
         charmBG_transform.anchoredPosition = leftPortraitRect.anchoredPosition + new Vector2(37.5f, 0);
 
+        ModInterface.Log.Message("Before hearts");
+
         // Build hearts
         var saveGirl = State.SaveFile.GetGirl(_girlId);
+
+        // if (saveGirl == null)
+        // {
+        //     ModInterface.Log.Message("save girl null D:");
+        // }
+
+        // There is some kind of DoTween issue here I think
+        // this fixed it but it isn't a great solution...
+
+        yield return null;
+
+        //this literally kills all the game's tweens
+        //_uiCellphoneAppStatus.relationshipSlot.DestroyAndKillTweens();
+
         var maxSingleGirlRelationshipLevel = Plugin.MaxSingleGirlRelationshipLevel.Value;
         var radAllotment = Mathf.PI / maxSingleGirlRelationshipLevel;
 
@@ -234,7 +246,7 @@ internal class ExpandedUiCellphoneAppStatus
                     sequence.Join(squashNSpin);
                     break;
                 case 9:
-                    if (_girlId == Girls.SarahId)
+                    if (_girlId == Girls.Sarah)
                     {
                         sequence.Append(_charmTransform.DOScaleX(_charmDir * 1.3f, 0.4f).SetEase(Ease.OutElastic));
                         sequence.Join(_charmTransform.DOScaleY(0.5f, 0.4f).SetEase(Ease.OutElastic));
@@ -248,7 +260,7 @@ internal class ExpandedUiCellphoneAppStatus
                         sequence.Append(_charmTransform.DOScaleX(_charmDir * 0.5f, 0.4f).SetEase(Ease.OutElastic));
                         sequence.Join(_charmTransform.DOScaleY(1.3f, 0.4f).SetEase(Ease.OutElastic));
                     }
-                    else if (_girlId == Girls.LillianId)
+                    else if (_girlId == Girls.Lillian)
                     {
                         sequence.Append(_charmTransform.DOLocalMoveX(_charmTransform.localPosition.x + (90 * _charmDir), 1.2f));
                         sequence.Join(_charmTransform.DOLocalMoveY(_charmTransform.localPosition.y + 48, 1.2f));
@@ -270,7 +282,7 @@ internal class ExpandedUiCellphoneAppStatus
                         sequence.Append(_charmTransform.DOScaleY(1f, 1.2f).SetEase(Ease.InOutElastic));
                         sequence.Join(_charmTransform.DOScaleX(1f * _charmDir, 1.2f).SetEase(Ease.InOutElastic));
                     }
-                    else if (_girlId == Girls.AbiaId)
+                    else if (_girlId == Girls.Abia)
                     {
                         sequence.Append(_charmTransform.DOShakeAnchorPos(4f, 30));
                     }

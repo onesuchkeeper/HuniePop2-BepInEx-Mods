@@ -265,8 +265,9 @@ internal static class ModEventHandles
         {
             var girlSave = State.SaveFile.GetGirl(playerFileGirlPair.girlPairDefinition.girlDefinitionTwo.id);
 
-            //must be non default and at pre max level
-            if (Game.Session.Location.currentGirlPair.Expansion().PairStyle.SexGirlTwo.OutfitId != RelativeId.Default
+            // must be non default and at pre max level
+            var pairStyle = Game.Session.Location.currentGirlPair.Expansion().PairStyle;
+            if (pairStyle != null && pairStyle.SexGirlTwo.OutfitId != RelativeId.Default
                 && girlSave?.RelationshipLevel == maxSingleGirlRelationshipLevel - 1)
             {
                 args.Style = PreDateDollResetArgs.StyleType.Sex;

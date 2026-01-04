@@ -47,21 +47,21 @@ public static class UiPrefabs
 
         if (Directory.Exists(_charmsDir))
         {
-            Plugin.SetGirlCharm(Girls.AbiaId, GetCharmSprite("Abia"));
-            Plugin.SetGirlCharm(Girls.AshleyId, GetCharmSprite("Ashley"));
-            Plugin.SetGirlCharm(Girls.BrookeId, GetCharmSprite("Brooke"));
-            Plugin.SetGirlCharm(Girls.CandaceId, GetCharmSprite("Candace"));
-            Plugin.SetGirlCharm(Girls.JessieId, GetCharmSprite("Jessie"));
-            Plugin.SetGirlCharm(Girls.JewnId, GetCharmSprite("Jewn"));
-            Plugin.SetGirlCharm(Girls.KyuId, GetCharmSprite("Kyu"));
-            Plugin.SetGirlCharm(Girls.LailaniId, GetCharmSprite("Lailani"));
-            Plugin.SetGirlCharm(Girls.LillianId, GetCharmSprite("Lillian"));
-            Plugin.SetGirlCharm(Girls.LolaId, GetCharmSprite("Lola"));
-            Plugin.SetGirlCharm(Girls.MoxieId, GetCharmSprite("Moxie"));
-            Plugin.SetGirlCharm(Girls.NoraId, GetCharmSprite("Nora"));
-            Plugin.SetGirlCharm(Girls.PollyId, GetCharmSprite("Polly"));
-            Plugin.SetGirlCharm(Girls.SarahId, GetCharmSprite("Sarah"));
-            Plugin.SetGirlCharm(Girls.ZoeyId, GetCharmSprite("Zoey"));
+            Plugin.SetGirlCharm(Girls.Abia, GetCharmSprite("Abia"));
+            Plugin.SetGirlCharm(Girls.Ashley, GetCharmSprite("Ashley"));
+            Plugin.SetGirlCharm(Girls.Brooke, GetCharmSprite("Brooke"));
+            Plugin.SetGirlCharm(Girls.Candace, GetCharmSprite("Candace"));
+            Plugin.SetGirlCharm(Girls.Jessie, GetCharmSprite("Jessie"));
+            Plugin.SetGirlCharm(Girls.Jewn, GetCharmSprite("Jewn"));
+            Plugin.SetGirlCharm(Girls.Kyu, GetCharmSprite("Kyu"));
+            Plugin.SetGirlCharm(Girls.Lailani, GetCharmSprite("Lailani"));
+            Plugin.SetGirlCharm(Girls.Lillian, GetCharmSprite("Lillian"));
+            Plugin.SetGirlCharm(Girls.Lola, GetCharmSprite("Lola"));
+            Plugin.SetGirlCharm(Girls.Moxie, GetCharmSprite("Moxie"));
+            Plugin.SetGirlCharm(Girls.Nora, GetCharmSprite("Nora"));
+            Plugin.SetGirlCharm(Girls.Polly, GetCharmSprite("Polly"));
+            Plugin.SetGirlCharm(Girls.Sarah, GetCharmSprite("Sarah"));
+            Plugin.SetGirlCharm(Girls.Zoey, GetCharmSprite("Zoey"));
         }
 
         _defaultCharmSprite = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(SingleDate.Plugin.IMAGES_DIR, $"DefaultCharm.png"), true)).GetSprite();

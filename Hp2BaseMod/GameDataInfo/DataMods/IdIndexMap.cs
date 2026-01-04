@@ -11,21 +11,21 @@ public class IdIndexMap
     public IEnumerable<RelativeId> Ids => _idToIndex.Keys;
     public IEnumerable<int> Indexes => _indexToId.Keys;
 
-    private int _offset;
+    private int _indexOffset;
     private Dictionary<RelativeId, int> _idToIndex = new();
     private Dictionary<int, RelativeId> _indexToId = new();
 
     public IdIndexMap()
     {
-        _offset = 0;
+        _indexOffset = 0;
     }
 
-    /// <param name="offset">Starting index for new ids.</param>
+    /// <param name="indexOffset">Starting index for new ids.</param>
     /// <exception cref="ArgumentException">If offset is less than zero.</exception>
-    public IdIndexMap(int offset)
+    public IdIndexMap(int indexOffset)
     {
-        if (offset < 0) throw new ArgumentException(nameof(offset));
-        _offset = offset;
+        if (indexOffset < 0) throw new ArgumentException(nameof(indexOffset));
+        _indexOffset = indexOffset;
     }
 
     public int this[RelativeId id] => GetIndex(id);
@@ -35,7 +35,7 @@ public class IdIndexMap
 
         if (!_idToIndex.TryGetValue(id, out var index))
         {
-            index = _idToIndex.Count + _offset;
+            index = _idToIndex.Count + _indexOffset;
             _idToIndex[id] = index;
             _indexToId[index] = id;
         }
@@ -46,7 +46,7 @@ public class IdIndexMap
     public bool TryGetIndex(RelativeId id, out int index) => _idToIndex.TryGetValue(id, out index);
 
     public RelativeId this[int index] => GetId(index);
-    public RelativeId GetId(int index) => index < _offset
+    public RelativeId GetId(int index) => index < _indexOffset
         ? RelativeId.Default
         : _indexToId[index];
 

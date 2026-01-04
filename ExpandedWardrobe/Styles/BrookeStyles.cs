@@ -25,7 +25,7 @@ internal static partial class Styles
 
         AddOutfit(modOutfits, "topless", "Jubblies", "brooke", _brookeBodyX + 105, _brookeBodyY - 643, true, false, false, false);
 
-        ModInterface.AddDataMod(new GirlDataMod(Girls.BrookeId, InsertStyle.append)
+        ModInterface.AddDataMod(new GirlDataMod(Girls.Brooke, InsertStyle.append)
         {
             bodies = new List<IGirlBodyDataMod>()
             {

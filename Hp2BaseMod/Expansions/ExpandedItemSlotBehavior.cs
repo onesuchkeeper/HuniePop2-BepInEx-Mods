@@ -83,7 +83,7 @@ public class ExpandedItemSlotBehavior
         tooltip.Show(_core.transform.position,
             MathUtils.DirectionToVector(CardinalDirection.EAST)
             * (f_offsetOverride.GetValue<bool>(_core)
-                ? f_tooltipOffset.GetValue<float>(_core)
+                ? f_tooltipOffset.GetValue<int>(_core)
                 : 20f),
             false);
 

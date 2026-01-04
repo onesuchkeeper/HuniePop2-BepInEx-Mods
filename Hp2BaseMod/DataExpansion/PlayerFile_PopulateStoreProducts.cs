@@ -96,9 +96,13 @@ public static class PlayerFile_PopulateStoreProducts
                 var categoryEntry = Category<Category<ItemDefinition>>.GetWeighted(weightedCategories);
                 var category = categoryEntry.Value;
 
-                // pick an item from the pool
+                // pick and remove an item from the pool
                 var selection = Category<ItemDefinition>.PopWeighted(category.Pool);
                 categoryEntry.Weight -= selection.Weight;
+                if (categoryEntry.Weight <= 0)
+                {
+                    weightedCategories.Remove(categoryEntry);
+                }
 
                 if (selection.Value == null) continue;
 

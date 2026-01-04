@@ -24,6 +24,7 @@ namespace SingleDate;
 /// </summary>
 [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
 [BepInDependency("OSK.BepInEx.Hp2BaseMod", "1.0.0")]
+[BepInDependency("OSK.BepInEx.Hp2BaseModTweaks", BepInDependency.DependencyFlags.SoftDependency)]
 internal partial class Plugin : Hp2BaseModPlugin
 {
     private const string GENERAL_CONFIG_CAT = "general";
@@ -51,8 +52,21 @@ internal partial class Plugin : Hp2BaseModPlugin
 
     protected override void Awake()
     {
-        base.Awake();
         _instance = this;
+        base.Awake();
+
+        if (ModInterface.TryGetInterModValue("OSK.BepInEx.Hp2BaseModTweaks", "AddModCredit",
+                out Action<string, IEnumerable<(string creditButtonPath, string creditButtonOverPath, string redirectLink)>> m_addModCredit))
+        {
+            m_addModCredit(Path.Combine(IMAGES_DIR, "CreditsLogo.png"),
+            [
+                (
+                    Path.Combine(IMAGES_DIR, "onesuchkeeper_credits_art.png"),
+                    Path.Combine(IMAGES_DIR, "onesuchkeeper_credits_art_over.png"),
+                    "https://linktr.ee/onesuchkeeper"
+                )
+            ]);
+        }
 
         _showSingleUpsetHint = Config.Bind(GENERAL_CONFIG_CAT, nameof(ShowSingleUpsetHint), false, "If upset hints are shown on single dates.");
         _singleDateBaggage = Config.Bind(GENERAL_CONFIG_CAT, nameof(SingleDateBaggage), true, "If baggage is active on single dates.");
@@ -83,15 +97,15 @@ internal partial class Plugin : Hp2BaseModPlugin
         PhotoSarah.AddDataMods();
         PhotoZoey.AddDataMods();
 
-        AddGirlSexPhotos(Girls.AbiaId, [(PhotoAbia.Id, Locations.RoyalSuite)]);
-        AddGirlSexPhotos(Girls.BrookeId, [(PhotoBrooke.Id, Locations.RoyalSuite)]);
-        AddGirlSexPhotos(Girls.CandaceId, [(PhotoCandace.Id, Locations.RoyalSuite)]);
-        AddGirlSexPhotos(Girls.LailaniId, [(PhotoLailani.Id, Locations.RoyalSuite)]);
-        AddGirlSexPhotos(Girls.LillianId, [(PhotoLillian.Id, Locations.RoyalSuite)]);
-        AddGirlSexPhotos(Girls.NoraId, [(PhotoNora.Id, Locations.RoyalSuite)]);
-        AddGirlSexPhotos(Girls.PollyId, [(PhotoPolly.Id, Locations.RoyalSuite)]);
-        AddGirlSexPhotos(Girls.SarahId, [(PhotoSarah.Id, Locations.RoyalSuite)]);
-        AddGirlSexPhotos(Girls.ZoeyId, [(PhotoZoey.Id, Locations.RoyalSuite)]);
+        AddGirlSexPhotos(Girls.Abia, [(PhotoAbia.Id, Locations.RoyalSuite)]);
+        AddGirlSexPhotos(Girls.Brooke, [(PhotoBrooke.Id, Locations.RoyalSuite)]);
+        AddGirlSexPhotos(Girls.Candace, [(PhotoCandace.Id, Locations.RoyalSuite)]);
+        AddGirlSexPhotos(Girls.Lailani, [(PhotoLailani.Id, Locations.RoyalSuite)]);
+        AddGirlSexPhotos(Girls.Lillian, [(PhotoLillian.Id, Locations.RoyalSuite)]);
+        AddGirlSexPhotos(Girls.Nora, [(PhotoNora.Id, Locations.RoyalSuite)]);
+        AddGirlSexPhotos(Girls.Polly, [(PhotoPolly.Id, Locations.RoyalSuite)]);
+        AddGirlSexPhotos(Girls.Sarah, [(PhotoSarah.Id, Locations.RoyalSuite)]);
+        AddGirlSexPhotos(Girls.Zoey, [(PhotoZoey.Id, Locations.RoyalSuite)]);
 
         UiPrefabs.InitExternals();
 

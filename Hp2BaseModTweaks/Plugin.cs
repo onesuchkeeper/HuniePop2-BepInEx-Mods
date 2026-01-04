@@ -45,7 +45,6 @@ public partial class Plugin : Hp2BaseModPlugin
     protected override void Awake()
     {
         _instance = this;
-
         base.Awake();
 
         Config.SaveOnConfigSet = false;
@@ -57,9 +56,9 @@ public partial class Plugin : Hp2BaseModPlugin
         {
             new CreditEntry(Path.Combine(ImagesDir, "CreditsLogo.png"),
             [
-                new CreditMember(Path.Combine(ImagesDir, "onesuchkeeper_credits.png"),
-                    Path.Combine(ImagesDir, "onesuchkeeper_credits_over.png"),
-                    "https://www.youtube.com/@onesuchkeeper8389")
+                new CreditMember(Path.Combine(ImagesDir, "onesuchkeeper_credits_art.png"),
+                    Path.Combine(ImagesDir, "onesuchkeeper_credits_art_over.png"),
+                    "https://linktr.ee/onesuchkeeper")
             ])
         };
 
@@ -174,7 +173,7 @@ public partial class Plugin : Hp2BaseModPlugin
 
         if (ModInterface.GameData.IsCodeUnlocked(ToggleCodeMods.FairyWingsCodeId))
         {
-            var kyu = ModInterface.GameData.GetGirl(Girls.KyuId);
+            var kyu = ModInterface.GameData.GetGirl(Girls.Kyu);
 
             ModInterface.Log.Message("Applying wings");
             if (kyu == null)
@@ -221,20 +220,20 @@ public partial class Plugin : Hp2BaseModPlugin
             });
         }
 
-        MakeBackPosMod(Girls.AbiaId, 253, 473);
-        MakeBackPosMod(Girls.AshleyId, 227, 540);
-        MakeBackPosMod(Girls.BrookeId, 263, 496);
-        MakeBackPosMod(Girls.CandaceId, 228, 518);
-        MakeBackPosMod(Girls.JessieId, 227, 514);
-        MakeBackPosMod(Girls.JewnId, 258, 495);
-        MakeBackPosMod(Girls.LailaniId, 275, 487);
-        MakeBackPosMod(Girls.LillianId, 263, 494);
-        MakeBackPosMod(Girls.LolaId, 264, 511);
-        MakeBackPosMod(Girls.MoxieId, 232, 482);
-        MakeBackPosMod(Girls.NoraId, 298, 522);
-        MakeBackPosMod(Girls.PollyId, 264, 505);
-        MakeBackPosMod(Girls.SarahId, 264, 473);
-        MakeBackPosMod(Girls.ZoeyId, 272, 466);
+        MakeBackPosMod(Girls.Abia, 253, 473);
+        MakeBackPosMod(Girls.Ashley, 227, 540);
+        MakeBackPosMod(Girls.Brooke, 263, 496);
+        MakeBackPosMod(Girls.Candace, 228, 518);
+        MakeBackPosMod(Girls.Jessie, 227, 514);
+        MakeBackPosMod(Girls.Jewn, 258, 495);
+        MakeBackPosMod(Girls.Lailani, 275, 487);
+        MakeBackPosMod(Girls.Lillian, 263, 494);
+        MakeBackPosMod(Girls.Lola, 264, 511);
+        MakeBackPosMod(Girls.Moxie, 232, 482);
+        MakeBackPosMod(Girls.Nora, 298, 522);
+        MakeBackPosMod(Girls.Polly, 264, 505);
+        MakeBackPosMod(Girls.Sarah, 264, 473);
+        MakeBackPosMod(Girls.Zoey, 272, 466);
 
         var kyuEyesGlowNeutralPartId = new RelativeId(ModId, 0);
         var kyuEyesGlowNeutralPart = new GirlPartDataMod(kyuEyesGlowNeutralPartId, InsertStyle.replace)
@@ -263,7 +262,7 @@ public partial class Plugin : Hp2BaseModPlugin
             SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(ImagesDir, "kyu_eyesglow_horny.png"), true))
         };
 
-        ModInterface.AddDataMod(new GirlDataMod(Girls.KyuId, InsertStyle.append)
+        ModInterface.AddDataMod(new GirlDataMod(Girls.Kyu, InsertStyle.append)
         {
             bodies = new()
             {
@@ -316,8 +315,8 @@ public partial class Plugin : Hp2BaseModPlugin
 
         if (Directory.Exists(_digitalArtCollectionDir.Value))
         {
-            CellphoneSprites.AddUiCellphoneSprites("Jewn", Girls.JewnId, new Vector2(2636, 1990), new Vector2(3911, 4711));
-            CellphoneSprites.AddUiCellphoneSprites("Moxie", Girls.MoxieId, new Vector2(2411, 2287), new Vector2(3900, 5068));
+            CellphoneSprites.AddUiCellphoneSprites("Jewn", Girls.Jewn, new Vector2(2636, 1990), new Vector2(3911, 4711));
+            CellphoneSprites.AddUiCellphoneSprites("Moxie", Girls.Moxie, new Vector2(2411, 2287), new Vector2(3900, 5068));
         }
     }
 
@@ -340,7 +339,7 @@ public partial class Plugin : Hp2BaseModPlugin
             .Where(x => x != null && x.partIndexEyesGlow == -1)
             .ForEach(x => x.partIndexEyesGlow = x.partIndexEyes);
 
-        var kyu = ModInterface.GameData.GetGirl(Girls.KyuId).Expansion();
+        var kyu = ModInterface.GameData.GetGirl(Girls.Kyu).Expansion();
     }
 
     private void On_PostCodeSubmitted(CodeDefinition codeDefinition)

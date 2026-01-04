@@ -10,8 +10,8 @@ namespace MidDatePhotos;
 
 [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
 [BepInDependency("OSK.BepInEx.Hp2BaseMod", "1.0.0")]
-[BepInDependency("OSK.BepInEx.SingleDate", BepInDependency.DependencyFlags.SoftDependency)]
 [BepInDependency("OSK.BepInEx.Hp2BaseModTweaks", BepInDependency.DependencyFlags.SoftDependency)]
+[BepInDependency("OSK.BepInEx.SingleDate", BepInDependency.DependencyFlags.SoftDependency)]
 internal class Plugin : BaseUnityPlugin
 {
     public static ConfigEntry<bool> UnlockPhotos => _unlockPhotos;
@@ -38,9 +38,9 @@ internal class Plugin : BaseUnityPlugin
                         "https://www.reddit.com/user/scallycapfan/"
                     ),
                     (
-                        Path.Combine(IMAGES_DIR, "onesuchkeeper_credits.png"),
-                        Path.Combine(IMAGES_DIR, "onesuchkeeper_credits_over.png"),
-                        "https://www.youtube.com/@onesuchkeeper8389"
+                        Path.Combine(IMAGES_DIR, "onesuchkeeper_credits_dev.png"),
+                        Path.Combine(IMAGES_DIR, "onesuchkeeper_credits_dev_over.png"),
+                        "https://linktr.ee/onesuchkeeper"
                     )
             ]);
         }
@@ -48,18 +48,18 @@ internal class Plugin : BaseUnityPlugin
         if (!ModInterface.TryGetInterModValue("OSK.BepInEx.SingleDate", "AddGirlDatePhotos",
             out Action<RelativeId, IEnumerable<(RelativeId, float)>> m_AddGirlDatePhotos)) ModInterface.Log.Error("Failed TO GET SINGEL DATE INTEROP :O");
 
-        AddPhoto("zoey", Girls.ZoeyId, m_AddGirlDatePhotos);
-        AddPhoto("ashley", Girls.AshleyId, m_AddGirlDatePhotos);
-        AddPhoto("lola", Girls.LolaId, m_AddGirlDatePhotos);
-        AddPhoto("lailani", Girls.LailaniId, m_AddGirlDatePhotos);
-        AddPhoto("suki", Girls.SarahId, m_AddGirlDatePhotos);
-        AddPhoto("brooke", Girls.BrookeId, m_AddGirlDatePhotos);
-        AddPhoto("jessie", Girls.JessieId, m_AddGirlDatePhotos);
-        AddPhoto("nora", Girls.NoraId, m_AddGirlDatePhotos);
-        AddPhoto("abia", Girls.AbiaId, m_AddGirlDatePhotos);
-        AddPhoto("lillian", Girls.LillianId, m_AddGirlDatePhotos);
-        AddPhoto("candy", Girls.CandaceId, m_AddGirlDatePhotos);
-        AddPhoto("polly", Girls.PollyId, m_AddGirlDatePhotos);
+        AddPhoto("zoey", Girls.Zoey, m_AddGirlDatePhotos);
+        AddPhoto("ashley", Girls.Ashley, m_AddGirlDatePhotos);
+        AddPhoto("lola", Girls.Lola, m_AddGirlDatePhotos);
+        AddPhoto("lailani", Girls.Lailani, m_AddGirlDatePhotos);
+        AddPhoto("suki", Girls.Sarah, m_AddGirlDatePhotos);
+        AddPhoto("brooke", Girls.Brooke, m_AddGirlDatePhotos);
+        AddPhoto("jessie", Girls.Jessie, m_AddGirlDatePhotos);
+        AddPhoto("nora", Girls.Nora, m_AddGirlDatePhotos);
+        AddPhoto("abia", Girls.Abia, m_AddGirlDatePhotos);
+        AddPhoto("lillian", Girls.Lillian, m_AddGirlDatePhotos);
+        AddPhoto("candy", Girls.Candace, m_AddGirlDatePhotos);
+        AddPhoto("polly", Girls.Polly, m_AddGirlDatePhotos);
 
         ModInterface.Events.RequestUnlockedPhotos += On_RequestUnlockedPhotos;
     }

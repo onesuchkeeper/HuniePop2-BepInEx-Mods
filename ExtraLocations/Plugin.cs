@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using BepInEx;
 using BepInEx.Configuration;
 using Hp2BaseMod;
@@ -13,6 +13,7 @@ namespace ExtraLocations;
 
 [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
 [BepInDependency("OSK.BepInEx.Hp2BaseMod", "1.0.0")]
+[BepInDependency("OSK.BepInEx.Hp2BaseModTweaks", BepInDependency.DependencyFlags.SoftDependency)]
 public class Plugin : BaseUnityPlugin
 {
     internal static readonly string ROOT_DIR = Path.Combine(Paths.PluginPath, MyPluginInfo.PLUGIN_NAME);
@@ -32,6 +33,18 @@ public class Plugin : BaseUnityPlugin
 
     private void Awake()
     {
+        if (ModInterface.TryGetInterModValue("OSK.BepInEx.Hp2BaseModTweaks", "AddModCredit",
+                out Action<string, IEnumerable<(string creditButtonPath, string creditButtonOverPath, string redirectLink)>> m_addModConfig))
+        {
+            m_addModConfig(Path.Combine(IMAGES_DIR, "CreditsLogo.png"), [
+                (
+                    Path.Combine(IMAGES_DIR, "onesuchKeeper_credits_dev.png"),
+                    Path.Combine(IMAGES_DIR, "onesuchKeeper_credits_dev_over.png"),
+                    "https://linktr.ee/onesuchkeeper"
+                )
+            ]);
+        }
+
         _configDac = Config.Bind(Hp2BaseModPlugin.CONFIG_GENERAL,
             "DigitalArtCollectionDir",
             Path.Combine(Paths.PluginPath, "..", "..", "Digital Art Collection"),
@@ -112,6 +125,7 @@ public class Plugin : BaseUnityPlugin
 
             ModInterface.AddDataMod(new LocationDataMod(Locations.HiddenWaterfall, InsertStyle.replace)
             {
+                DefaultStyle = Styles.Water,
                 LocationName = "Hidden Waterfall",
                 LocationType = LocationType.SIM,
                 BgMusic = new AudioKlipInfo()
@@ -153,6 +167,7 @@ public class Plugin : BaseUnityPlugin
         //others
         ModInterface.AddDataMod(new LocationDataMod(Locations.Volcano, InsertStyle.replace)
         {
+            DefaultStyle = Styles.Activity,
             LocationName = "Volcano",
             LocationType = LocationType.DATE,
             NonStopOptionText = "Kyu. The [[highlight]VOLCANO]. IT'S A VOLCANO KYU. FUCKING FUCKIN' IN A FUCKING VOLCANO.",
@@ -175,6 +190,7 @@ public class Plugin : BaseUnityPlugin
 
         ModInterface.AddDataMod(new LocationDataMod(Locations.HotelRoom, InsertStyle.replace)
         {
+            DefaultStyle = Styles.Relaxing,
             LocationName = "Hotel Room",
             LocationType = LocationType.DATE,
             NonStopOptionText = "I dunno, I guess [[highlight]HERE] is good.",
@@ -197,6 +213,7 @@ public class Plugin : BaseUnityPlugin
 
         ModInterface.AddDataMod(new LocationDataMod(Locations.OuterSpace, InsertStyle.replace)
         {
+            DefaultStyle = Styles.Activity,
             LocationName = "Space",
             LocationType = LocationType.DATE,
             NonStopOptionText = "Hey, is [[highlight]SPACE] on the table? How the hell did we get there anyways?",
@@ -226,6 +243,7 @@ public class Plugin : BaseUnityPlugin
 
         ModInterface.AddDataMod(new LocationDataMod(Locations.AirplaneBathroom, InsertStyle.replace)
         {
+            DefaultStyle = Styles.Activity,
             LocationName = "Airplane Bathroom",
             LocationType = LocationType.DATE,
             NonStopOptionText = "I think the [[highlight]AIRPLANE BATHROOM] may have awoken something in me... Not sure how I feel about that...",
@@ -256,6 +274,7 @@ public class Plugin : BaseUnityPlugin
         var airplaneCabinBg = new SpriteInfoInternal("loc_bg_special_airplanecabin_0");
         ModInterface.AddDataMod(new LocationDataMod(Locations.AirplaneCabin, InsertStyle.replace)
         {
+            DefaultStyle = Styles.Activity,
             LocationName = "Airplane Cabin",
             LocationType = LocationType.DATE,
             NonStopOptionText = "Something about the cramped quarters and needless expense of a date in an [[highlight]AIRPLANE CABIN] just gets me going.",
@@ -286,6 +305,7 @@ public class Plugin : BaseUnityPlugin
         var poolsideBg = new SpriteInfoInternal("loc_bg_special_poolside_0");
         ModInterface.AddDataMod(new LocationDataMod(Locations.Poolside, InsertStyle.replace)
         {
+            DefaultStyle = Styles.Water,
             LocationName = "Poolside",
             LocationType = LocationType.DATE,
             NonStopOptionText = "Maybe a trip to the [[highlight]POOLSIDE]?",
@@ -313,6 +333,7 @@ public class Plugin : BaseUnityPlugin
         var apartmentBg = new SpriteInfoInternal("loc_bg_special_apartment_0");
         ModInterface.AddDataMod(new LocationDataMod(Locations.Apartment, InsertStyle.replace)
         {
+            DefaultStyle = Styles.Romantic,
             LocationName = "Your Apartment",
             LocationType = LocationType.DATE,
             NonStopOptionText = "I'm starting to get a little homesick, with some fairy magic we could pop on over to [[highlight]MY APARTMENT] right?",
@@ -337,26 +358,5 @@ public class Plugin : BaseUnityPlugin
                 ClockDaytimeType.NIGHT
             }
         });
-
-        foreach (var girl in Hp2BaseMod.Girls.NormalGirls.Append(Hp2BaseMod.Girls.KyuId))
-        {
-            ModInterface.AddDataMod(new GirlDataMod(girl, Hp2BaseMod.Utility.InsertStyle.append)
-            {
-                bodies = new List<IGirlBodyDataMod>(){
-                    new GirlBodyDataMod(new RelativeId(-1,0), Hp2BaseMod.Utility.InsertStyle.append){
-                        LocationIdToStyleInfo = new Dictionary<RelativeId, GirlStyleInfo>(){
-                            {Locations.HiddenWaterfall, new GirlStyleInfo() { HairstyleId = Styles.Water, OutfitId = Styles.Water }},
-                            {Locations.Volcano, new GirlStyleInfo() { HairstyleId = Styles.Activity, OutfitId = Styles.Activity }},
-                            {Locations.HotelRoom, new GirlStyleInfo() { HairstyleId = Styles.Relaxing, OutfitId = Styles.Relaxing }},
-                            {Locations.OuterSpace, new GirlStyleInfo() { HairstyleId = Styles.Activity, OutfitId = Styles.Activity }},
-                            {Locations.AirplaneBathroom, new GirlStyleInfo() { HairstyleId = Styles.Activity, OutfitId = Styles.Activity }},
-                            {Locations.AirplaneCabin, new GirlStyleInfo() { HairstyleId = Styles.Activity, OutfitId = Styles.Activity }},
-                            {Locations.Poolside, new GirlStyleInfo() { HairstyleId = Styles.Water, OutfitId = Styles.Water }},
-                            {Locations.Apartment, new GirlStyleInfo() { HairstyleId = Styles.Sexy, OutfitId = Styles.Sexy }},
-                        }
-                    }
-                }
-            });
-        }
     }
 }

@@ -85,7 +85,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
             //If the initial girl is modded it is not handled properly, so default to lola
             //and repopulate afterwards
             _initialWardrobeGirlId = Game.Persistence.playerFile.GetFlagValue(Flags.WARDROBE_GIRL_ID);
-            Game.Persistence.playerFile.SetFlagValue(Flags.WARDROBE_GIRL_ID, Girls.AshleyId.LocalId);
+            Game.Persistence.playerFile.SetFlagValue(Flags.WARDROBE_GIRL_ID, Girls.Ashley.LocalId);
             _wardrobeApp.StartCoroutine(Start());
         }
 
@@ -332,8 +332,8 @@ namespace Hp2BaseModTweaks.CellphoneApps
 
             if (wardrobeGirlDef == null)
             {
-                wardrobeGirlId = ModInterface.Data.GetRuntimeDataId(GameDataType.Girl, Girls.AshleyId);
-                wardrobeGirlDef = ModInterface.GameData.GetGirl(Girls.AshleyId);
+                wardrobeGirlId = ModInterface.Data.GetRuntimeDataId(GameDataType.Girl, Girls.Ashley);
+                wardrobeGirlDef = ModInterface.GameData.GetGirl(Girls.Ashley);
                 Game.Persistence.playerFile.SetFlagValue(Flags.WARDROBE_GIRL_ID, wardrobeGirlId);
 
             }

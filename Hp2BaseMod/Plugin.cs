@@ -25,6 +25,7 @@ public class Plugin : BaseUnityPlugin
         {
             ModInterface.Init();
             ModInterface.Log.Message("Mod interface initialized");
+            ModInterface.Log.Message(DateTime.Now.ToString());
         }
         catch (Exception e)
         {
@@ -35,7 +36,7 @@ public class Plugin : BaseUnityPlugin
         try
         {
             // register defaults
-            using (ModInterface.Log.MakeIndent("Registering default data"))
+            using (ModInterface.Log.MakeIndent("Registering default data ids"))
             {
                 foreach (var ability in DefaultData.DefaultAbilityIds)
                 {

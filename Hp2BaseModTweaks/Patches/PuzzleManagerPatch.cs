@@ -25,19 +25,19 @@ internal static class PuzzleManager_OnRoundOver
             && status.bonusRound
             && Game.Persistence.playerFile.storyProgress >= 12)
         {
-            var moxieFile = GetPlayerFileGirl(Game.Persistence.playerFile, ModInterface.GameData.GetGirl(Girls.MoxieId));
+            var moxieFile = GetPlayerFileGirl(Game.Persistence.playerFile, ModInterface.GameData.GetGirl(Girls.Moxie));
             moxieFile.playerMet = true;
             moxieFile.UnlockOutfit(0);
             moxieFile.UnlockHairstyle(0);
             var unlocked = StyleUnlockUtility.UnlockRandomStyle(moxieFile, false);
 
-            var jewnFile = GetPlayerFileGirl(Game.Persistence.playerFile, ModInterface.GameData.GetGirl(Girls.JewnId));
+            var jewnFile = GetPlayerFileGirl(Game.Persistence.playerFile, ModInterface.GameData.GetGirl(Girls.Jewn));
             jewnFile.playerMet = true;
             jewnFile.UnlockOutfit(0);
             jewnFile.UnlockHairstyle(0);
             StyleUnlockUtility.UnlockRandomStyle(jewnFile, unlocked);
 
-            var kyuFile = GetPlayerFileGirl(Game.Persistence.playerFile, ModInterface.GameData.GetGirl(Girls.KyuId));
+            var kyuFile = GetPlayerFileGirl(Game.Persistence.playerFile, ModInterface.GameData.GetGirl(Girls.Kyu));
             kyuFile.playerMet = true;
             kyuFile.UnlockOutfit(1);
             kyuFile.UnlockHairstyle(1);

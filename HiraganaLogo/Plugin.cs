@@ -22,9 +22,14 @@ public class Plugin : BaseUnityPlugin
         {
             m_addModConfig(Path.Combine(IMAGES_DIR, "CreditsLogo.png"), [
                 (
-                        Path.Combine(IMAGES_DIR, "silverwoodwork_credits.png"),
-                        Path.Combine(IMAGES_DIR, "silverwoodwork_credits_over.png"),
+                        Path.Combine(IMAGES_DIR, "silverwoodwork_credits_art.png"),
+                        Path.Combine(IMAGES_DIR, "silverwoodwork_credits_art_over.png"),
                         "https://twitter.com/silverwoodwork"
+                ),
+                (
+                    Path.Combine(IMAGES_DIR, "onesuchKeeper_credits_dev.png"),
+                    Path.Combine(IMAGES_DIR, "onesuchKeeper_credits_dev_over.png"),
+                    "https://linktr.ee/onesuchkeeper"
                 )
             ]);
         }

@@ -18,7 +18,7 @@ internal static partial class Styles
         AddOutfit(modOutfits, "keyWest", "Key West", "lailani", _lailaniBodyX + 76, _lailaniBodyY - 249, false, false, false, true);
         AddOutfit(modOutfits, "topless", "Chest Puppies", "lailani", _lailaniBodyX + 101, _lailaniBodyY - 284, true, false, false, false);
 
-        ModInterface.AddDataMod(new GirlDataMod(Girls.LailaniId, InsertStyle.append)
+        ModInterface.AddDataMod(new GirlDataMod(Girls.Lailani, InsertStyle.append)
         {
             bodies = new List<IGirlBodyDataMod>()
             {

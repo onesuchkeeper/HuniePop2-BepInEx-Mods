@@ -27,15 +27,6 @@ public static class State
                 _save.SaveFiles.Add(saveFile);
             }
 
-            var save = _save.SaveFiles[Game.Persistence.loadedFileIndex];
-
-            //temp
-            foreach (var girlId in ModInterface.Data.GetIds(GameDataType.Girl))
-            {
-                var girlSave = save.GetGirl(girlId);
-                if (girlSave != null) girlSave.RelationshipLevel = Plugin.MaxSingleGirlRelationshipLevel.Value;
-            }
-
             return _save.SaveFiles[Game.Persistence.loadedFileIndex];
         }
     }

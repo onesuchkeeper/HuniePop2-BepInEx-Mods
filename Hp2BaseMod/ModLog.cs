@@ -37,6 +37,8 @@ namespace Hp2BaseMod
         /// </summary>
         private int _indent;
 
+        private List<string> _errors = new();
+
         /// <summary>
         /// loader log
         /// </summary>
@@ -81,6 +83,8 @@ namespace Hp2BaseMod
         /// <param name="message"></param>
         public void Error(string message)
         {
+            _errors.Add(message);
+
             var lines = message.Split([Environment.NewLine], StringSplitOptions.None);
             var tab = new string('-', Math.Max(1, (_indent * 2) - 5));
 
@@ -160,5 +164,14 @@ namespace Hp2BaseMod
         public void LogMissingIdError(string descriptor, RelativeId id) => LogMissingIdError(descriptor, id.LocalId, id.SourceId);
 
         public void LogMissingIdError(string descriptor, int localId, int SourceId) => Message($"{descriptor} with local id {localId} and mod id {SourceId}, but no mod with that id exists. Make sure you're obtaining your mod ids correctly by looking the mod up from the {nameof(ModInterface)}.");
+
+        public void DisplayErrors()
+        {
+            if (_errors.Any())
+            {
+                ErrorPopup.Show(string.Join("\n\n", _errors));
+                _errors.Clear();
+            }
+        }
     }
 }

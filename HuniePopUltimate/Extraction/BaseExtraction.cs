@@ -1,5 +1,6 @@
 using System;
 using AssetStudio.Extractor;
+using Hp2BaseMod;
 
 namespace HuniePopUltimate;
 

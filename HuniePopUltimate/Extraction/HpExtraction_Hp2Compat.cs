@@ -7,9 +7,9 @@ namespace HuniePopUltimate;
 
 public partial class HpExtraction
 {
-    public void AddHp2GirlLocMods()
+    public void AddHp2GirlMods()
     {
-        foreach (var girl in Hp2BaseMod.Girls.NormalGirls.Append(Hp2BaseMod.Girls.KyuId))
+        foreach (var girl in Hp2BaseMod.Girls.NormalGirls.Append(Hp2BaseMod.Girls.Kyu))
         {
             var body = new GirlBodyDataMod(new RelativeId(-1, 0), Hp2BaseMod.Utility.InsertStyle.append)
             {
@@ -30,7 +30,7 @@ public partial class HpExtraction
                 }
             };
 
-            if (girl == Hp2BaseMod.Girls.LolaId)
+            if (girl == Hp2BaseMod.Girls.Lola)
             {
                 body.LocationIdToStyleInfo[LocationIds.TennisCourts] = new GirlStyleInfo(Hp2BaseMod.Styles.Bonus2);
             }

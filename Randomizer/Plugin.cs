@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using BepInEx;
 using BepInEx.Configuration;
@@ -9,10 +10,14 @@ namespace Hp2Randomizer;
 
 [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
 [BepInDependency("OSK.BepInEx.Hp2BaseMod", "1.0.0")]
+[BepInDependency("OSK.BepInEx.Hp2BaseModTweaks", BepInDependency.DependencyFlags.SoftDependency)]
 [BepInDependency("OSK.BepInEx.SingleDate", BepInDependency.DependencyFlags.SoftDependency)]
 public partial class Plugin : Hp2BaseModPlugin
 {
     private const string GENERAL_CONFIG_CAT = "general";
+    private static readonly string TWEAKS_GUID = "OSK.BepInEx.Hp2BaseModTweaks";
+    public static readonly string ROOT_DIR = Path.Combine(Paths.PluginPath, MyPluginInfo.PLUGIN_NAME);
+    public static readonly string IMAGES_DIR = Path.Combine(ROOT_DIR, "images");
 
     public static ConfigEntry<int> Seed => _seed;
     private static ConfigEntry<int> _seed;
@@ -44,14 +49,26 @@ public partial class Plugin : Hp2BaseModPlugin
     public static ConfigEntry<bool> Disable => _disable;
     private static ConfigEntry<bool> _disable;
 
-    private Dictionary<RelativeId, Func<GirlDefinition, GirlDefinition, bool>> _swapHandlers = new();
+    private Dictionary<RelativeId, Action<GirlDefinition, GirlDefinition>> _swapHandlers = new();
     private static Plugin _instance;
     public Plugin() : base(MyPluginInfo.PLUGIN_GUID) { }
 
     protected override void Awake()
     {
-        base.Awake();
         _instance = this;
+        base.Awake();
+
+        if (ModInterface.TryGetInterModValue(TWEAKS_GUID, "AddModCredit",
+                out Action<string, IEnumerable<(string creditButtonPath, string creditButtonOverPath, string redirectLink)>> m_addModConfig))
+        {
+            m_addModConfig(Path.Combine(IMAGES_DIR, "CreditsLogo.png"), [
+                (
+                    Path.Combine(IMAGES_DIR, "onesuchKeeper_credits_dev.png"),
+                    Path.Combine(IMAGES_DIR, "onesuchKeeper_credits_dev_over.png"),
+                    "https://linktr.ee/onesuchkeeper"
+                )
+            ]);
+        }
 
         _seed = Config.Bind(GENERAL_CONFIG_CAT, nameof(Seed), -1, "Randomizer seed. Set to -1 for a new random seed.");
         _randomizeNames = Config.Bind(GENERAL_CONFIG_CAT, nameof(RandomizeNames), true, "If character names will be randomized.");
@@ -66,6 +83,18 @@ public partial class Plugin : Hp2BaseModPlugin
 
         ModInterface.AddCommand(new SetSeedCommand());
 
+
+        if (Plugin.IncludeKyu.Value)
+        {
+            _swapHandlers.Add(Girls.Kyu, (a, b) => RandomizeUtil.SwapKyu(a, b, SwappedSpecialKeepWings.Value));
+        }
+
+        if (Plugin.IncludeNymphojinn.Value)
+        {
+            _swapHandlers.Add(Girls.Moxie, (a, b) => RandomizeUtil.SwapNymphojinn(a, b, SwappedSpecialKeepWings.Value));
+            _swapHandlers.Add(Girls.Jewn, (a, b) => RandomizeUtil.SwapNymphojinn(a, b, SwappedSpecialKeepWings.Value));
+        }
+
         ModInterface.Events.PostDataMods += () => RandomizeUtil.Randomize(_swapHandlers.Select(x => (x.Key, x.Value)));
         ModInterface.Events.PreLoadPlayerFile += RandomizeUtil.CleanGirlStyles;
     }
@@ -76,6 +105,6 @@ public partial class Plugin : Hp2BaseModPlugin
     /// and swaps their properties
     /// </summary>
     [InteropMethod]
-    public static void SetSpecialCharacterSwapHandler(RelativeId specialGirlId, Func<GirlDefinition, GirlDefinition, bool> swapHandler)
+    public static void SetSpecialCharacterSwapHandler(RelativeId specialGirlId, Action<GirlDefinition, GirlDefinition> swapHandler)
         => _instance._swapHandlers[specialGirlId] = swapHandler;
 }

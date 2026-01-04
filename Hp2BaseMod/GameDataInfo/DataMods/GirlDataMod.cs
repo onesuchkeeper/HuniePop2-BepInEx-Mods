@@ -15,7 +15,7 @@ namespace Hp2BaseMod.GameDataInfo
     /// </summary>
     public class GirlDataMod : DataMod, IGirlDataMod
     {
-        public List<(RelativeId, List<IDialogLineDataMod>)> LinesByDialogTriggerId;
+        public Dictionary<RelativeId, List<IDialogLineDataMod>> LinesByDialogTriggerId;
 
         public Dictionary<RelativeId, IDialogLineDataMod> FavoriteDialogLines;
 
@@ -241,12 +241,12 @@ namespace Hp2BaseMod.GameDataInfo
 
             if (LinesByDialogTriggerId != null)
             {
-                foreach ((RelativeId dtId, var mods) in LinesByDialogTriggerId)
+                foreach (var dtId_mod in LinesByDialogTriggerId)
                 {
-                    var dt = gameDataProvider.GetDialogTrigger(dtId);
+                    var dt = gameDataProvider.GetDialogTrigger(dtId_mod.Key);
                     var dtExp = dt.Expansion();
 
-                    foreach (var mod in mods)
+                    foreach (var mod in dtId_mod.Value)
                     {
                         var line = dtExp.GetLineOrNew(dt, Id, mod.Id);
                         mod.SetData(line, gameDataProvider, assetProvider);
@@ -272,7 +272,7 @@ namespace Hp2BaseMod.GameDataInfo
             CellphoneMiniHead?.RequestInternals(assetProvider);
             CellphoneMiniHeadAlt?.RequestInternals(assetProvider);
 
-            LinesByDialogTriggerId?.SelectManyNN(x => x.Item2).ForEach(x => x.RequestInternals(assetProvider));
+            LinesByDialogTriggerId?.SelectManyNN(x => x.Value).ForEach(x => x.RequestInternals(assetProvider));
 
             bodies?.ForEach(x => x.RequestInternals(assetProvider));
         }

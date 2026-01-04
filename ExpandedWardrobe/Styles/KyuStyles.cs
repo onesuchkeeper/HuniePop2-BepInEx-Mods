@@ -32,7 +32,7 @@ internal static partial class Styles
 
         AddOutfit(modOutfits, "topless", "Big Breasts", "kyu", _kyuBodyX + 96, _kyuBodyY - 624, true, false, false, false);
 
-        ModInterface.AddDataMod(new GirlDataMod(Girls.KyuId, InsertStyle.append)
+        ModInterface.AddDataMod(new GirlDataMod(Girls.Kyu, InsertStyle.append)
         {
             bodies = new List<IGirlBodyDataMod>()
             {

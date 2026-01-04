@@ -18,7 +18,7 @@ internal static partial class Styles
 
         //Mammaries
 
-        ModInterface.AddDataMod(new GirlDataMod(Girls.AbiaId, InsertStyle.append)
+        ModInterface.AddDataMod(new GirlDataMod(Girls.Abia, InsertStyle.append)
         {
             bodies = new List<IGirlBodyDataMod>()
             {
