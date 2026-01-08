@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Linq;
 using Hp2BaseMod.GameDataInfo.Interface;
 using UnityEngine;

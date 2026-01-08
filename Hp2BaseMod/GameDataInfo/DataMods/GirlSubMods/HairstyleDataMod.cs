@@ -19,6 +19,7 @@ namespace Hp2BaseMod.GameDataInfo
         public bool? IsNSFW;
         public bool? IsCodeUnlocked;
         public bool? IsPurchased;
+        public bool? HideSpecial;
 
         public bool? TightlyPaired;
 

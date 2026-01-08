@@ -87,7 +87,7 @@ public partial class HpExtraction
             {LocationIds.BedRoomDate, new GirlStyleInfo(Hp2BaseMod.Styles.Sexy)},
 
             {Locations.MassageSpa, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
-            {Locations.Aquarium, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
+            {Locations.Aquarium, new GirlStyleInfo(Styles.KyuDisguise)},
             {Locations.SecludedCabana, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
             {Locations.PoolsideBar, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
             {Locations.GolfCourse, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)},

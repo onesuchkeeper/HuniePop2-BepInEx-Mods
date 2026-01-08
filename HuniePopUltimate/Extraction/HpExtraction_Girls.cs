@@ -400,14 +400,14 @@ public partial class HpExtraction
                                             case "disguise front hair":
                                                 if (TryMakePartDataMod(GirlPartType.FRONTHAIR, art.OfType<OrderedDictionary>().First(), spriteLookup, spriteTextureInfo, out var disguiseFrontHair, out _))
                                                 {
-                                                    kyuDisguise ??= new();
+                                                    kyuDisguise ??= MakeKyuDisguise();
                                                     kyuDisguise.FrontHairPart = disguiseFrontHair;
                                                 }
                                                 break;
                                             case "disguise back hair":
                                                 if (TryMakePartDataMod(GirlPartType.BACKHAIR, art.OfType<OrderedDictionary>().First(), spriteLookup, spriteTextureInfo, out var disguiseBackHair, out _))
                                                 {
-                                                    kyuDisguise ??= new();
+                                                    kyuDisguise ??= MakeKyuDisguise();
                                                     kyuDisguise.BackHairPart = disguiseBackHair;
                                                 }
                                                 break;
@@ -535,7 +535,7 @@ public partial class HpExtraction
                         Name = "Topless",
                         OutfitPart = pantiesPartMod,
                         IsCodeUnlocked = false,
-                        IsPurchased = false,
+                        IsPurchased = true,
                         IsNSFW = true,
                         HideNipples = true,
                     });
@@ -703,4 +703,6 @@ public partial class HpExtraction
             m_AddGirlDatePhotos?.Invoke(girlMod.Id, datePhotos.Select(x => (x, datePhotoIndex++ / 4f)));
         }
     }
+
+    private HairstyleDataMod MakeKyuDisguise() => new HairstyleDataMod(Styles.KyuDisguise, InsertStyle.append) { HideSpecial = true };
 }

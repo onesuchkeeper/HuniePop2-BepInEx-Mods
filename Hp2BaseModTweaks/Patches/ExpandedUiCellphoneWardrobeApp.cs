@@ -51,7 +51,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
         private static readonly FieldInfo f_wardrobeDoll = AccessTools.Field(typeof(UiCellphoneAppWardrobe), "_wardrobeDoll");
 
         private static readonly FieldInfo f_image = AccessTools.Field(typeof(ButtonBehavior), "_image");
-        private static readonly MethodInfo m_onListItemSelected = AccessTools.Method(typeof(UiCellphoneAppWardrobe), "OnListItemSelected");
+        private static readonly MethodInfo m_OnListItemSelected = AccessTools.Method(typeof(UiCellphoneAppWardrobe), "OnListItemSelected");
 
         private const int GIRLS_PER_PAGE = 12;
 
@@ -69,24 +69,35 @@ namespace Hp2BaseModTweaks.CellphoneApps
 
         private PlayerFileGirl[] _metGirls;
         private UiAppFileIconSlot _dummyFileIconSlot;
-        private UiAppFileIconSlot[] _subscribedSlots;
         private bool _started;
-        private UiCellphoneAppWardrobe _wardrobeApp;
+        private UiCellphoneAppWardrobe _core;
         private TweaksSaveGirl _girlSave;
         private int _initialWardrobeGirlId;
 
-        public ExpandedUiCellphoneWardrobeApp(UiCellphoneAppWardrobe wardrobeApp)
+        public ExpandedUiCellphoneWardrobeApp(UiCellphoneAppWardrobe core)
         {
-            _wardrobeApp = wardrobeApp ?? throw new ArgumentNullException(nameof(wardrobeApp));
+            _core = core ?? throw new ArgumentNullException(nameof(core));
         }
 
         public void PreStart()
         {
-            //If the initial girl is modded it is not handled properly, so default to lola
-            //and repopulate afterwards
+            // If the initial girl is modded it is not handled properly, so default to lola
+            // and repopulate afterwards
             _initialWardrobeGirlId = Game.Persistence.playerFile.GetFlagValue(Flags.WARDROBE_GIRL_ID);
             Game.Persistence.playerFile.SetFlagValue(Flags.WARDROBE_GIRL_ID, Girls.Ashley.LocalId);
-            _wardrobeApp.StartCoroutine(Start());
+
+            _metGirls = Game.Persistence.playerFile.girls.Where(x => x.playerMet).OrderBy(x => x.girlDefinition.id).ToArray();
+
+            _girlsPageMax = _metGirls.Length > 1
+                ? (_metGirls.Length - 1) / GIRLS_PER_PAGE
+                : 0;
+
+            foreach ((var slot, var girlFile) in _core.fileIconSlots.Zip(_metGirls, (slot, girlFile) => (slot, girlFile)))
+            {
+                slot.girlDefinition = girlFile.girlDefinition;
+            }
+
+            _core.StartCoroutine(Start());
         }
 
         private IEnumerator Start()
@@ -96,8 +107,8 @@ namespace Hp2BaseModTweaks.CellphoneApps
 
             Game.Persistence.playerFile.SetFlagValue(Flags.WARDROBE_GIRL_ID, _initialWardrobeGirlId);
             var playerFileGirl = Game.Persistence.playerFile.GetPlayerFileGirl(Game.Data.Girls.Get(_initialWardrobeGirlId));
-            _wardrobeApp.selectListHairstyle.Populate(playerFileGirl);
-            _wardrobeApp.selectListOutfit.Populate(playerFileGirl);
+            _core.selectListHairstyle.Populate(playerFileGirl);
+            _core.selectListOutfit.Populate(playerFileGirl);
 
             var dummySlot_go = new GameObject();
             var dummySlot_buttonBehavior = dummySlot_go.AddComponent<ButtonBehavior>();
@@ -105,13 +116,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
             f_image.SetValue(dummySlot_buttonBehavior, dummySlot_image);
             _dummyFileIconSlot = dummySlot_go.AddComponent<UiAppFileIconSlot>();
             _dummyFileIconSlot.button = dummySlot_buttonBehavior;
-            f_selectedFileIconSlot.SetValue(_wardrobeApp, _dummyFileIconSlot);
-
-            _metGirls = Game.Persistence.playerFile.girls.Where(x => x.playerMet).OrderBy(x => x.girlDefinition.id).ToArray();
-
-            _girlsPageMax = _metGirls.Length > 1
-                ? (_metGirls.Length - 1) / GIRLS_PER_PAGE
-                : 0;
+            f_selectedFileIconSlot.SetValue(_core, _dummyFileIconSlot);
 
             // girl selector
             var cellphoneButtonPressedKlip = new AudioKlip()
@@ -127,7 +132,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
                     ModInterface.Assets.GetInternalAsset<Sprite>(Common.Ui_AppSettingArrowLeftOver),
                     cellphoneButtonPressedKlip);
 
-                _girlsLeft.GameObject.transform.SetParent(_wardrobeApp.transform, false);
+                _girlsLeft.GameObject.transform.SetParent(_core.transform, false);
                 _girlsLeft.RectTransform.anchoredPosition = new Vector2(34, -34);
                 _girlsLeft.ButtonBehavior.ButtonPressedEvent += (e) =>
                 {
@@ -140,7 +145,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
                     ModInterface.Assets.GetInternalAsset<Sprite>(Common.Ui_AppSettingArrowRightOver),
                     cellphoneButtonPressedKlip);
 
-                _girlsRight.GameObject.transform.SetParent(_wardrobeApp.transform, false);
+                _girlsRight.GameObject.transform.SetParent(_core.transform, false);
                 _girlsRight.RectTransform.anchoredPosition = new Vector2(352, -34);
                 _girlsRight.ButtonBehavior.ButtonPressedEvent += (e) =>
                 {
@@ -148,7 +153,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
                     Refresh();
                 };
 
-                //go to correct page
+                // go to correct page
                 var index = 0;
 
                 foreach (var girl in _metGirls)
@@ -164,21 +169,20 @@ namespace Hp2BaseModTweaks.CellphoneApps
                 _girlsPageIndex = index / GIRLS_PER_PAGE;
             }
 
-            //shift other ui down a bit for the buttons to better fit
-            _wardrobeApp.transform.Find("FileIconSlotsContainer").GetComponent<RectTransform>().anchoredPosition -= new Vector2(0, 16);
-            var wearOnDatesCheckBox = _wardrobeApp.transform.Find("WearOnDatesCheckBox");
+            // shift other ui down a bit for the buttons to better fit
+            _core.transform.Find("FileIconSlotsContainer").GetComponent<RectTransform>().anchoredPosition -= new Vector2(0, 16);
+            var wearOnDatesCheckBox = _core.transform.Find("WearOnDatesCheckBox");
             wearOnDatesCheckBox.GetComponent<RectTransform>().anchoredPosition -= new Vector2(0, 16);
 
-            //right layout area
+            // right layout area
             var rightLayout_go = new GameObject();
             _rightLayout_rt = rightLayout_go.AddComponent<RectTransform>();
-            _rightLayout_rt.SetParent(_wardrobeApp.transform, false);
+            _rightLayout_rt.SetParent(_core.transform, false);
             _rightLayout_rt.pivot = new Vector2(0.5f, 0.5f);
             _rightLayout_rt.sizeDelta = new Vector2(666, 566);
             _rightLayout_rt.anchoredPosition = new Vector2(723, -283);
-            //rightLayout_go.AddComponent<Image>().color = Color.magenta;
 
-            //right column
+            // right column
             var rightColumn_go = new GameObject();
             var rightColumn_rt = rightColumn_go.AddComponent<RectTransform>();
             rightColumn_rt.SetParent(_rightLayout_rt, false);
@@ -200,19 +204,15 @@ namespace Hp2BaseModTweaks.CellphoneApps
             var rightColumn_Fitter = rightColumn_go.AddComponent<ContentSizeFitter>();
             rightColumn_Fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
             rightColumn_Fitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
-            //rightColumn_go.AddComponent<Image>().color = Color.blue;
 
             MakeStyleListContainer(rightColumn_rt);
             MakeRandomizeStyleUi(rightColumn_rt);
 
-            //only slots where the player has met the girlDef are subscribed to
-            _subscribedSlots = _wardrobeApp.fileIconSlots.Where(x => Game.Persistence.playerFile.GetPlayerFileGirl(x.girlDefinition).playerMet).ToArray();
+            // sub to expansions
+            ExpandedUiAppStyleSelectList.Get(_core.selectListOutfit).ListItemSelectedEvent += On_ListItemSelected;
+            ExpandedUiAppStyleSelectList.Get(_core.selectListHairstyle).ListItemSelectedEvent += On_ListItemSelected;
 
-            //sub to expansions
-            ExpandedUiAppStyleSelectList.Get(_wardrobeApp.selectListOutfit).ListItemSelectedEvent += On_ListItemSelected;
-            ExpandedUiAppStyleSelectList.Get(_wardrobeApp.selectListHairstyle).ListItemSelectedEvent += On_ListItemSelected;
-
-            //body selection ui
+            // body selection ui
             _bodySelector = UiCellphoneBodySelector.Create(wearOnDatesCheckBox.GetComponent<UiAppCheckBox>().valueLabel.font, cellphoneButtonPressedKlip);
             var bodySelectParent = Game.Session.gameCanvas.cellphoneContainer.Find("Cellphone");
             _bodySelector.transform.SetParent(bodySelectParent, false);
@@ -235,8 +235,8 @@ namespace Hp2BaseModTweaks.CellphoneApps
             _allowNsfwCheckBox = CreateCheckbox("NSFW Random Styles");
             _allowNsfwCheckBox.CheckBoxChangedEvent += On_AllowRandomNsfwStylesCheckBox_CheckBoxChangedEvent;
 
-            //I tried so many times to get some kind of dynamic ui working or even just a static GridLayoutGroup 
-            //but you have defeated me unity UI. You monster. I'mma just hard code it.
+            // I tried so many times to get some kind of dynamic ui working or even just a static GridLayoutGroup 
+            // but you have defeated me unity UI. You monster. I'mma just hard code it.
             var randomizeStyleContainer_go = new GameObject();
 
             var randomizeStyleContainer_rt = randomizeStyleContainer_go.AddComponent<RectTransform>();
@@ -258,9 +258,6 @@ namespace Hp2BaseModTweaks.CellphoneApps
 
             _allowNsfwCheckBox.rectTransform.SetParent(randomizeStyleContainer_rt, false);
             _allowNsfwCheckBox.rectTransform.anchoredPosition = new Vector2(-309, -20);
-
-            //test
-            //randomizeStyleContainer_go.AddComponent<Image>().color = Color.green;
         }
 
         private void MakeStyleListContainer(Transform parent)
@@ -285,16 +282,13 @@ namespace Hp2BaseModTweaks.CellphoneApps
             styleListLayout_Fitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
             styleListLayout_Fitter.verticalFit = ContentSizeFitter.FitMode.Unconstrained;
 
-            _wardrobeApp.selectListHairstyle.transform.SetParent(styleListLayout_GO.transform, false);
-            _wardrobeApp.selectListOutfit.transform.SetParent(styleListLayout_GO.transform, false);
-
-            //test
-            //styleListLayout_GO.AddComponent<Image>().color = Color.red;
+            _core.selectListHairstyle.transform.SetParent(styleListLayout_GO.transform, false);
+            _core.selectListOutfit.transform.SetParent(styleListLayout_GO.transform, false);
         }
 
         private UiAppCheckBox CreateCheckbox(string text)
         {
-            var checkbox = GameObject.Instantiate(_wardrobeApp.wearOnDatesCheckBox);
+            var checkbox = GameObject.Instantiate(_core.wearOnDatesCheckBox);
             checkbox.valueLabel.text = text;
             checkbox.Toggle(true);
 
@@ -313,13 +307,13 @@ namespace Hp2BaseModTweaks.CellphoneApps
             _unpairRandomizeStylesCheckBox.CheckBoxChangedEvent -= On_UnpairRandomizeStylesCheckBox_CheckBoxChangedEvent;
             _allowNsfwCheckBox.CheckBoxChangedEvent -= On_AllowRandomNsfwStylesCheckBox_CheckBoxChangedEvent;
 
-            ExpandedUiAppStyleSelectList.Get(_wardrobeApp.selectListOutfit).ListItemSelectedEvent -= On_ListItemSelected;
-            ExpandedUiAppStyleSelectList.Get(_wardrobeApp.selectListHairstyle).ListItemSelectedEvent -= On_ListItemSelected;
+            ExpandedUiAppStyleSelectList.Get(_core.selectListOutfit).ListItemSelectedEvent -= On_ListItemSelected;
+            ExpandedUiAppStyleSelectList.Get(_core.selectListHairstyle).ListItemSelectedEvent -= On_ListItemSelected;
 
             _bodySelector.BodyChanged -= On_BodySelector_BodyChanged;
             UnityEngine.Object.Destroy(_bodySelector.gameObject);
 
-            _expansions.Remove(_wardrobeApp);
+            _expansions.Remove(_core);
         }
 
         public void Refresh()
@@ -335,7 +329,6 @@ namespace Hp2BaseModTweaks.CellphoneApps
                 wardrobeGirlId = ModInterface.Data.GetRuntimeDataId(GameDataType.Girl, Girls.Ashley);
                 wardrobeGirlDef = ModInterface.GameData.GetGirl(Girls.Ashley);
                 Game.Persistence.playerFile.SetFlagValue(Flags.WARDROBE_GIRL_ID, wardrobeGirlId);
-
             }
             var playerFileGirl = Game.Persistence.playerFile.GetPlayerFileGirl(wardrobeGirlDef);
 
@@ -354,7 +347,9 @@ namespace Hp2BaseModTweaks.CellphoneApps
             var iconIndex = _girlsPageIndex * GIRLS_PER_PAGE;
             int renderedCount = 0;
 
-            foreach (var slot in _subscribedSlots.Take(GIRLS_PER_PAGE))
+            //_core.fileIconSlotsContainer.anchoredPosition = new Vector2(Mathf.Min(_metGirls.Length - 1, 2) * -60f, Mathf.Max(Mathf.CeilToInt(_metGirls.Length / 3f) - 1, 0) * 60f);
+
+            foreach (var slot in _core.fileIconSlots.Take(GIRLS_PER_PAGE))
             {
                 if (iconIndex < _metGirls.Length)
                 {
@@ -363,7 +358,6 @@ namespace Hp2BaseModTweaks.CellphoneApps
                     slot.Populate(false);
                     slot.canvasGroup.blocksRaycasts = true;
                     slot.canvasGroup.alpha = 1f;
-                    slot.rectTransform.anchoredPosition = new Vector2((renderedCount % 3) * 120f, Mathf.FloorToInt(renderedCount / 3f) * -120f);
 
                     if (slot.girlDefinition.id == wardrobeGirlId)
                     {
@@ -384,7 +378,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
                 }
             }
 
-            foreach (var slot in _subscribedSlots.Skip(GIRLS_PER_PAGE))
+            foreach (var slot in _core.fileIconSlots.Skip(GIRLS_PER_PAGE))
             {
                 slot.hideIfBlocked = true;
                 slot.girlDefinition = null;
@@ -395,14 +389,14 @@ namespace Hp2BaseModTweaks.CellphoneApps
             if (selectedFileIconSlot == null)
             {
                 _dummyFileIconSlot.girlDefinition = wardrobeGirlDef;
-                f_selectedFileIconSlot.SetValue(_wardrobeApp, _dummyFileIconSlot);
+                f_selectedFileIconSlot.SetValue(_core, _dummyFileIconSlot);
             }
             else
             {
-                f_selectedFileIconSlot.SetValue(_wardrobeApp, selectedFileIconSlot);
+                f_selectedFileIconSlot.SetValue(_core, selectedFileIconSlot);
             }
 
-            //buttons
+            // buttons
             if (_girlsPageMax > 0)
             {
                 if (_girlsPageIndex <= 0)
@@ -426,7 +420,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
                 }
             }
 
-            //toggles
+            // toggles
             var girlId = ModInterface.Data.GetDataId(GameDataType.Girl, wardrobeGirlId);
             _girlSave = Plugin.Save.GetCurrentFile().GetGirl(girlId);
             _randomizeStylesCheckBox.Populate(_girlSave.RandomizeStyles);
@@ -434,7 +428,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
             _allowNsfwCheckBox.Populate(_girlSave.AllowNsfwRandomStyles);
             UpdateStyleUi();
 
-            //body selector
+            // body selector
             _bodySelector.SetGirl(wardrobeGirlDef);
         }
 
@@ -473,17 +467,17 @@ namespace Hp2BaseModTweaks.CellphoneApps
         }
 
         private void On_ListItemSelected(UiAppStyleSelectList selectList, bool unlocked)
-            => m_onListItemSelected.Invoke(_wardrobeApp, [selectList, unlocked]);
+            => m_OnListItemSelected.Invoke(_core, [selectList, unlocked]);
 
         private void On_BodySelector_BodyChanged()
         {
-            var doll = f_wardrobeDoll.GetValue<UiDoll>(_wardrobeApp);
+            var doll = f_wardrobeDoll.GetValue<UiDoll>(_core);
             var playerFileGirl = Game.Persistence.playerFile.GetPlayerFileGirl(doll.girlDefinition);
-            f_wardrobeDoll.GetValue<UiDoll>(_wardrobeApp).LoadGirl(doll.girlDefinition);
+            f_wardrobeDoll.GetValue<UiDoll>(_core).LoadGirl(doll.girlDefinition);
 
-            _wardrobeApp.selectListHairstyle.Populate(playerFileGirl);
-            _wardrobeApp.selectListOutfit.Populate(playerFileGirl);
-            _wardrobeApp.wearOnDatesCheckBox.Populate(playerFileGirl.stylesOnDates);
+            _core.selectListHairstyle.Populate(playerFileGirl);
+            _core.selectListOutfit.Populate(playerFileGirl);
+            _core.wearOnDatesCheckBox.Populate(playerFileGirl.stylesOnDates);
 
             Refresh();
         }

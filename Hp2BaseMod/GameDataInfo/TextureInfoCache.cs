@@ -16,7 +16,7 @@ public class TextureInfoCache : ITextureInfo
 
     public TextureInfoCache(string path, ITextureInfo decorated, bool readOnly = true)
     {
-        //using to throw on invalid input
+        // using to throw on invalid input
         _path = Path.GetFullPath(path);
         _decorated = decorated ?? throw new ArgumentNullException(nameof(decorated));
         _readOnly = readOnly;

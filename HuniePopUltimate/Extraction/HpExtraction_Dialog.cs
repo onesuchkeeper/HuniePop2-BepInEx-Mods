@@ -279,13 +279,7 @@ public partial class HpExtraction
 
                         girlMod.LinesByDialogTriggerId ??= new();
 
-                        var lineMods = girlMod.LinesByDialogTriggerId.FirstOrDefault(x => x.Item1 == dtId).Item2;
-                        if (lineMods == null)
-                        {
-                            lineMods = new();
-                            girlMod.LinesByDialogTriggerId.Add((dtId, lineMods));
-                        }
-
+                        var lineMods = girlMod.LinesByDialogTriggerId.GetOrNew(dtId);
                         lineMods.Add(lineMod);
                     }
                     index++;

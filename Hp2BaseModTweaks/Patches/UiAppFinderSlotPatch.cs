@@ -1,6 +1,5 @@
 using System.Linq;
 using HarmonyLib;
-using Hp2BaseMod;
 using UnityEngine;
 
 [HarmonyPatch(typeof(UiAppFinderSlot))]

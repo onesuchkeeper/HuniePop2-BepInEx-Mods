@@ -19,8 +19,13 @@ namespace Hp2BaseModTweaks.CellphoneApps
     {
         [HarmonyPatch("Start")]
         [HarmonyPrefix]
-        public static void Start(UiCellphoneAppProfile __instance)
-            => ExpandedUiCellphoneProfileApp.Get(__instance).Start();
+        public static void PreStart(UiCellphoneAppProfile __instance)
+            => ExpandedUiCellphoneProfileApp.Get(__instance).PreStart();
+
+        [HarmonyPatch("Start")]
+        [HarmonyPostfix]
+        public static void PostStart(UiCellphoneAppProfile __instance)
+            => ExpandedUiCellphoneProfileApp.Get(__instance).PostStart();
 
         [HarmonyPatch("OnDestroy")]
         [HarmonyPrefix]
@@ -62,7 +67,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
             _profileApp = profileApp ?? throw new ArgumentNullException(nameof(profileApp));
         }
 
-        public void Start()
+        public void PreStart()
         {
             _profileApp.girlHeadIcon.preserveAspect = true;
 
@@ -222,9 +227,9 @@ namespace Hp2BaseModTweaks.CellphoneApps
             favoritesScroll_ScrollRect.elasticity = 0.15f;
 
             favoritesPanel_RectTransform.position -= new Vector3(0f, favoritesPanel_RectTransform.sizeDelta.y / 2);
-
-            Refresh();
         }
+
+        internal void PostStart() => Refresh();
 
         public void OnDestroy()
         {
@@ -242,17 +247,17 @@ namespace Hp2BaseModTweaks.CellphoneApps
                 ? (pairs.Length - 1) / _pairsPerPage
                 : 0;
 
-            //profile
+            // pairs
             var current = _currentPage * _pairsPerPage;
 
             foreach (var entry in _profileApp.pairSlots.Take(_pairsPerPage))
             {
                 if (current < pairs.Length)
                 {
-                    entry.Populate(pairs[current]);
                     entry.canvasGroup.alpha = 1f;
                     entry.canvasGroup.blocksRaycasts = true;
                     entry.button.Enable();
+                    entry.Populate(pairs[current]);
 
                     current++;
                 }
@@ -267,7 +272,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
                 entry.Populate(null, null);
             }
 
-            //buttons
+            // buttons
             if (_currentPage <= 0)
             {
                 _currentPage = 0;

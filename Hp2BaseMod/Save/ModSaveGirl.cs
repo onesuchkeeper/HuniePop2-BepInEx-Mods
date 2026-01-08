@@ -41,8 +41,8 @@ namespace Hp2BaseMod.Save
             StaminaFreeze = saveFileGirl.staminaFreeze;
             StyleOnDates = saveFileGirl.stylesOnDates;
 
-            //the active baggage index refers to the position in the learned baggage, which is kinda weird but whatever
-            //this needs to come before we strip the learnedBaggage
+            // the active baggage index refers to the position in the learned baggage, which is kinda weird but whatever
+            // this needs to come before we strip the learnedBaggage
             if (saveFileGirl.activeBaggageIndex >= 0 && saveFileGirl.learnedBaggage.Count > saveFileGirl.activeBaggageIndex)
             {
                 ActiveBaggage = ModInterface.Data.GetDataId(GameDataType.Ailment, saveFileGirl.learnedBaggage[saveFileGirl.activeBaggageIndex]);
@@ -51,12 +51,18 @@ namespace Hp2BaseMod.Save
             LearnedBaggage = new List<RelativeId>();
             foreach (var baggage in saveFileGirl.learnedBaggage)
             {
-                var id = ModInterface.Data.GetDataId(GameDataType.Ailment, baggage);
-                LearnedBaggage.Add(id);
+                if (ModInterface.Data.TryGetDataId(GameDataType.Ailment, baggage, out var id))
+                {
+                    LearnedBaggage.Add(id);
+                }
+                else
+                {
+                    ModInterface.Log.Warning($"Failed to get ailment for runtime {baggage}");
+                }
             }
             saveFileGirl.learnedBaggage = LearnedBaggage.Where(x => x.SourceId == -1).Select(x => x.LocalId).ToList();
 
-            //this needs to come after we strip the learned baggage so we don't default to any non-default baggage
+            // this needs to come after we strip the learned baggage so we don't default to any non-default baggage
             if (ActiveBaggage.HasValue && ActiveBaggage.Value.SourceId != -1)
             {
                 saveFileGirl.activeBaggageIndex = saveFileGirl.learnedBaggage.First();
@@ -85,32 +91,56 @@ namespace Hp2BaseMod.Save
             ReceivedUniques = new List<RelativeId>();
             foreach (var item in saveFileGirl.receivedUniques)
             {
-                var id = ModInterface.Data.GetDataId(GameDataType.Item, item);
-                ReceivedUniques.Add(id);
+                if (ModInterface.Data.TryGetDataId(GameDataType.Item, item, out var id))
+                {
+                    ReceivedUniques.Add(id);
+                }
+                else
+                {
+                    ModInterface.Log.Warning($"Failed to get unique item for runtime {item}");
+                }
             }
             saveFileGirl.receivedUniques = ReceivedUniques.Where(x => x.SourceId == -1).Select(x => x.LocalId).ToList();
 
             ReceivedShoes = new List<RelativeId>();
             foreach (var item in saveFileGirl.receivedShoes)
             {
-                var id = ModInterface.Data.GetDataId(GameDataType.Item, item);
-                ReceivedShoes.Add(id);
+                if (ModInterface.Data.TryGetDataId(GameDataType.Item, item, out var id))
+                {
+                    ReceivedShoes.Add(id);
+                }
+                else
+                {
+                    ModInterface.Log.Warning($"Failed to get shoe item for runtime {item}");
+                }
             }
             saveFileGirl.receivedShoes = ReceivedShoes.Where(x => x.SourceId == -1).Select(x => x.LocalId).ToList();
 
             LearnedFavs = new List<RelativeId>();
             foreach (var fav in saveFileGirl.learnedFavs)
             {
-                var id = ModInterface.Data.GetDataId(GameDataType.Question, fav);
-                LearnedFavs.Add(id);
+                if (ModInterface.Data.TryGetDataId(GameDataType.Question, fav, out var id))
+                {
+                    LearnedFavs.Add(id);
+                }
+                else
+                {
+                    ModInterface.Log.Warning($"Failed to get favorite for runtime {fav}");
+                }
             }
             saveFileGirl.learnedFavs = LearnedFavs.Where(x => x.SourceId == -1).Select(x => x.LocalId).ToList();
 
             RecentHerQuestions = new List<RelativeId>();
             foreach (var question in saveFileGirl.recentHerQuestions)
             {
-                var id = ModInterface.Data.GetDataId(GameDataType.Question, question);
-                RecentHerQuestions.Add(id);
+                if (ModInterface.Data.TryGetDataId(GameDataType.Question, question, out var id))
+                {
+                    RecentHerQuestions.Add(id);
+                }
+                else
+                {
+                    ModInterface.Log.Warning($"Failed to get question for runtime {question}");
+                }
             }
             saveFileGirl.recentHerQuestions = RecentHerQuestions.Where(x => x.SourceId == -1).Select(x => x.LocalId).ToList();
 
