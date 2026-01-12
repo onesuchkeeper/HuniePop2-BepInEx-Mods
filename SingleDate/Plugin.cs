@@ -124,6 +124,7 @@ internal partial class Plugin : Hp2BaseModPlugin
         ModInterface.Events.RequestUnlockedPhotos += ModEventHandles.On_RequestUnlockedPhotos;
         ModInterface.Events.PreDateDollReset += ModEventHandles.On_PreDateDollsRefresh;
         ModInterface.Events.FavQuestionResponse += ModEventHandles.On_TalkFavQuestionResponse;
+        ModInterface.Events.PreLocationArrive += ModEventHandles.On_PreLocationArrive;
 
         new Harmony(MyPluginInfo.PLUGIN_GUID).PatchAll();
     }

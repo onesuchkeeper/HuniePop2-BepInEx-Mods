@@ -62,32 +62,30 @@ public class ExpandedItemSlotBehavior
 
     public bool ShowTooltip()
     {
-        if (ModInterface.State.CellphoneOnLeft || _core.eastOnHub)
+        if (_core.showTooltip
+            && _core.eastOnHub
+            && ModInterface.State.CellphoneOnLeft)
         {
-            return true;
+            var itemDef = f_itemDefinition.GetValue<ItemDefinition>(_core);
+
+            if (itemDef != null)
+            {
+                var tooltip = f_tooltip.GetValue<UiTooltipItem>(_core);
+                tooltip.Populate(itemDef, CardinalDirection.EAST);
+                PreShowEvent?.Invoke();
+
+                tooltip.Show(_core.transform.position,
+                    MathUtils.DirectionToVector(CardinalDirection.EAST)
+                    * (f_offsetOverride.GetValue<bool>(_core)
+                        ? f_tooltipOffset.GetValue<int>(_core)
+                        : 20f),
+                    false);
+
+                return false;
+            }
         }
 
-        var itemDef = f_itemDefinition.GetValue<ItemDefinition>(_core);
-
-        if (!_core.showTooltip || itemDef == null)
-        {
-            return true;
-        }
-
-        var tooltip = f_tooltip.GetValue<UiTooltipItem>(_core);
-
-        tooltip.Populate(itemDef, CardinalDirection.EAST);
-
-        PreShowEvent?.Invoke();
-
-        tooltip.Show(_core.transform.position,
-            MathUtils.DirectionToVector(CardinalDirection.EAST)
-            * (f_offsetOverride.GetValue<bool>(_core)
-                ? f_tooltipOffset.GetValue<int>(_core)
-                : 20f),
-            false);
-
-        return false;
+        return true;
     }
 
     public void OnDestroy()

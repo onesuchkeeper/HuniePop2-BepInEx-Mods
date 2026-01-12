@@ -100,5 +100,8 @@ namespace Hp2BaseMod
 
         public event Action<StoreProductsPopulateArgs> PopulateStoreProducts;
         internal void NotifyPopulateStoreProducts(StoreProductsPopulateArgs args) => PopulateStoreProducts?.Invoke(args);
+
+        public event Action<LocationArriveArgs> PreLocationArrive;
+        internal void NotifyPreLocationArrive(LocationArriveArgs args) => PreLocationArrive?.Invoke(args);
     }
 }

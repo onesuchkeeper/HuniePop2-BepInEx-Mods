@@ -59,6 +59,7 @@ public static class State
 
     public static void On_LocationManger_Arrive(GirlPairDefinition pair)
     {
+        ModInterface.Log.Message("State isSingleDate init");
         _isSingleDate = IsSingle(pair);
         Game.Session.gameCanvas.dollLeft.dropZoneCanvasGroup.blocksRaycasts = !_isSingleDate;
         ModInterface.State.CellphoneOnLeft = _isSingleDate;

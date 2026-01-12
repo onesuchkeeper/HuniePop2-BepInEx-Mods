@@ -80,7 +80,6 @@ public class Plugin : Hp2BaseModPlugin
     public static bool HasSingleDate { get; internal set; }
     public static bool ThrewOutGoldfish { get; internal set; }
     public static bool GameStarted { get; internal set; }
-    public static RelativeId KyuSingleDateId { get; private set; }
 
     private static Plugin _instance;
 

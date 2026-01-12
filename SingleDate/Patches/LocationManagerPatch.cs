@@ -48,10 +48,8 @@ internal static class LocationManagerPatch
     LocationDefinition locationDef,
     GirlPairDefinition girlPairDef,
     bool sidesFlipped,
-    bool initialArrive = false)
+    bool initialArrive)
     {
-        State.On_LocationManger_Arrive(girlPairDef);
-
         if (State.IsSingleDate)
         {
             __instance.actionBubblesWindow = UiPrefabs.SingleDateBubbles;
@@ -62,31 +60,5 @@ internal static class LocationManagerPatch
             __instance.actionBubblesWindow = UiPrefabs.DefaultDateBubbles;
             __instance.cutsceneMeeting = _baseCutsceneMeeting;
         }
-    }
-
-    [HarmonyPatch(nameof(LocationManager.Arrive))]
-    [HarmonyPostfix]
-    public static void PostArrive(LocationManager __instance,
-    LocationDefinition locationDef,
-    GirlPairDefinition girlPairDef,
-    bool sidesFlipped,
-    bool initialArrive = false)
-    {
-        if (__instance.AtLocationType(LocationType.SPECIAL, LocationType.HUB)
-            || !State.IsSingleDate)
-        {
-            return;
-        }
-
-        if (Game.Session.gameCanvas.dollRight.girlDefinition != __instance.currentGirlPair.girlDefinitionTwo)
-        {
-            Game.Session.gameCanvas.dollRight.LoadGirl(__instance.currentGirlPair.girlDefinitionTwo);
-        }
-
-        Game.Session.gameCanvas.header.rectTransform.anchoredPosition = new Vector2(Game.Session.gameCanvas.header.xValues.y,
-            Game.Session.gameCanvas.header.rectTransform.anchoredPosition.y);
-
-        Game.Session.gameCanvas.cellphone.rectTransform.anchoredPosition = new Vector2(Game.Session.gameCanvas.cellphone.xValues.y,
-            Game.Session.gameCanvas.cellphone.rectTransform.anchoredPosition.y);
     }
 }

@@ -119,8 +119,17 @@ public static class ModInterface
     private static RangeSet<int> _idPool;
     private static Dictionary<int, string> _sourceId_GUID;
 
+    private static JsonSerializerSettings _jsonSettings;
+
     internal static void Init()
     {
+        _jsonSettings = new JsonSerializerSettings
+        {
+            NullValueHandling = NullValueHandling.Ignore
+        };
+
+        _jsonSettings.Converters.Add(new OptionalValueJsonConverter());
+
         _log = new ModLog("Hp2BaseMod");
 
         _data = new ModData();

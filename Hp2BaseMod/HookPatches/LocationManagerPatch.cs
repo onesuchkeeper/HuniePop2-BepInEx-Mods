@@ -16,6 +16,59 @@ internal static class LocationManagerPatch
     private static readonly FieldInfo f_currentSidesFlipped = AccessTools.Field(typeof(LocationManager), "_currentSidesFlipped");
     private static readonly FieldInfo f_currentLocation = AccessTools.Field(typeof(LocationManager), "_currentLocation");
 
+    [HarmonyPatch(nameof(LocationManager.Arrive))]
+    [HarmonyPrefix]
+    private static void PreArrive(LocationManager __instance,
+        ref LocationDefinition locationDef,
+        ref GirlPairDefinition girlPairDef,
+        ref bool sidesFlipped,
+        ref bool initialArrive)
+    {
+        //set here so the AtLocationType is working with the correct location
+        //if it changes it'll overwrite later on
+        f_currentLocation.SetValue(__instance, locationDef);
+
+        ModInterface.State.CellphoneOnLeft = __instance.AtLocationType(LocationType.HUB);
+
+        var args = new LocationArriveArgs()
+        {
+            locationDef = locationDef,
+            girlPairDef = girlPairDef,
+            sidesFlipped = sidesFlipped,
+            initialArrive = initialArrive,
+            cellphoneOnLeft = ModInterface.State.CellphoneOnLeft
+        };
+        ModInterface.Events.NotifyPreLocationArrive(args);
+
+        locationDef = args.locationDef;
+        girlPairDef = args.girlPairDef;
+        sidesFlipped = args.sidesFlipped;
+        initialArrive = args.initialArrive;
+        ModInterface.State.CellphoneOnLeft = args.cellphoneOnLeft;
+    }
+
+    [HarmonyPatch(nameof(LocationManager.Arrive))]
+    [HarmonyPostfix]
+    private static void PostArrive()
+    {
+        if (ModInterface.State.CellphoneOnLeft)
+        {
+            Game.Session.gameCanvas.header.rectTransform.anchoredPosition = new Vector2(Game.Session.gameCanvas.header.xValues.y,
+                Game.Session.gameCanvas.header.rectTransform.anchoredPosition.y);
+
+            Game.Session.gameCanvas.cellphone.rectTransform.anchoredPosition = new Vector2(Game.Session.gameCanvas.cellphone.xValues.y,
+                Game.Session.gameCanvas.cellphone.rectTransform.anchoredPosition.y);
+        }
+        else
+        {
+            Game.Session.gameCanvas.header.rectTransform.anchoredPosition = new Vector2(Game.Session.gameCanvas.header.xValues.x,
+                Game.Session.gameCanvas.header.rectTransform.anchoredPosition.y);
+
+            Game.Session.gameCanvas.cellphone.rectTransform.anchoredPosition = new Vector2(Game.Session.gameCanvas.cellphone.xValues.x,
+                Game.Session.gameCanvas.cellphone.rectTransform.anchoredPosition.y);
+        }
+    }
+
     [HarmonyPatch("OnLocationSettled")]
     [HarmonyPrefix]
     private static bool OnLocationSettled(LocationManager __instance)
@@ -85,7 +138,9 @@ internal static class LocationManagerPatch
 
             var args = ModInterface.Events.NotifyRequestStyleChange(Game.Session.Hub.hubGirlDefinition, currentLocation, 0.1f, hubStyle);
 
-            if (UnityEngine.Random.Range(0f, 1f) <= args.ApplyChance)
+            if (args.ApplyChance > 0f
+                && args.ApplyChance <= 100f
+                && UnityEngine.Random.Range(0f, 1f) <= args.ApplyChance)
             {
                 args.Style.Apply(Game.Session.gameCanvas.dollRight,
                     Game.Session.Hub.hubGirlDefinition.defaultOutfitIndex,

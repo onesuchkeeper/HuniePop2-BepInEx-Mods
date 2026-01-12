@@ -3,7 +3,6 @@ using BepInEx;
 using HarmonyLib;
 using Hp2BaseMod.Commands;
 using UnityEngine;
-using UnityEngine.Rendering;
 
 namespace Hp2BaseMod;
 
@@ -11,14 +10,6 @@ namespace Hp2BaseMod;
 [BepInProcess("HuniePop 2 - Double Date.exe")]
 public class Plugin : BaseUnityPlugin
 {
-    public static bool BlockPersistNotif { get; internal set; } = true;
-
-    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSplashScreen)]
-    private static void BeforeSplashScreen()
-    {
-        SplashScreen.Stop(SplashScreen.StopBehavior.StopImmediate);
-    }
-
     private void Awake()
     {
         try

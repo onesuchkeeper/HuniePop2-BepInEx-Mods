@@ -119,8 +119,8 @@ public class ExpandedGirlDefinition
     internal GirlExpressionSubDefinition GetOrNewExpression(GirlBodySubDefinition body, RelativeId expressionId)
         => body.Expressions.GetOrNew(ExpressionLookup[expressionId]);
 
-    public IdIndexMap OutfitLookup => _outfitLookup;
-    private IdIndexMap _outfitLookup = new();
+    public IdIndexMap OutfitLookup = new();
+    //private IdIndexMap _outfitLookup = new();
 
     /// <summary>
     /// Given an id, returns the associated outfit.
@@ -146,8 +146,8 @@ public class ExpandedGirlDefinition
 
     internal GirlOutfitSubDefinition GetOrNewOutfit(GirlBodySubDefinition body, RelativeId id) => body.Outfits.GetOrNew(OutfitLookup[id]);
 
-    public IdIndexMap HairstyleLookup => _hairstyleLookup;
-    private IdIndexMap _hairstyleLookup = new();
+    public IdIndexMap HairstyleLookup = new();
+    //private IdIndexMap _hairstyleLookup = new();
 
     /// <summary>
     /// Given an id, returns the associated hairstyle.

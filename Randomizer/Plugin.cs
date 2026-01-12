@@ -50,6 +50,7 @@ public partial class Plugin : Hp2BaseModPlugin
     private static ConfigEntry<bool> _disable;
 
     private Dictionary<RelativeId, Action<GirlDefinition, GirlDefinition>> _swapHandlers = new();
+
     private static Plugin _instance;
     public Plugin() : base(MyPluginInfo.PLUGIN_GUID) { }
 

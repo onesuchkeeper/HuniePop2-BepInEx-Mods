@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -291,6 +292,16 @@ internal static class ModEventHandles
         if (State.IsSingleDate)
         {
             args.OtherGirlResponds = false;
+        }
+    }
+
+    internal static void On_PreLocationArrive(LocationArriveArgs args)
+    {
+        State.On_LocationManger_Arrive(args.girlPairDef);
+
+        if (State.IsSingleDate)
+        {
+            args.cellphoneOnLeft = true;
         }
     }
 }

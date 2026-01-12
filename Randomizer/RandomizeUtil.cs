@@ -449,6 +449,9 @@ public static class RandomizeUtil
         ExpandedGirlDefinition otherExp)
     {
         SwapOrCopyRef(ref specialExp.Bodies, ref otherExp.Bodies);
+        SwapOrCopyRef(ref specialExp.OutfitLookup, ref otherExp.OutfitLookup);
+        SwapOrCopyRef(ref specialExp.HairstyleLookup, ref otherExp.HairstyleLookup);
+
         SwapOrCopyRef(ref special.cellphoneHead, ref other.cellphoneHead);
         SwapOrCopyRef(ref special.cellphoneHeadAlt, ref other.cellphoneHeadAlt);
         SwapOrCopyRef(ref special.cellphoneMiniHead, ref other.cellphoneMiniHead);

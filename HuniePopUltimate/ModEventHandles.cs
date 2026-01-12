@@ -212,25 +212,32 @@ public static class ModEventHandles
     {
         Plugin.GameStarted = true;
 
-        if (!Plugin.UnlockStyles.Value) return;
-
-        using (ModInterface.Log.MakeIndent())
+        if (Plugin.UnlockStyles.Value)
         {
-            foreach (var fileGirl in file.girls)
+            using (ModInterface.Log.MakeIndent())
             {
-                var girlId = ModInterface.Data.GetDataId(GameDataType.Girl, fileGirl.girlDefinition.id);
-                var expansion = ExpandedGirlDefinition.Get(girlId);
-
-                foreach (var outfitId in expansion.OutfitLookup.Ids.Where(x => x.SourceId == Plugin.ModId))
+                foreach (var fileGirl in file.girls)
                 {
-                    fileGirl.UnlockOutfit(expansion.OutfitLookup[outfitId]);
-                }
+                    var girlId = ModInterface.Data.GetDataId(GameDataType.Girl, fileGirl.girlDefinition.id);
+                    var expansion = ExpandedGirlDefinition.Get(girlId);
 
-                foreach (var hairstyleId in expansion.HairstyleLookup.Ids.Where(x => x.SourceId == Plugin.ModId))
-                {
-                    fileGirl.UnlockHairstyle(expansion.HairstyleLookup[hairstyleId]);
+                    foreach (var outfitId in expansion.OutfitLookup.Ids.Where(x => x.SourceId == Plugin.ModId))
+                    {
+                        fileGirl.UnlockOutfit(expansion.OutfitLookup[outfitId]);
+                    }
+
+                    foreach (var hairstyleId in expansion.HairstyleLookup.Ids.Where(x => x.SourceId == Plugin.ModId))
+                    {
+                        fileGirl.UnlockHairstyle(expansion.HairstyleLookup[hairstyleId]);
+                    }
                 }
             }
+        }
+
+        //temp
+        foreach (var girl in file.girls.Where(x => x.girlDefinition.ModId() == Girls.Venus))
+        {
+            girl.playerMet = false;
         }
     }
 }

@@ -45,8 +45,8 @@ internal class Plugin : BaseUnityPlugin
             ]);
         }
 
-        if (!ModInterface.TryGetInterModValue("OSK.BepInEx.SingleDate", "AddGirlDatePhotos",
-            out Action<RelativeId, IEnumerable<(RelativeId, float)>> m_AddGirlDatePhotos)) ModInterface.Log.Error("Failed TO GET SINGEL DATE INTEROP :O");
+        ModInterface.TryGetInterModValue("OSK.BepInEx.SingleDate", "AddGirlDatePhotos",
+            out Action<RelativeId, IEnumerable<(RelativeId, float)>> m_AddGirlDatePhotos);
 
         AddPhoto("zoey", Girls.Zoey, m_AddGirlDatePhotos);
         AddPhoto("ashley", Girls.Ashley, m_AddGirlDatePhotos);

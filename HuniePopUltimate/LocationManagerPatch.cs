@@ -28,6 +28,13 @@ public static class LocationManagerPatch
     {
         if (!Plugin.HasSingleDate) return true;
 
+        // ignore hub to hub transition (sleep) cuz I don't want to deal with it...
+        if (__instance.currentLocation.locationType == LocationType.HUB
+            && locationDef.locationType == LocationType.HUB)
+        {
+            return true;
+        }
+
         var nobodyDef = ModInterface.GameData.GetGirl(Plugin.SingleDateNobodyId);
         var kyuDef = ModInterface.GameData.GetGirl(Hp2BaseMod.Girls.Kyu);
         var momoDef = ModInterface.GameData.GetGirl(Girls.Momo);
@@ -100,8 +107,10 @@ public static class LocationManagerPatch
     {
         var pairId = girlPairDef?.ModId();
 
-        if (locationDef.locationType == LocationType.HUB
-            || (pairId.HasValue && pairId.Value == Plugin.KyuSingleDateId))
+        // I'm only doing when kyu is at a sim loc, not at the hub
+        // the hub is too coupled and messy and I don't wanna fix it
+        if (pairId.HasValue
+            && pairId.Value == Pairs.KyuSingleDate)
         {
             var venusDef = ModInterface.GameData.GetGirl(Girls.Venus);
             var venusSave = Game.Persistence.playerFile.GetPlayerFileGirl(venusDef);

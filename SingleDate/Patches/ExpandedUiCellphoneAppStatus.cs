@@ -56,11 +56,11 @@ internal class ExpandedUiCellphoneAppStatus
     private RelativeId _girlId;
     private RectTransform _charmTransform;
     private List<Sequence> _sequences = new List<Sequence>();
-    private UiCellphoneAppStatus _uiCellphoneAppStatus;
+    private UiCellphoneAppStatus _core;
 
     public ExpandedUiCellphoneAppStatus(UiCellphoneAppStatus uiCellphoneAppStatus)
     {
-        _uiCellphoneAppStatus = uiCellphoneAppStatus;
+        _core = uiCellphoneAppStatus;
     }
 
     public void Start()
@@ -70,7 +70,7 @@ internal class ExpandedUiCellphoneAppStatus
             return;
         }
 
-        _uiCellphoneAppStatus.StartCoroutine(BuildUi());
+        _core.StartCoroutine(BuildUi());
     }
 
     private IEnumerator BuildUi()
@@ -79,22 +79,22 @@ internal class ExpandedUiCellphoneAppStatus
         Canvas.ForceUpdateCanvases();
 
         // move right things more to the center
-        foreach (var left_right in _uiCellphoneAppStatus.baggageSlotsLeft
+        foreach (var left_right in _core.baggageSlotsLeft
             .Reverse()
-            .Zip(_uiCellphoneAppStatus.baggageSlotsRight, (x, y) => (x.GetComponent<RectTransform>(), y.GetComponent<RectTransform>())))
+            .Zip(_core.baggageSlotsRight, (x, y) => (x.GetComponent<RectTransform>(), y.GetComponent<RectTransform>())))
         {
             left_right.Item2.position = (left_right.Item1.position + left_right.Item2.position) / 2;
         }
 
         // Get RectTransforms for easier positioning
-        var canvasRect = _uiCellphoneAppStatus.GetComponent<RectTransform>();
-        var leftPortraitRect = _uiCellphoneAppStatus.statusPortraitLeft.GetComponent<RectTransform>();
-        var rightPortraitRect = _uiCellphoneAppStatus.statusPortraitRight.GetComponent<RectTransform>();
-        var relationshipSlotRect = _uiCellphoneAppStatus.relationshipSlot.GetComponent<RectTransform>();
+        var canvasRect = _core.GetComponent<RectTransform>();
+        var leftPortraitRect = _core.statusPortraitLeft.GetComponent<RectTransform>();
+        var rightPortraitRect = _core.statusPortraitRight.GetComponent<RectTransform>();
+        var relationshipSlotRect = _core.relationshipSlot.GetComponent<RectTransform>();
 
         // Align sentiment roller to passion roller
-        var sentimentRect = _uiCellphoneAppStatus.sentimentRollerRight.GetComponent<RectTransform>();
-        var passionRect = _uiCellphoneAppStatus.passionRollerLeft.GetComponent<RectTransform>();
+        var sentimentRect = _core.sentimentRollerRight.GetComponent<RectTransform>();
+        var passionRect = _core.passionRollerLeft.GetComponent<RectTransform>();
         sentimentRect.anchoredPosition = passionRect.anchoredPosition;
 
         // Remove left and relationship slot
@@ -103,8 +103,8 @@ internal class ExpandedUiCellphoneAppStatus
         // Hide stamina on dates
         if (Game.Session.Location.AtLocationType(LocationType.DATE))
         {
-            var staminaRect = _uiCellphoneAppStatus.staminaMeterRight.GetComponent<RectTransform>();
-            _uiCellphoneAppStatus.staminaMeterRight.transform.SetParent(null);
+            var staminaRect = _core.staminaMeterRight.GetComponent<RectTransform>();
+            _core.staminaMeterRight.transform.SetParent(null);
             rightPortraitRect.anchoredPosition -= new Vector2(staminaRect.sizeDelta.x / 2, 0);
         }
 
@@ -113,7 +113,7 @@ internal class ExpandedUiCellphoneAppStatus
         var charmBG_transform = charmBG_go.AddComponent<RectTransform>();
         var charmBG_image = charmBG_go.AddComponent<Image>();
 
-        var portraitImage = f_image.GetValue<Image>(_uiCellphoneAppStatus.statusPortraitRight.buttonBehavior);
+        var portraitImage = f_image.GetValue<Image>(_core.statusPortraitRight.buttonBehavior);
         charmBG_transform.sizeDelta = portraitImage.rectTransform.sizeDelta;
         charmBG_image.sprite = portraitImage.sprite;
 
@@ -144,21 +144,21 @@ internal class ExpandedUiCellphoneAppStatus
         if (Game.Session.Puzzle.puzzleStatus.bonusRound)
         {
             for (int i = 0; i < maxSingleGirlRelationshipLevel; i++)
-                MakeHeart(_uiCellphoneAppStatus.relationshipSlot.hornyIcon, i, radAllotment, _uiCellphoneAppStatus.relationshipSlot.pauseDefinition, leftPortraitRect);
+                MakeHeart(_core.relationshipSlot.hornyIcon, i, radAllotment, _core.relationshipSlot.pauseDefinition, leftPortraitRect);
         }
         else if (maxSingleGirlRelationshipLevel == saveGirl.RelationshipLevel)
         {
             for (int i = 0; i < maxSingleGirlRelationshipLevel; i++)
-                MakeHeart(_uiCellphoneAppStatus.relationshipSlot.relationshipIcons[3], i, radAllotment, _uiCellphoneAppStatus.relationshipSlot.pauseDefinition, leftPortraitRect);
+                MakeHeart(_core.relationshipSlot.relationshipIcons[3], i, radAllotment, _core.relationshipSlot.pauseDefinition, leftPortraitRect);
         }
         else
         {
             int i = 0;
             for (; i < maxSingleGirlRelationshipLevel - saveGirl.RelationshipLevel; i++)
-                MakeHeart(_uiCellphoneAppStatus.relationshipSlot.relationshipIcons[0], i, radAllotment, _uiCellphoneAppStatus.relationshipSlot.pauseDefinition, leftPortraitRect);
+                MakeHeart(_core.relationshipSlot.relationshipIcons[0], i, radAllotment, _core.relationshipSlot.pauseDefinition, leftPortraitRect);
 
             for (; i < maxSingleGirlRelationshipLevel; i++)
-                MakeHeart(_uiCellphoneAppStatus.relationshipSlot.relationshipIcons[2], i, radAllotment, _uiCellphoneAppStatus.relationshipSlot.pauseDefinition, leftPortraitRect);
+                MakeHeart(_core.relationshipSlot.relationshipIcons[2], i, radAllotment, _core.relationshipSlot.pauseDefinition, leftPortraitRect);
         }
 
         // Charm
@@ -174,9 +174,9 @@ internal class ExpandedUiCellphoneAppStatus
 
         MakeCharmSequence(null);
 
-        _uiCellphoneAppStatus.canvasGroupLeft.transform.SetParent(null);
-        _uiCellphoneAppStatus.statusPortraitLeft.transform.SetParent(null);
-        _uiCellphoneAppStatus.relationshipSlot.transform.SetParent(null);
+        _core.canvasGroupLeft.transform.SetParent(null);
+        _core.statusPortraitLeft.transform.SetParent(null);
+        _core.relationshipSlot.transform.SetParent(null);
     }
 
     private int _charmDir = 1;
@@ -298,7 +298,7 @@ internal class ExpandedUiCellphoneAppStatus
         sequence.Join(_charmTransform.DOScaleY(1f, 1.5f).SetEase(Ease.InOutElastic));
         sequence.AppendInterval(1f);
 
-        Game.Manager.Time.Play(sequence, _uiCellphoneAppStatus.relationshipSlot.pauseDefinition, 0f);
+        Game.Manager.Time.Play(sequence, _core.relationshipSlot.pauseDefinition, 0f);
     }
 
     public void OnDestroy()
@@ -308,7 +308,7 @@ internal class ExpandedUiCellphoneAppStatus
             Game.Manager.Time.KillTween(sequence, false, false);
         }
 
-        _expansions.Remove(_uiCellphoneAppStatus);
+        _expansions.Remove(_core);
     }
 
     private void MakeHeart(Sprite sprite, int index, float radAllotment, PauseDefinition pauseDefinition, RectTransform parentRect)
