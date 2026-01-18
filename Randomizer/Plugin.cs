@@ -77,7 +77,7 @@ public partial class Plugin : Hp2BaseModPlugin
         _randomizePairs = Config.Bind(GENERAL_CONFIG_CAT, nameof(RandomizePairs), true, "If character pairings will be randomized.");
         _randomizeAffection = Config.Bind(GENERAL_CONFIG_CAT, nameof(RandomizeAffection), true, "If character favorite and least favorite affection will be randomized.");
         _includeKyu = Config.Bind(GENERAL_CONFIG_CAT, nameof(IncludeKyu), true, "If Kyu should be included in the randomized characters.");
-        _includeNymphojinn = Config.Bind(GENERAL_CONFIG_CAT, nameof(IncludeKyu), true, "If the Nymphojinn should be included in the randomized characters.");
+        _includeNymphojinn = Config.Bind(GENERAL_CONFIG_CAT, nameof(IncludeNymphojinn), true, "If the Nymphojinn should be included in the randomized characters.");
         _forceNormalSpecialSwap = Config.Bind(GENERAL_CONFIG_CAT, nameof(ForceNormalSpecialSwap), true, "If special characters should always be swapped with a normal character.");
         _swappedSpecialKeepWings = Config.Bind(GENERAL_CONFIG_CAT, nameof(SwappedSpecialKeepWings), true, "If special characters should keep their wings when swapped.");
         _disable = Config.Bind(GENERAL_CONFIG_CAT, nameof(Disable), false, "Disables the randomizer entirely.");

@@ -1,5 +1,7 @@
 // Hp2BaseMod 2025, By OneSuchKeeper
 
+using System;
+
 namespace Hp2BaseMod;
 
 public static class DialogTriggers
@@ -61,4 +63,22 @@ public static class DialogTriggers
     public readonly static RelativeId FavQuestionIntro = new RelativeId(-1, 4);
     public readonly static RelativeId FavQuestionResponse = new RelativeId(-1, 5);
     public readonly static RelativeId FavQuestionAgreement = new RelativeId(-1, 6);
+
+    public static bool IsPool(RelativeId relativeId)
+    {
+        if (relativeId == Baggage1
+            || relativeId == Baggage2
+            || relativeId == Baggage3
+            || relativeId == SexClimax
+            || relativeId == SexClimax
+            || relativeId == HubWingCheck
+            || relativeId == HubNymphoPre
+            || relativeId == HubNymphoPost
+            || relativeId == HerQuestion)
+        {
+            return false;
+        }
+
+        return true;
+    }
 }

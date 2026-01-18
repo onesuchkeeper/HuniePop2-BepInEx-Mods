@@ -10,9 +10,6 @@ namespace Hp2Randomizer;
 
 public static class RandomizeUtil
 {
-    private static readonly FieldInfo f_hairstyleLookup = AccessTools.Field(typeof(ExpandedGirlDefinition), "_hairstyleLookup");
-    private static readonly FieldInfo f_outfitLookup = AccessTools.Field(typeof(ExpandedGirlDefinition), "_outfitLookup");
-    private static readonly FieldInfo f_expressionLookup = AccessTools.Field(typeof(ExpandedGirlDefinition), "_expressionLookup");
     private static readonly FieldInfo f_herQuestionIdToIndex = AccessTools.Field(typeof(ExpandedGirlDefinition), "_herQuestionIdToIndex");
     private static readonly FieldInfo f_herQuestionGoodResponseIdToIndex = AccessTools.Field(typeof(ExpandedGirlDefinition), "_herQuestionGoodResponseIdToIndex");
     private static readonly FieldInfo f_herQuestionBadResponseIdToIndex = AccessTools.Field(typeof(ExpandedGirlDefinition), "_herQuestionBadResponseIdToIndex");
@@ -135,6 +132,8 @@ public static class RandomizeUtil
 
             // Others
             ("Zone", null),
+            ("Jenny", null),
+            ("Bon Qui Qui", "Bon"),
         };
 
         var assignedNames = new Dictionary<GirlDefinition, (string name, string nickName)>();
@@ -415,6 +414,7 @@ public static class RandomizeUtil
 
         HandleSpecialCharDtSwap(ExpandedGirlDefinition.DialogTriggerIndexes[nymphojinnId], ExpandedGirlDefinition.DialogTriggerIndexes[otherId]);
         HandleSpecialCharFavQuestionSwap(nymphoExpansion, otherGirlExpansion);
+        HandleSpecialCharHerQuestionSwap(nymphojinnDef, nymphoExpansion, otherGirlDef, otherGirlExpansion);
         HandleSpecialCharUiSwap(nymphojinnDef, nymphoExpansion, otherGirlDef, otherGirlExpansion);
     }
 
@@ -439,6 +439,7 @@ public static class RandomizeUtil
 
         HandleSpecialCharDtSwap(ExpandedGirlDefinition.DialogTriggerIndexes[kyuId], ExpandedGirlDefinition.DialogTriggerIndexes[otherId]);
         HandleSpecialCharFavQuestionSwap(kyuExp, otherGirlExp);
+        HandleSpecialCharHerQuestionSwap(kyuDef, kyuExp, otherGirlDef, otherGirlExp);
         HandleSpecialCharUiSwap(kyuDef, kyuExp, otherGirlDef, otherGirlExp);
     }
 
@@ -473,16 +474,22 @@ public static class RandomizeUtil
             // copy the other girl's
             specialExp.FavQuestionIdToAnswerId = otherExp.FavQuestionIdToAnswerId;
         }
+        else
+        {
+            SwapOrCopyRef(ref specialExp.FavQuestionIdToAnswerId, ref otherExp.FavQuestionIdToAnswerId);
+        }
     }
 
-    public static void HandleSpecialCharHerQuestionSwap(ExpandedGirlDefinition specialExp, ExpandedGirlDefinition otherExp)
+    public static void HandleSpecialCharHerQuestionSwap(GirlDefinition special,
+        ExpandedGirlDefinition specialExp,
+        GirlDefinition other,
+        ExpandedGirlDefinition otherExp)
     {
-        if (!(specialExp.HerQuestionIdToIndex?.Ids.Any() ?? false))
-        {
-            f_herQuestionIdToIndex.SetValue(specialExp, otherExp.HerQuestionIdToIndex);
-            f_herQuestionGoodResponseIdToIndex.SetValue(specialExp, otherExp.HerQuestionGoodResponseIdToDtIndex);
-            f_herQuestionBadResponseIdToIndex.SetValue(specialExp, otherExp.HerQuestionBadResponseIdToDtIndex);
-        }
+        SwapOrCopyField(f_herQuestionIdToIndex, specialExp, otherExp);
+        SwapOrCopyField(f_herQuestionGoodResponseIdToIndex, specialExp, otherExp);
+        SwapOrCopyField(f_herQuestionBadResponseIdToIndex, specialExp, otherExp);
+
+        SwapOrCopyRef(ref special.herQuestions, ref other.herQuestions);
     }
 
     /// <summary>
@@ -493,8 +500,25 @@ public static class RandomizeUtil
     {
         foreach (var dt in Game.Data.DialogTriggers.GetAll())
         {
-            var specialLines = dt.dialogLineSets.GetOrNew(specialDtIndex).dialogLines;
-            var otherLines = dt.dialogLineSets.GetOrNew(otherDtIndex).dialogLines;
+            var specialSet = dt.dialogLineSets.GetOrNew(specialDtIndex);
+            var otherSet = dt.dialogLineSets.GetOrNew(otherDtIndex);
+
+            var specialLines = specialSet.dialogLines;
+            var otherLines = otherSet.dialogLines;
+
+            //some dt's are pools, others are indexed, there is no
+            //way to tell them apart cuz why would there be?
+            if (DialogTriggers.IsPool(ModInterface.Data.GetDataId(GameDataType.DialogTrigger, dt.id)))
+            {
+                if (!specialLines.Any()) dt.dialogLineSets[specialDtIndex] = otherSet;
+                else if (!otherLines.Any()) dt.dialogLineSets[otherDtIndex] = specialSet;
+                else
+                {
+                    dt.dialogLineSets[specialDtIndex] = otherSet;
+                    dt.dialogLineSets[otherDtIndex] = specialSet;
+                }
+                continue;
+            }
 
             // pad
             var maxCount = Math.Max(specialLines.Count, otherLines.Count);

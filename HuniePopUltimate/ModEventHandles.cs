@@ -234,10 +234,16 @@ public static class ModEventHandles
             }
         }
 
-        //temp
-        foreach (var girl in file.girls.Where(x => x.girlDefinition.ModId() == Girls.Venus))
+        // if the player has already met Lola from single date, then the meeting loop won't ever get started
+        // ideally I'd make a backup cutscene for this case, but I don't have voice acting...
+        // so just un-meet her I guess. She will keep her exp, you just gotta do her cutscene again
+        var nikkiSaveFile = file.girls.FirstOrDefault(x
+            => ModInterface.Data.GetDataId(GameDataType.Girl, x.girlDefinition.id) == Girls.Nikki);
+
+        if (nikkiSaveFile != null
+            && !nikkiSaveFile.playerMet)
         {
-            girl.playerMet = false;
+            file.metGirlPairs.Remove(ModInterface.GameData.GetGirlPair(Pairs.LolaSingleDate));
         }
     }
 }

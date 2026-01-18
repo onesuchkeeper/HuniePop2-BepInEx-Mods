@@ -21,13 +21,13 @@ public partial class HpExtraction
         {Girls.Aiko, [(Hp2BaseMod.Styles.Activity, Hp2BaseMod.Styles.Activity), (Hp2BaseMod.Styles.Activity, Hp2BaseMod.Styles.Activity)]},
         {Girls.Audrey, [(Hp2BaseMod.Styles.Activity, Hp2BaseMod.Styles.Activity), (Hp2BaseMod.Styles.Activity, Hp2BaseMod.Styles.Activity)]},
         {Girls.Beli, [(Hp2BaseMod.Styles.Water, Hp2BaseMod.Styles.Water), (Hp2BaseMod.Styles.Water, Hp2BaseMod.Styles.Water), (Hp2BaseMod.Styles.Activity, Hp2BaseMod.Styles.Activity)]},
-        {Girls.Celeste, []},
+        {Girls.Celeste, [(Hp2BaseMod.Styles.Activity, Hp2BaseMod.Styles.Activity)]},
         {Hp2BaseMod.Girls.Jessie, [(Hp2BaseMod.Styles.Activity, Hp2BaseMod.Styles.Activity), (Hp2BaseMod.Styles.Activity, Hp2BaseMod.Styles.Activity)]},
         {Girls.Kyanna, [(Hp2BaseMod.Styles.Activity, Hp2BaseMod.Styles.Activity), (Hp2BaseMod.Styles.Activity, Hp2BaseMod.Styles.Activity)]},
-        {Hp2BaseMod.Girls.Kyu, []},
+        {Hp2BaseMod.Girls.Kyu, [(Hp2BaseMod.Styles.Activity, Hp2BaseMod.Styles.Activity)]},
         {Hp2BaseMod.Girls.Lola, [(Hp2BaseMod.Styles.Activity, Hp2BaseMod.Styles.Activity), (Hp2BaseMod.Styles.Activity, Hp2BaseMod.Styles.Activity)]},
-        {Girls.Momo, []},
-        {Girls.Nikki, []},
+        {Girls.Momo, [(Hp2BaseMod.Styles.Activity, Hp2BaseMod.Styles.Activity)]},
+        {Girls.Nikki, [(Hp2BaseMod.Styles.Activity, Hp2BaseMod.Styles.Activity), (Hp2BaseMod.Styles.Activity, Hp2BaseMod.Styles.Activity), (Hp2BaseMod.Styles.Activity, Hp2BaseMod.Styles.Activity)]},
         {Girls.Tiffany, [(Hp2BaseMod.Styles.Activity, Hp2BaseMod.Styles.Activity), (Hp2BaseMod.Styles.Activity, Hp2BaseMod.Styles.Activity)]},
         {Girls.Venus, [(Hp2BaseMod.Styles.Activity, Hp2BaseMod.Styles.Activity)]},
     };
@@ -56,7 +56,7 @@ public partial class HpExtraction
                     {
                         //0-11 - date locations
                         //12 - bonus round loc (use for cutscene instead)
-                        for (int i = 0; i < 12; i++)// TODO map these properly to the locations
+                        for (int i = 0; i < 12; i++)
                         {
                             ExtractLocGreetingDialogLineSet(LocationIds.FromGreetingDtIndex(i), lineSets[i], file);
                         }
@@ -166,6 +166,8 @@ public partial class HpExtraction
                         //0 - big move
                         //1 - broken heart
                         ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.BigMove, lineSets[0], file);
+                        ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.StaminaRecovered, lineSets[0], file);
+                        ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.BrokenRecovered, lineSets[0], file);
                         ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.BrokenExhausted, lineSets[1], file);
                     }
                     break;
