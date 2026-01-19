@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Hp2BaseMod.Extension;
 using Hp2BaseMod.GameDataInfo;
 
 namespace Hp2BaseMod;
@@ -7,6 +8,9 @@ public static class LocationDefinition_Ext
 {
     public static ExpandedLocationDefinition Expansion(this LocationDefinition def)
         => ExpandedLocationDefinition.Get(def);
+
+    public static RelativeId ModId(this LocationDefinition def)
+        => ModInterface.Data.GetDataId(GameDataType.Location, def.id);
 }
 
 /// <summary>
@@ -25,21 +29,12 @@ public class ExpandedLocationDefinition
     public static ExpandedLocationDefinition Get(int runtimeId)
         => Get(ModInterface.Data.GetDataId(GameDataType.Location, runtimeId));
 
-    public static ExpandedLocationDefinition Get(RelativeId id)
-    {
-        if (!_expansions.TryGetValue(id, out var expansion))
-        {
-            expansion = new ExpandedLocationDefinition();
-            _expansions[id] = expansion;
-        }
-
-        return expansion;
-    }
+    public static ExpandedLocationDefinition Get(RelativeId id) => _expansions.GetOrNew(id);
 
     /// <summary>
-    /// Maps girl id to her style at the location.
+    /// Maps girl id to the greeting used at this location
     /// </summary>
-    public Dictionary<RelativeId, GirlStyleInfo> GirlIdToLocationStyleInfo = new Dictionary<RelativeId, GirlStyleInfo>();
+    public Dictionary<RelativeId, RelativeId> GirlIdToLocationGreetingLineId = new();
 
     /// <summary>
     /// Times when this location can be used
@@ -60,4 +55,19 @@ public class ExpandedLocationDefinition
     /// If this location is only available after defeating the nymphojinn
     /// </summary>
     public bool PostBoss;
+
+    /// <summary>
+    /// If the location can be used for a normal date at the current time with the current story progress
+    /// </summary>
+    public bool IsValidForNormalDate() => IsValidForNormalDate((ClockDaytimeType)(Game.Persistence.playerFile.daytimeElapsed % 4));
+
+    /// <summary>
+    /// If the location can be used for a normal date at the specified time with the current story progress
+    /// </summary>
+    public bool IsValidForNormalDate(ClockDaytimeType time)
+        => AllowNormal
+            && (!PostBoss || Game.Persistence.playerFile.storyProgress >= 12)
+            && DateTimes.Contains(time);
+
+    public RelativeId DefaultStyle;
 }

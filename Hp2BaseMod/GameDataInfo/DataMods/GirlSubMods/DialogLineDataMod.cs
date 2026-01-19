@@ -1,6 +1,5 @@
 ﻿// Hp2BaseMod 2021, By OneSuchKeeper
 
-using System;
 using System.Collections.Generic;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
@@ -11,7 +10,7 @@ namespace Hp2BaseMod.GameDataInfo
     /// <summary>
     /// Information to make a <see cref="DialogLine"/>.
     /// </summary>
-    public class DialogLineDataMod : DataMod, IGirlSubDataMod<DialogLine>
+    public class DialogLineDataMod : DataMod, IDialogLineDataMod
     {
         public string DialogText;
 
@@ -29,43 +28,30 @@ namespace Hp2BaseMod.GameDataInfo
 
         public List<DialogLineExpression> Expressions;
 
-        /// <inheritdoc/>
         public DialogLineDataMod() { }
 
-        internal DialogLineDataMod(DialogLine def, AssetProvider assetProvider, RelativeId id)
-        : base(id, InsertStyle.replace, 0)
+        public DialogLineDataMod(RelativeId id, InsertStyle insertStyle = InsertStyle.append, int priority = 0)
+        : base(id, insertStyle, priority)
         {
-            if (def == null) { throw new ArgumentNullException(nameof(def)); }
-            if (assetProvider == null) { throw new ArgumentNullException(nameof(assetProvider)); }
 
-            DialogText = def.dialogText;
-            Yuri = def.yuri;
-            YuriDialogText = def.yuriDialogText;
-            StartExpression = def.startExpression;
-            Expressions = def.expressions;
-            EndExpression = def.endExpression;
-
-            if (def.yuriAudioClip != null) { YuriAudioClipInfo = new AudioClipInfo(def.yuriAudioClip, assetProvider); }
-            if (def.audioClip != null) { AudioClipInfo = new AudioClipInfo(def.audioClip, assetProvider); }
         }
 
         /// <inheritdoc/>
-        public void SetData(ref DialogLine def, GameDefinitionProvider gameData, AssetProvider assetProvider, InsertStyle insertStyle, RelativeId girlId)
+        public void SetData(DialogLine def,
+            GameDefinitionProvider gameData,
+            AssetProvider assetProvider)
         {
-            if (def == null)
-            {
-                def = Activator.CreateInstance<DialogLine>();
-            }
+            if (def == null) { return; }
 
-            ValidatedSet.SetValue(ref def.dialogText, DialogText, insertStyle);
+            ValidatedSet.SetValue(ref def.dialogText, DialogText, InsertStyle);
             ValidatedSet.SetValue(ref def.yuri, Yuri);
-            ValidatedSet.SetValue(ref def.yuriDialogText, YuriDialogText, insertStyle);
-            ValidatedSet.SetValue(ref def.startExpression, StartExpression, insertStyle);
-            ValidatedSet.SetValue(ref def.expressions, Expressions, insertStyle);
-            ValidatedSet.SetValue(ref def.endExpression, EndExpression, insertStyle);
+            ValidatedSet.SetValue(ref def.yuriDialogText, YuriDialogText, InsertStyle);
+            ValidatedSet.SetValue(ref def.startExpression, StartExpression, InsertStyle);
+            ValidatedSet.SetValue(ref def.expressions, Expressions, InsertStyle);
+            ValidatedSet.SetValue(ref def.endExpression, EndExpression, InsertStyle);
 
-            ValidatedSet.SetValue(ref def.yuriAudioClip, YuriAudioClipInfo, insertStyle, gameData, assetProvider);
-            ValidatedSet.SetValue(ref def.audioClip, AudioClipInfo, insertStyle, gameData, assetProvider);
+            ValidatedSet.SetValue(ref def.yuriAudioClip, YuriAudioClipInfo, InsertStyle, gameData, assetProvider);
+            ValidatedSet.SetValue(ref def.audioClip, AudioClipInfo, InsertStyle, gameData, assetProvider);
         }
 
         /// <inheritdoc/>
@@ -74,5 +60,8 @@ namespace Hp2BaseMod.GameDataInfo
             YuriAudioClipInfo?.RequestInternals(assetProvider);
             AudioClipInfo?.RequestInternals(assetProvider);
         }
+
+        /// <inheritdoc/>
+        public IEnumerable<IBodySubDataMod<GirlPartSubDefinition>> GetPartDataMods() => null;
     }
 }

@@ -3,9 +3,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Hp2BaseMod.Extension;
 using Hp2BaseMod.Utility;
 using UnityEngine;
-using UnityEngine.U2D;
 
 namespace Hp2BaseMod
 {
@@ -14,6 +14,21 @@ namespace Hp2BaseMod
     /// </summary>
     public sealed class AssetProvider
     {
+        /// <summary>
+        /// The prefab for the photos window
+        /// </summary>
+        public UiWindow PhotosWindow;
+
+        /// <summary>
+        /// The prefab for the photos window
+        /// </summary>
+        public UiWindow KyuButtWindow;
+
+        /// <summary>
+        /// The prefab for the photos window
+        /// </summary>
+        public UiWindow ItemNotifierWindow;
+
         /// <summary>
         /// A sprite with 0 width and 0 height
         /// </summary>
@@ -60,19 +75,13 @@ namespace Hp2BaseMod
 
             if (_internalsScraped)
             {
-                ModInterface.Log.LogError("Internals have already been scraped for."
+                ModInterface.Log.Error("Internals have already been scraped for."
                     + $" Requests must take place on or before {nameof(ModEvents.PreDataMods)}."
                     + $" {type.Name} {name} will not be available via {nameof(AssetProvider)}.");
                 return;
             }
 
-            if (!_internalAssetRequests.TryGetValue(type, out var set))
-            {
-                set = new HashSet<string>();
-                _internalAssetRequests[type] = set;
-            }
-
-            set.Add(name);
+            _internalAssetRequests.GetOrNew(type).Add(name);
         }
 
         /// <summary>
@@ -99,18 +108,14 @@ namespace Hp2BaseMod
 
             if (_internalsScraped)
             {
-                ModInterface.Log.LogError("Internals have already been scraped for."
+                ModInterface.Log.Error("Internals have already been scraped for."
                     + $" Requests must take place on or before {nameof(ModEvents.PreDataMods)}."
                     + $" The following paths of type {type.Name} will not be available via {nameof(AssetProvider)}: "
                     + string.Join(", ", names));
                 return;
             }
 
-            if (!_internalAssetRequests.TryGetValue(type, out var set))
-            {
-                set = new HashSet<string>();
-                _internalAssetRequests[type] = set;
-            }
+            var set = _internalAssetRequests.GetOrNew(type);
 
             foreach (var name in names)
             {
@@ -136,11 +141,7 @@ namespace Hp2BaseMod
 
             foreach (var type_paths in _internalAssetRequests)
             {
-                if (!_assets.TryGetValue(type_paths.Key, out var assets))
-                {
-                    assets = new Dictionary<string, UnityEngine.Object>();
-                    _assets[type_paths.Key] = assets;
-                }
+                var assets = _assets.GetOrNew(type_paths.Key);
 
                 foreach (var key in assets.Keys)
                 {
@@ -161,7 +162,7 @@ namespace Hp2BaseMod
             {
                 foreach (var path in type_paths.Value)
                 {
-                    ModInterface.Log.LogWarning($"Unable to find internal {type_paths.Key.Name}: {path}");
+                    ModInterface.Log.Warning($"Unable to find internal {type_paths.Key.Name}: {path}");
                 }
             }
         }
@@ -173,14 +174,7 @@ namespace Hp2BaseMod
         internal void AddAsset(Type type, string identifier, UnityEngine.Object asset)
         {
             if (string.IsNullOrWhiteSpace(identifier)) { return; }
-
-            if (!_assets.TryGetValue(type, out var assets))
-            {
-                assets = new Dictionary<string, UnityEngine.Object>();
-                _assets[type] = assets;
-            }
-
-            assets[identifier] = asset;
+            _assets.GetOrNew(type)[identifier] = asset;
         }
 
         #endregion
@@ -218,7 +212,7 @@ namespace Hp2BaseMod
                 return asset;
             }
 
-            ModInterface.Log.LogWarning($"Unable to find internal Asset of type {type.Name} with identifier {identifier} - returning null");
+            ModInterface.Log.Warning($"Unable to find internal Asset of type {type.Name} with identifier {identifier} - returning null");
             return null;
         }
 
@@ -354,7 +348,7 @@ namespace Hp2BaseMod
             foreach (var type_assets in _assets)
             {
                 var filePath = Path.Combine(folderPath, $"{type_assets.Key.Name}.csv");
-                ModInterface.Log.LogInfo($"Dev: Saving asset file {filePath}");
+                ModInterface.Log.Message($"Dev: Saving asset file {filePath}");
                 File.WriteAllText(filePath, $"\"{string.Join("\",\"", type_assets.Value.Keys)}\"");
             }
         }

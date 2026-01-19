@@ -35,4 +35,9 @@ public class DateLocationSelectedArgs : EventArgs
     /// Stamina received for the right girl for initiating the date.
     /// </summary>
     public int RightStaminaGain;
+
+    /// <summary>
+    /// If the date should not be allowed to occur.
+    /// </summary>
+    public bool DenyDate;
 }

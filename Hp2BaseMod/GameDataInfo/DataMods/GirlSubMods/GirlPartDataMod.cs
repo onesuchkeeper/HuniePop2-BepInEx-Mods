@@ -1,7 +1,9 @@
 ﻿// Hp2BaseMod 2021, By OneSuchKeeper
 
 using System;
+using System.Collections.Generic;
 using Hp2BaseMod.GameDataInfo.Interface;
+using Hp2BaseMod.ModGameData;
 using Hp2BaseMod.Utility;
 using UnityEngine;
 
@@ -10,7 +12,7 @@ namespace Hp2BaseMod.GameDataInfo
     /// <summary>
     /// Information to make a <see cref="GirlPartSubDefinition"/>.
     /// </summary>
-    public class GirlPartDataMod : DataMod, IGirlSubDataMod<GirlPartSubDefinition>
+    public class GirlPartDataMod : DataMod, IBodySubDataMod<GirlPartSubDefinition>
     {
         public GirlPartType? PartType;
 
@@ -20,9 +22,9 @@ namespace Hp2BaseMod.GameDataInfo
 
         public int? Y;
 
-        public RelativeId? MirroredPartId;
+        public IBodySubDataMod<GirlPartSubDefinition> MirroredPart;
 
-        public RelativeId? AltPartId;
+        public IBodySubDataMod<GirlPartSubDefinition> AltPart;
 
         public IGameDefinitionInfo<Sprite> SpriteInfo;
 
@@ -35,7 +37,7 @@ namespace Hp2BaseMod.GameDataInfo
         }
 
         internal GirlPartDataMod(int index, AssetProvider assetProvider, GirlDefinition girlDef)
-            : base(new RelativeId() { SourceId = -1, LocalId = index }, InsertStyle.replace, 0)
+            : base(new RelativeId(-1, index), InsertStyle.replace, 0)
         {
             var partDef = girlDef.parts[index];
 
@@ -44,13 +46,20 @@ namespace Hp2BaseMod.GameDataInfo
             X = partDef.x;
             Y = partDef.y;
 
-            MirroredPartId = new RelativeId(-1, partDef.mirroredPartIndex);
-            AltPartId = new RelativeId(-1, partDef.altPartIndex);
+            if (partDef.mirroredPartIndex != -1)
+            {
+                MirroredPart = new GirlPartDataMod(partDef.mirroredPartIndex, assetProvider, girlDef);
+            }
+
+            if (partDef.altPartIndex != -1)
+            {
+                AltPart = new GirlPartDataMod(partDef.altPartIndex, assetProvider, girlDef);
+            }
 
             // Special handling, prefixes id because all the part sprites of one type have the same name
             if (partDef.sprite != null)
             {
-                var path = girlDef.id.ToString() + "_" + partDef.sprite.name;
+                var path = $"{girlDef.id}_{partDef.sprite.name}";
                 SpriteInfo = new SpriteInfoInternal(path);
 
                 assetProvider.AddAsset(typeof(Sprite), path, partDef.sprite);
@@ -58,34 +67,38 @@ namespace Hp2BaseMod.GameDataInfo
         }
 
         /// <inheritdoc/>
-        public void SetData(ref GirlPartSubDefinition def,
+        public void SetData(GirlPartSubDefinition def,
                             GameDefinitionProvider gameDataProvider,
                             AssetProvider assetProvider,
-                            InsertStyle insertStyle,
-                            RelativeId girlId)
+                            RelativeId girlId,
+                            GirlBodySubDefinition bodyDef)
         {
-            if (def == null)
-            {
-                def = Activator.CreateInstance<GirlPartSubDefinition>();
-            }
-
-            var girlExpansion = ExpandedGirlDefinition.Get(girlId);
+            if (def == null) throw new ArgumentNullException(nameof(def));
+            if (bodyDef == null) throw new ArgumentNullException(nameof(bodyDef));
 
             ValidatedSet.SetValue(ref def.partType, PartType);
-            ValidatedSet.SetValue(ref def.partName, PartName, insertStyle);
+            ValidatedSet.SetValue(ref def.partName, PartName, InsertStyle);
             ValidatedSet.SetValue(ref def.x, X);
             ValidatedSet.SetValue(ref def.y, Y);
 
-            ValidatedSet.SetValue(ref def.mirroredPartIndex, girlExpansion.PartIdToIndex, MirroredPartId);
-            ValidatedSet.SetValue(ref def.altPartIndex, girlExpansion.PartIdToIndex, AltPartId);
+            ValidatedSet.SetValue(ref def.mirroredPartIndex, bodyDef.PartLookup, MirroredPart?.Id);
+            ValidatedSet.SetValue(ref def.altPartIndex, bodyDef.PartLookup, AltPart?.Id);
 
-            ValidatedSet.SetValue(ref def.sprite, SpriteInfo, insertStyle, gameDataProvider, assetProvider);
+            ValidatedSet.SetValue(ref def.sprite, SpriteInfo, InsertStyle, gameDataProvider, assetProvider);
         }
 
         /// <inheritdoc/>
         public void RequestInternals(AssetProvider assetProvider)
         {
             SpriteInfo?.RequestInternals(assetProvider);
+            MirroredPart?.RequestInternals(assetProvider);
+            AltPart?.RequestInternals(assetProvider);
+        }
+
+        public IEnumerable<IBodySubDataMod<GirlPartSubDefinition>> GetPartDataMods()
+        {
+            yield return MirroredPart;
+            yield return AltPart;
         }
     }
 }

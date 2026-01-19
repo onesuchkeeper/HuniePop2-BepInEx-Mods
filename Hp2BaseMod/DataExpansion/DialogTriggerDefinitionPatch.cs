@@ -1,12 +1,13 @@
 ﻿// Hp2BaseMod 2025, By OneSuchKeeper
 
 using System;
+using System.Linq;
 using HarmonyLib;
 
 namespace Hp2BaseMod.EnumExpansion
 {
     /// <summary>
-    /// overrides getting line sets to use relative ids
+    /// Overrides getting line sets to use relative ids
     /// </summary>
     [HarmonyPatch(typeof(DialogTriggerDefinition))]
     internal class DialogTriggerDefinitionPatch
@@ -19,9 +20,9 @@ namespace Hp2BaseMod.EnumExpansion
             {
                 var girlExpansion = ExpandedGirlDefinition.Get(girlDef);
 
-                var set = __instance.dialogLineSets[girlExpansion.DialogTriggerIndex];
+                var set = __instance.dialogLineSets[ExpandedGirlDefinition.DialogTriggerIndexes[ModInterface.Data.GetDataId(GameDataType.Girl, girlDef.id)]];
 
-                if (set.dialogLines.Count > 0)
+                if (set.dialogLines.Any(x => x != null))
                 {
                     __result = set;
                 }
@@ -38,7 +39,7 @@ namespace Hp2BaseMod.EnumExpansion
             }
             catch (Exception e)
             {
-                ModInterface.Log.LogError($"Getting line sets for girl {girlDef.id} - {girlDef.name},", e);
+                ModInterface.Log.Error($"Getting line sets for girl {girlDef.id} - {girlDef.name},", e);
             }
 
             return true;

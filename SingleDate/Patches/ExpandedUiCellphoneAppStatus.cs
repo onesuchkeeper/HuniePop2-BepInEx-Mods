@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -50,16 +51,16 @@ internal class ExpandedUiCellphoneAppStatus
         return expansion;
     }
 
-    private static readonly FieldInfo _image = AccessTools.Field(typeof(ButtonBehavior), "_image");
+    private static readonly FieldInfo f_image = AccessTools.Field(typeof(ButtonBehavior), "_image");
 
     private RelativeId _girlId;
     private RectTransform _charmTransform;
     private List<Sequence> _sequences = new List<Sequence>();
-    private UiCellphoneAppStatus _uiCellphoneAppPair;
+    private UiCellphoneAppStatus _core;
 
-    public ExpandedUiCellphoneAppStatus(UiCellphoneAppStatus uiCellphoneAppPair)
+    public ExpandedUiCellphoneAppStatus(UiCellphoneAppStatus uiCellphoneAppStatus)
     {
-        _uiCellphoneAppPair = uiCellphoneAppPair;
+        _core = uiCellphoneAppStatus;
     }
 
     public void Start()
@@ -69,93 +70,113 @@ internal class ExpandedUiCellphoneAppStatus
             return;
         }
 
-        //move right things more to the center
-        foreach (var left_right in _uiCellphoneAppPair.baggageSlotsLeft.Reverse().Zip(_uiCellphoneAppPair.baggageSlotsRight, (x, y) => (x, y)))
+        _core.StartCoroutine(BuildUi());
+    }
+
+    private IEnumerator BuildUi()
+    {
+        yield return new WaitForEndOfFrame();
+        Canvas.ForceUpdateCanvases();
+
+        // move right things more to the center
+        foreach (var left_right in _core.baggageSlotsLeft
+            .Reverse()
+            .Zip(_core.baggageSlotsRight, (x, y) => (x.GetComponent<RectTransform>(), y.GetComponent<RectTransform>())))
         {
-            left_right.y.transform.position = (left_right.x.transform.position + left_right.y.transform.position) / 2;
+            left_right.Item2.position = (left_right.Item1.position + left_right.Item2.position) / 2;
         }
 
-        _uiCellphoneAppPair.sentimentRollerRight.transform.position = _uiCellphoneAppPair.passionRollerLeft.transform.position;
+        // Get RectTransforms for easier positioning
+        var canvasRect = _core.GetComponent<RectTransform>();
+        var leftPortraitRect = _core.statusPortraitLeft.GetComponent<RectTransform>();
+        var rightPortraitRect = _core.statusPortraitRight.GetComponent<RectTransform>();
+        var relationshipSlotRect = _core.relationshipSlot.GetComponent<RectTransform>();
 
-        //remove left and relationship slot
+        // Align sentiment roller to passion roller
+        var sentimentRect = _core.sentimentRollerRight.GetComponent<RectTransform>();
+        var passionRect = _core.passionRollerLeft.GetComponent<RectTransform>();
+        sentimentRect.anchoredPosition = passionRect.anchoredPosition;
+
+        // Remove left and relationship slot
         _girlId = ModInterface.Data.GetDataId(GameDataType.Girl, Game.Session.Puzzle.puzzleStatus.girlStatusRight.girlDefinition.id);
 
-        _uiCellphoneAppPair.canvasGroupLeft.transform.SetParent(null);
-        _uiCellphoneAppPair.statusPortraitLeft.transform.SetParent(null);
-
-        _uiCellphoneAppPair.relationshipSlot.transform.SetParent(null);
-
-        //hide stamina on dates
+        // Hide stamina on dates
         if (Game.Session.Location.AtLocationType(LocationType.DATE))
         {
-            _uiCellphoneAppPair.staminaMeterRight.transform.SetParent(null);
-
-            var staminaRectTransform = _uiCellphoneAppPair.staminaMeterRight.GetComponent<RectTransform>();
-            _uiCellphoneAppPair.statusPortraitRight.transform.position = new Vector3(
-                _uiCellphoneAppPair.statusPortraitRight.transform.position.x - (staminaRectTransform.sizeDelta.x / 2),
-                _uiCellphoneAppPair.statusPortraitRight.transform.position.y,
-                _uiCellphoneAppPair.statusPortraitRight.transform.position.z);
+            var staminaRect = _core.staminaMeterRight.GetComponent<RectTransform>();
+            _core.staminaMeterRight.transform.SetParent(null);
+            rightPortraitRect.anchoredPosition -= new Vector2(staminaRect.sizeDelta.x / 2, 0);
         }
 
-        // charm bg
-        var charmBG_go = new GameObject();
+        // Charm background
+        var charmBG_go = new GameObject("CharmBG");
         var charmBG_transform = charmBG_go.AddComponent<RectTransform>();
-        charmBG_transform.sizeDelta = _charmSize;
         var charmBG_image = charmBG_go.AddComponent<Image>();
 
-        var portraitImage = _image.GetValue<Image>(_uiCellphoneAppPair.statusPortraitRight.buttonBehavior);
+        var portraitImage = f_image.GetValue<Image>(_core.statusPortraitRight.buttonBehavior);
         charmBG_transform.sizeDelta = portraitImage.rectTransform.sizeDelta;
-
         charmBG_image.sprite = portraitImage.sprite;
-        charmBG_transform.SetParent(_uiCellphoneAppPair.transform);
-        charmBG_transform.position = _uiCellphoneAppPair.statusPortraitLeft.transform.position + new Vector3(37.5f, 0, 0);
 
-        //single relationship progress
+        charmBG_transform.SetParent(canvasRect, false);
+        charmBG_transform.anchoredPosition = leftPortraitRect.anchoredPosition + new Vector2(37.5f, 0);
+
+        ModInterface.Log.Message("Before hearts");
+
+        // Build hearts
         var saveGirl = State.SaveFile.GetGirl(_girlId);
 
-        var maxSingleGirlRelationshipLevel = Plugin.Instance.MaxSingleGirlRelationshipLevel;
+        // if (saveGirl == null)
+        // {
+        //     ModInterface.Log.Message("save girl null D:");
+        // }
 
+        // There is some kind of DoTween issue here I think
+        // this fixed it but it isn't a great solution...
+
+        yield return null;
+
+        //this literally kills all the game's tweens
+        //_uiCellphoneAppStatus.relationshipSlot.DestroyAndKillTweens();
+
+        var maxSingleGirlRelationshipLevel = Plugin.MaxSingleGirlRelationshipLevel.Value;
         var radAllotment = Mathf.PI / maxSingleGirlRelationshipLevel;
 
         if (Game.Session.Puzzle.puzzleStatus.bonusRound)
         {
             for (int i = 0; i < maxSingleGirlRelationshipLevel; i++)
-            {
-                MakeHeart(_uiCellphoneAppPair.relationshipSlot.hornyIcon, i, radAllotment, _uiCellphoneAppPair.relationshipSlot.pauseDefinition);
-            }
+                MakeHeart(_core.relationshipSlot.hornyIcon, i, radAllotment, _core.relationshipSlot.pauseDefinition, leftPortraitRect);
         }
         else if (maxSingleGirlRelationshipLevel == saveGirl.RelationshipLevel)
         {
             for (int i = 0; i < maxSingleGirlRelationshipLevel; i++)
-            {
-                MakeHeart(_uiCellphoneAppPair.relationshipSlot.relationshipIcons[3], i, radAllotment, _uiCellphoneAppPair.relationshipSlot.pauseDefinition);
-            }
+                MakeHeart(_core.relationshipSlot.relationshipIcons[3], i, radAllotment, _core.relationshipSlot.pauseDefinition, leftPortraitRect);
         }
         else
         {
             int i = 0;
             for (; i < maxSingleGirlRelationshipLevel - saveGirl.RelationshipLevel; i++)
-            {
-                MakeHeart(_uiCellphoneAppPair.relationshipSlot.relationshipIcons[0], i, radAllotment, _uiCellphoneAppPair.relationshipSlot.pauseDefinition);
-            }
+                MakeHeart(_core.relationshipSlot.relationshipIcons[0], i, radAllotment, _core.relationshipSlot.pauseDefinition, leftPortraitRect);
 
             for (; i < maxSingleGirlRelationshipLevel; i++)
-            {
-                MakeHeart(_uiCellphoneAppPair.relationshipSlot.relationshipIcons[2], i, radAllotment, _uiCellphoneAppPair.relationshipSlot.pauseDefinition);
-            }
+                MakeHeart(_core.relationshipSlot.relationshipIcons[2], i, radAllotment, _core.relationshipSlot.pauseDefinition, leftPortraitRect);
         }
 
-        //charm
-        var charm_go = new GameObject();
+        // Charm
+        var charm_go = new GameObject("Charm");
         _charmTransform = charm_go.AddComponent<RectTransform>();
         _charmTransform.sizeDelta = _charmSize;
         var charm_image = charm_go.AddComponent<Image>();
         charm_image.sprite = UiPrefabs.GetCharmSprite(_girlId);
-        _charmTransform.SetParent(_uiCellphoneAppPair.transform);
-        _charmTransform.position = _uiCellphoneAppPair.statusPortraitLeft.transform.position + _charmOffset;
+
+        _charmTransform.SetParent(canvasRect, false);
+        _charmTransform.anchoredPosition = leftPortraitRect.anchoredPosition + new Vector2(_charmOffset.x, _charmOffset.y);
         _charmTransform.pivot = new Vector2(0.5f, 0f);
 
         MakeCharmSequence(null);
+
+        _core.canvasGroupLeft.transform.SetParent(null);
+        _core.statusPortraitLeft.transform.SetParent(null);
+        _core.relationshipSlot.transform.SetParent(null);
     }
 
     private int _charmDir = 1;
@@ -225,7 +246,7 @@ internal class ExpandedUiCellphoneAppStatus
                     sequence.Join(squashNSpin);
                     break;
                 case 9:
-                    if (_girlId == Girls.SarahId)
+                    if (_girlId == Girls.Sarah)
                     {
                         sequence.Append(_charmTransform.DOScaleX(_charmDir * 1.3f, 0.4f).SetEase(Ease.OutElastic));
                         sequence.Join(_charmTransform.DOScaleY(0.5f, 0.4f).SetEase(Ease.OutElastic));
@@ -239,7 +260,7 @@ internal class ExpandedUiCellphoneAppStatus
                         sequence.Append(_charmTransform.DOScaleX(_charmDir * 0.5f, 0.4f).SetEase(Ease.OutElastic));
                         sequence.Join(_charmTransform.DOScaleY(1.3f, 0.4f).SetEase(Ease.OutElastic));
                     }
-                    else if (_girlId == Girls.LillianId)
+                    else if (_girlId == Girls.Lillian)
                     {
                         sequence.Append(_charmTransform.DOLocalMoveX(_charmTransform.localPosition.x + (90 * _charmDir), 1.2f));
                         sequence.Join(_charmTransform.DOLocalMoveY(_charmTransform.localPosition.y + 48, 1.2f));
@@ -261,7 +282,7 @@ internal class ExpandedUiCellphoneAppStatus
                         sequence.Append(_charmTransform.DOScaleY(1f, 1.2f).SetEase(Ease.InOutElastic));
                         sequence.Join(_charmTransform.DOScaleX(1f * _charmDir, 1.2f).SetEase(Ease.InOutElastic));
                     }
-                    else if (_girlId == Girls.AbiaId)
+                    else if (_girlId == Girls.Abia)
                     {
                         sequence.Append(_charmTransform.DOShakeAnchorPos(4f, 30));
                     }
@@ -277,7 +298,7 @@ internal class ExpandedUiCellphoneAppStatus
         sequence.Join(_charmTransform.DOScaleY(1f, 1.5f).SetEase(Ease.InOutElastic));
         sequence.AppendInterval(1f);
 
-        Game.Manager.Time.Play(sequence, _uiCellphoneAppPair.relationshipSlot.pauseDefinition, 0f);
+        Game.Manager.Time.Play(sequence, _core.relationshipSlot.pauseDefinition, 0f);
     }
 
     public void OnDestroy()
@@ -287,24 +308,23 @@ internal class ExpandedUiCellphoneAppStatus
             Game.Manager.Time.KillTween(sequence, false, false);
         }
 
-        _expansions.Remove(_uiCellphoneAppPair);
+        _expansions.Remove(_core);
     }
 
-    private void MakeHeart(Sprite sprite, int index, float radAllotment, PauseDefinition pauseDefinition)
+    private void MakeHeart(Sprite sprite, int index, float radAllotment, PauseDefinition pauseDefinition, RectTransform parentRect)
     {
-        var heart_go = new GameObject();
-        heart_go.name = $"heart_{index}";
+        var heart_go = new GameObject($"heart_{index}");
         var heart_rectTransform = heart_go.AddComponent<RectTransform>();
         heart_rectTransform.sizeDelta = _heartSize;
         var heart_image = heart_go.AddComponent<Image>();
         heart_image.sprite = sprite;
-        heart_rectTransform.SetParent(_uiCellphoneAppPair.transform);
+
+        heart_rectTransform.SetParent(parentRect.parent, false); // same canvas as portraits
 
         var rads = radAllotment * (index + 0.5f);
-
-        heart_rectTransform.position = _uiCellphoneAppPair.statusPortraitLeft.transform.position
-            + _heartOffset
-            + (new Vector3(Mathf.Cos(rads), Mathf.Sin(rads)) * _heartDist);
+        heart_rectTransform.anchoredPosition = parentRect.anchoredPosition
+            + (Vector2)_heartOffset
+            + new Vector2(Mathf.Cos(rads), Mathf.Sin(rads)) * _heartDist;
 
         var sequence = DOTween.Sequence().SetLoops(-1, LoopType.Restart);
         _sequences.Add(sequence);

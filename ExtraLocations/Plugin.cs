@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using BepInEx;
+using BepInEx.Configuration;
 using Hp2BaseMod;
 using Hp2BaseMod.GameDataInfo;
 using Hp2BaseMod.GameDataInfo.Interface;
@@ -11,34 +13,56 @@ namespace ExtraLocations;
 
 [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
 [BepInDependency("OSK.BepInEx.Hp2BaseMod", "1.0.0")]
+[BepInDependency("OSK.BepInEx.Hp2BaseModTweaks", BepInDependency.DependencyFlags.SoftDependency)]
 public class Plugin : BaseUnityPlugin
 {
-    internal static readonly string RootDir = Path.Combine(Paths.PluginPath, MyPluginInfo.PLUGIN_NAME);
-    internal static readonly string ImagesDir = Path.Combine(RootDir, "images");
+    internal static readonly string ROOT_DIR = Path.Combine(Paths.PluginPath, MyPluginInfo.PLUGIN_NAME);
+    internal static readonly string IMAGES_DIR = Path.Combine(ROOT_DIR, "images");
 
-    private static Vector2 BgSize = new Vector2(2008, 1130);
-    private static Vector2 dacSize = new Vector2(3568, 2025);
+    private static readonly Vector2 BG_SIZE = new Vector2(2008, 1130);
+    private static readonly Vector2 DAC_SIZE = new Vector2(3568, 2025);
 
-    private static readonly string ConfigGeneralName = "General";
-    private static readonly string ConfigDacName = "DigitalArtCollectionDir";
-    private static readonly string ConfigOstName = "DoubleDateOstDir";
+    public static ConfigEntry<string> ConfigDac => _configDac;
+    private static ConfigEntry<string> _configDac;
+
+    public static ConfigEntry<string> ConfigOst => _configOst;
+    private static ConfigEntry<string> _configOst;
+
+    public static int ModId => _modId;
+    private static int _modId = ModInterface.GetSourceId(MyPluginInfo.PLUGIN_GUID);
 
     private void Awake()
     {
-        var modId = ModInterface.GetSourceId(MyPluginInfo.PLUGIN_GUID);
+        if (ModInterface.TryGetInterModValue("OSK.BepInEx.Hp2BaseModTweaks", "AddModCredit",
+                out Action<string, IEnumerable<(string creditButtonPath, string creditButtonOverPath, string redirectLink)>> m_addModConfig))
+        {
+            m_addModConfig(Path.Combine(IMAGES_DIR, "CreditsLogo.png"), [
+                (
+                    Path.Combine(IMAGES_DIR, "onesuchKeeper_credits_dev.png"),
+                    Path.Combine(IMAGES_DIR, "onesuchKeeper_credits_dev_over.png"),
+                    "https://linktr.ee/onesuchkeeper"
+                )
+            ]);
+        }
 
-        this.Config.Bind(ConfigGeneralName, ConfigDacName, Path.Combine(Paths.PluginPath, "..", "..", "Digital Art Collection"), "Directory containing the Huniepop 2 Digital Art Collection Dlc");
-        this.Config.Bind(ConfigGeneralName, ConfigOstName, Path.Combine(Paths.PluginPath, "..", "..", "..", "..", "music", "Huniepop 2 - Double Date OST", "WAV"), "Directory containing the Huniepop 2 OST");
+        _configDac = Config.Bind(Hp2BaseModPlugin.CONFIG_GENERAL,
+            "DigitalArtCollectionDir",
+            Path.Combine(Paths.PluginPath, "..", "..", "Digital Art Collection"),
+            "Directory containing the HuniePop 2 Digital Art Collection Dlc");
 
-        var dacBgScaleRs = new TextureRsScale(BgSize / dacSize);
+        _configOst = Config.Bind(Hp2BaseModPlugin.CONFIG_GENERAL,
+            "DoubleDateOstDir",
+            Path.Combine(Paths.PluginPath, "..", "..", "..", "..", "music", "HuniePop 2 - Double Date OST", "WAV"),
+            "Directory containing the HuniePop 2 OST");
+
+        var dacBgScaleRs = new TextureRsScale(BG_SIZE / DAC_SIZE);
 
         //ost audio
         AudioClipInfo waterfallBgMusic = null;
         AudioClipInfo volcanoBgMusic = null;
         AudioClipInfo hotelRoomBgMusic = null;
 
-        if (this.Config.TryGetEntry<string>(ConfigGeneralName, ConfigOstName, out var ConfigOst)
-            && !string.IsNullOrWhiteSpace(ConfigOst.Value)
+        if (!string.IsNullOrWhiteSpace(ConfigOst.Value)
             && Directory.Exists(ConfigOst.Value))
         {
             var ostHiddenPartyMix = Path.Combine(ConfigOst.Value, "31 Double Date Party Mix (Bonus).wav");
@@ -94,14 +118,14 @@ public class Plugin : BaseUnityPlugin
         };
 
         //dac locs
-        if (this.Config.TryGetEntry<string>(ConfigGeneralName, ConfigDacName, out var DacDirConfig)
-            && !string.IsNullOrWhiteSpace(DacDirConfig.Value)
-            && Directory.Exists(DacDirConfig.Value))
+        if (!string.IsNullOrWhiteSpace(ConfigDac.Value)
+            && Directory.Exists(ConfigDac.Value))
         {
-            var waterfallImgDir = Path.Combine(DacDirConfig.Value, "Misc", "Cut Locations", "Waterfall");
+            var waterfallImgDir = Path.Combine(ConfigDac.Value, "Misc", "Cut Locations", "Waterfall");
 
-            ModInterface.AddDataMod(new LocationDataMod(new RelativeId(modId, 0), InsertStyle.replace)
+            ModInterface.AddDataMod(new LocationDataMod(Locations.HiddenWaterfall, InsertStyle.replace)
             {
+                DefaultStyle = Styles.Water,
                 LocationName = "Hidden Waterfall",
                 LocationType = LocationType.SIM,
                 BgMusic = new AudioKlipInfo()
@@ -111,38 +135,39 @@ public class Plugin : BaseUnityPlugin
                 },
                 Backgrounds = new List<IGameDefinitionInfo<Sprite>>(){
                     new SpriteInfoTexture(new TextureInfoCache(
-                        Path.Combine(ImagesDir, "hiddenWaterfall_Morning.png"),
-                        new TextureInfoExternal(Path.Combine(waterfallImgDir, "Morning.jpg"),
+                        Path.Combine(IMAGES_DIR, "hiddenWaterfall_Morning.png"),
+                        new TextureInfoExternal(Path.Combine(waterfallImgDir, "Morning.jpg"), false,
                             FilterMode.Bilinear,
                             [dacBgScaleRs]))),
 
                     new SpriteInfoTexture(new TextureInfoCache(
-                        Path.Combine(ImagesDir, "hiddenWaterfall_Afternoon.png"),
-                        new TextureInfoExternal(Path.Combine(waterfallImgDir, "Afternoon.jpg"),
+                        Path.Combine(IMAGES_DIR, "hiddenWaterfall_Afternoon.png"),
+                        new TextureInfoExternal(Path.Combine(waterfallImgDir, "Afternoon.jpg"), false,
                             FilterMode.Bilinear,
                             [dacBgScaleRs]))),
 
                     new SpriteInfoTexture(new TextureInfoCache(
-                        Path.Combine(ImagesDir, "hiddenWaterfall_Evening.png"),
-                        new TextureInfoExternal(Path.Combine(waterfallImgDir, "Evening.jpg"),
+                        Path.Combine(IMAGES_DIR, "hiddenWaterfall_Evening.png"),
+                        new TextureInfoExternal(Path.Combine(waterfallImgDir, "Evening.jpg"), false,
                             FilterMode.Bilinear,
                             [dacBgScaleRs]))),
 
                     new SpriteInfoTexture(new TextureInfoCache(
-                        Path.Combine(ImagesDir, "hiddenWaterfall_Night.png"),
-                        new TextureInfoExternal(Path.Combine(waterfallImgDir, "Night.jpg"),
+                        Path.Combine(IMAGES_DIR, "hiddenWaterfall_Night.png"),
+                        new TextureInfoExternal(Path.Combine(waterfallImgDir, "Night.jpg"), false,
                             FilterMode.Bilinear,
                             [dacBgScaleRs])))
                 },
                 FinderLocationIcon = new SpriteInfoTexture(new TextureInfoCache(
-                    Path.Combine(ImagesDir, "hiddenWaterfall_Icon.png"),
-                    new TextureInfoSprite(new SpriteInfoInternal("item_unique_hot_stones"), true, [new TextureRsCellphoneOutline(4f, 0f, 1f)])))
+                    Path.Combine(IMAGES_DIR, "hiddenWaterfall_Icon.png"),
+                    new TextureInfoSprite(new SpriteInfoInternal("item_unique_hot_stones"), false, false, true, [new TextureRsCellphoneOutline(4f, 0f, 1f)]), true))
             });
         }
 
         //others
-        ModInterface.AddDataMod(new LocationDataMod(new RelativeId(modId, 1), InsertStyle.replace)
+        ModInterface.AddDataMod(new LocationDataMod(Locations.Volcano, InsertStyle.replace)
         {
+            DefaultStyle = Styles.Activity,
             LocationName = "Volcano",
             LocationType = LocationType.DATE,
             NonStopOptionText = "Kyu. The [[highlight]VOLCANO]. IT'S A VOLCANO KYU. FUCKING FUCKIN' IN A FUCKING VOLCANO.",
@@ -163,8 +188,9 @@ public class Plugin : BaseUnityPlugin
             }
         });
 
-        ModInterface.AddDataMod(new LocationDataMod(new RelativeId(modId, 2), InsertStyle.replace)
+        ModInterface.AddDataMod(new LocationDataMod(Locations.HotelRoom, InsertStyle.replace)
         {
+            DefaultStyle = Styles.Relaxing,
             LocationName = "Hotel Room",
             LocationType = LocationType.DATE,
             NonStopOptionText = "I dunno, I guess [[highlight]HERE] is good.",
@@ -174,22 +200,20 @@ public class Plugin : BaseUnityPlugin
                 Volume = 0.8f
             },
             Backgrounds = new List<IGameDefinitionInfo<Sprite>>(){
-                new SpriteInfoInternal("loc_bg_hub_room_1"),
-                new SpriteInfoInternal("loc_bg_hub_room_1")
+                new SpriteInfoInternal("loc_bg_hub_room_3"),
+                new SpriteInfoInternal("loc_bg_hub_room_3"),
             },
             AllowNonStop = true,
             AllowNormal = true,
-            PostBoss = false,
+            PostBoss = true,
             DateTimes = new List<ClockDaytimeType>() {
-                ClockDaytimeType.MORNING,
-                ClockDaytimeType.AFTERNOON,
-                ClockDaytimeType.EVENING,
                 ClockDaytimeType.NIGHT
             }
         });
 
-        ModInterface.AddDataMod(new LocationDataMod(new RelativeId(modId, 3), InsertStyle.replace)
+        ModInterface.AddDataMod(new LocationDataMod(Locations.OuterSpace, InsertStyle.replace)
         {
+            DefaultStyle = Styles.Activity,
             LocationName = "Space",
             LocationType = LocationType.DATE,
             NonStopOptionText = "Hey, is [[highlight]SPACE] on the table? How the hell did we get there anyways?",
@@ -217,8 +241,9 @@ public class Plugin : BaseUnityPlugin
             }
         });
 
-        ModInterface.AddDataMod(new LocationDataMod(new RelativeId(modId, 4), InsertStyle.replace)
+        ModInterface.AddDataMod(new LocationDataMod(Locations.AirplaneBathroom, InsertStyle.replace)
         {
+            DefaultStyle = Styles.Activity,
             LocationName = "Airplane Bathroom",
             LocationType = LocationType.DATE,
             NonStopOptionText = "I think the [[highlight]AIRPLANE BATHROOM] may have awoken something in me... Not sure how I feel about that...",
@@ -247,8 +272,9 @@ public class Plugin : BaseUnityPlugin
         });
 
         var airplaneCabinBg = new SpriteInfoInternal("loc_bg_special_airplanecabin_0");
-        ModInterface.AddDataMod(new LocationDataMod(new RelativeId(modId, 5), InsertStyle.replace)
+        ModInterface.AddDataMod(new LocationDataMod(Locations.AirplaneCabin, InsertStyle.replace)
         {
+            DefaultStyle = Styles.Activity,
             LocationName = "Airplane Cabin",
             LocationType = LocationType.DATE,
             NonStopOptionText = "Something about the cramped quarters and needless expense of a date in an [[highlight]AIRPLANE CABIN] just gets me going.",
@@ -277,8 +303,9 @@ public class Plugin : BaseUnityPlugin
         });
 
         var poolsideBg = new SpriteInfoInternal("loc_bg_special_poolside_0");
-        ModInterface.AddDataMod(new LocationDataMod(new RelativeId(modId, 6), InsertStyle.replace)
+        ModInterface.AddDataMod(new LocationDataMod(Locations.Poolside, InsertStyle.replace)
         {
+            DefaultStyle = Styles.Water,
             LocationName = "Poolside",
             LocationType = LocationType.DATE,
             NonStopOptionText = "Maybe a trip to the [[highlight]POOLSIDE]?",
@@ -304,8 +331,9 @@ public class Plugin : BaseUnityPlugin
         });
 
         var apartmentBg = new SpriteInfoInternal("loc_bg_special_apartment_0");
-        ModInterface.AddDataMod(new LocationDataMod(new RelativeId(modId, 7), InsertStyle.replace)
+        ModInterface.AddDataMod(new LocationDataMod(Locations.Apartment, InsertStyle.replace)
         {
+            DefaultStyle = Styles.Romantic,
             LocationName = "Your Apartment",
             LocationType = LocationType.DATE,
             NonStopOptionText = "I'm starting to get a little homesick, with some fairy magic we could pop on over to [[highlight]MY APARTMENT] right?",

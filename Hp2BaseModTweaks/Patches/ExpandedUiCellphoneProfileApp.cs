@@ -6,6 +6,7 @@ using System.Reflection;
 using BepInEx;
 using HarmonyLib;
 using Hp2BaseMod;
+using Hp2BaseMod.Extension;
 using Hp2BaseMod.Ui;
 using Hp2BaseMod.Utility;
 using UnityEngine;
@@ -17,9 +18,14 @@ namespace Hp2BaseModTweaks.CellphoneApps
     internal static class UiCellphoneAppProfilePatch
     {
         [HarmonyPatch("Start")]
+        [HarmonyPrefix]
+        public static void PreStart(UiCellphoneAppProfile __instance)
+            => ExpandedUiCellphoneProfileApp.Get(__instance).PreStart();
+
+        [HarmonyPatch("Start")]
         [HarmonyPostfix]
-        public static void Start(UiCellphoneAppProfile __instance)
-            => ExpandedUiCellphoneProfileApp.Get(__instance).Start();
+        public static void PostStart(UiCellphoneAppProfile __instance)
+            => ExpandedUiCellphoneProfileApp.Get(__instance).PostStart();
 
         [HarmonyPatch("OnDestroy")]
         [HarmonyPrefix]
@@ -43,7 +49,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
             return expansion;
         }
 
-        private static FieldInfo _favQuestionDefinition = AccessTools.Field(typeof(UiAppFavAnswer), "_favQuestionDefinition");
+        private static readonly FieldInfo f_favQuestionDefinition = AccessTools.Field(typeof(UiAppFavAnswer), "_favQuestionDefinition");
 
         private static readonly string _profileBackgroundPath = Path.Combine(Paths.PluginPath, "Hp2BaseModTweaks/images/ui_app_profile_modded_background.png");
         private static readonly string _profileFavoritesBackgroundPath = Path.Combine(Paths.PluginPath, "Hp2BaseModTweaks/images/ui_app_profile_favorites_background.png");
@@ -54,7 +60,6 @@ namespace Hp2BaseModTweaks.CellphoneApps
 
         private int _currentPage = 0;
 
-        private QuestionDefinition[] _questions;
         private readonly UiCellphoneAppProfile _profileApp;
 
         public ExpandedUiCellphoneProfileApp(UiCellphoneAppProfile profileApp)
@@ -62,11 +67,9 @@ namespace Hp2BaseModTweaks.CellphoneApps
             _profileApp = profileApp ?? throw new ArgumentNullException(nameof(profileApp));
         }
 
-        public void Start()
+        public void PreStart()
         {
             _profileApp.girlHeadIcon.preserveAspect = true;
-
-            _questions = Game.Data.Questions.GetAll().ToArray();
 
             var cellphoneButtonPressedKlip = new AudioKlip()
             {
@@ -77,7 +80,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
             var activeContainer = _profileApp.transform.Find("ActiveContainer");
 
             var backgroundImage = _profileApp.transform.Find("Background").GetComponent<Image>();
-            backgroundImage.sprite = TextureUtility.SpriteFromPng(_profileBackgroundPath);
+            backgroundImage.sprite = TextureUtility.SpriteFromPng(_profileBackgroundPath, true);
             backgroundImage.SetNativeSize();
 
             // pairs
@@ -130,7 +133,16 @@ namespace Hp2BaseModTweaks.CellphoneApps
             contributorsScroll_Mask.showMaskGraphic = false;
 
             // favorites panel
-            var questionPanelHeight = 28 + (27 * _questions.Length);
+            var questions = Game.Data.Questions.GetAll();
+            var girlDef = Game.Data.Girls.Get(_profileApp.cellphone.GetCellFlag("profile_girl_id"));
+            var girlDefExp = girlDef.Expansion();
+            var playerFileGirl = Game.Persistence.playerFile.GetPlayerFileGirl(girlDef);
+
+            var validFavQuestions = Game.Data.Questions.GetAll()
+                .Where(x => girlDefExp.FavQuestionIdToAnswerId.ContainsKey(ModInterface.Data.GetDataId(GameDataType.Question, x.id)))
+                .ToList();
+
+            var questionPanelHeight = Mathf.Max(28 + (27 * validFavQuestions.Count), 568);
 
             var favAnswersPanel_GO = new GameObject("FavoritesPanel");
             favAnswersPanel_GO.transform.SetParent(favoritesScroll_GO.transform, false);
@@ -146,7 +158,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
             var favoritesPanelBG_GO = new GameObject("FavoritesBG");
             favoritesPanelBG_GO.transform.SetParent(favAnswersPanel_GO.transform, false);
 
-            var favoritesPanelBG_Texture = TextureUtility.LoadFromPng(_profileFavoritesBackgroundPath);
+            var favoritesPanelBG_Texture = TextureUtility.LoadFromPng(_profileFavoritesBackgroundPath, true);
             favoritesPanelBG_Texture.wrapMode = TextureWrapMode.Repeat;
 
             var favoritesPanelBG_Image = favoritesPanelBG_GO.AddComponent<Image>();
@@ -167,39 +179,57 @@ namespace Hp2BaseModTweaks.CellphoneApps
             favAnswersContainer_RectTransform.pivot = new Vector2(0, 1);
             favAnswersContainer.transform.SetParent(favAnswersPanel_GO.transform, true);
 
-            var newQuestions = new List<UiAppFavAnswer>();
-            var playerFileGirl = Game.Persistence.playerFile.GetPlayerFileGirl(Game.Data.Girls.Get(_profileApp.cellphone.GetCellFlag("profile_girl_id")));
-            var templateQuestion = _profileApp.favAnswers[0];
-            var i = favAnswersContainer.childCount;
-
-            foreach (var question in _questions.Skip(i))
+            var delta = validFavQuestions.Count - _profileApp.favAnswers.Length;
+            if (delta < 0)
             {
-                var newQuestion = UnityEngine.Object.Instantiate(templateQuestion.gameObject);
-                var uiAppFavAnswer = newQuestion.GetComponent<UiAppFavAnswer>();
+                foreach (var answer in _profileApp.favAnswers.Skip(validFavQuestions.Count))
+                {
+                    answer.transform.SetParent(null);
+                    answer.Destroy();
+                }
 
-                newQuestion.transform.SetParent(templateQuestion.transform.parent, false);
-                var newQuestion_RectTransform = newQuestion.gameObject.GetComponent<RectTransform>();
-                newQuestion_RectTransform.anchoredPosition = new Vector3(0, -27 * i++);
+                _profileApp.favAnswers = _profileApp.favAnswers.Take(validFavQuestions.Count).ToArray();
+            }
+            else if (delta > 0)
+            {
+                var templateQuestion = _profileApp.favAnswers[0];
+                Array.Resize(ref _profileApp.favAnswers, validFavQuestions.Count);
 
-                _favQuestionDefinition.SetValue(uiAppFavAnswer, question);
-
-                uiAppFavAnswer.Populate(playerFileGirl);
-
-                newQuestions.Add(uiAppFavAnswer);
+                while (delta-- > 0)
+                {
+                    var newQuestion_go = UnityEngine.Object.Instantiate(templateQuestion.gameObject);
+                    var uiAppFavAnswer = newQuestion_go.GetComponent<UiAppFavAnswer>();
+                    newQuestion_go.transform.SetParent(templateQuestion.transform.parent, false);
+                    _profileApp.favAnswers[validFavQuestions.Count - delta - 1] = uiAppFavAnswer;
+                }
             }
 
-            _profileApp.favAnswers = _profileApp.favAnswers.Concat(newQuestions).ToArray();
+            var i = 0;
+            foreach (var (ui, question) in _profileApp.favAnswers
+                .Zip(validFavQuestions, (ui, question) => (ui, question)))
+            {
+                f_favQuestionDefinition.SetValue(ui, question);
+
+                var rectTransform = ui.GetComponent<RectTransform>();
+                rectTransform.anchoredPosition = new Vector3(0, -27 * i++);
+
+                ui.Populate(playerFileGirl);
+            }
 
             // favorites scroll rect
             var favoritesScroll_ScrollRect = favoritesScroll_GO.AddComponent<ScrollRect>();
             favoritesScroll_ScrollRect.movementType = ScrollRect.MovementType.Clamped;
-            favoritesScroll_ScrollRect.scrollSensitivity = 24;
+            favoritesScroll_ScrollRect.scrollSensitivity = 18;
             favoritesScroll_ScrollRect.horizontal = false;
             favoritesScroll_ScrollRect.viewport = favoritesScroll_RectTransform;
             favoritesScroll_ScrollRect.content = favoritesPanel_RectTransform;
+            favoritesScroll_ScrollRect.verticalNormalizedPosition = 1f;
+            favoritesScroll_ScrollRect.elasticity = 0.15f;
 
-            Refresh();
+            favoritesPanel_RectTransform.position -= new Vector3(0f, favoritesPanel_RectTransform.sizeDelta.y / 2);
         }
+
+        internal void PostStart() => Refresh();
 
         public void OnDestroy()
         {
@@ -217,17 +247,17 @@ namespace Hp2BaseModTweaks.CellphoneApps
                 ? (pairs.Length - 1) / _pairsPerPage
                 : 0;
 
-            //profile
+            // pairs
             var current = _currentPage * _pairsPerPage;
 
             foreach (var entry in _profileApp.pairSlots.Take(_pairsPerPage))
             {
                 if (current < pairs.Length)
                 {
-                    entry.Populate(pairs[current]);
                     entry.canvasGroup.alpha = 1f;
                     entry.canvasGroup.blocksRaycasts = true;
                     entry.button.Enable();
+                    entry.Populate(pairs[current]);
 
                     current++;
                 }
@@ -242,7 +272,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
                 entry.Populate(null, null);
             }
 
-            //buttons
+            // buttons
             if (_currentPage <= 0)
             {
                 _currentPage = 0;

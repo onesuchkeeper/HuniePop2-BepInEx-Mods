@@ -1,5 +1,6 @@
-﻿using System;
+﻿using System.Collections.Generic;
 using Hp2BaseMod.GameDataInfo.Interface;
+using Hp2BaseMod.ModGameData;
 using Hp2BaseMod.Utility;
 
 namespace Hp2BaseMod.GameDataInfo
@@ -7,11 +8,11 @@ namespace Hp2BaseMod.GameDataInfo
     /// <summary>
     /// Information to make a <see cref="GirlOutfitSubDefinition"/>.
     /// </summary>
-    public class OutfitDataMod : DataMod, IGirlSubDataMod<GirlOutfitSubDefinition>
+    public class OutfitDataMod : DataMod, IBodySubDataMod<GirlOutfitSubDefinition>
     {
         public string Name;
 
-        public RelativeId? OutfitPartId;
+        public IBodySubDataMod<GirlPartSubDefinition> OutfitPart;
 
         public bool? IsNSFW;
         public bool? IsCodeUnlocked;
@@ -35,7 +36,7 @@ namespace Hp2BaseMod.GameDataInfo
         internal OutfitDataMod(int index,
                                GirlDefinition girlDef,
                                AssetProvider assetProvider)
-            : base(new RelativeId() { SourceId = -1, LocalId = index }, InsertStyle.replace, 0)
+            : base(new RelativeId(-1, index), InsertStyle.replace, 0)
         {
             PairHairstyleId = Id;
             IsNSFW = false;
@@ -45,40 +46,42 @@ namespace Hp2BaseMod.GameDataInfo
             var outfitDef = girlDef.outfits[index];
 
             Name = outfitDef.outfitName;
-            OutfitPartId = new RelativeId(-1, outfitDef.partIndexOutfit);
+            OutfitPart = new GirlPartDataMod(outfitDef.partIndexOutfit, assetProvider, girlDef);
             HideNipples = outfitDef.hideNipples;
             TightlyPaired = outfitDef.tightlyPaired;
         }
 
         /// <inheritdoc/>
-        public void SetData(ref GirlOutfitSubDefinition def,
+        public void SetData(GirlOutfitSubDefinition def,
                             GameDefinitionProvider gameData,
                             AssetProvider assetProvider,
-                            InsertStyle insertStyle,
-                            RelativeId girlId)
+                            RelativeId girlId,
+                            GirlBodySubDefinition bodyDef)
         {
-            if (def == null)
-            {
-                def = Activator.CreateInstance<GirlOutfitSubDefinition>();
-            }
-
+            if (def == null) { return; }
             var expansion = def.Expansion();
             var girlExpansion = ExpandedGirlDefinition.Get(girlId);
 
-            ValidatedSet.SetValue(ref def.outfitName, Name, insertStyle);
+            ValidatedSet.SetValue(ref def.outfitName, Name, InsertStyle);
             ValidatedSet.SetValue(ref expansion.IsNSFW, IsNSFW);
             ValidatedSet.SetValue(ref expansion.IsCodeUnlocked, IsCodeUnlocked);
             ValidatedSet.SetValue(ref expansion.IsPurchased, IsPurchased);
             ValidatedSet.SetValue(ref def.hideNipples, HideNipples);
             ValidatedSet.SetValue(ref expansion.HideSpecial, HideSpecial);
-            ValidatedSet.SetValue(ref def.pairHairstyleIndex, girlExpansion.HairstyleIdToIndex, PairHairstyleId);
-            ValidatedSet.SetValue(ref def.partIndexOutfit, girlExpansion.PartIdToIndex, OutfitPartId);
+
+            ValidatedSet.SetValue(ref def.partIndexOutfit, bodyDef.PartLookup, OutfitPart?.Id);
+            ValidatedSet.SetValue(ref def.pairHairstyleIndex, girlExpansion.HairstyleLookup, PairHairstyleId);
         }
 
         /// <inheritdoc/>
         public void RequestInternals(AssetProvider assetProvider)
         {
-            //noop
+            OutfitPart?.RequestInternals(assetProvider);
+        }
+
+        public IEnumerable<IBodySubDataMod<GirlPartSubDefinition>> GetPartDataMods()
+        {
+            yield return OutfitPart;
         }
     }
 }

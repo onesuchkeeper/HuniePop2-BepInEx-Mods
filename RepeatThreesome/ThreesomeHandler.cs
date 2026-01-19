@@ -10,11 +10,9 @@ namespace RepeatThreesome
 {
     public static class ThreesomeHandler
     {
-        private static FieldInfo _roundOverCutscene = AccessTools.Field(typeof(PuzzleManager), "_roundOverCutscene");
-        private static FieldInfo _newRoundCutscene = AccessTools.Field(typeof(PuzzleManager), "_newRoundCutscene");
-        private static FieldInfo _gameOver = AccessTools.Field(typeof(PuzzleStatus), "_gameOver");
+        private static readonly FieldInfo f_newRoundCutscene = AccessTools.Field(typeof(PuzzleManager), "_newRoundCutscene");
 
-        public static void PreRoundOverCutscene()
+        public static void OnPuzzleRoundOver(PuzzleRoundOverArgs args)
         {
             if (Game.Session.Puzzle.puzzleStatus.statusType == PuzzleStatusType.NORMAL)
             {
@@ -28,20 +26,8 @@ namespace RepeatThreesome
                     && (Game.Session.Location.currentLocation == currentGirlPair.sexLocationDefinition
                         || ModInterface.GameData.IsCodeUnlocked(Constants.LocalCodeId)))
                 {
-                    if (Game.Session.Puzzle.puzzleStatus.bonusRound)
-                    {
-                        _roundOverCutscene.SetValue(Game.Session.Puzzle, Game.Session.Puzzle.cutsceneSuccessBonus);
-                    }
-                    else
-                    {
-                        ModInterface.Log.LogInfo("Setting up Lovers Bonus Round");
-                        _roundOverCutscene.SetValue(Game.Session.Puzzle, Game.Session.Puzzle.cutsceneSuccessAttracted);
-                        _newRoundCutscene.SetValue(Game.Session.Puzzle, Game.Session.Puzzle.cutsceneNewroundBonus);
-
-                        //gameOver property has been made to only be settable to true, for some reason...
-                        //so access the underlying field
-                        _gameOver.SetValue(Game.Session.Puzzle.puzzleStatus, false);
-                    }
+                    args.IsSexDate = true;
+                    args.IsGameOver = Game.Session.Puzzle.puzzleStatus.bonusRound;
                 }
             }
 
@@ -52,8 +38,7 @@ namespace RepeatThreesome
         {
             Game.Session.Cutscenes.CutsceneCompleteEvent -= On_CutsceneCompleteEvent;
 
-            var newRoundCutscene = _newRoundCutscene.GetValue<CutsceneDefinition>(Game.Session.Puzzle);
-            var roundOverCutscene = _roundOverCutscene.GetValue<CutsceneDefinition>(Game.Session.Puzzle);
+            var newRoundCutscene = f_newRoundCutscene.GetValue<CutsceneDefinition>(Game.Session.Puzzle);
 
             if (newRoundCutscene == Game.Session.Puzzle.cutsceneNewroundBossBonus)
             {
@@ -63,12 +48,14 @@ namespace RepeatThreesome
                 && ModInterface.GameData.IsCodeUnlocked(Constants.NudeCodeId)
                 && Game.Session.Puzzle.puzzleStatus.statusType == PuzzleStatusType.NORMAL)
             {
-                var silent = ChangeToNudeOutfit(Game.Session.Puzzle.puzzleStatus.girlStatusLeft.playerFileGirl,
-                    Game.Session.gameCanvas.dollLeft,
-                    false);
+                var silent = Game.Session.Puzzle.puzzleStatus.girlStatusLeft != null
+                    && ChangeToNudeOutfit(Game.Session.Puzzle.puzzleStatus.girlStatusLeft.playerFileGirl,
+                        Game.Session.gameCanvas.dollLeft,
+                        false);
 
                 //ignore kyu during tutorial
-                if (!Game.Session.Puzzle.puzzleStatus.IsTutorial(false))
+                if (!Game.Session.Puzzle.puzzleStatus.IsTutorial(false)
+                    && Game.Session.Puzzle.puzzleStatus.girlStatusRight != null)
                 {
                     ChangeToNudeOutfit(Game.Session.Puzzle.puzzleStatus.girlStatusRight.playerFileGirl,
                         Game.Session.gameCanvas.dollRight,
@@ -101,9 +88,9 @@ namespace RepeatThreesome
 
             var expansion = ExpandedGirlDefinition.Get(girl.girlDefinition);
 
-            if (!expansion.OutfitIdToIndex.TryGetValue(Constants.NudeOutfitId, out var nudeOutfitIndex))
+            if (!expansion.OutfitLookup.TryGetIndex(Constants.NudeOutfitId, out var nudeOutfitIndex))
             {
-                ModInterface.Log.LogWarning($"Failed to find nude outfit for Girl {girl.girlDefinition.girlName}.");
+                ModInterface.Log.Warning($"Failed to find nude outfit for Girl {girl.girlDefinition.girlName}.");
                 return false;
             }
 

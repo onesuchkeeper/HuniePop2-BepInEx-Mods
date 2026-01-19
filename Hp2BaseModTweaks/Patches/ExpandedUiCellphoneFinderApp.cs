@@ -40,7 +40,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
         }
 
         private static readonly int _finderLocationsPerPage = 8;
-        private static readonly FieldInfo _playerFileFinderSlotAccess = AccessTools.Field(typeof(UiAppFinderSlot), "_playerFileFinderSlot");
+        private static readonly FieldInfo f_playerFileFinderSlotAccess = AccessTools.Field(typeof(UiAppFinderSlot), "_playerFileFinderSlot");
         private Hp2ButtonWrapper _previousPage;
         private Hp2ButtonWrapper _nextPage;
 

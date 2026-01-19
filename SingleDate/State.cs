@@ -1,3 +1,4 @@
+using System;
 using Hp2BaseMod;
 using Newtonsoft.Json;
 using UnityEngine;
@@ -9,8 +10,8 @@ public static class State
     private static readonly float _baseBrokenMult = 0.12f;
     private static readonly float _deltaBrokenMult = 0.01f;
 
-    public static Vector3 DefaultPuzzleGridPosition => _defaultPuzzleGridPosition;
-    private static Vector3 _defaultPuzzleGridPosition;
+    public static Vector2 DefaultPuzzleGridPosition => _defaultPuzzleGridPosition;
+    private static Vector2 _defaultPuzzleGridPosition;
 
     public static int ModId => _modId;
     private static int _modId;
@@ -35,7 +36,7 @@ public static class State
     private static bool _isSingleDate;
 
     public static int SensitivityExp => SaveFile.SensitivityExp;
-    public static float SensitivityPercentage => SaveFile.SensitivityExp / (Plugin.Instance.MaxSensitivityLevel * 6f);
+    public static float SensitivityPercentage => SaveFile.SensitivityExp / (Plugin.MaxSensitivityLevel.Value * 6f);
 
     public static bool IsSingle(GirlPairDefinition def)
     {
@@ -47,17 +48,18 @@ public static class State
         return ModInterface.Data.GetDataId(GameDataType.Girl, def.girlDefinitionOne.id) == GirlNobody.Id;
     }
 
-    public static float GetBrokenMult() => _baseBrokenMult - (GetSensitivityLevel() * _deltaBrokenMult);
+    public static float GetBrokenMult() => Math.Max(0.01f, _baseBrokenMult - (GetSensitivityLevel() * _deltaBrokenMult));
 
     public static int GetSensitivityLevel() => SaveFile.SensitivityExp / 6;
 
     public static void On_UiPuzzleGrid_Start(UiPuzzleGrid uiPuzzleGrid)
     {
-        _defaultPuzzleGridPosition = uiPuzzleGrid.transform.position;
+        _defaultPuzzleGridPosition = uiPuzzleGrid.GetComponent<RectTransform>().anchoredPosition;
     }
 
     public static void On_LocationManger_Arrive(GirlPairDefinition pair)
     {
+        ModInterface.Log.Message("State isSingleDate init");
         _isSingleDate = IsSingle(pair);
         Game.Session.gameCanvas.dollLeft.dropZoneCanvasGroup.blocksRaycasts = !_isSingleDate;
         ModInterface.State.CellphoneOnLeft = _isSingleDate;

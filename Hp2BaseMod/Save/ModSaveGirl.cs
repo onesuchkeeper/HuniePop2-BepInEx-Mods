@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Hp2BaseMod.Extension.IEnumerableExtension;
+using Hp2BaseMod.Extension;
 using Hp2BaseMod.Utility;
 
 namespace Hp2BaseMod.Save
 {
     [Serializable]
-    public class ModSaveGirl
+    public class ModSaveGirl : IModSave<SaveFileGirl>
     {
         private static readonly int _defaultDateGiftSlotCount = 4;
 
@@ -29,6 +29,7 @@ namespace Hp2BaseMod.Save
         public List<RelativeId> UnlockedOutfits;
         public List<RelativeId> UnlockedHairstyles;
         public List<ModSaveInventorySlot> DateGiftSlots;
+        public RelativeId BodyId;
 
         public void Strip(SaveFileGirl saveFileGirl)
         {
@@ -40,8 +41,8 @@ namespace Hp2BaseMod.Save
             StaminaFreeze = saveFileGirl.staminaFreeze;
             StyleOnDates = saveFileGirl.stylesOnDates;
 
-            //the active baggage index refers to the position in the learned baggage, which is kinda weird but whatever
-            //this needs to come before we strip the learnedBaggage
+            // the active baggage index refers to the position in the learned baggage, which is kinda weird but whatever
+            // this needs to come before we strip the learnedBaggage
             if (saveFileGirl.activeBaggageIndex >= 0 && saveFileGirl.learnedBaggage.Count > saveFileGirl.activeBaggageIndex)
             {
                 ActiveBaggage = ModInterface.Data.GetDataId(GameDataType.Ailment, saveFileGirl.learnedBaggage[saveFileGirl.activeBaggageIndex]);
@@ -50,18 +51,24 @@ namespace Hp2BaseMod.Save
             LearnedBaggage = new List<RelativeId>();
             foreach (var baggage in saveFileGirl.learnedBaggage)
             {
-                var id = ModInterface.Data.GetDataId(GameDataType.Ailment, baggage);
-                LearnedBaggage.Add(id);
+                if (ModInterface.Data.TryGetDataId(GameDataType.Ailment, baggage, out var id))
+                {
+                    LearnedBaggage.Add(id);
+                }
+                else
+                {
+                    ModInterface.Log.Warning($"Failed to get ailment for runtime {baggage}");
+                }
             }
             saveFileGirl.learnedBaggage = LearnedBaggage.Where(x => x.SourceId == -1).Select(x => x.LocalId).ToList();
 
-            //this needs to come after we strip the learned baggage so we don't default to any non-default baggage
+            // this needs to come after we strip the learned baggage so we don't default to any non-default baggage
             if (ActiveBaggage.HasValue && ActiveBaggage.Value.SourceId != -1)
             {
                 saveFileGirl.activeBaggageIndex = saveFileGirl.learnedBaggage.First();
             }
 
-            if (!girlExpanded.HairstyleIndexToId.TryGetValue(saveFileGirl.hairstyleIndex, out HairstyleId))
+            if (!girlExpanded.HairstyleLookup.TryGetId(saveFileGirl.hairstyleIndex, out HairstyleId))
             {
                 HairstyleId = RelativeId.Default;
                 saveFileGirl.hairstyleIndex = -1;
@@ -71,7 +78,7 @@ namespace Hp2BaseMod.Save
                 saveFileGirl.hairstyleIndex = -1;
             }
 
-            if (!girlExpanded.OutfitIndexToId.TryGetValue(saveFileGirl.outfitIndex, out OutfitId))
+            if (!girlExpanded.OutfitLookup.TryGetId(saveFileGirl.outfitIndex, out OutfitId))
             {
                 OutfitId = RelativeId.Default;
                 saveFileGirl.outfitIndex = -1;
@@ -84,32 +91,56 @@ namespace Hp2BaseMod.Save
             ReceivedUniques = new List<RelativeId>();
             foreach (var item in saveFileGirl.receivedUniques)
             {
-                var id = ModInterface.Data.GetDataId(GameDataType.Item, item);
-                ReceivedUniques.Add(id);
+                if (ModInterface.Data.TryGetDataId(GameDataType.Item, item, out var id))
+                {
+                    ReceivedUniques.Add(id);
+                }
+                else
+                {
+                    ModInterface.Log.Warning($"Failed to get unique item for runtime {item}");
+                }
             }
             saveFileGirl.receivedUniques = ReceivedUniques.Where(x => x.SourceId == -1).Select(x => x.LocalId).ToList();
 
             ReceivedShoes = new List<RelativeId>();
             foreach (var item in saveFileGirl.receivedShoes)
             {
-                var id = ModInterface.Data.GetDataId(GameDataType.Item, item);
-                ReceivedShoes.Add(id);
+                if (ModInterface.Data.TryGetDataId(GameDataType.Item, item, out var id))
+                {
+                    ReceivedShoes.Add(id);
+                }
+                else
+                {
+                    ModInterface.Log.Warning($"Failed to get shoe item for runtime {item}");
+                }
             }
             saveFileGirl.receivedShoes = ReceivedShoes.Where(x => x.SourceId == -1).Select(x => x.LocalId).ToList();
 
             LearnedFavs = new List<RelativeId>();
             foreach (var fav in saveFileGirl.learnedFavs)
             {
-                var id = ModInterface.Data.GetDataId(GameDataType.Question, fav);
-                LearnedFavs.Add(id);
+                if (ModInterface.Data.TryGetDataId(GameDataType.Question, fav, out var id))
+                {
+                    LearnedFavs.Add(id);
+                }
+                else
+                {
+                    ModInterface.Log.Warning($"Failed to get favorite for runtime {fav}");
+                }
             }
             saveFileGirl.learnedFavs = LearnedFavs.Where(x => x.SourceId == -1).Select(x => x.LocalId).ToList();
 
             RecentHerQuestions = new List<RelativeId>();
             foreach (var question in saveFileGirl.recentHerQuestions)
             {
-                var id = ModInterface.Data.GetDataId(GameDataType.Question, question);
-                RecentHerQuestions.Add(id);
+                if (ModInterface.Data.TryGetDataId(GameDataType.Question, question, out var id))
+                {
+                    RecentHerQuestions.Add(id);
+                }
+                else
+                {
+                    ModInterface.Log.Warning($"Failed to get question for runtime {question}");
+                }
             }
             saveFileGirl.recentHerQuestions = RecentHerQuestions.Where(x => x.SourceId == -1).Select(x => x.LocalId).ToList();
 
@@ -117,7 +148,7 @@ namespace Hp2BaseMod.Save
             UnlockedOutfits = new List<RelativeId>();
             foreach (var outfitIndex in saveFileGirl.unlockedOutfits)
             {
-                if (girlExpanded.OutfitIndexToId.TryGetValue(outfitIndex, out var id))
+                if (girlExpanded.OutfitLookup.TryGetId(outfitIndex, out var id))
                 {
                     UnlockedOutfits.Add(id);
                 }
@@ -128,7 +159,7 @@ namespace Hp2BaseMod.Save
             UnlockedHairstyles = new List<RelativeId>();
             foreach (var hairstyle in saveFileGirl.unlockedHairstyles)
             {
-                if (girlExpanded.HairstyleIndexToId.TryGetValue(hairstyle, out var id))
+                if (girlExpanded.HairstyleLookup.TryGetId(hairstyle, out var id))
                 {
                     UnlockedHairstyles.Add(id);
                 }
@@ -136,7 +167,7 @@ namespace Hp2BaseMod.Save
             saveFileGirl.unlockedHairstyles = UnlockedHairstyles.Where(x => x.SourceId == -1).Select(x => x.LocalId).ToList();
 
             // DateGiftSlots
-            DateGiftSlots = new List<ModSaveInventorySlot>();
+            DateGiftSlots = new();
             foreach (var slot in saveFileGirl.dateGiftSlots)
             {
                 var saveMod = new ModSaveInventorySlot();
@@ -149,17 +180,21 @@ namespace Hp2BaseMod.Save
         public void SetData(SaveFileGirl saveFileGirl)
         {
             //Inventory Slots
-            var saveEnum = saveFileGirl.dateGiftSlots.GetEnumerator();
-            var foo = DateGiftSlots.GetEnumerator();
-            while (saveEnum.MoveNext() && foo.MoveNext())
+            if (DateGiftSlots != null)
             {
-                foo.Current.SetData(saveEnum.Current);
-            }
+                var saveEnum = saveFileGirl.dateGiftSlots.GetEnumerator();
+                var dataGiftSlotsIt = DateGiftSlots.GetEnumerator();
 
-            var i = saveFileGirl.dateGiftSlots.Count;
-            while (foo.MoveNext())
-            {
-                saveFileGirl.dateGiftSlots.Add(foo.Current.Convert(i++));
+                while (saveEnum.MoveNext() && dataGiftSlotsIt.MoveNext())
+                {
+                    dataGiftSlotsIt.Current.SetData(saveEnum.Current);
+                }
+
+                var i = saveFileGirl.dateGiftSlots.Count;
+                while (dataGiftSlotsIt.MoveNext())
+                {
+                    saveFileGirl.dateGiftSlots.Add(dataGiftSlotsIt.Current.Convert(i++));
+                }
             }
 
             Inject(saveFileGirl);
@@ -169,13 +204,9 @@ namespace Hp2BaseMod.Save
         {
             var save = new SaveFileGirl(runtimeId)
             {
-                //girlId set in constructor
                 playerMet = PlayerMet,
                 relationshipPoints = RelationshipPoints,
                 relationshipUpCount = RelationshipUpCount,
-                //activeBaggageIndex = girl.activeBaggageIndex,
-                //hairstyleIndex = girl.hairstyleIndex,
-                //outfitIndex = girl.outfitIndex,
                 staminaFreeze = StaminaFreeze,
                 stylesOnDates = StyleOnDates,
                 learnedBaggage = new List<int>(),
@@ -188,10 +219,13 @@ namespace Hp2BaseMod.Save
                 dateGiftSlots = new List<SaveFileInventorySlot>()
             };
 
-            var i = 0;
-            foreach (var slot in DateGiftSlots)
+            if (DateGiftSlots != null)
             {
-                save.dateGiftSlots.Add(slot.Convert(i++));
+                var i = 0;
+                foreach (var slot in DateGiftSlots)
+                {
+                    save.dateGiftSlots.Add(slot.Convert(i++));
+                }
             }
 
             Inject(save);
@@ -203,12 +237,12 @@ namespace Hp2BaseMod.Save
         {
             var girlExpanded = ExpandedGirlDefinition.Get(save.girlId);
 
-            if (girlExpanded.HairstyleIdToIndex.TryGetValue(HairstyleId, out var hairstyleIndex))
+            if (girlExpanded.HairstyleLookup.TryGetIndex(HairstyleId, out var hairstyleIndex))
             {
                 save.hairstyleIndex = hairstyleIndex;
             }
 
-            if (girlExpanded.OutfitIdToIndex.TryGetValue(OutfitId, out var outfitIndex))
+            if (girlExpanded.OutfitLookup.TryGetIndex(OutfitId, out var outfitIndex))
             {
                 save.outfitIndex = outfitIndex;
             }
@@ -221,29 +255,19 @@ namespace Hp2BaseMod.Save
 
             foreach (var unlockedOutfit in UnlockedOutfits.OrEmptyIfNull())
             {
-                if (girlExpanded.OutfitIdToIndex.TryGetValue(unlockedOutfit, out var index))
+                if (girlExpanded.OutfitLookup.TryGetIndex(unlockedOutfit, out var index))
                 {
                     save.unlockedOutfits.Add(index);
                 }
-                else
-                {
-                    ModInterface.Log.LogInfo($"Unlocked outfit id {unlockedOutfit} is not in data and was discarded");
-                }
             }
-            save.unlockedOutfits = save.unlockedOutfits.Distinct().ToList();
 
             foreach (var unlockedHairstyle in UnlockedHairstyles.OrEmptyIfNull())
             {
-                if (girlExpanded.HairstyleIdToIndex.TryGetValue(unlockedHairstyle, out var index))
+                if (girlExpanded.HairstyleLookup.TryGetIndex(unlockedHairstyle, out var index))
                 {
                     save.unlockedHairstyles.Add(index);
                 }
-                else
-                {
-                    ModInterface.Log.LogInfo($"Unlocked hairstyle id {unlockedHairstyle} is not in data and was discarded");
-                }
             }
-            save.unlockedHairstyles = save.unlockedHairstyles.Distinct().ToList();
         }
     }
 }

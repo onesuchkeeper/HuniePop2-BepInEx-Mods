@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Hp2BaseMod.GameDataInfo;
 using Hp2BaseMod.GameDataInfo.Interface;
 
 namespace Hp2BaseMod.Utility
@@ -35,8 +36,7 @@ namespace Hp2BaseMod.Utility
             }
         }
 
-        public static void SetValue<Tt, Tv>(ref Tt target, IDictionary<Tv, Tt> lookup, Tv value, InsertStyle style)
-            where Tt : class
+        public static void SetDictValues<Tk, Tv>(ref Dictionary<Tk, Tv> target, Dictionary<Tk, Tv> value, InsertStyle style)
         {
             if (value == null)
             {
@@ -47,12 +47,19 @@ namespace Hp2BaseMod.Utility
             }
             else
             {
-                target = lookup[value];
+                foreach (var entry in value)
+                {
+                    target[entry.Key] = entry.Value;
+                }
             }
         }
 
-        public static void SetValue<Tt, Tv>(ref Tt target, IDictionary<Tv, Tt> lookup, Tv? value)
-            where Tv : struct
+        public static void SetValue(ref int target, IdIndexMap lookup, RelativeId value, InsertStyle style)
+        {
+            target = lookup[value];
+        }
+
+        public static void SetValue(ref int target, IdIndexMap lookup, RelativeId? value)
         {
             try
             {
@@ -63,9 +70,8 @@ namespace Hp2BaseMod.Utility
             }
             catch (Exception e)
             {
-                ModInterface.Log.LogError($"Threw setting value from lookup. value: \"{value}\"", e);
+                ModInterface.Log.Error($"Threw setting value from lookup. value: \"{value}\"", e);
             }
-
         }
 
         public static void SetValue<T>(ref T target, T? value)
@@ -103,7 +109,7 @@ namespace Hp2BaseMod.Utility
             }
         }
 
-        public static void SetListValue<T>(ref List<T> target, IEnumerable<Nullable<T>> value, InsertStyle style)
+        public static void SetListValue<T>(ref List<T> target, IEnumerable<T?> value, InsertStyle style)
             where T : struct
         {
             if (target == null || style == InsertStyle.assignNull)
@@ -222,8 +228,10 @@ namespace Hp2BaseMod.Utility
 
         public static void SetFromRelativeId(ref int id, GameDataType gameDataType, RelativeId? relativeId)
         {
-            if (relativeId == null) { return; }
-            SetFromRelativeId(ref id, gameDataType, relativeId.Value);
+            if (relativeId != null)
+            {
+                SetFromRelativeId(ref id, gameDataType, relativeId.Value);
+            }
         }
 
         public static void SetFromRelativeId(ref int id, GameDataType gameDataType, RelativeId relativeId)
@@ -234,7 +242,7 @@ namespace Hp2BaseMod.Utility
             }
             else
             {
-                ModInterface.Log.LogWarning($"Failed to find runtime for {Enum.GetName(typeof(GameDataType), gameDataType)} {relativeId}");
+                ModInterface.Log.Warning($"Failed to find runtime for {Enum.GetName(typeof(GameDataType), gameDataType)} {relativeId}");
             }
         }
     }

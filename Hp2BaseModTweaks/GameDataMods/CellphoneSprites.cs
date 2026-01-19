@@ -18,9 +18,7 @@ public static class CellphoneSprites
     {
         var mod = new GirlDataMod(girlId, InsertStyle.replace);
 
-        var digitalArtCollectionDir = Plugin.Instance.DigitalArtCollectionDir;
-
-        var texturePath = Path.Combine(digitalArtCollectionDir, "Heads", $"{name}.png");
+        var texturePath = Path.Combine(Plugin.DigitalArtCollectionDir.Value, "Heads", $"{name}.png");
         if (File.Exists(texturePath))
         {
             //pad to center in square
@@ -29,12 +27,12 @@ public static class CellphoneSprites
                 ? new Vector2(0, diff + _extraHeadPadding)
                 : new Vector2(diff + _extraHeadPadding, 0);
 
-            var cellphoneHeadInfo = new TextureInfoExternal(texturePath);
+            var cellphoneHeadInfo = new TextureInfoExternal(texturePath, false);
 
             var scale = KeepRatioInBounds(headSize, _cellphoneHeadSize);
             mod.CellphoneHead = new SpriteInfoTexture(new TextureInfoCache(
                 Path.Combine(Plugin.ImagesDir, $"{name}_cellphoneHead.png"),
-                new TextureInfoRender(cellphoneHeadInfo, [
+                new TextureInfoRender(cellphoneHeadInfo, false, [
                     new TextureRsScale(scale),
                     new TextureRsPad((int)(padding.x * scale.x) + 5, (int)(padding.y * scale.y) + 5),
                     new TextureRsCellphoneOutline()
@@ -43,14 +41,14 @@ public static class CellphoneSprites
             scale = KeepRatioInBounds(headSize, _cellphoneMiniHeadSize);
             mod.CellphoneMiniHead = new SpriteInfoTexture(new TextureInfoCache(
                 Path.Combine(Plugin.ImagesDir, $"{name}_cellphoneHeadMini.png"),
-                new TextureInfoRender(cellphoneHeadInfo, [
+                new TextureInfoRender(cellphoneHeadInfo, false, [
                     new TextureRsScale(scale),
                     new TextureRsPad((int)(padding.x * scale.x) + 4, (int)(padding.y * scale.y) + 4),
                     new TextureRsCellphoneOutline(3f, 0f, 1f)
                 ])));
         }
 
-        texturePath = Path.Combine(digitalArtCollectionDir, "Sprites", $"{name}.png");
+        texturePath = Path.Combine(Plugin.DigitalArtCollectionDir.Value, "Sprites", $"{name}.png");
         if (File.Exists(texturePath))
         {
             var trimAmount = portraitSize.y * 0.1f;
@@ -59,7 +57,7 @@ public static class CellphoneSprites
 
             mod.CellphonePortrait = new SpriteInfoTexture(new TextureInfoCache(
                 Path.Combine(Plugin.ImagesDir, $"{name}_cellphonePortrait.png"),
-                new TextureInfoExternal(texturePath, FilterMode.Bilinear, [
+                new TextureInfoExternal(texturePath, false, FilterMode.Bilinear, [
                     new TextureRsScale(scale),
                     new TextureRsPad(0, 0, 0, (int)-trimAmount),
                     new TextureRsPad(8),

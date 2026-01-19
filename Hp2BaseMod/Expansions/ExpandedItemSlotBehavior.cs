@@ -9,6 +9,13 @@ namespace Hp2BaseMod;
 [HarmonyPatch(typeof(ItemSlotBehavior))]
 internal static class ItemSlotBehaviorPatch
 {
+    [HarmonyPatch("Start")]
+    [HarmonyPostfix]
+    public static void Start(ItemSlotBehavior __instance)
+    {
+        __instance.itemIcon.useSpriteMesh = true;
+    }
+
     [HarmonyPatch(nameof(ItemSlotBehavior.ShowTooltip))]
     [HarmonyPrefix]
     public static bool ShowTooltip(ItemSlotBehavior __instance)
@@ -40,10 +47,10 @@ public class ExpandedItemSlotBehavior
         return expansion;
     }
 
-    private static FieldInfo _itemDefinition = AccessTools.Field(typeof(ItemSlotBehavior), "_itemDefinition");
-    private static FieldInfo _tooltip = AccessTools.Field(typeof(ItemSlotBehavior), "_tooltip");
-    private static FieldInfo _offsetOverride = AccessTools.Field(typeof(ItemSlotBehavior), "_offsetOverride");
-    private static FieldInfo _tooltipOffset = AccessTools.Field(typeof(ItemSlotBehavior), "_tooltipOffset");
+    private static readonly FieldInfo f_itemDefinition = AccessTools.Field(typeof(ItemSlotBehavior), "_itemDefinition");
+    private static readonly FieldInfo f_tooltip = AccessTools.Field(typeof(ItemSlotBehavior), "_tooltip");
+    private static readonly FieldInfo f_offsetOverride = AccessTools.Field(typeof(ItemSlotBehavior), "_offsetOverride");
+    private static readonly FieldInfo f_tooltipOffset = AccessTools.Field(typeof(ItemSlotBehavior), "_tooltipOffset");
 
     public event Action PreShowEvent;
 
@@ -55,32 +62,30 @@ public class ExpandedItemSlotBehavior
 
     public bool ShowTooltip()
     {
-        if (!(ModInterface.State.CellphoneOnLeft && _core.eastOnHub))
+        if (_core.showTooltip
+            && _core.eastOnHub
+            && ModInterface.State.CellphoneOnLeft)
         {
-            return true;
+            var itemDef = f_itemDefinition.GetValue<ItemDefinition>(_core);
+
+            if (itemDef != null)
+            {
+                var tooltip = f_tooltip.GetValue<UiTooltipItem>(_core);
+                tooltip.Populate(itemDef, CardinalDirection.EAST);
+                PreShowEvent?.Invoke();
+
+                tooltip.Show(_core.transform.position,
+                    MathUtils.DirectionToVector(CardinalDirection.EAST)
+                    * (f_offsetOverride.GetValue<bool>(_core)
+                        ? f_tooltipOffset.GetValue<int>(_core)
+                        : 20f),
+                    false);
+
+                return false;
+            }
         }
 
-        var itemDef = _itemDefinition.GetValue<ItemDefinition>(_core);
-
-        if (!_core.showTooltip || itemDef == null)
-        {
-            return true;
-        }
-
-        var tooltip = _tooltip.GetValue<UiTooltipItem>(_core);
-
-        tooltip.Populate(itemDef, CardinalDirection.EAST);
-
-        PreShowEvent?.Invoke();
-
-        tooltip.Show(_core.transform.position,
-            MathUtils.DirectionToVector(CardinalDirection.EAST)
-            * (_offsetOverride.GetValue<bool>(_core)
-                ? _tooltipOffset.GetValue<float>(_core)
-                : 20f),
-            false);
-
-        return false;
+        return true;
     }
 
     public void OnDestroy()

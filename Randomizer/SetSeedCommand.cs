@@ -27,7 +27,7 @@ public class SetSeedCommand : ICommand
             seed = BitConverter.ToInt32(hashed, 0);
         }
 
-        Plugin.Instance.Config[Plugin.ConfigGeneralName, Plugin.ConfigSeedName].BoxedValue = seed;
+        Plugin.Seed.Value = seed;
 
         result = $"Seed set to {seed}. The game must be saved then restarted for it to take effect.";
         return true;

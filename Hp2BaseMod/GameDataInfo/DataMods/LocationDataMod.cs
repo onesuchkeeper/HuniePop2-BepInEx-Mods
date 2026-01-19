@@ -1,7 +1,6 @@
 ﻿// Hp2BaseMod 2021, By OneSuchKeeper
 
 using System.Collections.Generic;
-using System.Linq;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
 using UnityEngine;
@@ -11,13 +10,11 @@ namespace Hp2BaseMod.GameDataInfo
     /// <summary>
     /// Information to make a LocationDefinition
     /// </summary>
-    public class LocationDataMod : DataMod, ILocationDataMod
+    public class LocationDataMod : DataMod, IGameDataMod<LocationDefinition>
     {
         public string LocationName;
 
         public LocationType? LocationType;
-
-        public List<(RelativeId, GirlStyleInfo)> GirlStyles;
 
         public string NonStopOptionText;
 
@@ -39,7 +36,7 @@ namespace Hp2BaseMod.GameDataInfo
         public bool? AllowNonStop;
         public bool? AllowNormal;
         public bool? PostBoss;
-        public bool? IgnoreDateTime;
+        public RelativeId? DefaultStyle;
 
         /// <inheritdoc/>
         public LocationDataMod() { }
@@ -53,35 +50,6 @@ namespace Hp2BaseMod.GameDataInfo
         public LocationDataMod(RelativeId id, InsertStyle insertStyle, int loadPriority = 0)
             : base(id, insertStyle, loadPriority)
         {
-        }
-
-        /// <summary>
-        /// Constructor from a definition instance.
-        /// </summary>
-        /// <param name="def">The definition.</param>
-        /// <param name="def">A collection of all girl definitions.</param>
-        /// <param name="assetProvider">Asset provider containing the assets referenced by the definition.</param>
-        internal LocationDataMod(LocationDefinition def, IEnumerable<GirlDefinition> girls, AssetProvider assetProvider)
-            : base(new RelativeId(def), InsertStyle.replace, 0)
-        {
-            LocationName = def.locationName;
-            LocationType = def.locationType;
-            BgMusic = new AudioKlipInfo(def.bgMusic, assetProvider);
-            BgYOffset = def.bgYOffset;
-            FinderLocationIcon = new SpriteInfoInternal(def.finderLocationIcon, assetProvider);
-            NonStopOptionText = def.nonStopOptionText;
-            SpecialLabels = def.specialLabels;
-            Backgrounds = def.backgrounds.Select(x => (IGameDefinitionInfo<Sprite>)new SpriteInfoInternal(x, assetProvider)).ToList();
-            ArriveBundleList = def.arriveBundleList.Select(x => (IGameDefinitionInfo<LogicBundle>)new LogicBundleInfo(x, assetProvider)).ToList();
-            DepartBundleList = def.departBundleList.Select(x => (IGameDefinitionInfo<LogicBundle>)new LogicBundleInfo(x, assetProvider)).ToList();
-
-            var styleId = new RelativeId(-1, (int)def.dateGirlStyleType);
-            GirlStyles = girls.Select(x => (new RelativeId(x),
-                                            new GirlStyleInfo()
-                                            {
-                                                HairstyleId = styleId,
-                                                OutfitId = styleId
-                                            })).ToList();
         }
 
         /// <inheritdoc/>
@@ -107,9 +75,8 @@ namespace Hp2BaseMod.GameDataInfo
             ValidatedSet.SetValue(ref expansion.AllowNonStop, AllowNonStop);
             ValidatedSet.SetValue(ref expansion.PostBoss, PostBoss);
             ValidatedSet.SetListValue(ref expansion.DateTimes, DateTimes, InsertStyle);
+            ValidatedSet.SetValue(ref expansion.DefaultStyle, DefaultStyle);
         }
-
-        public IEnumerable<(RelativeId, GirlStyleInfo)> GetStyles() => GirlStyles;
 
         /// <inheritdoc/>
         public void RequestInternals(AssetProvider assetProvider)

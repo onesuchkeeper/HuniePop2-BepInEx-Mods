@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Reflection;
 using HarmonyLib;
+using Hp2BaseMod.Extension;
 using UnityEngine;
 
 namespace Hp2BaseMod;
@@ -8,7 +9,7 @@ namespace Hp2BaseMod;
 [HarmonyPatch(typeof(UiWindowActionBubbles))]
 internal static class UiWindowActionBubblesPatch
 {
-    private static FieldInfo _selectedBubble = AccessTools.Field(typeof(UiWindowActionBubbles), "_selectedBubble");
+    private static readonly FieldInfo f_selectedBubble = AccessTools.Field(typeof(UiWindowActionBubbles), "_selectedBubble");
 
     [HarmonyPatch("OnActionBubblePressed")]
     [HarmonyPrefix]
@@ -26,17 +27,31 @@ internal static class UiWindowActionBubblesPatch
             RightPoints = 5,
 
             LeftStaminaGain = 2,
-            RightStaminaGain = 2
+            RightStaminaGain = 2,
+            DenyDate = false
         };
 
         var playerFileGirlPair = Game.Persistence.playerFile.GetPlayerFileGirlPair(Game.Session.Location.currentGirlPair);
         if (playerFileGirlPair != null && playerFileGirlPair.relationshipType == GirlPairRelationshipType.ATTRACTED
             && Game.Persistence.playerFile.daytimeElapsed % 4 == (int)playerFileGirlPair.girlPairDefinition.sexDaytime)
         {
+            ModInterface.Log.Message("Pair is targeting sex location");
             args.Location = playerFileGirlPair.girlPairDefinition.sexLocationDefinition;
         }
 
         ModInterface.Events.NotifyDateLocationSelected(args);
+
+        if (args.DenyDate)
+        {
+            Game.Manager.Audio.Play(AudioCategory.SOUND, Game.Manager.Ui.sfxReject, null);
+            if (Game.Manager.Windows.IsWindowActive(null, includeShowing: true, includeHiding: false))
+            {
+                Game.Manager.Windows.ShowWindow(Game.Session.Location.actionBubblesWindow, shouldQueue: true);
+                Game.Manager.Windows.HideWindow();
+            }
+
+            return false;
+        }
 
         var staminaEnergy = Game.Data.Tokens.GetByResourceType(PuzzleResourceType.STAMINA).energyDefinition;
         if (args.LeftStaminaGain != 0
@@ -84,14 +99,9 @@ internal static class UiWindowActionBubblesPatch
             var time = (ClockDaytimeType)(Game.Persistence.playerFile.daytimeElapsed % 4);
 
             var locs = Game.Data.Locations.GetAllByLocationType(LocationType.DATE)
-                .Where(x =>
-                {
-                    var expansion = x.Expansion();
+                .Where(x => x.Expansion().IsValidForNormalDate());
 
-                    return expansion.AllowNormal
-                        && (Game.Persistence.playerFile.storyProgress >= 12 || !expansion.PostBoss)
-                        && (expansion.DateTimes?.Contains(time) ?? true);
-                });
+            ModInterface.Log.Message($"Choosing normal date Loc from pool: [{string.Join(", ", locs.Select(x => x.locationName))}]");
 
             args.Location = locs.ToList().PopRandom();
         }
@@ -101,7 +111,7 @@ internal static class UiWindowActionBubblesPatch
         Game.Manager.Audio.Play(AudioCategory.SOUND, __instance.sfxBubbleSelect, __instance.pauseDefinition);
         Game.Manager.Audio.Play(AudioCategory.SOUND, actionBubble.sfxSelect, __instance.pauseDefinition);
 
-        _selectedBubble.SetValue(__instance, null);
+        f_selectedBubble.SetValue(__instance, null);
 
         return false;
     }

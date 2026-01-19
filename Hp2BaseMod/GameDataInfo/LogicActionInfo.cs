@@ -26,7 +26,7 @@ namespace Hp2BaseMod.GameDataInfo
 
         public int? IntValue;
 
-        public RelativeId? LocationDefinitionID;
+        public RelativeId? LocationDefinitionId;
 
         public RelativeId? GirlPairDefinitionID;
 
@@ -64,7 +64,7 @@ namespace Hp2BaseMod.GameDataInfo
             ResourceType = def.resourceType;
             PuzzleState = def.puzzleState;
 
-            LocationDefinitionID = new RelativeId(def.locationDefinition);
+            LocationDefinitionId = new RelativeId(def.locationDefinition);
             GirlPairDefinitionID = new RelativeId(def.girlPairDefinition);
             ItemDefinitionID = new RelativeId(def.itemDefinition);
             GirlDefinitionID = new RelativeId(def.girlDefinition);
@@ -90,7 +90,7 @@ namespace Hp2BaseMod.GameDataInfo
             ValidatedSet.SetValue(ref def.resourceType, ResourceType);
             ValidatedSet.SetValue(ref def.puzzleState, PuzzleState);
 
-            ValidatedSet.SetValue(ref def.locationDefinition, gameDataProvider.GetLocation(LocationDefinitionID), insertStyle);
+            ValidatedSet.SetValue(ref def.locationDefinition, gameDataProvider.GetLocation(LocationDefinitionId), insertStyle);
             ValidatedSet.SetValue(ref def.girlPairDefinition, gameDataProvider.GetGirlPair(GirlPairDefinitionID), insertStyle);
             ValidatedSet.SetValue(ref def.itemDefinition, gameDataProvider.GetItem(ItemDefinitionID), insertStyle);
             ValidatedSet.SetValue(ref def.girlDefinition, gameDataProvider.GetGirl(GirlDefinitionID), insertStyle);

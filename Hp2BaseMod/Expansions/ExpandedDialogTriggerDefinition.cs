@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Hp2BaseMod.Extension;
 using Hp2BaseMod.GameDataInfo;
 
 namespace Hp2BaseMod;
@@ -8,6 +9,9 @@ public static class DialogTriggerDefinition_Ext
 {
     public static ExpandedDialogTriggerDefinition Expansion(this DialogTriggerDefinition def)
         => ExpandedDialogTriggerDefinition.Get(def);
+
+    public static RelativeId ModId(this DialogTriggerDefinition def)
+        => ModInterface.Data.GetDataId(GameDataType.DialogTrigger, def.id);
 }
 
 /// <summary>
@@ -26,45 +30,25 @@ public class ExpandedDialogTriggerDefinition
     public static ExpandedDialogTriggerDefinition Get(int runtimeId)
         => Get(ModInterface.Data.GetDataId(GameDataType.DialogTrigger, runtimeId));
 
-    public static ExpandedDialogTriggerDefinition Get(RelativeId id)
-    {
-        if (!_expansions.TryGetValue(id, out var expansion))
-        {
-            expansion = new ExpandedDialogTriggerDefinition();
-            _expansions[id] = expansion;
-        }
+    public static ExpandedDialogTriggerDefinition Get(RelativeId id) => _expansions.GetOrNew(id);
 
-        return expansion;
-    }
-
-    /// <summary>
-    /// Maps a girl id to a map of line id to line index.
-    /// use <see cref="TryGetLine"/> unless you must access the full collection.
-    /// </summary>
-    public Dictionary<RelativeId, Dictionary<RelativeId, int>> GirlIdToLineIdToLineIndex = new Dictionary<RelativeId, Dictionary<RelativeId, int>>();
-
-    /// <summary>
-    /// Maps a girl id to a map of line index to line id.
-    /// use <see cref="TryGetLineSet"/> or <see cref="TryGetLine"/> unless you must access the full collection.
-    /// </summary>
-    public Dictionary<RelativeId, Dictionary<int, RelativeId>> GirlIdToLineIndexToLineId = new Dictionary<RelativeId, Dictionary<int, RelativeId>>();
+    private Dictionary<RelativeId, IdIndexMap> _girlToLineIndexes = new();
 
     /// <summary>
     /// Given a girl, attempts to get their <see cref="DialogTriggerLineSet"/>
     /// </summary>
     public bool TryGetLineSet(DialogTriggerDefinition def, RelativeId girlId, out DialogTriggerLineSet lineSet)
     {
-        var girlExpansion = ExpandedGirlDefinition.Get(girlId);
-
-        if (def.dialogLineSets[girlExpansion.DialogTriggerIndex].dialogLines.Count > 0)
+        var girlIndex = ExpandedGirlDefinition.DialogTriggerIndexes[girlId];
+        lineSet = def.dialogLineSets.GetOrNew(girlIndex);
+        if (lineSet.dialogLines.Any(x => x != null))
         {
-            lineSet = def.dialogLineSets[girlExpansion.DialogTriggerIndex];
             return true;
         }
 
-        if (def.dialogLineSets.FirstOrDefault()?.dialogLines.Count > 0)
+        lineSet = def.dialogLineSets.FirstOrDefault();
+        if (lineSet?.dialogLines.Count > 0)
         {
-            lineSet = def.dialogLineSets[0];
             return true;
         }
 
@@ -72,18 +56,14 @@ public class ExpandedDialogTriggerDefinition
         return false;
     }
 
-    /// <summary>
-    /// Given a girl and a set, attempts to get their <see cref="DialogLine"/>
-    /// </summary>
-    public bool TryGetLine(DialogTriggerDefinition def, RelativeId girlId, RelativeId id, out DialogLine line)
-    {
-        if (TryGetLineSet(def, girlId, out var lineSet))
-        {
-            line = lineSet.dialogLines[GirlIdToLineIdToLineIndex[girlId][id]];
-            return true;
-        }
+    public DialogTriggerLineSet GetLineSetOrNew(DialogTriggerDefinition def, RelativeId girlId)
+        => def.dialogLineSets.GetOrNew(ExpandedGirlDefinition.DialogTriggerIndexes[girlId]);
 
-        line = null;
-        return false;
+    public DialogLine GetLineOrNew(DialogTriggerDefinition def, RelativeId girlId, RelativeId lineId)
+    {
+        var set = GetLineSetOrNew(def, girlId);
+        var LineIndexes = _girlToLineIndexes.GetOrNew(girlId);
+        var index = LineIndexes[lineId];
+        return set.dialogLines.GetOrNew(index);
     }
 }

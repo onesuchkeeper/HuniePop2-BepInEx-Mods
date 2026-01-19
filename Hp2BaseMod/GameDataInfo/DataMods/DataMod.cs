@@ -9,7 +9,7 @@ namespace Hp2BaseMod.GameDataInfo
     /// </summary>
     public abstract class DataMod
     {
-        public RelativeId Id { get; }
+        public RelativeId Id { get; set; }
 
         public int LoadPriority { get; }
 

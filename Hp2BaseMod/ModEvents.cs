@@ -68,8 +68,8 @@ namespace Hp2BaseMod
         public event Action<CodeDefinition> PostCodeSubmitted;
         internal void NotifyPostCodeSubmitted(CodeDefinition codeDefinition) => PostCodeSubmitted?.Invoke(codeDefinition);
 
-        public event Action PreRoundOverCutscene;
-        internal void NotifyPreRoundOverCutscene() => PreRoundOverCutscene?.Invoke();
+        public event Action<PuzzleRoundOverArgs> PuzzleRoundOver;
+        internal void NotifyPuzzleRoundOver(PuzzleRoundOverArgs args) => PuzzleRoundOver?.Invoke(args);
 
         public event Action<FinderSlotPopulateEventArgs> FinderSlotsPopulate;
         internal void NotifyPreFinderSlotPopulatePairs(FinderSlotPopulateEventArgs args) => FinderSlotsPopulate?.Invoke(args);
@@ -88,5 +88,20 @@ namespace Hp2BaseMod
 
         public event Action<DateLocationSelectedArgs> DateLocationSelected;
         internal void NotifyDateLocationSelected(DateLocationSelectedArgs args) => DateLocationSelected?.Invoke(args);
+
+        public event Action<SinglePhotoDisplayArgs> SinglePhotoDisplayed;
+        internal void NotifySinglePhotoDisplayed(SinglePhotoDisplayArgs args) => SinglePhotoDisplayed?.Invoke(args);
+
+        public event Action<PreDateDollResetArgs> PreDateDollReset;
+        internal void NotifyPreDateDollReset(PreDateDollResetArgs args) => PreDateDollReset?.Invoke(args);
+
+        public event Action<TalkFavQuestionResponseArgs> FavQuestionResponse;
+        internal void NotifyFavQuestionResponse(TalkFavQuestionResponseArgs args) => FavQuestionResponse?.Invoke(args);
+
+        public event Action<StoreProductsPopulateArgs> PopulateStoreProducts;
+        internal void NotifyPopulateStoreProducts(StoreProductsPopulateArgs args) => PopulateStoreProducts?.Invoke(args);
+
+        public event Action<LocationArriveArgs> PreLocationArrive;
+        internal void NotifyPreLocationArrive(LocationArriveArgs args) => PreLocationArrive?.Invoke(args);
     }
 }

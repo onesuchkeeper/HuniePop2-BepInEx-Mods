@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 
-public static partial class IListExtension
+namespace Hp2BaseMod.Extension;
+
+public static partial class IList_Ext
 {
     public static T PopFirst<T>(this IList<T> source)
     {

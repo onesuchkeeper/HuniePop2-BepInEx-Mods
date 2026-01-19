@@ -6,9 +6,9 @@ namespace Hp2BaseMod;
 public class ModState
 {
     /// <summary>
-    /// The number of smoothies to attempt to populate in the hub.
+    /// The number of favorite question options displayed when asking.
     /// </summary>
-    public int MaxStoreSmoothies = 4;
+    public int FavQuestionOptionCount = 3;
 
     /// <summary>
     /// If the cellphone ui should appear on the left, same position as in the hub.

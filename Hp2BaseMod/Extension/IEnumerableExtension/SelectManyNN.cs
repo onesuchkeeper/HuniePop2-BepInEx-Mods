@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Hp2BaseMod.Extension.IEnumerableExtension
+namespace Hp2BaseMod.Extension
 {
     public static partial class IEnumerableExtension
     {
@@ -10,17 +10,20 @@ namespace Hp2BaseMod.Extension.IEnumerableExtension
         /// </summary>
         public static IEnumerable<Tb> SelectManyNN<Ta, Tb>(this IEnumerable<Ta> source, Func<Ta, IEnumerable<Tb>> getSelection)
         {
-            foreach (var element in source)
+            if (source != null)
             {
-                if (element != null)
+                foreach (var element in source)
                 {
-                    var selection = getSelection(element);
-
-                    if (selection != null)
+                    if (element != null)
                     {
-                        foreach (var sel in selection)
+                        var selection = getSelection(element);
+
+                        if (selection != null)
                         {
-                            yield return sel;
+                            foreach (var sel in selection)
+                            {
+                                yield return sel;
+                            }
                         }
                     }
                 }

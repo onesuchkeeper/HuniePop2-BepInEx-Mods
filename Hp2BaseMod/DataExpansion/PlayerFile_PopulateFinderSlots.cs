@@ -3,7 +3,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using HarmonyLib;
-using Hp2BaseMod.Extension.IEnumerableExtension;
+using Hp2BaseMod.Extension;
 
 namespace Hp2BaseMod;
 
@@ -43,10 +43,17 @@ public static class PlayerFile_PopulateFinderSlots
             }
         }
 
-        //remove pairs where neither normal girl has been met
+        // remove pairs where neither normal girl has been met
         filePairs.RemoveAll(x =>
             !((normalGirls.TryGetValue(x.girlPairDefinition.girlDefinitionOne, out var pairFileOne) && pairFileOne.playerMet)
                 || (normalGirls.TryGetValue(x.girlPairDefinition.girlDefinitionTwo, out var pairFileTwo) && pairFileTwo.playerMet)));
+
+        // remove pairs with the hub girl when at the hub
+        if (Game.Session.Location.currentLocation == Game.Session.Hub.hubLocationDefinition)
+        {
+            filePairs.RemoveAll(x => x.girlPairDefinition.girlDefinitionOne == Game.Session.Hub.hubGirlDefinition
+                    || x.girlPairDefinition.girlDefinitionTwo == Game.Session.Hub.hubGirlDefinition);
+        }
 
         var nextTime = (ClockDaytimeType)((playerFile.daytimeElapsed + 1) % 4);
 
@@ -94,6 +101,7 @@ public static class PlayerFile_PopulateFinderSlots
         simLocationPool.Remove(playerFile.locationDefinition);
         args.LocationPool = simLocationPool;
         ModInterface.Events.NotifyPreFinderSlotPopulatePairs(args);
+        args.LocationPool ??= simLocationPool;
 
         var girlPool = normalGirls.Keys.ToList();
 

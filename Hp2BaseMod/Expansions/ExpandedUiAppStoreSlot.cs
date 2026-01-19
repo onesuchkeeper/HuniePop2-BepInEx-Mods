@@ -37,7 +37,7 @@ internal class ExpandedUiAppStoreSlot
         return expansion;
     }
 
-    private static MethodInfo m_onTooltipPreShow = AccessTools.Method(typeof(UiAppStoreSlot), "OnTooltipPreShow");
+    private static readonly MethodInfo m_onTooltipPreShow = AccessTools.Method(typeof(UiAppStoreSlot), "OnTooltipPreShow");
 
     protected UiAppStoreSlot _core;
     private ExpandedUiAppStoreSlot(UiAppStoreSlot core)

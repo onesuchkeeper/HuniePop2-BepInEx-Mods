@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+    <NoPackageAnalysis>true</NoPackageAnalysis>
+    <IsRoslynAnalyzer>true</IsRoslynAnalyzer>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <LangVersion>latest</LangVersion>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="$(TargetPath)"
+          Pack="true"
+          PackagePath="analyzers/dotnet/cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp"
+                      Version="4.10.0"
+                      PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers"
+                      Version="3.3.4"
+                      PrivateAssets="all" />
+  </ItemGroup>
+
+  <Target Name="PackAnalyzer"
+        AfterTargets="Build"
+        Condition="'$(Configuration)' == 'Release'">
+    <Exec
+      Command="dotnet pack &quot;$(MSBuildProjectFullPath)&quot; -c Release --no-build"
+      WorkingDirectory="$(ProjectDir)" />
+  </Target>
+
+</Project>

@@ -9,9 +9,9 @@ namespace Hp2BaseMod.Ui
 {
     public class Hp2ButtonWrapper
     {
-        private readonly static FieldInfo _buttonBehavior_overTransitions = AccessTools.Field(typeof(ButtonBehavior), "_overTransitions");
-        private readonly static FieldInfo _buttonBehavior_downTransitions = AccessTools.Field(typeof(ButtonBehavior), "_downTransitions");
-        private readonly static FieldInfo _buttonBehavior_disableTransitions = AccessTools.Field(typeof(ButtonBehavior), "_disableTransitions");
+        private readonly static FieldInfo f_overTransitions = AccessTools.Field(typeof(ButtonBehavior), "_overTransitions");
+        private readonly static FieldInfo f_downTransitions = AccessTools.Field(typeof(ButtonBehavior), "_downTransitions");
+        private readonly static FieldInfo f_disableTransitions = AccessTools.Field(typeof(ButtonBehavior), "_disableTransitions");
 
         public GameObject GameObject => _gameObject;
         private readonly GameObject _gameObject;
@@ -47,11 +47,6 @@ namespace Hp2BaseMod.Ui
             GameObject.Destroy(_gameObject);
         }
 
-        public static Hp2ButtonWrapper MakeAlbumButton(string name, Sprite sprite, Sprite sprite_unfocused, AudioKlip pressedSfx)
-        {
-            return null;
-        }
-
         public static Hp2ButtonWrapper MakeCellphoneButton(string name, Sprite sprite, Sprite sprite_over, AudioKlip pressedSfx)
         {
             var gameObject = new GameObject(name);
@@ -66,7 +61,7 @@ namespace Hp2BaseMod.Ui
 
             buttonBehavior.pressedSfx = pressedSfx;
 
-            var overTransitions = _buttonBehavior_overTransitions.GetValue(buttonBehavior) as List<ButtonStateTransition>;
+            var overTransitions = f_overTransitions.GetValue(buttonBehavior) as List<ButtonStateTransition>;
             overTransitions.Add(new ButtonStateTransition(new ButtonStateTransitionDef()
             {
                 type = ButtonStateTransitionType.SPRITE,
@@ -74,7 +69,7 @@ namespace Hp2BaseMod.Ui
                 imageTarget = image
             }, buttonBehavior));
 
-            var downTransitions = _buttonBehavior_downTransitions.GetValue(buttonBehavior) as List<ButtonStateTransition>;
+            var downTransitions = f_downTransitions.GetValue(buttonBehavior) as List<ButtonStateTransition>;
             downTransitions.Add(new ButtonStateTransition(new ButtonStateTransitionDef()
             {
                 type = ButtonStateTransitionType.SCALE,
@@ -82,7 +77,7 @@ namespace Hp2BaseMod.Ui
                 rectTransformTarget = rectTransform
             }, buttonBehavior));
 
-            var disableTransitions = _buttonBehavior_disableTransitions.GetValue(buttonBehavior) as List<ButtonStateTransition>;
+            var disableTransitions = f_disableTransitions.GetValue(buttonBehavior) as List<ButtonStateTransition>;
             disableTransitions.Add(new ButtonStateTransition(new ButtonStateTransitionDef()
             {
                 type = ButtonStateTransitionType.ALPHA,

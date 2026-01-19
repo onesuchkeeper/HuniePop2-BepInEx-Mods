@@ -14,7 +14,7 @@ public static class UiTooltipItemPatch
 {
     private static float _northDescriptionWidth;
     private static readonly float _tooltipWidthAdd = 24;
-    private static readonly FieldInfo _direction = AccessTools.Field(typeof(UiTooltipItem), "_direction");
+    private static readonly FieldInfo f_direction = AccessTools.Field(typeof(UiTooltipItem), "_direction");
 
     [HarmonyPatch("OnStart")]
     [HarmonyPostfix]
@@ -29,7 +29,7 @@ public static class UiTooltipItemPatch
     [HarmonyPrefix]
     public static void Resize(UiTooltipItem __instance)
     {
-        if (_direction.GetValue<CardinalDirection>(__instance) == CardinalDirection.NORTH)
+        if (f_direction.GetValue<CardinalDirection>(__instance) == CardinalDirection.NORTH)
         {
             var descriptionRect = __instance.descriptionLabel.GetComponent<RectTransform>();
             descriptionRect.sizeDelta = new Vector2(_northDescriptionWidth, descriptionRect.sizeDelta.y);

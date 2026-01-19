@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.IO;
 using Hp2BaseMod;
 using Hp2BaseMod.GameDataInfo;
 using Hp2BaseMod.GameDataInfo.Interface;
@@ -13,19 +12,23 @@ internal static partial class Styles
     private static readonly int _moxieBodyY = 956;
     public static void AddMoxieStyles()
     {
-        var modParts = new List<IGirlSubDataMod<GirlPartSubDefinition>>();
-        var modOutfits = new List<IGirlSubDataMod<GirlOutfitSubDefinition>>();
-        var modHairstyles = new List<IGirlSubDataMod<GirlHairstyleSubDefinition>>();
+        var modOutfits = new List<IBodySubDataMod<GirlOutfitSubDefinition>>();
+        var modHairstyles = new List<IBodySubDataMod<GirlHairstyleSubDefinition>>();
 
-        AddOutfit(modParts, modOutfits, "roost", "Roost", "moxie", _moxieBodyX + 105, _moxieBodyY - 247, true, false, false, false);
+        AddOutfit(modOutfits, "roost", "Roost", "moxie", _moxieBodyX + 105, _moxieBodyY - 247, true, false, false, false);
 
         //Shoulder Boulders
 
-        ModInterface.AddDataMod(new GirlDataMod(Girls.MoxieId, InsertStyle.append)
+        ModInterface.AddDataMod(new GirlDataMod(Girls.Moxie, InsertStyle.append)
         {
-            parts = modParts,
-            outfits = modOutfits,
-            hairstyles = modHairstyles
+            bodies = new List<IGirlBodyDataMod>()
+            {
+                new GirlBodyDataMod(new RelativeId(-1,0), InsertStyle.append)
+                {
+                    outfits = modOutfits,
+                    hairstyles = modHairstyles
+                }
+            }
         });
     }
 }

@@ -13,13 +13,13 @@ namespace Hp2BaseMod.Commands;
 [HarmonyPatch(typeof(UiCellphoneAppCode), "OnSubmitButtonPressed")]
 public static class UiCellphoneAppCode_OnSubmitButtonPressed
 {
-    private static MethodInfo m_showCodeResult = AccessTools.Method(typeof(UiCellphoneAppCode), "ShowCodeResult");
-    private static FieldInfo _currentFieldText = AccessTools.Field(typeof(UiCellphoneAppCode), "_currentFieldText");
-    private static FieldInfo _inputField = AccessTools.Field(typeof(UiCellphoneAppCode), "inputField");
+    private static readonly MethodInfo m_showCodeResult = AccessTools.Method(typeof(UiCellphoneAppCode), "ShowCodeResult");
+    private static readonly FieldInfo f_currentFieldText = AccessTools.Field(typeof(UiCellphoneAppCode), "_currentFieldText");
+    private static readonly FieldInfo f_inputField = AccessTools.Field(typeof(UiCellphoneAppCode), "inputField");
 
     public static bool Prefix(UiCellphoneAppCode __instance, out string __state)
     {
-        if (!(_inputField.GetValue(__instance) is InputField inputField))
+        if (!(f_inputField.GetValue(__instance) is InputField inputField))
         {
             __state = null;
             return true;
@@ -30,14 +30,14 @@ public static class UiCellphoneAppCode_OnSubmitButtonPressed
         if (input != null && input.StartsWith("/"))
         {
             inputField.text = "";
-            _currentFieldText.SetValue(__instance, "");
+            f_currentFieldText.SetValue(__instance, "");
 
-            ModInterface.Log.LogInfo($"Submitted code: \"{input}\" handled as command input");
+            ModInterface.Log.Message($"Submitted code: \"{input}\" handled as command input");
             var inputSplit = input.Substring(1, input.Length - 1).Split(' ');
 
             var success = ModInterface.TryExecuteCommand(inputSplit.First(), inputSplit.Skip(1).ToArray(), out var result);
 
-            ModInterface.Log.LogInfo($"Command {(success ? "succeeded" : "failed")}: {result}");
+            ModInterface.Log.Message($"Command {(success ? "succeeded" : "failed")}: {result}");
 
             m_showCodeResult.Invoke(__instance, [result, !success]);
 

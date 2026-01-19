@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Reflection;
 using DG.Tweening;
@@ -37,11 +36,11 @@ internal class ExpandedLocationTransitionNormal
         return extended;
     }
 
-    private static readonly FieldInfo _stepIndex = AccessTools.Field(typeof(LocationTransitionNormal), "_stepIndex");
-    private static readonly FieldInfo _gameSaved = AccessTools.Field(typeof(LocationTransitionNormal), "_gameSaved");
-    private static readonly FieldInfo _arriveWithGirls = AccessTools.Field(typeof(LocationTransitionNormal), "_arriveWithGirls");
-    private static readonly FieldInfo _initialArrive = AccessTools.Field(typeof(LocationTransitionNormal), "_initialArrive");
-    private static readonly FieldInfo _sequence = AccessTools.Field(typeof(LocationTransitionNormal), "_sequence");
+    private static readonly FieldInfo f_stepIndex = AccessTools.Field(typeof(LocationTransitionNormal), "_stepIndex");
+    private static readonly FieldInfo f_gameSaved = AccessTools.Field(typeof(LocationTransitionNormal), "_gameSaved");
+    private static readonly FieldInfo f_arriveWithGirls = AccessTools.Field(typeof(LocationTransitionNormal), "_arriveWithGirls");
+    private static readonly FieldInfo f_initialArrive = AccessTools.Field(typeof(LocationTransitionNormal), "_initialArrive");
+    private static readonly FieldInfo f_sequence = AccessTools.Field(typeof(LocationTransitionNormal), "_sequence");
     private static readonly MethodInfo m_departStep = AccessTools.Method(typeof(LocationTransitionNormal), "DepartStep");
     private static readonly MethodInfo m_arrivalComplete = AccessTools.Method(typeof(LocationTransitionNormal), "ArrivalComplete");
     private static readonly MethodInfo m_onArriveAnimationsComplete = AccessTools.Method(typeof(LocationTransitionNormal), "OnArriveAnimationsComplete");
@@ -56,9 +55,9 @@ internal class ExpandedLocationTransitionNormal
     public bool ArriveStep()
     {
         //override arrive step 1 to allow additions to the sequence before it plays
-        var stepIndex = _stepIndex.GetValue<int>(_core);
+        var stepIndex = f_stepIndex.GetValue<int>(_core);
         stepIndex++;
-        _stepIndex.SetValue(_core, stepIndex);
+        f_stepIndex.SetValue(_core, stepIndex);
 
         if (stepIndex != 0)
         {
@@ -72,7 +71,7 @@ internal class ExpandedLocationTransitionNormal
         }
         else
         {
-            var sequence = _sequence.GetValue<Sequence>(_core);
+            var sequence = f_sequence.GetValue<Sequence>(_core);
             TweenUtils.KillTween(sequence, false, true);
 
             //Notify
@@ -86,9 +85,9 @@ internal class ExpandedLocationTransitionNormal
             ModInterface.Events.NotifyLocationArriveSequence(args);
 
             sequence = args.Sequence ?? DOTween.Sequence();
-            _sequence.SetValue(_core, sequence);
+            f_sequence.SetValue(_core, sequence);
 
-            if (_gameSaved.GetValue<bool>(_core))
+            if (f_gameSaved.GetValue<bool>(_core))
             {
                 sequence.Insert(0f, Game.Session.gameCanvas.bgLocations.savedNotification.DOAnchorPosY(Game.Session.gameCanvas.bgLocations.savedNotificationOrigY + 96f, 0.25f, false).SetEase(Ease.InOutSine));
                 sequence.Insert(1.25f, Game.Session.gameCanvas.bgLocations.savedNotification.DOAnchorPosY(Game.Session.gameCanvas.bgLocations.savedNotificationOrigY, 0.25f, false).SetEase(Ease.InOutSine));
@@ -112,7 +111,7 @@ internal class ExpandedLocationTransitionNormal
                 sequence.Insert(2f, Game.Session.gameCanvas.header.rectTransform.DOAnchorPosY(Game.Session.gameCanvas.header.yValues.y, 1.25f, false).SetEase(Ease.InOutCubic));
                 sequence.Insert(3f, Game.Session.gameCanvas.dollRight.slideLayer.DOAnchorPos(Game.Session.gameCanvas.dollRight.GetPositionByType(DollPositionType.INNER), 1f, false).SetEase(Ease.InOutCubic));
             }
-            else if (_arriveWithGirls.GetValue<bool>(_core))
+            else if (f_arriveWithGirls.GetValue<bool>(_core))
             {
                 sequence.Insert(2f, Game.Session.gameCanvas.header.rectTransform.DOAnchorPosY(Game.Session.gameCanvas.header.yValues.y, 1.25f, false).SetEase(Ease.InOutCubic));
                 sequence.Insert(2f, Game.Session.gameCanvas.cellphone.rectTransform.DOAnchorPosY(Game.Session.gameCanvas.cellphone.yValues.y, 1.25f, false).SetEase(Ease.InOutCubic));
@@ -121,7 +120,7 @@ internal class ExpandedLocationTransitionNormal
                 sequence.Insert(3f, Game.Session.gameCanvas.dollLeft.slideLayer.DOAnchorPos(Game.Session.gameCanvas.dollLeft.GetPositionByType(args.LeftDollPosition), 1f, false).SetEase(Ease.InOutCubic));
             }
 
-            if (_initialArrive.GetValue<bool>(_core))
+            if (f_initialArrive.GetValue<bool>(_core))
             {
                 sequence.Prepend(Game.Session.gameCanvas.overlayCanvasGroup.DOFade(0f, 1f).SetEase(Ease.Linear));
             }
@@ -149,7 +148,7 @@ internal class ExpandedLocationTransitionNormal
     public bool DepartStep()
     {
         //override depart step 1 at sim locations to notify random doll selection
-        var stepIndex = _stepIndex.GetValue<int>(_core);
+        var stepIndex = f_stepIndex.GetValue<int>(_core);
 
         switch (stepIndex)
         {
@@ -161,7 +160,7 @@ internal class ExpandedLocationTransitionNormal
                     }
 
                     stepIndex++;
-                    _stepIndex.SetValue(_core, stepIndex);
+                    f_stepIndex.SetValue(_core, stepIndex);
 
                     if (Game.Manager.Windows.IsWindowActive(null, true, true))
                     {
@@ -189,6 +188,7 @@ internal class ExpandedLocationTransitionNormal
 
                     if (dialogTriggerDefinition != null)
                     {
+                        ModInterface.Log.Warning("Valediction Dialog Setup");
                         uiDoll.DialogBoxHiddenEvent += OnValedictionDialogRead;
                         uiDoll.ReadDialogTrigger(dialogTriggerDefinition, DialogLineFormat.ACTIVE, -1);
                         return false;
@@ -200,7 +200,7 @@ internal class ExpandedLocationTransitionNormal
             case 2:
                 {
                     stepIndex++;
-                    _stepIndex.SetValue(_core, stepIndex);
+                    f_stepIndex.SetValue(_core, stepIndex);
 
                     Game.Session.Location.isTraveling = true;
                     Game.Session.gameCanvas.dollMiddle.notificationBox.Hide(false);
@@ -211,7 +211,7 @@ internal class ExpandedLocationTransitionNormal
                     {
                         if (!Game.Manager.testMode)
                         {
-                            Game.Session.Location.bgMusicLink.FadeOut((float)((!Game.Persistence.playerData.unlockedCodes.Contains(Game.Session.Location.codeDefQuickTransitions)) ? 3 : 1));
+                            Game.Session.Location.bgMusicLink.FadeOut((!Game.Persistence.playerData.unlockedCodes.Contains(Game.Session.Location.codeDefQuickTransitions)) ? 3 : 1);
                         }
                         else
                         {
@@ -219,7 +219,7 @@ internal class ExpandedLocationTransitionNormal
                         }
                     }
 
-                    var sequence = _sequence.GetValue<Sequence>(_core);
+                    var sequence = f_sequence.GetValue<Sequence>(_core);
                     TweenUtils.KillTween(sequence, false, true);
 
                     //Notify
@@ -231,7 +231,7 @@ internal class ExpandedLocationTransitionNormal
                     ModInterface.Events.NotifyLocationDepartSequence(args);
 
                     sequence = args.Sequence ?? DOTween.Sequence();
-                    _sequence.SetValue(_core, sequence);
+                    f_sequence.SetValue(_core, sequence);
 
                     sequence.Insert(0f, Game.Session.gameCanvas.dollLeft.slideLayer.DOAnchorPos(Game.Session.gameCanvas.dollLeft.GetPositionByType(DollPositionType.HIDDEN), 1f, false).SetEase(Ease.InOutCubic));
                     sequence.Insert(0f, Game.Session.gameCanvas.dollRight.slideLayer.DOAnchorPos(Game.Session.gameCanvas.dollRight.GetPositionByType(DollPositionType.HIDDEN), 1f, false).SetEase(Ease.InOutCubic));
@@ -279,6 +279,7 @@ internal class ExpandedLocationTransitionNormal
 
     private void OnValedictionDialogRead(UiDoll doll)
     {
+        ModInterface.Log.Warning("Valediction Dialog Read");
         doll.DialogBoxHiddenEvent -= OnValedictionDialogRead;
         m_departStep.Invoke(_core, null);
     }

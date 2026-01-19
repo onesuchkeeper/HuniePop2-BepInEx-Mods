@@ -1,6 +1,7 @@
 ﻿// Hp2BaseMod 2021, By OneSuchKeeper
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Hp2BaseMod
@@ -11,6 +12,8 @@ namespace Hp2BaseMod
     public class GameDefinitionProvider
     {
         private GameData _gameData;
+
+        internal Dictionary<RelativeId, UiDollSpecialEffect> _specialEffects = new();
 
         /// <summary>
         /// Constructor
@@ -82,7 +85,7 @@ namespace Hp2BaseMod
                 case GameDataType.Token:
                     return _gameData.Tokens.Get(runtimeId);
                 default:
-                    ModInterface.Log.LogInfo($"Failed to find definition for {type} with runtime id {runtimeId}");
+                    ModInterface.Log.Message($"Failed to find definition for {type} with runtime id {runtimeId}");
                     return null;
             }
         }
@@ -113,8 +116,11 @@ namespace Hp2BaseMod
         public PhotoDefinition GetPhoto(RelativeId? id) => id.HasValue ? _gameData.Photos.Get(ModInterface.Data.GetRuntimeDataId(GameDataType.Photo, id.Value)) : null;
         public QuestionDefinition GetQuestion(RelativeId id) => _gameData.Questions.Get(ModInterface.Data.GetRuntimeDataId(GameDataType.Question, id));
         public QuestionDefinition GetQuestion(RelativeId? id) => id.HasValue ? _gameData.Questions.Get(ModInterface.Data.GetRuntimeDataId(GameDataType.Question, id.Value)) : null;
+        public QuestionDefinition GetQuestion(int runtimeId) => _gameData.Questions.Get(runtimeId);
         public TokenDefinition GetToken(RelativeId id) => _gameData.Tokens.Get(ModInterface.Data.GetRuntimeDataId(GameDataType.Token, id));
         public TokenDefinition GetToken(RelativeId? id) => id.HasValue ? _gameData.Tokens.Get(ModInterface.Data.GetRuntimeDataId(GameDataType.Token, id.Value)) : null;
+        public UiDollSpecialEffect GetSpecialEffect(RelativeId id) => _specialEffects.TryGetValue(id, out var value) ? value : null;
+        public UiDollSpecialEffect GetSpecialEffect(RelativeId? id) => id.HasValue ? GetSpecialEffect(id.Value) : null;
 
         /// <summary>
         /// Checks if the code is unlocked

@@ -67,7 +67,7 @@ namespace Hp2BaseMod.GameDataInfo
 
                             if (request.isNetworkError)
                             {
-                                ModInterface.Log.LogError($"Error while loading external {nameof(AudioClip)}: {request.error}");
+                                ModInterface.Log.Error($"Error while loading external {nameof(AudioClip)}: {request.error}");
                             }
                             else
                             {
@@ -77,7 +77,7 @@ namespace Hp2BaseMod.GameDataInfo
                     }
                     else
                     {
-                        ModInterface.Log.LogError($"Could not find {Path} to load {nameof(AudioClip)} from");
+                        ModInterface.Log.Error($"Could not find {Path} to load {nameof(AudioClip)} from");
                     }
                 }
                 else

@@ -18,16 +18,22 @@ namespace Hp2BaseMod.GameDataInfo
         public RelativeId? AltCodeDefinitionID;
 
         public IGameDefinitionInfo<Sprite> BigPhotoCensored;
+        public IGameDefinitionInfo<Sprite> BigPhotoCensoredAlt;
 
         public IGameDefinitionInfo<Sprite> BigPhotoUncensored;
+        public IGameDefinitionInfo<Sprite> BigPhotoUncensoredAlt;
 
         public IGameDefinitionInfo<Sprite> BigPhotoWet;
+        public IGameDefinitionInfo<Sprite> BigPhotoWetAlt;
 
         public IGameDefinitionInfo<Sprite> ThumbnailCensored;
+        public IGameDefinitionInfo<Sprite> ThumbnailCensoredAlt;
 
         public IGameDefinitionInfo<Sprite> ThumbnailUncensored;
+        public IGameDefinitionInfo<Sprite> ThumbnailUncensoredAlt;
 
         public IGameDefinitionInfo<Sprite> ThumbnailWet;
+        public IGameDefinitionInfo<Sprite> ThumbnailWetAlt;
 
         /// <inheritdoc/>
         public PhotoDataMod() { }
@@ -87,8 +93,17 @@ namespace Hp2BaseMod.GameDataInfo
 
             ValidatedSet.SetValue(ref def.altFlagName, AltFlagName, InsertStyle);
 
-            ValidatedSet.SetListValue(ref def.bigPhotoImages, [BigPhotoCensored, BigPhotoUncensored, BigPhotoWet], InsertStyle, gameDataProvider, assetProvider);
-            ValidatedSet.SetListValue(ref def.thumbnailImages, [ThumbnailCensored, ThumbnailUncensored, ThumbnailWet], InsertStyle, gameDataProvider, assetProvider);
+            ValidatedSet.SetListValue(ref def.bigPhotoImages,
+                [BigPhotoCensored, BigPhotoUncensored, BigPhotoWet, BigPhotoCensoredAlt, BigPhotoUncensoredAlt, BigPhotoWetAlt],
+                InsertStyle,
+                gameDataProvider,
+                assetProvider);
+
+            ValidatedSet.SetListValue(ref def.thumbnailImages,
+                [ThumbnailCensored, ThumbnailUncensored, ThumbnailWet, ThumbnailCensoredAlt, ThumbnailUncensoredAlt, ThumbnailWetAlt],
+                InsertStyle,
+                gameDataProvider,
+                assetProvider);
         }
 
         /// <inheritdoc/>

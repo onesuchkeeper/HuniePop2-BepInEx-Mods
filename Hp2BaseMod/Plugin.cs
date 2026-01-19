@@ -3,7 +3,6 @@ using BepInEx;
 using HarmonyLib;
 using Hp2BaseMod.Commands;
 using UnityEngine;
-using UnityEngine.Rendering;
 
 namespace Hp2BaseMod;
 
@@ -11,30 +10,24 @@ namespace Hp2BaseMod;
 [BepInProcess("HuniePop 2 - Double Date.exe")]
 public class Plugin : BaseUnityPlugin
 {
-    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSplashScreen)]
-    private static void BeforeSplashScreen()
-    {
-        SplashScreen.Stop(SplashScreen.StopBehavior.StopImmediate);
-    }
-
     private void Awake()
     {
         try
         {
             ModInterface.Init();
-            ModInterface.Log.LogInfo("Mod interface initialized");
+            ModInterface.Log.Message("Mod interface initialized");
+            ModInterface.Log.Message(DateTime.Now.ToString());
         }
         catch (Exception e)
         {
-            ModInterface.Log.LogError("Failed to initialize mod interface", e);
+            ModInterface.Log.Error("Failed to initialize mod interface", e);
             return;
         }
 
         try
         {
             // register defaults
-            ModInterface.Log.LogInfo("Registering default data");
-            using (ModInterface.Log.MakeIndent())
+            using (ModInterface.Log.MakeIndent("Registering default data ids"))
             {
                 foreach (var ability in DefaultData.DefaultAbilityIds)
                 {
@@ -103,28 +96,29 @@ public class Plugin : BaseUnityPlugin
                 ModInterface.Data.RegisterDefaultData(GameDataType.Affection, AffectionTypes.Romance.LocalId);
                 ModInterface.Data.RegisterDefaultData(GameDataType.Affection, AffectionTypes.Sexuality.LocalId);
 
-                ModInterface.Data.RegisterDefaultData(GameDataType.SpecialPart, SpecialParts.KyuWingId.LocalId);
-                ModInterface.Data.RegisterDefaultData(GameDataType.SpecialPart, SpecialParts.MoxieWingId.LocalId);
-                ModInterface.Data.RegisterDefaultData(GameDataType.SpecialPart, SpecialParts.JewnWingId.LocalId);
+                ModInterface.Data.RegisterDefaultData(GameDataType.SpecialEffect, SpecialParts.KyuWingId.LocalId);
+                ModInterface.Data.RegisterDefaultData(GameDataType.SpecialEffect, SpecialParts.MoxieWingId.LocalId);
+                ModInterface.Data.RegisterDefaultData(GameDataType.SpecialEffect, SpecialParts.JewnWingId.LocalId);
+
+                ModInterface.Assets.RequestInternal<Material>("UIDefault");
             }
         }
         catch (Exception e)
         {
-            ModInterface.Log.LogError("Failed to handle existing game data", e);
+            ModInterface.Log.Error("Failed to handle existing game data", e);
             return;
         }
 
         try
         {
-            ModInterface.Log.LogInfo("Applying Patches");
-            using (ModInterface.Log.MakeIndent())
+            using (ModInterface.Log.MakeIndent("Applying Patches"))
             {
                 new Harmony(MyPluginInfo.PLUGIN_GUID).PatchAll();
             }
         }
         catch (Exception e)
         {
-            ModInterface.Log.LogError("Failed to patch", e);
+            ModInterface.Log.Error("Failed to patch", e);
             return;
         }
 
@@ -132,6 +126,6 @@ public class Plugin : BaseUnityPlugin
         ModInterface.AddCommand(new EchoCommand());
         ModInterface.AddCommand(new ArtCommand());
 
-        ModInterface.Log.LogInfo(Art.Random());
+        ModInterface.Log.Message(Art.Random());
     }
 }

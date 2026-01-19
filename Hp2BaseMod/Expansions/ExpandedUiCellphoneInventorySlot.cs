@@ -37,7 +37,7 @@ internal class ExpandedUiCellphoneInventorySlot
         return expansion;
     }
 
-    private static MethodInfo m_onTooltipPreShow = AccessTools.Method(typeof(UiCellphoneInventorySlot), "OnTooltipPreShow");
+    private static readonly MethodInfo m_onTooltipPreShow = AccessTools.Method(typeof(UiCellphoneInventorySlot), "OnTooltipPreShow");
 
     protected UiCellphoneInventorySlot _core;
     private ExpandedUiCellphoneInventorySlot(UiCellphoneInventorySlot core)

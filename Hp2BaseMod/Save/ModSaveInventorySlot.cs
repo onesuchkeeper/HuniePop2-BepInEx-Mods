@@ -4,7 +4,7 @@ using Hp2BaseMod.Utility;
 namespace Hp2BaseMod.Save
 {
     [Serializable]
-    public struct ModSaveInventorySlot
+    public class ModSaveInventorySlot
     {
         public RelativeId? ItemId;
         public int DayTimeStamp;

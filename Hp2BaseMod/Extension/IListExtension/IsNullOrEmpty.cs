@@ -1,0 +1,13 @@
+using System.Collections.Generic;
+using System.Linq;
+
+namespace Hp2BaseMod.Extension;
+
+public static partial class IList_Ext
+{
+    /// <summary>
+    /// Inserts the given value at the given index by first expanding the list by adding
+    /// as many defaultValues as needed to reach the given index
+    /// </summary>
+    public static bool IsNullOrEmpty<T>(this IList<T> source) => source == null || !source.Any();
+}

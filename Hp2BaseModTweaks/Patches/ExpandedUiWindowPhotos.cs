@@ -34,6 +34,11 @@ namespace Hp2BaseModTweaks.CellphoneApps
         [HarmonyPostfix]
         public static void RefreshBigPhoto(UiWindowPhotos __instance)
             => ExpandedUiWindowPhotos.Get(__instance).RefreshBigPhoto();
+
+        [HarmonyPatch("OnCloseButtonPressed")]
+        [HarmonyPostfix]
+        public static void OnCloseButtonPressed(UiWindowPhotos __instance, ButtonBehavior buttonBehavior)
+            => ExpandedUiWindowPhotos.Get(__instance).OnCloseButtonPressed();
     }
 
     internal class ExpandedUiWindowPhotos
@@ -52,11 +57,12 @@ namespace Hp2BaseModTweaks.CellphoneApps
             return expansion;
         }
 
-        private static readonly FieldInfo _photoDefinition = AccessTools.Field(typeof(UiPhotoSlot), "_photoDefinition");
-        private static readonly FieldInfo _photoViewMode = AccessTools.Field(typeof(UiWindowPhotos), "_photoViewMode");
-        private static readonly FieldInfo _singlePhoto = AccessTools.Field(typeof(UiWindowPhotos), "_singlePhoto");
-        private static readonly FieldInfo _earnedPhotos = AccessTools.Field(typeof(UiWindowPhotos), "_earnedPhotos");
-        private static readonly FieldInfo _bigPhotoDefinition = AccessTools.Field(typeof(UiWindowPhotos), "_bigPhotoDefinition");
+        private static readonly FieldInfo f_photoDefinition = AccessTools.Field(typeof(UiPhotoSlot), "_photoDefinition");
+        private static readonly FieldInfo f_photoViewMode = AccessTools.Field(typeof(UiWindowPhotos), "_photoViewMode");
+        private static readonly FieldInfo f_singlePhoto = AccessTools.Field(typeof(UiWindowPhotos), "_singlePhoto");
+        private static readonly FieldInfo f_nextPhotos = AccessTools.Field(typeof(UiWindowPhotos), "_nextPhotos");
+        private static readonly FieldInfo f_earnedPhotos = AccessTools.Field(typeof(UiWindowPhotos), "_earnedPhotos");
+        private static readonly FieldInfo f_bigPhotoDefinition = AccessTools.Field(typeof(UiWindowPhotos), "_bigPhotoDefinition");
         private static readonly int _photosPerPage = 29;
         private static Sprite _emptyPhotoSlot;
 
@@ -94,9 +100,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
 
             var earnedPhotosList = earnedPhotos.ToList();
 
-            ModInterface.Log.LogInfo($"Earned photo count: {earnedPhotosList.Count}");
-
-            _earnedPhotos.SetValue(_photosWindow, earnedPhotosList);
+            f_earnedPhotos.SetValue(_photosWindow, earnedPhotosList);
 
             _pageMax = earnedPhotosList.Count > 1
                 ? (earnedPhotosList.Count - 1) / _photosPerPage
@@ -144,7 +148,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
 
         public void Init()
         {
-            if (_singlePhoto.GetValue<bool>(_photosWindow))
+            if (f_singlePhoto.GetValue<bool>(_photosWindow))
             {
                 _bg_image.rectTransform.localScale = Vector2.one * 2;
             }
@@ -156,7 +160,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
 
         public void Show()
         {
-            if ((bool)_singlePhoto.GetValue(_photosWindow))
+            if ((bool)f_singlePhoto.GetValue(_photosWindow))
             {
                 _previousPage?.ButtonBehavior.Disable();
                 _previousPage?.CanvasRenderer.SetAlpha(0f);
@@ -174,23 +178,23 @@ namespace Hp2BaseModTweaks.CellphoneApps
 
         public void Refresh()
         {
-            var photoViewMode = _photoViewMode.GetValue<int>(_photosWindow);
+            var photoViewMode = f_photoViewMode.GetValue<int>(_photosWindow);
 
-            if (_singlePhoto.GetValue<bool>(_photosWindow))
+            if (f_singlePhoto.GetValue<bool>(_photosWindow))
             {
                 return;
             }
 
             //photos
             var photoIndex = _pageIndex * _photosPerPage;
-            var earnedPhotos = _earnedPhotos.GetValue<List<PhotoDefinition>>(_photosWindow);
+            var earnedPhotos = f_earnedPhotos.GetValue<List<PhotoDefinition>>(_photosWindow);
             var photoEnumerator = earnedPhotos.Skip(photoIndex).GetEnumerator();
 
             foreach (var slot in _photosWindow.photoSlots.Take(_photosPerPage))
             {
                 if (photoEnumerator.MoveNext())
                 {
-                    _photoDefinition.SetValue(slot, photoEnumerator.Current);
+                    f_photoDefinition.SetValue(slot, photoEnumerator.Current);
 
                     slot.buttonBehavior.Enable();
                     slot.Refresh(photoViewMode);
@@ -237,7 +241,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
 
         internal void RefreshBigPhoto()
         {
-            var photoDef = _bigPhotoDefinition.GetValue<PhotoDefinition>(_photosWindow);
+            var photoDef = f_bigPhotoDefinition.GetValue<PhotoDefinition>(_photosWindow);
             if (photoDef == null)
             {
                 return;
@@ -261,7 +265,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
 
         private Sprite GetBigPhotoSprite(PhotoDefinition photoDef, out int usedPhotoViewMode)
         {
-            usedPhotoViewMode = _photoViewMode.GetValue<int>(_photosWindow);
+            usedPhotoViewMode = f_photoViewMode.GetValue<int>(_photosWindow);
             var sprite = photoDef.GetBigPhotoImage(usedPhotoViewMode);
 
             while (sprite == null && usedPhotoViewMode != 0)
@@ -275,7 +279,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
 
         private void UpdateViewModeButtons()
         {
-            var photoDef = _bigPhotoDefinition.GetValue<PhotoDefinition>(_photosWindow);
+            var photoDef = f_bigPhotoDefinition.GetValue<PhotoDefinition>(_photosWindow);
 
             if (photoDef == null)
             {
@@ -306,6 +310,21 @@ namespace Hp2BaseModTweaks.CellphoneApps
                 }
 
                 index++;
+            }
+        }
+
+        internal void OnCloseButtonPressed()
+        {
+            if (f_singlePhoto.GetValue<bool>(_photosWindow)
+                && f_nextPhotos.GetValue<List<PhotoDefinition>>(_photosWindow).Count <= 0)
+            {
+                var mat = _bg_image.material;
+                DOTween.To(
+                    () => mat.GetFloat("_BlurSize"),
+                    x => mat.SetFloat("_BlurSize", x),
+                    0f,
+                    0.5f
+                );
             }
         }
     }

@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Hp2BaseMod.Commands;
+using Hp2BaseMod.Elements;
+using Hp2BaseMod.Extension;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Save;
 using Newtonsoft.Json;
-using Sourceage.Element;
 using UnityEngine;
 
 namespace Hp2BaseMod;
@@ -50,14 +51,14 @@ public static class ModInterface
     internal static IEnumerable<IGameDataMod<ItemDefinition>> ItemDataMods => _itemDataMods;
     private static List<IGameDataMod<ItemDefinition>> _itemDataMods = new List<IGameDataMod<ItemDefinition>>();
 
-    internal static IEnumerable<ILocationDataMod> LocationDataMods => _locationDataMods;
-    private static List<ILocationDataMod> _locationDataMods = new List<ILocationDataMod>();
+    internal static IEnumerable<IGameDataMod<LocationDefinition>> LocationDataMods => _locationDataMods;
+    private static List<IGameDataMod<LocationDefinition>> _locationDataMods = new();
 
     internal static IEnumerable<IGameDataMod<PhotoDefinition>> PhotoDataMods => _photoDataMods;
     private static List<IGameDataMod<PhotoDefinition>> _photoDataMods = new List<IGameDataMod<PhotoDefinition>>();
 
-    internal static IEnumerable<IGameDataMod<QuestionDefinition>> QuestionDataMods => _questionDataMods;
-    private static List<IGameDataMod<QuestionDefinition>> _questionDataMods = new List<IGameDataMod<QuestionDefinition>>();
+    internal static IEnumerable<IFavQuestionDataMod> QuestionDataMods => _questionDataMods;
+    private static List<IFavQuestionDataMod> _questionDataMods = new();
 
     internal static IEnumerable<IGameDataMod<TokenDefinition>> TokenDataMods => _tokenDataMods;
     private static List<IGameDataMod<TokenDefinition>> _tokenDataMods = new List<IGameDataMod<TokenDefinition>>();
@@ -115,12 +116,20 @@ public static class ModInterface
     internal static ModSaveData Save => _modSaveData;
     private static ModSaveData _modSaveData;
 
-    private static SetManager<int> _idPool;
+    private static RangeSet<int> _idPool;
     private static Dictionary<int, string> _sourceId_GUID;
 
+    private static JsonSerializerSettings _jsonSettings;
 
     internal static void Init()
     {
+        _jsonSettings = new JsonSerializerSettings
+        {
+            NullValueHandling = NullValueHandling.Ignore
+        };
+
+        _jsonSettings.Converters.Add(new OptionalValueJsonConverter());
+
         _log = new ModLog("Hp2BaseMod");
 
         _data = new ModData();
@@ -131,7 +140,7 @@ public static class ModInterface
             _modSaveData = JsonConvert.DeserializeObject<ModSaveData>(File.ReadAllText(_modSavePath));
             if (_modSaveData == null)
             {
-                Log.LogWarning("Failed to load mod save data");
+                Log.Warning("Failed to load mod save data");
                 _modSaveData = new ModSaveData();
             }
         }
@@ -141,7 +150,7 @@ public static class ModInterface
         }
         _modSaveData.SourceGUID_Id["HP2"] = -1;
 
-        _idPool = new SetManager<int>(new IntOpHandler(), _modSaveData.SourceGUID_Id.Values);
+        _idPool = new(new IntOperator(), _modSaveData.SourceGUID_Id.Values);
 
         _sourceId_GUID = new Dictionary<int, string>();
         foreach (var guid_id in _modSaveData.SourceGUID_Id)
@@ -158,7 +167,7 @@ public static class ModInterface
     {
         _modSaveData.Strip(saveData);
         File.WriteAllText(_modSavePath, JsonConvert.SerializeObject(_modSaveData));
-        Log.LogInfo($"Mod data saved");
+        Log.Message($"Mod data saved");
     }
 
     internal static void InjectSave(SaveData saveData) => _modSaveData.SetData(saveData);
@@ -192,8 +201,8 @@ public static class ModInterface
             return sourceId;
         }
 
-        sourceId = _idPool.AddUnusedItem();
-        Log.LogInfo($"Added new source id {sourceId} for previously unregistered GUID {sourceGUID}");
+        sourceId = _idPool.AddUnused();
+        Log.Message($"Added new source id {sourceId} for previously unregistered GUID {sourceGUID}");
         _modSaveData.SourceGUID_Id.Add(sourceGUID, sourceId);
         _sourceId_GUID.Add(sourceId, sourceGUID);
         return sourceId;
@@ -273,7 +282,7 @@ public static class ModInterface
             }
             catch (Exception e)
             {
-                Log.LogError("Command exception", e);
+                Log.Error("Command exception", e);
                 result = "Exception thrown while executing command";
                 return false;
             }
@@ -287,13 +296,13 @@ public static class ModInterface
     {
         if (command == null || command.Name == null)
         {
-            Log.LogError($"Attempt to register invalid command {command}");
+            Log.Error($"Attempt to register invalid command {command}");
             return;
         }
 
         if (command.Name.Any(x => x == '.' || x == ' ' || x == '\t'))
         {
-            Log.LogError($"Invalid command name \"{command.Name}\"");
+            Log.Error($"Invalid command name \"{command.Name}\"");
             return;
         }
 
@@ -372,7 +381,7 @@ public static class ModInterface
         _itemDataMods.Add(mod);
         _data.TryRegisterDataId(GameDataType.Item, mod.Id);
     }
-    public static void AddDataMod(ILocationDataMod mod)
+    public static void AddDataMod(IGameDataMod<LocationDefinition> mod)
     {
         if (mod == null) { return; }
         _locationDataMods.Add(mod);
@@ -384,7 +393,7 @@ public static class ModInterface
         _photoDataMods.Add(mod);
         _data.TryRegisterDataId(GameDataType.Photo, mod.Id);
     }
-    public static void AddDataMod(IGameDataMod<QuestionDefinition> mod)
+    public static void AddDataMod(IFavQuestionDataMod mod)
     {
         if (mod == null) { return; }
         _questionDataMods.Add(mod);
@@ -402,17 +411,36 @@ public static class ModInterface
     /// </summary>
     public static void RegisterInterModValue(int modId, string name, object value)
     {
-        if (!_interModValues.TryGetValue(modId, out var name_value))
-        {
-            name_value = new Dictionary<string, object>();
-            _interModValues[modId] = name_value;
-        }
-
-        name_value[name] = value;
+        ModInterface.Log.Message($"Registering interop value with name {name}, for mod with id {modId}.");
+        ModInterface.Log.IsNull(_interModValues, nameof(_interModValues));
+        _interModValues.GetOrNew(modId)[name] = value;
     }
 
-    public static T GetInterModValue<T>(string modGuid, string name) => GetInterModValue<T>(GetSourceId(modGuid), name);
-    public static T GetInterModValue<T>(int modId, string name) => (T)_interModValues[modId][name];
+    /// <summary>
+    /// Attempts to get a value registered by a mod via <see cref="RegisterInterModValue"/>.<para/>
+    /// You may want to add a soft dependency to your mod to make sure the value gets registered first: [BepInDependency("modGuid", BepInDependency.DependencyFlags.SoftDependency)]
+    /// </summary>
+    /// <returns>True if value exists, false otherwise</returns>
+    public static bool TryGetInterModValue<T>(string modGuid, string name, out T value) => TryGetInterModValue<T>(GetSourceId(modGuid), name, out value);
+
+    /// <summary>
+    /// Attempts to get a value registered by a mod via <see cref="RegisterInterModValue"/>.<para/>
+    /// You may want to add a soft dependency to your mod to make sure the value gets registered first: [BepInDependency("modGuid", BepInDependency.DependencyFlags.SoftDependency)]
+    /// </summary>
+    /// <returns>True if value exists, false otherwise</returns>
+    public static bool TryGetInterModValue<T>(int modId, string name, out T value)
+    {
+        if (_interModValues.TryGetValue(modId, out var modValues)
+            && modValues.TryGetValue(name, out var valueObj)
+            && valueObj is T asT)
+        {
+            value = asT;
+            return true;
+        }
+
+        value = default;
+        return false;
+    }
 
     public static IEnumerable<PhotoDefinition> RequestPlayerPhotos()
     {
@@ -428,7 +456,7 @@ public static class ModInterface
 
         if (Game.Persistence.playerFile.storyProgress >= 13)
         {
-            var kyuHole = Game.Persistence.playerFile.GetFlagValue("kyu_hole_selection");
+            var kyuHole = Game.Persistence.playerFile.GetFlagValue(Flags.KYU_HOLE_SELECTION);
             earnedPhotos = earnedPhotos.Append(Game.Session.Hub.kyuPhotoDefs[Mathf.Clamp(kyuHole, 0, Game.Session.Hub.kyuPhotoDefs.Length - 1)]);
         }
 

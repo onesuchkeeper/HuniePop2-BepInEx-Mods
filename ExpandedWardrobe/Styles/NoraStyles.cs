@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.IO;
 using Hp2BaseMod;
 using Hp2BaseMod.GameDataInfo;
 using Hp2BaseMod.GameDataInfo.Interface;
@@ -13,18 +12,27 @@ internal static partial class Styles
     private static readonly int _noraBodyY = 966;
     public static void AddNoraStyles()
     {
-        var modParts = new List<IGirlSubDataMod<GirlPartSubDefinition>>();
-        var modOutfits = new List<IGirlSubDataMod<GirlOutfitSubDefinition>>();
-        var modHairstyles = new List<IGirlSubDataMod<GirlHairstyleSubDefinition>>();
+        var modOutfits = new List<IBodySubDataMod<GirlOutfitSubDefinition>>();
+        var modHairstyles = new List<IBodySubDataMod<GirlHairstyleSubDefinition>>();
 
-        AddOutfit(modParts, modOutfits, "hotline", "Hotline", "nora", _noraBodyX - 11, _noraBodyY - 250, false, false, false, true);
-        AddOutfit(modParts, modOutfits, "topless", "Melons", "nora", _noraBodyX - 24, _noraBodyY - 810, true, false, false, false);
+        AddOutfit(modOutfits, "hotline", "Hotline", "nora", _noraBodyX - 11, _noraBodyY - 250, false, false, false, true);
+        AddOutfit(modOutfits, "topless", "Melons", "nora", _noraBodyX - 24, _noraBodyY - 810, true, false, false, false);
+        AddPair(modOutfits, modHairstyles, "cow", "Texas", "nora",
+            _noraBodyX - 8, _noraBodyY - 251,
+            _noraBodyX - 2, _noraBodyY + 42,
+            _noraBodyX, _noraBodyY,
+            false, false, false, true);
 
-        ModInterface.AddDataMod(new GirlDataMod(Girls.NoraId, InsertStyle.append)
+        ModInterface.AddDataMod(new GirlDataMod(Girls.Nora, InsertStyle.append)
         {
-            parts = modParts,
-            outfits = modOutfits,
-            hairstyles = modHairstyles
+            bodies = new List<IGirlBodyDataMod>()
+            {
+                new GirlBodyDataMod(new RelativeId(-1,0), InsertStyle.append)
+                {
+                    outfits = modOutfits,
+                    hairstyles = modHairstyles
+                }
+            }
         });
     }
 }

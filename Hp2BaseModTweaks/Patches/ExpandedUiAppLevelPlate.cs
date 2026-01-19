@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Reflection;
 using HarmonyLib;
-using Hp2BaseMod;
 using Hp2BaseMod.Extension;
 using Hp2BaseMod.GameDataInfo.Interface;
 using UnityEngine.UI;
@@ -58,7 +57,7 @@ internal class ExpandedUiAppLevelPlate
         return expansion;
     }
 
-    private static readonly FieldInfo _tooltip = AccessTools.Field(typeof(UiAppLevelPlate), "_tooltip");
+    private static readonly FieldInfo f_tooltip = AccessTools.Field(typeof(UiAppLevelPlate), "_tooltip");
     private static readonly MethodInfo m_resize = AccessTools.Method(typeof(UiTooltipItem), "Resize");
 
     public IExpInfo ExpDisplay;
@@ -120,7 +119,7 @@ internal class ExpandedUiAppLevelPlate
             return;
         }
 
-        var tooltip = _tooltip.GetValue<UiTooltipItem>(_core);
+        var tooltip = f_tooltip.GetValue<UiTooltipItem>(_core);
 
         tooltip.descriptionLabel.text = ExpDisplay.PlateDesc;
         tooltip.nameLabel.text = ExpDisplay.ExpTitle;

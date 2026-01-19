@@ -44,4 +44,21 @@ public class FinderSlotPopulateEventArgs : EventArgs
     /// Locations to populate at
     /// </summary>
     public List<LocationDefinition> LocationPool;
+
+    /// <summary>
+    /// Removes all pairs with the given girl from the pools
+    /// </summary>
+    public void RemoveGirlFromAllPools(RelativeId girlId)
+    {
+        var runtimeId = ModInterface.Data.GetRuntimeDataId(GameDataType.Girl, girlId);
+
+        bool PairHasGirl(PlayerFileGirlPair pair) => pair.girlPairDefinition.girlDefinitionOne.id == runtimeId || pair.girlPairDefinition.girlDefinitionTwo.id == runtimeId;
+
+        SexPool.RemoveAll(PairHasGirl);
+        IntroPool.RemoveAll(PairHasGirl);
+        MeetingPool.RemoveAll(PairHasGirl);
+        CompatiblePool.RemoveAll(PairHasGirl);
+        LoversPool.RemoveAll(PairHasGirl);
+        AttractedPool.RemoveAll(PairHasGirl);
+    }
 }

@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.IO;
 using BepInEx;
 using Hp2BaseMod;
@@ -36,72 +35,43 @@ public static class UiPrefabs
     public static UiWindow DefaultDateBubbles => _defaultBubbles;
     private static UiWindow _defaultBubbles;
 
-    private static Dictionary<RelativeId, Sprite> _charmSprites = new Dictionary<RelativeId, Sprite>();
     private static Sprite _defaultCharmSprite;
 
     public static void InitExternals()
     {
-        _singleUiAppPairSlotBg = TextureUtility.SpriteFromPng(Path.Combine(SingleDate.Plugin.ImagesDir, "ui_app_pairs_pair_bg.png"));
-        _singleUiAppPairSlotBgOver = TextureUtility.SpriteFromPng(Path.Combine(SingleDate.Plugin.ImagesDir, "ui_app_pairs_pair_bg_over.png"));
-        _sensitivityIcon = TextureUtility.SpriteFromPng(Path.Combine(SingleDate.Plugin.ImagesDir, "ui_app_pair_icon_sensitivity.png"));
-        _sensitivityPlate = TextureUtility.SpriteFromPng(Path.Combine(SingleDate.Plugin.ImagesDir, "ui_app_pair_sensitivity.png"));
-        _sensitivityMeter = TextureUtility.SpriteFromPng(Path.Combine(SingleDate.Plugin.ImagesDir, "ui_app_pair_meter_sensitivity.png"));
+        _singleUiAppPairSlotBg = TextureUtility.SpriteFromPng(Path.Combine(SingleDate.Plugin.IMAGES_DIR, "ui_app_pairs_pair_bg.png"), true);
+        _singleUiAppPairSlotBgOver = TextureUtility.SpriteFromPng(Path.Combine(SingleDate.Plugin.IMAGES_DIR, "ui_app_pairs_pair_bg_over.png"), true);
+        _sensitivityIcon = TextureUtility.SpriteFromPng(Path.Combine(SingleDate.Plugin.IMAGES_DIR, "ui_app_pair_icon_sensitivity.png"), true);
+        _sensitivityPlate = TextureUtility.SpriteFromPng(Path.Combine(SingleDate.Plugin.IMAGES_DIR, "ui_app_pair_sensitivity.png"), true);
+        _sensitivityMeter = TextureUtility.SpriteFromPng(Path.Combine(SingleDate.Plugin.IMAGES_DIR, "ui_app_pair_meter_sensitivity.png"), true);
 
         if (Directory.Exists(_charmsDir))
         {
-            _charmSprites[Girls.AbiaId] = GetCharmSprite("Abia");
-            _charmSprites[Girls.AshleyId] = GetCharmSprite("Ashley");
-            _charmSprites[Girls.BrookeId] = GetCharmSprite("Brooke");
-            _charmSprites[Girls.CandaceId] = GetCharmSprite("Candace");
-            _charmSprites[Girls.JessieId] = GetCharmSprite("Jessie");
-            _charmSprites[Girls.JewnId] = GetCharmSprite("Jewn");
-            _charmSprites[Girls.KyuId] = GetCharmSprite("Kyu");
-            _charmSprites[Girls.LailaniId] = GetCharmSprite("Lailani");
-            _charmSprites[Girls.LillianId] = GetCharmSprite("Lillian");
-            _charmSprites[Girls.LolaId] = GetCharmSprite("Lola");
-            _charmSprites[Girls.MoxieId] = GetCharmSprite("Moxie");
-            _charmSprites[Girls.NoraId] = GetCharmSprite("Nora");
-            _charmSprites[Girls.PollyId] = GetCharmSprite("Polly");
-            _charmSprites[Girls.SarahId] = GetCharmSprite("Sarah");
-            _charmSprites[Girls.ZoeyId] = GetCharmSprite("Zoey");
+            Plugin.SetGirlCharm(Girls.Abia, GetCharmSprite("Abia"));
+            Plugin.SetGirlCharm(Girls.Ashley, GetCharmSprite("Ashley"));
+            Plugin.SetGirlCharm(Girls.Brooke, GetCharmSprite("Brooke"));
+            Plugin.SetGirlCharm(Girls.Candace, GetCharmSprite("Candace"));
+            Plugin.SetGirlCharm(Girls.Jessie, GetCharmSprite("Jessie"));
+            Plugin.SetGirlCharm(Girls.Jewn, GetCharmSprite("Jewn"));
+            Plugin.SetGirlCharm(Girls.Kyu, GetCharmSprite("Kyu"));
+            Plugin.SetGirlCharm(Girls.Lailani, GetCharmSprite("Lailani"));
+            Plugin.SetGirlCharm(Girls.Lillian, GetCharmSprite("Lillian"));
+            Plugin.SetGirlCharm(Girls.Lola, GetCharmSprite("Lola"));
+            Plugin.SetGirlCharm(Girls.Moxie, GetCharmSprite("Moxie"));
+            Plugin.SetGirlCharm(Girls.Nora, GetCharmSprite("Nora"));
+            Plugin.SetGirlCharm(Girls.Polly, GetCharmSprite("Polly"));
+            Plugin.SetGirlCharm(Girls.Sarah, GetCharmSprite("Sarah"));
+            Plugin.SetGirlCharm(Girls.Zoey, GetCharmSprite("Zoey"));
         }
-    }
 
-    public static void SwapCharms(RelativeId girlA, RelativeId girlB)
-    {
-        if (_charmSprites.TryGetValue(girlA, out var charmA))
-        {
-            if (_charmSprites.TryGetValue(girlB, out var charmB))
-            {
-                _charmSprites[girlA] = charmB;
-            }
-            else
-            {
-                _charmSprites.Remove(girlA);
-            }
-
-            _charmSprites[girlB] = charmA;
-        }
-        else if (_charmSprites.TryGetValue(girlB, out var charmB))
-        {
-            if (_charmSprites.TryGetValue(girlA, out var charmA2))
-            {
-                _charmSprites[girlB] = charmA2;
-            }
-            else
-            {
-                _charmSprites.Remove(girlB);
-            }
-
-            _charmSprites[girlA] = charmB;
-        }
+        _defaultCharmSprite = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(SingleDate.Plugin.IMAGES_DIR, $"DefaultCharm.png"), true)).GetSprite();
     }
 
     private static TextureRsScale _charmScale = new TextureRsScale(new Vector2(14 / 45f, 14 / 45f));
 
     private static Sprite GetCharmSprite(string name) => new SpriteInfoTexture(new TextureInfoCache(
-        Path.Combine(SingleDate.Plugin.ImagesDir, $"{name}Charm.png"),
-        new TextureInfoExternal(Path.Combine(_charmsDir, $"{name}.png"), FilterMode.Bilinear, [
+        Path.Combine(SingleDate.Plugin.IMAGES_DIR, $"{name}Charm.png"),
+        new TextureInfoExternal(Path.Combine(_charmsDir, $"{name}.png"), false, FilterMode.Bilinear, [
             _charmScale
         ])
     )).GetSprite();
@@ -168,9 +138,10 @@ public static class UiPrefabs
 
     public static Sprite GetCharmSprite(RelativeId girlId)
     {
-        if (_charmSprites.TryGetValue(girlId, out var sprite))
+        if (Plugin.TryGetSingleDateGirl(girlId, out var singleDateGirl)
+            && singleDateGirl.CharmSprite != null)
         {
-            return sprite;
+            return singleDateGirl.CharmSprite;
         }
 
         return _defaultCharmSprite;

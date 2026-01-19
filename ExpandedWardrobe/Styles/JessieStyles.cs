@@ -12,14 +12,13 @@ internal static partial class Styles
     private static readonly int _jessieBodyY = 983;
     public static void AddJessieStyles()
     {
-        var modParts = new List<IGirlSubDataMod<GirlPartSubDefinition>>();
-        var modOutfits = new List<IGirlSubDataMod<GirlOutfitSubDefinition>>();
-        var modHairstyles = new List<IGirlSubDataMod<GirlHairstyleSubDefinition>>();
+        var modOutfits = new List<IBodySubDataMod<GirlOutfitSubDefinition>>();
+        var modHairstyles = new List<IBodySubDataMod<GirlHairstyleSubDefinition>>();
 
-        AddOutfit(modParts, modOutfits, "businesscasual", "Office Siren", "jessie", _jessieBodyX - 3, _jessieBodyY - 261, true, false, false, false);
-        AddOutfit(modParts, modOutfits, "milf", "MILF", "Jessie", _jessieBodyX - 3, _jessieBodyY - 227, true, false, false, false);
+        AddOutfit(modOutfits, "businesscasual", "Office Siren", "jessie", _jessieBodyX - 3, _jessieBodyY - 261, true, false, false, false);
+        AddOutfit(modOutfits, "milf", "MILF", "Jessie", _jessieBodyX - 3, _jessieBodyY - 227, true, false, false, false);
 
-        AddPair(modParts, modOutfits, modHairstyles, "marlena", "Bombshell", "jessie",
+        AddPair(modOutfits, modHairstyles, "marlena", "Bombshell", "jessie",
             _jessieBodyX + 1, _jessieBodyY - 406,
             _jessieBodyX + 54, _jessieBodyY + 10,
             _jessieBodyX + 58, _jessieBodyY - 102,
@@ -27,11 +26,16 @@ internal static partial class Styles
 
         //Knockers
 
-        ModInterface.AddDataMod(new GirlDataMod(Girls.JessieId, InsertStyle.append)
+        ModInterface.AddDataMod(new GirlDataMod(Girls.Jessie, InsertStyle.append)
         {
-            parts = modParts,
-            outfits = modOutfits,
-            hairstyles = modHairstyles
+            bodies = new List<IGirlBodyDataMod>()
+            {
+                new GirlBodyDataMod(new RelativeId(-1,0), InsertStyle.append)
+                {
+                    outfits = modOutfits,
+                    hairstyles = modHairstyles
+                }
+            }
         });
     }
 }

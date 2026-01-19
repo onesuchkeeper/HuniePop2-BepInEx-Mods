@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Reflection;
 using HarmonyLib;
 using Hp2BaseMod.Extension;
@@ -9,11 +10,64 @@ namespace Hp2BaseMod;
 [HarmonyPatch(typeof(LocationManager))]
 internal static class LocationManagerPatch
 {
-    private static FieldInfo _isLocked = AccessTools.Field(typeof(LocationManager), "_isLocked");
-    private static FieldInfo _arrivalCutscene = AccessTools.Field(typeof(LocationManager), "_arrivalCutscene");
-    private static readonly FieldInfo _currentGirlPair = AccessTools.Field(typeof(LocationManager), "_currentGirlPair");
-    private static readonly FieldInfo _currentSidesFlipped = AccessTools.Field(typeof(LocationManager), "_currentSidesFlipped");
-    private static readonly FieldInfo _currentLocation = AccessTools.Field(typeof(LocationManager), "_currentLocation");
+    private static readonly FieldInfo f_isLocked = AccessTools.Field(typeof(LocationManager), "_isLocked");
+    private static readonly FieldInfo f_arrivalCutscene = AccessTools.Field(typeof(LocationManager), "_arrivalCutscene");
+    private static readonly FieldInfo f_currentGirlPair = AccessTools.Field(typeof(LocationManager), "_currentGirlPair");
+    private static readonly FieldInfo f_currentSidesFlipped = AccessTools.Field(typeof(LocationManager), "_currentSidesFlipped");
+    private static readonly FieldInfo f_currentLocation = AccessTools.Field(typeof(LocationManager), "_currentLocation");
+
+    [HarmonyPatch(nameof(LocationManager.Arrive))]
+    [HarmonyPrefix]
+    private static void PreArrive(LocationManager __instance,
+        ref LocationDefinition locationDef,
+        ref GirlPairDefinition girlPairDef,
+        ref bool sidesFlipped,
+        ref bool initialArrive)
+    {
+        //set here so the AtLocationType is working with the correct location
+        //if it changes it'll overwrite later on
+        f_currentLocation.SetValue(__instance, locationDef);
+
+        ModInterface.State.CellphoneOnLeft = __instance.AtLocationType(LocationType.HUB);
+
+        var args = new LocationArriveArgs()
+        {
+            locationDef = locationDef,
+            girlPairDef = girlPairDef,
+            sidesFlipped = sidesFlipped,
+            initialArrive = initialArrive,
+            cellphoneOnLeft = ModInterface.State.CellphoneOnLeft
+        };
+        ModInterface.Events.NotifyPreLocationArrive(args);
+
+        locationDef = args.locationDef;
+        girlPairDef = args.girlPairDef;
+        sidesFlipped = args.sidesFlipped;
+        initialArrive = args.initialArrive;
+        ModInterface.State.CellphoneOnLeft = args.cellphoneOnLeft;
+    }
+
+    [HarmonyPatch(nameof(LocationManager.Arrive))]
+    [HarmonyPostfix]
+    private static void PostArrive()
+    {
+        if (ModInterface.State.CellphoneOnLeft)
+        {
+            Game.Session.gameCanvas.header.rectTransform.anchoredPosition = new Vector2(Game.Session.gameCanvas.header.xValues.y,
+                Game.Session.gameCanvas.header.rectTransform.anchoredPosition.y);
+
+            Game.Session.gameCanvas.cellphone.rectTransform.anchoredPosition = new Vector2(Game.Session.gameCanvas.cellphone.xValues.y,
+                Game.Session.gameCanvas.cellphone.rectTransform.anchoredPosition.y);
+        }
+        else
+        {
+            Game.Session.gameCanvas.header.rectTransform.anchoredPosition = new Vector2(Game.Session.gameCanvas.header.xValues.x,
+                Game.Session.gameCanvas.header.rectTransform.anchoredPosition.y);
+
+            Game.Session.gameCanvas.cellphone.rectTransform.anchoredPosition = new Vector2(Game.Session.gameCanvas.cellphone.xValues.x,
+                Game.Session.gameCanvas.cellphone.rectTransform.anchoredPosition.y);
+        }
+    }
 
     [HarmonyPatch("OnLocationSettled")]
     [HarmonyPrefix]
@@ -24,14 +78,14 @@ internal static class LocationManagerPatch
             return true;
         }
 
-        var arrivalCutscene = _arrivalCutscene.GetValue<CutsceneDefinition>(__instance);
+        var arrivalCutscene = f_arrivalCutscene.GetValue<CutsceneDefinition>(__instance);
 
         if (arrivalCutscene != null)
         {
             return true;
         }
 
-        _isLocked.SetValue(__instance, false);
+        f_isLocked.SetValue(__instance, false);
 
         Game.Session.Logic.ProcessBundleList(__instance.currentLocation.departBundleList, false);
 
@@ -45,7 +99,7 @@ internal static class LocationManagerPatch
 
         uiDoll.ReadDialogTrigger(__instance.dtGreetings[greetingIndex], DialogLineFormat.PASSIVE, -1);
 
-        _arrivalCutscene.SetValue(__instance, null);
+        f_arrivalCutscene.SetValue(__instance, null);
         return false;
     }
 
@@ -53,35 +107,40 @@ internal static class LocationManagerPatch
     [HarmonyPostfix]
     public static void ResetDolls(LocationManager __instance, bool unload = false)
     {
-        if (unload) { return; }
+        if (unload) { return; }//if the hub girl does not have the needed indexes
 
-        var currentLocation = _currentLocation.GetValue(__instance) as LocationDefinition;
+        var currentLocation = f_currentLocation.GetValue(__instance) as LocationDefinition;
 
-        if (currentLocation.locationType == LocationType.HUB)
+        if (__instance.AtLocationType(LocationType.HUB))
         {
             // the base method already randomizes hub girl outfit, so just use default
             var girlExpansion = Game.Session.Hub.hubGirlDefinition.Expansion();
 
-            var outfitIndex = UnityEngine.Random.Range(0, Game.Session.Hub.hubGirlDefinition.outfits.Count);
+            var i = 0;
+            var outfitIndex = Game.Session.Hub.hubGirlDefinition.outfits.Select(x => (x, i++)).Where(x => x.Item1 != null).ToArray().GetRandom().Item2;
             var outfit = Game.Session.Hub.hubGirlDefinition.outfits[outfitIndex];
 
             var hubStyle = new GirlStyleInfo()
             {
-                OutfitId = girlExpansion.OutfitIndexToId[outfitIndex],
+                OutfitId = girlExpansion.OutfitLookup[outfitIndex],
             };
 
             if (outfit.pairHairstyleIndex != -1)
             {
-                hubStyle.HairstyleId = girlExpansion.HairstyleIndexToId[outfit.pairHairstyleIndex];
+                hubStyle.HairstyleId = girlExpansion.HairstyleLookup[outfit.pairHairstyleIndex];
             }
             else
             {
-                hubStyle.HairstyleId = girlExpansion.HairstyleIndexToId[UnityEngine.Random.Range(0, Game.Session.Hub.hubGirlDefinition.hairstyles.Count)];
+                i = 0;
+                var randomIndex = Game.Session.Hub.hubGirlDefinition.hairstyles.Select(x => (x, i++)).Where(x => x.Item1 != null).ToArray().GetRandom().Item2;
+                hubStyle.HairstyleId = girlExpansion.HairstyleLookup[randomIndex];
             }
 
-            var args = ModInterface.Events.NotifyRequestStyleChange(Game.Session.Hub.hubGirlDefinition, currentLocation, 0.1f, new GirlStyleInfo());
+            var args = ModInterface.Events.NotifyRequestStyleChange(Game.Session.Hub.hubGirlDefinition, currentLocation, 0.1f, hubStyle);
 
-            if (UnityEngine.Random.Range(0f, 1f) <= args.ApplyChance)
+            if (args.ApplyChance > 0f
+                && args.ApplyChance <= 100f
+                && UnityEngine.Random.Range(0f, 1f) <= args.ApplyChance)
             {
                 args.Style.Apply(Game.Session.gameCanvas.dollRight,
                     Game.Session.Hub.hubGirlDefinition.defaultOutfitIndex,
@@ -90,17 +149,19 @@ internal static class LocationManagerPatch
         }
         else
         {
-            var currentGirlPair = _currentGirlPair.GetValue(__instance) as GirlPairDefinition;
+            var currentGirlPair = f_currentGirlPair.GetValue(__instance) as GirlPairDefinition;
             var playerFileGirlPair = Game.Persistence.playerFile.GetPlayerFileGirlPair(currentGirlPair);
 
             if (playerFileGirlPair == null) { return; }
 
-            var flipped = (bool)_currentSidesFlipped.GetValue(__instance);
+            var flipped = (bool)f_currentSidesFlipped.GetValue(__instance);
             var leftGirlDef = flipped ? currentGirlPair.girlDefinitionTwo : currentGirlPair.girlDefinitionOne;
             var rightGirlDef = flipped ? currentGirlPair.girlDefinitionOne : currentGirlPair.girlDefinitionTwo;
 
-            GirlStyleInfo leftStyle = null;
-            GirlStyleInfo rightStyle = null;
+            var locationExp = currentLocation.Expansion();
+
+            GirlStyleInfo leftStyle = new GirlStyleInfo(locationExp.DefaultStyle);
+            GirlStyleInfo rightStyle = leftStyle;
 
             if (playerFileGirlPair.relationshipType == GirlPairRelationshipType.UNKNOWN)
             {
@@ -113,10 +174,28 @@ internal static class LocationManagerPatch
                     rightStyle = pairStyle.MeetingGirlTwo;
                 }
             }
-            else if (currentLocation.locationType == LocationType.DATE)
+            else if (__instance.AtLocationType(LocationType.DATE))
             {
+                var args = new PreDateDollResetArgs();
+
                 if (playerFileGirlPair.relationshipType == GirlPairRelationshipType.ATTRACTED
                     && Game.Persistence.playerFile.daytimeElapsed % 4 == (int)playerFileGirlPair.girlPairDefinition.sexDaytime)
+                {
+                    args.Style = PreDateDollResetArgs.StyleType.Sex;
+                }
+                else if (!Game.Session.Puzzle.puzzleStatus.isEmpty
+                    && currentLocation != Game.Session.Puzzle.bossLocationDefinition)
+                {
+                    args.Style = PreDateDollResetArgs.StyleType.Location;
+                }
+                else
+                {
+                    args.Style = PreDateDollResetArgs.StyleType.File;
+                }
+
+                ModInterface.Events.NotifyPreDateDollReset(args);
+
+                if (args.Style == PreDateDollResetArgs.StyleType.Sex)
                 {
                     var pairId = ModInterface.Data.GetDataId(GameDataType.GirlPair, currentGirlPair.id);
                     var pairStyle = ExpandedGirlPairDefinition.Get(pairId).PairStyle;
@@ -127,21 +206,22 @@ internal static class LocationManagerPatch
                         rightStyle = pairStyle.SexGirlTwo;
                     }
                 }
-                else if (!Game.Session.Puzzle.puzzleStatus.isEmpty
-                    && currentLocation != Game.Session.Puzzle.bossLocationDefinition)
+                else if (args.Style == PreDateDollResetArgs.StyleType.Location)
                 {
                     var locationId = ModInterface.Data.GetDataId(GameDataType.Location, currentLocation.id);
 
                     if (!Game.Session.Puzzle.puzzleStatus.girlStatusLeft.playerFileGirl.stylesOnDates)
                     {
                         var girlId = ModInterface.Data.GetDataId(GameDataType.Girl, leftGirlDef.id);
-                        ExpandedLocationDefinition.Get(locationId).GirlIdToLocationStyleInfo?.TryGetValue(girlId, out leftStyle);
+                        var girlExpansion = ExpandedGirlDefinition.Get(girlId);
+                        girlExpansion.GetCurrentBody().LocationIdToOutfitId.TryGetValue(locationId, out leftStyle);
                     }
 
                     if (!Game.Session.Puzzle.puzzleStatus.girlStatusRight.playerFileGirl.stylesOnDates)
                     {
                         var girlId = ModInterface.Data.GetDataId(GameDataType.Girl, rightGirlDef.id);
-                        ExpandedLocationDefinition.Get(locationId).GirlIdToLocationStyleInfo?.TryGetValue(girlId, out rightStyle);
+                        var girlExpansion = ExpandedGirlDefinition.Get(girlId);
+                        girlExpansion.GetCurrentBody().LocationIdToOutfitId.TryGetValue(locationId, out rightStyle);
                     }
                 }
             }

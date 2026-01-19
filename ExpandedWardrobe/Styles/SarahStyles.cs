@@ -12,19 +12,18 @@ internal static partial class Styles
     private static readonly int _sarahBodyY = 917;
     public static void AddSarahStyles()
     {
-        var modParts = new List<IGirlSubDataMod<GirlPartSubDefinition>>();
-        var modOutfits = new List<IGirlSubDataMod<GirlOutfitSubDefinition>>();
-        var modHairstyles = new List<IGirlSubDataMod<GirlHairstyleSubDefinition>>();
+        var modOutfits = new List<IBodySubDataMod<GirlOutfitSubDefinition>>();
+        var modHairstyles = new List<IBodySubDataMod<GirlHairstyleSubDefinition>>();
 
-        AddOutfit(modParts, modOutfits, "tsuyome", "Tsuyome", "sarah", _sarahBodyX, _sarahBodyY - 272, false, false, false, true);
+        AddOutfit(modOutfits, "tsuyome", "Tsuyome", "sarah", _sarahBodyX, _sarahBodyY - 272, false, false, false, true);
 
-        AddPair(modParts, modOutfits, modHairstyles, "yamanba", "Yamanba", "sarah",
+        AddPair(modOutfits, modHairstyles, "yamanba", "Yamanba", "sarah",
             _sarahBodyX + 18, _sarahBodyY - 82,
             _sarahBodyX + 119, _sarahBodyY + 62,
             _sarahBodyX - 1, _sarahBodyY + 83,
             false, false, false, true);
 
-        AddPair(modParts, modOutfits, modHairstyles, "momo", "Neko", "sarah",
+        AddPair(modOutfits, modHairstyles, "momo", "Neko", "sarah",
             _sarahBodyX - 11, _sarahBodyY - 109,
             _sarahBodyX + 88, _sarahBodyY + 90,
             _sarahBodyX + 153, _sarahBodyY - 61,
@@ -32,11 +31,16 @@ internal static partial class Styles
 
         //Hooters
 
-        ModInterface.AddDataMod(new GirlDataMod(Girls.SarahId, InsertStyle.append)
+        ModInterface.AddDataMod(new GirlDataMod(Girls.Sarah, InsertStyle.append)
         {
-            parts = modParts,
-            outfits = modOutfits,
-            hairstyles = modHairstyles
+            bodies = new List<IGirlBodyDataMod>()
+            {
+                new GirlBodyDataMod(new RelativeId(-1,0), InsertStyle.append)
+                {
+                    outfits = modOutfits,
+                    hairstyles = modHairstyles
+                }
+            }
         });
     }
 }

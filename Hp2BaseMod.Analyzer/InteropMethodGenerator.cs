@@ -1,0 +1,265 @@
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
+using System.Text;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+
+namespace Hp2BaseMod.Analyzer
+{
+    [Generator(LanguageNames.CSharp)]
+    public class InteropMethodGenerator : IIncrementalGenerator
+    {
+        private const string InteropMethodAttributeName = "InteropMethodAttribute";
+        private const string InteropMethodShortName = "InteropMethod";
+        private const string Hp2BaseModPluginTypeName = "Hp2BaseModPlugin";
+
+        public void Initialize(IncrementalGeneratorInitializationContext context)
+        {
+            // Find all methods with InteropMethod attribute
+            var interopMethods = context.SyntaxProvider.CreateSyntaxProvider(
+                static (node, _) => node is MethodDeclarationSyntax method && method.AttributeLists.Count > 0,
+                static (ctx, _) =>
+                {
+                    var methodDecl = (MethodDeclarationSyntax)ctx.Node;
+                    var semanticModel = ctx.SemanticModel;
+                    var methodSymbol = semanticModel.GetDeclaredSymbol(methodDecl) as IMethodSymbol;
+
+                    if (methodSymbol == null || !HasInteropMethodAttribute(methodSymbol))
+                        return default;
+
+                    return (methodDecl, methodSymbol);
+                })
+                .Where(x => x.methodDecl != null);
+
+            // Group by containing class
+            var interopMethodsByClass = interopMethods.Collect()
+                .Select((methods, _) =>
+                {
+                    return methods
+                        .Where(x => x != default)
+                        .GroupBy(x => x.methodSymbol.ContainingType, SymbolEqualityComparer.Default)
+                        .ToImmutableArray();
+                });
+
+            context.RegisterSourceOutput(interopMethodsByClass, GenerateRegistration);
+        }
+
+        private static bool HasInteropMethodAttribute(IMethodSymbol method)
+        {
+            foreach (var attr in method.GetAttributes())
+            {
+                if (attr.AttributeClass == null)
+                    continue;
+
+                var name = attr.AttributeClass.Name;
+                if (name == InteropMethodAttributeName || name == InteropMethodShortName)
+                    return true;
+
+                // Check with "Attribute" suffix stripped
+                if (name.Length > 9 && name.EndsWith("Attribute") &&
+                    name.Substring(0, name.Length - 9) == InteropMethodShortName)
+                    return true;
+            }
+            return false;
+        }
+
+        private static void GenerateRegistration(
+            SourceProductionContext context,
+            ImmutableArray<IGrouping<ISymbol, (MethodDeclarationSyntax methodDecl, IMethodSymbol methodSymbol)>> groupedMethods)
+        {
+            foreach (var group in groupedMethods)
+            {
+                var containingType = (INamedTypeSymbol)group.Key;
+
+                // Only generate for classes that inherit from Hp2BaseModPlugin
+                if (!InheritsFromHp2BaseModPlugin(containingType))
+                    continue;
+
+                // Verify the class is partial
+                if (!IsPartialClass(containingType))
+                {
+                    var diagnostic = Diagnostic.Create(
+                        new DiagnosticDescriptor(
+                            id: DiagnosticStrings.ID_CLASS_NOT_PARTIAL_INTEROP,
+                            title: "Class must be partial",
+                            messageFormat: DiagnosticStrings.MESSAGE_CLASS_NOT_PARTIAL_INTEROP,
+                            category: "Usage",
+                            defaultSeverity: DiagnosticSeverity.Error,
+                            isEnabledByDefault: true),
+                        containingType.Locations.FirstOrDefault(),
+                        containingType.Name);
+                    context.ReportDiagnostic(diagnostic);
+                    continue;
+                }
+
+                var source = GeneratePartialClass(containingType, group.ToList());
+                var fileName = $"{containingType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat.WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Omitted))}.InteropMethods.g.cs";
+                fileName = fileName.Replace('<', '_').Replace('>', '_');
+
+                context.AddSource(fileName, source);
+            }
+        }
+
+        private static string GeneratePartialClass(
+            INamedTypeSymbol containingType,
+            List<(MethodDeclarationSyntax methodDecl, IMethodSymbol methodSymbol)> methods)
+        {
+            var sb = new StringBuilder(2048); // Pre-allocate reasonable size
+            var namespaceName = containingType.ContainingNamespace?.ToDisplayString();
+
+            // File header
+            sb.AppendLine("// <auto-generated/>");
+            sb.AppendLine("#nullable enable");
+            sb.AppendLine("using System;");
+            sb.AppendLine();
+
+            // Namespace
+            var hasNamespace = !string.IsNullOrEmpty(namespaceName) && namespaceName != "<global namespace>";
+            if (hasNamespace)
+            {
+                sb.Append("namespace ").AppendLine(namespaceName);
+                sb.AppendLine("{");
+            }
+
+            var indent = hasNamespace ? "    " : "";
+
+            // Class declaration
+            sb.Append(indent).Append("partial class ").AppendLine(containingType.Name);
+            sb.Append(indent).AppendLine("{");
+
+            // Generate registration method override
+            sb.Append(indent).AppendLine("    /// <summary>");
+            sb.Append(indent).AppendLine("    /// Registers all InteropMethod-decorated methods with ModInterface.");
+            sb.Append(indent).AppendLine("    /// Called automatically by Hp2BaseModPlugin constructor.");
+            sb.Append(indent).AppendLine("    /// </summary>");
+            sb.Append(indent).AppendLine("    protected override void RegisterInteropMethods()");
+            sb.Append(indent).AppendLine("    {");
+
+            // Cache format for reuse
+            var fullyQualifiedFormat = SymbolDisplayFormat.FullyQualifiedFormat;
+
+            foreach (var (_, methodSymbol) in methods)
+            {
+                var methodName = methodSymbol.Name;
+                var isStatic = methodSymbol.IsStatic;
+                var parameters = methodSymbol.Parameters;
+
+                // Build delegate type
+                string delegateType = BuildDelegateType(methodSymbol, fullyQualifiedFormat);
+
+                // Generate registration call
+                sb.Append(indent).AppendLine("        global::Hp2BaseMod.ModInterface.RegisterInterModValue(");
+                sb.Append(indent).AppendLine("            ModId,");
+                sb.Append(indent).Append("            \"").Append(methodName).AppendLine("\",");
+
+                if (isStatic)
+                {
+                    // Static method
+                    sb.Append(indent).Append("            (").Append(delegateType).Append(')').Append(methodName).AppendLine(");");
+                }
+                else
+                {
+                    // Instance method
+                    if (parameters.Length == 0)
+                    {
+                        sb.Append(indent).Append("            new ").Append(delegateType).Append('(').Append(methodName).AppendLine("));");
+                    }
+                    else
+                    {
+                        // Lambda with parameters
+                        sb.Append(indent).Append("            new ").Append(delegateType).Append("((");
+                        for (int i = 0; i < parameters.Length; i++)
+                        {
+                            if (i > 0) sb.Append(", ");
+                            sb.Append('p').Append(i);
+                        }
+                        sb.Append(") => ").Append(methodName).Append('(');
+                        for (int i = 0; i < parameters.Length; i++)
+                        {
+                            if (i > 0) sb.Append(", ");
+                            sb.Append('p').Append(i);
+                        }
+                        sb.AppendLine(")));");
+                    }
+                }
+                sb.AppendLine();
+            }
+
+            sb.Append(indent).AppendLine("    }");
+            sb.Append(indent).AppendLine("}");
+
+            // Close namespace
+            if (hasNamespace)
+            {
+                sb.AppendLine("}");
+            }
+
+            return sb.ToString();
+        }
+
+        private static string BuildDelegateType(IMethodSymbol methodSymbol, SymbolDisplayFormat format)
+        {
+            var parameters = methodSymbol.Parameters;
+            var paramTypes = new List<string>(parameters.Length);
+
+            foreach (var p in parameters)
+            {
+                paramTypes.Add(p.Type.ToDisplayString(format));
+            }
+
+            if (methodSymbol.ReturnsVoid)
+            {
+                if (parameters.Length == 0)
+                {
+                    return "global::System.Action";
+                }
+                else
+                {
+                    return $"global::System.Action<{string.Join(", ", paramTypes)}>";
+                }
+            }
+            else
+            {
+                var returnType = methodSymbol.ReturnType.ToDisplayString(format);
+                if (parameters.Length == 0)
+                {
+                    return $"global::System.Func<{returnType}>";
+                }
+                else
+                {
+                    return $"global::System.Func<{string.Join(", ", paramTypes)}, {returnType}>";
+                }
+            }
+        }
+
+        private static bool InheritsFromHp2BaseModPlugin(INamedTypeSymbol typeSymbol)
+        {
+            var currentType = typeSymbol.BaseType;
+            while (currentType != null)
+            {
+                if (currentType.Name == Hp2BaseModPluginTypeName)
+                    return true;
+                currentType = currentType.BaseType;
+            }
+            return false;
+        }
+
+        private static bool IsPartialClass(INamedTypeSymbol typeSymbol)
+        {
+            foreach (var syntaxRef in typeSymbol.DeclaringSyntaxReferences)
+            {
+                if (syntaxRef.GetSyntax() is ClassDeclarationSyntax classSyntax)
+                {
+                    foreach (var modifier in classSyntax.Modifiers)
+                    {
+                        if (modifier.IsKind(SyntaxKind.PartialKeyword))
+                            return true;
+                    }
+                }
+            }
+            return false;
+        }
+    }
+}

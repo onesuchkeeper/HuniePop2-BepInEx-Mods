@@ -12,11 +12,10 @@ internal static partial class Styles
     private static readonly int _pollyBodyY = 949;
     public static void AddPollyStyles()
     {
-        var modParts = new List<IGirlSubDataMod<GirlPartSubDefinition>>();
-        var modOutfits = new List<IGirlSubDataMod<GirlOutfitSubDefinition>>();
-        var modHairstyles = new List<IGirlSubDataMod<GirlHairstyleSubDefinition>>();
+        var modOutfits = new List<IBodySubDataMod<GirlOutfitSubDefinition>>();
+        var modHairstyles = new List<IBodySubDataMod<GirlHairstyleSubDefinition>>();
 
-        AddPair(modParts, modOutfits, modHairstyles, "finalGirl", "Final Girl", "polly",
+        AddPair(modOutfits, modHairstyles, "finalGirl", "Final Girl", "polly",
             _pollyBodyX + 53, _pollyBodyY - 245,
             _pollyBodyX + 156, _pollyBodyY + 35,
             _pollyBodyX + 187, _pollyBodyY - 142,
@@ -24,20 +23,16 @@ internal static partial class Styles
 
         //Milk Jugs
 
-        ModInterface.AddDataMod(new GirlDataMod(Girls.PollyId, InsertStyle.append)
+        ModInterface.AddDataMod(new GirlDataMod(Girls.Polly, InsertStyle.append)
         {
-            parts = modParts,
-            outfits = modOutfits,
-            hairstyles = modHairstyles
+            bodies = new List<IGirlBodyDataMod>()
+            {
+                new GirlBodyDataMod(new RelativeId(-1,0), InsertStyle.append)
+                {
+                    outfits = modOutfits,
+                    hairstyles = modHairstyles
+                }
+            }
         });
-        // new OutfitDataMod(Ids.Style2, InsertStyle.replace)
-        // {
-        //     Name = "Milk Jugs",
-        //     OutfitPartId = Ids.OutfitPart2,
-        //     IsNSFW = true,
-        //     HideNipples = false,
-        //     TightlyPaired = false,
-        //     PairHairstyleId = null
-        // }
     }
 }

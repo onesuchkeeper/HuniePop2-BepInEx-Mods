@@ -16,7 +16,7 @@ public class ArtCommand : ICommand
     ///<inheritdoc/>
     public bool Invoke(string[] inputs, out string result)
     {
-        ModInterface.Log.LogInfo(Art.Random());
+        ModInterface.Log.Message(Art.Random());
         result = "Art printed to log";
         return true;
     }

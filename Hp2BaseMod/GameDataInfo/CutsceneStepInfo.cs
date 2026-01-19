@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using DG.Tweening;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
@@ -49,15 +48,15 @@ namespace Hp2BaseMod.GameDataInfo
 
         public float? ProceedFloat;
 
-        public RelativeId? TargetGirlDefinitionID;
+        public RelativeId? TargetGirlDefinitionId;
 
         public int? IntValue;
 
         public int? EaseType;
 
-        public RelativeId? DialogTriggerDefinitionID;
+        public RelativeId? DialogTriggerDefinitionId;
 
-        public RelativeId? GirlDefinitionID;
+        public RelativeId? GirlDefinitionId;
 
         public int? ExpressionIndex;
 
@@ -65,7 +64,7 @@ namespace Hp2BaseMod.GameDataInfo
 
         public RelativeId? OutfitId;
 
-        public RelativeId? SubCutsceneDefinitionID;
+        public RelativeId? SubCutsceneDefinitionId;
 
         public bool? SkipStep;
 
@@ -83,90 +82,11 @@ namespace Hp2BaseMod.GameDataInfo
 
         public IGameDefinitionInfo<LogicAction> LogicActionInfo;
 
-        public RelativeId? DialogLineId;
+        public IDialogLineDataMod DialogLine;
 
         public List<IGameDefinitionInfo<CutsceneDialogOptionSubDefinition>> DialogOptionInfos;
 
         public List<IGameDefinitionInfo<CutsceneBranchSubDefinition>> BranchInfos;
-
-        //not used in game, probably for huniedevs editing interface
-        public int? EditorSelectedOptionIndex;
-
-        //not used in game, probably for huniedevs editing interface
-        public int? EditorSelectedBranchIndex;
-
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        public CutsceneStepInfo() { }
-
-        /// <summary>
-        /// Constructor from a definition instance.
-        /// </summary>
-        /// <param name="def">The definition.</param>
-        /// <param name="assetProvider">Asset provider containing the assets referenced by the definition.</param>
-        public CutsceneStepInfo(CutsceneStepSubDefinition def, AssetProvider assetProvider)
-        {
-            if (def == null) { throw new ArgumentNullException(nameof(def)); }
-            if (assetProvider == null) { throw new ArgumentNullException(nameof(assetProvider)); }
-
-            SkipStep = def.skipStep;
-            StepType = def.stepType;
-            ProceedType = def.proceedType;
-            DollTargetType = def.dollTargetType;
-            TargetDollOrientation = def.targetDollOrientation;
-            TargetAlt = def.targetAlt;
-            BoolValue = def.boolValue;
-            IntValue = def.intValue;
-            FloatValue = def.floatValue;
-            StringValue = def.stringValue;
-            EaseType = (int)def.easeType;
-            EditorSelectedBranchIndex = def.editorSelectedBranchIndex;
-            ExpressionType = def.expressionType;
-            SetMood = def.setMood;
-            EditorSelectedOptionIndex = def.editorSelectedOptionIndex;
-            DollPositionType = def.dollPositionType;
-            ExpressionIndex = def.expressionIndex;
-            HairstyleId = new RelativeId(-1, def.hairstyleIndex);
-            OutfitId = new RelativeId(-1, def.outfitIndex);
-            AnimationType = def.animationType;
-            SubCutsceneType = def.subCutsceneType;
-            GirlPairRelationshipType = def.girlPairRelationshipType;
-            NotificationType = def.notificationType;
-            ProceedBool = def.proceedBool;
-            ProceedFloat = def.proceedFloat;
-
-            SubCutsceneDefinitionID = new RelativeId(def.subCutsceneDefinition);
-            DialogTriggerDefinitionID = new RelativeId(def.dialogTriggerDefinition);
-            GirlDefinitionID = new RelativeId(def.girlDefinition);
-            TargetGirlDefinitionID = new RelativeId(def.targetGirlDefinition);
-
-            assetProvider.NameAndAddAsset(ref SpecialStepPrefabName, def.specialStepPrefab);
-            assetProvider.NameAndAddAsset(ref WindowPrefabName, def.windowPrefab);
-            assetProvider.NameAndAddAsset(ref EmitterBehaviorName, def.emitterBehavior);
-            assetProvider.NameAndAddAsset(ref BannerTextPrefabName, def.bannerTextPrefab);
-
-            if (def.audioKlip != null) { AudioKlipInfo = new AudioKlipInfo(def.audioKlip, assetProvider); }
-            if (def.position != null) { PositionInfo = new VectorInfo(def.position); }
-
-            if (def.dialogTriggerDefinition != null
-                && def.girlDefinition != null
-                && def.dialogLine != null)
-            {
-                var expansion = def.dialogTriggerDefinition.Expansion();
-                var girlId = new RelativeId(def.girlDefinition);
-
-                if (expansion.TryGetLineSet(def.dialogTriggerDefinition, girlId, out var lineSet))
-                {
-                    DialogLineId = expansion.GirlIdToLineIndexToLineId[girlId][lineSet.dialogLines.IndexOf(def.dialogLine)];
-                }
-            }
-
-            if (def.logicAction != null) { LogicActionInfo = new LogicActionInfo(def.logicAction, assetProvider); }
-
-            if (def.dialogOptions != null) { DialogOptionInfos = def.dialogOptions.Select(x => (IGameDefinitionInfo<CutsceneDialogOptionSubDefinition>)new CutsceneDialogOptionInfo(x, assetProvider)).ToList(); }
-            if (def.branches != null) { BranchInfos = def.branches.Select(x => (IGameDefinitionInfo<CutsceneBranchSubDefinition>)new CutsceneBranchInfo(x, assetProvider)).ToList(); }
-        }
 
         /// <summary>
         /// Writes to the game data definition this represents
@@ -193,25 +113,23 @@ namespace Hp2BaseMod.GameDataInfo
             ValidatedSet.SetValue(ref def.floatValue, FloatValue);
             ValidatedSet.SetValue(ref def.stringValue, StringValue, insertStyle);
             ValidatedSet.SetValue(ref def.easeType, (Ease?)EaseType);
-            ValidatedSet.SetValue(ref def.editorSelectedBranchIndex, EditorSelectedBranchIndex);
             ValidatedSet.SetValue(ref def.expressionType, ExpressionType);
             ValidatedSet.SetValue(ref def.setMood, SetMood);
-            ValidatedSet.SetValue(ref def.editorSelectedOptionIndex, EditorSelectedOptionIndex);
             ValidatedSet.SetValue(ref def.dollPositionType, DollPositionType);
             ValidatedSet.SetValue(ref def.expressionIndex, ExpressionIndex);
 
-            if (GirlDefinitionID.HasValue)
+            if (GirlDefinitionId.HasValue)
             {
-                var girlExpansion = ExpandedGirlDefinition.Get(GirlDefinitionID.Value);
+                var girlExpansion = ExpandedGirlDefinition.Get(GirlDefinitionId.Value);
 
                 if (HairstyleId.HasValue)
                 {
-                    ValidatedSet.SetValue(ref def.hairstyleIndex, girlExpansion.HairstyleIdToIndex[HairstyleId.Value]);
+                    ValidatedSet.SetValue(ref def.hairstyleIndex, girlExpansion.HairstyleLookup[HairstyleId.Value]);
                 }
 
                 if (OutfitId.HasValue)
                 {
-                    ValidatedSet.SetValue(ref def.outfitIndex, girlExpansion.OutfitIdToIndex[OutfitId.Value]);
+                    ValidatedSet.SetValue(ref def.outfitIndex, girlExpansion.OutfitLookup[OutfitId.Value]);
                 }
             }
 
@@ -222,10 +140,10 @@ namespace Hp2BaseMod.GameDataInfo
             ValidatedSet.SetValue(ref def.proceedBool, ProceedBool);
             ValidatedSet.SetValue(ref def.proceedFloat, ProceedFloat);
 
-            ValidatedSet.SetValue(ref def.targetGirlDefinition, gameDataProvider.GetGirl(TargetGirlDefinitionID), insertStyle);
-            ValidatedSet.SetValue(ref def.girlDefinition, gameDataProvider.GetGirl(GirlDefinitionID), insertStyle);
-            ValidatedSet.SetValue(ref def.dialogTriggerDefinition, gameDataProvider.GetDialogTrigger(DialogTriggerDefinitionID), insertStyle);
-            ValidatedSet.SetValue(ref def.subCutsceneDefinition, gameDataProvider.GetCutscene(SubCutsceneDefinitionID), insertStyle);
+            ValidatedSet.SetValue(ref def.targetGirlDefinition, gameDataProvider.GetGirl(TargetGirlDefinitionId), insertStyle);
+            ValidatedSet.SetValue(ref def.girlDefinition, gameDataProvider.GetGirl(GirlDefinitionId), insertStyle);
+            ValidatedSet.SetValue(ref def.dialogTriggerDefinition, gameDataProvider.GetDialogTrigger(DialogTriggerDefinitionId), insertStyle);
+            ValidatedSet.SetValue(ref def.subCutsceneDefinition, gameDataProvider.GetCutscene(SubCutsceneDefinitionId), insertStyle);
 
             ValidatedSet.SetValue(ref def.windowPrefab, assetProvider.GetInternalAsset<UiWindow>(WindowPrefabName), insertStyle);
             ValidatedSet.SetValue(ref def.emitterBehavior, assetProvider.GetInternalAsset<EmitterBehavior>(EmitterBehaviorName), insertStyle);
@@ -238,18 +156,10 @@ namespace Hp2BaseMod.GameDataInfo
             ValidatedSet.SetListValue(ref def.branches, BranchInfos, insertStyle, gameDataProvider, assetProvider);
             ValidatedSet.SetListValue(ref def.dialogOptions, DialogOptionInfos, insertStyle, gameDataProvider, assetProvider);
 
-            if (DialogLineId.HasValue
-                && def.dialogTriggerDefinition != null
-                && def.girlDefinition != null)
+            if (DialogLine != null)
             {
-                var dtId = ModInterface.Data.GetDataId(GameDataType.DialogTrigger, def.dialogTriggerDefinition.id);
-                var girlId = ModInterface.Data.GetDataId(GameDataType.Girl, def.girlDefinition.id);
-                var dtExpansion = def.dialogTriggerDefinition.Expansion();
-
-                if (dtExpansion.TryGetLine(def.dialogTriggerDefinition, girlId, DialogLineId.Value, out var line))
-                {
-                    def.dialogLine = line;
-                }
+                def.dialogLine ??= new();
+                DialogLine.SetData(def.dialogLine, gameDataProvider, assetProvider);
             }
         }
 

@@ -1,6 +1,5 @@
-using System.Collections.Generic;
 using Hp2BaseMod;
-using Hp2BaseMod.Extension.IEnumerableExtension;
+using Hp2BaseMod.Extension;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
 
@@ -14,23 +13,19 @@ internal class PostGameCutsceneMod : IGameDataMod<CutsceneDefinition>
 
     public int LoadPriority => 0;
 
-    public IEnumerable<string> GetInternalAudioRequests() => null;
-
-    public IEnumerable<string> GetInternalSpriteRequests() => null;
-
     /// <inheritdoc/>
     public void SetData(CutsceneDefinition def, GameDefinitionProvider gameData, AssetProvider assetProvider)
     {
         if (!def.steps.TryGetFirst(x => x.stepType == CutsceneStepType.SHOW_WINDOW && x.windowPrefab != null, out var template))
         {
-            ModInterface.Log.LogWarning("Failed to find window to use as template");
+            ModInterface.Log.Warning("Failed to find window to use as template");
             return;
         }
 
         def.steps.Add(CutsceneStepUtility.MakeGameAction(new LogicAction()
         {
             type = LogicActionType.SET_FLAG,
-            stringValue = "notification_item_id",
+            stringValue = Flags.NOTIFICATION_ITEM_ID,
             intValue = ModInterface.Data.GetRuntimeDataId(GameDataType.Item, new RelativeId(Plugin.ModId, 0))
 
         }, CutsceneStepProceedType.AUTOMATIC));

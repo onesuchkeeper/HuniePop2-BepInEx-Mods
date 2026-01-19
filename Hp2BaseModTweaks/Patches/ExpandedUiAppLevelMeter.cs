@@ -45,7 +45,7 @@ internal class ExpandedUiAppLevelMeter
 
         return expansion;
     }
-    private static MethodInfo m_onTooltipPreShow = AccessTools.Method(typeof(UiAppLevelMeter), "OnTooltipPreShow");
+    private static readonly MethodInfo m_onTooltipPreShow = AccessTools.Method(typeof(UiAppLevelMeter), "OnTooltipPreShow");
     public IExpInfo ExpDisplay;
     protected UiAppLevelMeter _core;
     private ExpandedUiAppLevelMeter(UiAppLevelMeter core)

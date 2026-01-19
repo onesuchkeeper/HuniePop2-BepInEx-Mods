@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using BepInEx;
 using Hp2BaseMod;
@@ -10,27 +11,33 @@ namespace HiraganaLogo;
 [BepInDependency("OSK.BepInEx.Hp2BaseModTweaks", BepInDependency.DependencyFlags.HardDependency)]
 public class Plugin : BaseUnityPlugin
 {
-    private static string _pluginDir = Path.Combine(Paths.PluginPath, MyPluginInfo.PLUGIN_NAME);
-    private static string _imagesDir = Path.Combine(_pluginDir, "images");
+    private static readonly string PLUGIN_DIR = Path.Combine(Paths.PluginPath, MyPluginInfo.PLUGIN_NAME);
+    private static readonly string IMAGES_DIR = Path.Combine(PLUGIN_DIR, "images");
+    private static readonly string TWEAKS_GUID = "OSK.BepInEx.Hp2BaseModTweaks";
 
     private void Awake()
     {
-        var tweaksId = ModInterface.GetSourceId("OSK.BepInEx.Hp2BaseModTweaks");
-
-        var configs = ModInterface.GetInterModValue<Dictionary<string, (string ModImagePath, List<(string CreditButtonPath, string CreditButtonOverPath, string RedirectLink)> CreditEntries)>>(tweaksId, "ModCredits");
-
-        configs[MyPluginInfo.PLUGIN_GUID] = (
-            Path.Combine(_imagesDir, "CreditsLogo.png"),
-            new List<(string creditButtonPath, string creditButtonOverPath, string redirectLink)>(){
-                    (
-                        Path.Combine(_imagesDir, "silverwoodwork_credits.png"),
-                        Path.Combine(_imagesDir, "silverwoodwork_credits_over.png"),
+        if (ModInterface.TryGetInterModValue(TWEAKS_GUID, "AddModCredit",
+                out Action<string, IEnumerable<(string creditButtonPath, string creditButtonOverPath, string redirectLink)>> m_addModConfig))
+        {
+            m_addModConfig(Path.Combine(IMAGES_DIR, "CreditsLogo.png"), [
+                (
+                        Path.Combine(IMAGES_DIR, "silverwoodwork_credits_art.png"),
+                        Path.Combine(IMAGES_DIR, "silverwoodwork_credits_art_over.png"),
                         "https://twitter.com/silverwoodwork"
-                    ),
-            }
-        );
+                ),
+                (
+                    Path.Combine(IMAGES_DIR, "onesuchKeeper_credits_dev.png"),
+                    Path.Combine(IMAGES_DIR, "onesuchKeeper_credits_dev_over.png"),
+                    "https://linktr.ee/onesuchkeeper"
+                )
+            ]);
+        }
 
-        var logoPaths = ModInterface.GetInterModValue<List<string>>(tweaksId, "LogoPaths");
-        logoPaths.Add(Path.Combine(_imagesDir, "logo.png"));
+        if (ModInterface.TryGetInterModValue(TWEAKS_GUID, "AddLogoPath",
+            out Action<string> m_addLogoPath))
+        {
+            m_addLogoPath(Path.Combine(IMAGES_DIR, "logo.png"));
+        }
     }
 }

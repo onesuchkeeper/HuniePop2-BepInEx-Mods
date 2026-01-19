@@ -11,11 +11,11 @@ namespace Hp2BaseModTweaks;
 internal static class PuzzleManager_OnRoundOver
 {
     private static PuzzleStatus GetPuzzleStatus(this PuzzleManager puzzleManager) => (PuzzleStatus)x_puzzleStatus.GetValue(puzzleManager);
-    private static FieldInfo x_puzzleStatus = AccessTools.Field(typeof(PuzzleManager), "_puzzleStatus");
+    private static readonly FieldInfo x_puzzleStatus = AccessTools.Field(typeof(PuzzleManager), "_puzzleStatus");
 
     private static SaveFile GetSaveDataFile(this GamePersistence gamePersistence) => ((SaveData)x_saveData.GetValue(gamePersistence)).files[(int)x_loadedFileIndex.GetValue(gamePersistence)];
-    private static FieldInfo x_saveData = AccessTools.Field(typeof(GamePersistence), "_saveData");
-    private static FieldInfo x_loadedFileIndex = AccessTools.Field(typeof(GamePersistence), "_loadedFileIndex");
+    private static readonly FieldInfo x_saveData = AccessTools.Field(typeof(GamePersistence), "_saveData");
+    private static readonly FieldInfo x_loadedFileIndex = AccessTools.Field(typeof(GamePersistence), "_loadedFileIndex");
 
     public static void Postfix(PuzzleManager __instance)
     {
@@ -25,19 +25,19 @@ internal static class PuzzleManager_OnRoundOver
             && status.bonusRound
             && Game.Persistence.playerFile.storyProgress >= 12)
         {
-            var moxieFile = GetPlayerFileGirl(Game.Persistence.playerFile, ModInterface.GameData.GetGirl(Girls.MoxieId));
+            var moxieFile = GetPlayerFileGirl(Game.Persistence.playerFile, ModInterface.GameData.GetGirl(Girls.Moxie));
             moxieFile.playerMet = true;
             moxieFile.UnlockOutfit(0);
             moxieFile.UnlockHairstyle(0);
             var unlocked = StyleUnlockUtility.UnlockRandomStyle(moxieFile, false);
 
-            var jewnFile = GetPlayerFileGirl(Game.Persistence.playerFile, ModInterface.GameData.GetGirl(Girls.JewnId));
+            var jewnFile = GetPlayerFileGirl(Game.Persistence.playerFile, ModInterface.GameData.GetGirl(Girls.Jewn));
             jewnFile.playerMet = true;
             jewnFile.UnlockOutfit(0);
             jewnFile.UnlockHairstyle(0);
             StyleUnlockUtility.UnlockRandomStyle(jewnFile, unlocked);
 
-            var kyuFile = GetPlayerFileGirl(Game.Persistence.playerFile, ModInterface.GameData.GetGirl(Girls.KyuId));
+            var kyuFile = GetPlayerFileGirl(Game.Persistence.playerFile, ModInterface.GameData.GetGirl(Girls.Kyu));
             kyuFile.playerMet = true;
             kyuFile.UnlockOutfit(1);
             kyuFile.UnlockHairstyle(1);

@@ -16,6 +16,22 @@
     <RootNamespace>Hp2BaseModTweaks</RootNamespace>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <!-- Ensure Roslyn analyzers & generators run -->
+    <RunAnalyzers>true</RunAnalyzers>
+    <RunAnalyzersDuringBuild>true</RunAnalyzersDuringBuild>
+    <RunAnalyzersDuringLiveAnalysis>true</RunAnalyzersDuringLiveAnalysis>
+    <RestoreSources>
+      $(RestoreSources);
+      C:\Git\HuniePop2-BepInEx-Mods\Hp2BaseMod.Analyzer\bin\Release
+    </RestoreSources>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Hp2BaseMod\Hp2BaseMod.csproj" />
+    <PackageReference Include="Hp2BaseMod.Analyzer" Version="1.0.0" PrivateAssets="all"/>
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all" />
     <PackageReference Include="BepInEx.Core" Version="5.*" />
@@ -25,10 +41,6 @@
   
   <ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.2" PrivateAssets="all" />
-  </ItemGroup>
-  
-  <ItemGroup>
-    <ProjectReference Include="..\Hp2BaseMod\Hp2BaseMod.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -65,7 +77,15 @@
     <Reference Include="UnityEngine.AssetBundleModule">
       <HintPath>..\lib\UnityEngine.AssetBundleModule.dll</HintPath>
     </Reference>
-    
+    <Reference Include="DOTween">
+      <HintPath>..\lib\DOTween.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.TextMeshPro">
+      <HintPath>..\lib\Unity.TextMeshPro.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.TextRenderingModule">
+      <HintPath>..\lib\UnityEngine.TextRenderingModule.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">

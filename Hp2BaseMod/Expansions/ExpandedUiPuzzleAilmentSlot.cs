@@ -37,7 +37,7 @@ internal class ExpandedUiPuzzleAilmentSlot
         return expansion;
     }
 
-    private static MethodInfo m_onTooltipPreShow = AccessTools.Method(typeof(UiPuzzleAilmentSlot), "OnTooltipPreShow");
+    private static readonly MethodInfo m_onTooltipPreShow = AccessTools.Method(typeof(UiPuzzleAilmentSlot), "OnTooltipPreShow");
 
     protected UiPuzzleAilmentSlot _core;
     private ExpandedUiPuzzleAilmentSlot(UiPuzzleAilmentSlot core)

@@ -8,7 +8,7 @@ using UnityEngine;
 [HarmonyPatch(typeof(UiPhotoSlot))]
 public static class UiPhotoSlotPatch
 {
-    private static readonly FieldInfo _photoDefinition = AccessTools.Field(typeof(UiPhotoSlot), "_photoDefinition");
+    private static readonly FieldInfo f_photoDefinition = AccessTools.Field(typeof(UiPhotoSlot), "_photoDefinition");
 
     [HarmonyPatch("Awake")]
     [HarmonyPostfix]
@@ -16,13 +16,14 @@ public static class UiPhotoSlotPatch
     {
         __instance.thumbnailImage.preserveAspect = true;
         __instance.thumbnailImage.useSpriteMesh = true;
+        __instance.slotType = PhotoSlotType.NORMAL;
     }
 
     [HarmonyPatch(nameof(UiPhotoSlot.Refresh))]
     [HarmonyPostfix]
     private static void Refresh(UiPhotoSlot __instance, int thumbnailIndex)
     {
-        var photoDef = _photoDefinition.GetValue<PhotoDefinition>(__instance);
+        var photoDef = f_photoDefinition.GetValue<PhotoDefinition>(__instance);
 
         if (photoDef != null)
         {

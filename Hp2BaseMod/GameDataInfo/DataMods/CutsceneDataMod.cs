@@ -1,7 +1,6 @@
 ﻿// Hp2BaseMod 2021, By OneSuchKeeper
 
 using System.Collections.Generic;
-using System.Linq;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
 
@@ -22,13 +21,6 @@ namespace Hp2BaseMod.GameDataInfo
         public CutsceneDataMod(RelativeId id, InsertStyle insertStyle, int loadPriority = 0)
             : base(id, insertStyle, loadPriority)
         {
-        }
-
-        internal CutsceneDataMod(CutsceneDefinition def, AssetProvider assetProvider)
-            : base(new RelativeId(def), InsertStyle.replace, 0)
-        {
-            CleanUpType = def.cleanUpType;
-            Steps = def.steps?.Select(x => (IGameDefinitionInfo<CutsceneStepSubDefinition>)new CutsceneStepInfo(x, assetProvider)).ToList();
         }
 
         /// <inheritdoc/>

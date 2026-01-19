@@ -22,7 +22,7 @@ internal static class ItemSensitivitySmoothie
         _expId = new RelativeId(State.ModId, 1);
         _levelId = new RelativeId(State.ModId, 2);
 
-        var smoothieTexture = new TextureInfoExternal(Path.Combine(Plugin.ImagesDir, "item_smoothie_sensitivity.png"));
+        var smoothieTexture = new TextureInfoExternal(Path.Combine(Plugin.IMAGES_DIR, "item_smoothie_sensitivity.png"), true);
 
         ModInterface.AddDataMod(new ItemDataMod(_smoothieId, InsertStyle.replace)
         {
@@ -31,9 +31,10 @@ internal static class ItemSensitivitySmoothie
             ItemName = "Sensitivity Smoothie",
             ItemDescription = "+1 [[broken]@Sensitivity] EXP.",
             TooltipColorIndex = 6,
-            StoreCost = 0,
+            StoreCost = 5,
             CategoryDescription = "Sensitivity",
-            EnergyDefinitionID = new RelativeId(-1, 6)
+            EnergyDefinitionID = new RelativeId(-1, 6),
+            StoreSectionPreference = false,
         });
 
         ModInterface.AddDataMod(new ItemDataMod(_expId, InsertStyle.replace)

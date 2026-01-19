@@ -1,11 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using BepInEx;
+using BepInEx.Configuration;
 using HarmonyLib;
 using Hp2BaseMod;
-using Hp2BaseMod.Extension.IEnumerableExtension;
+using Hp2BaseMod.Extension;
 using Hp2BaseMod.GameDataInfo;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
@@ -16,53 +16,55 @@ namespace Hp2BaseModTweaks;
 
 [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
 [BepInDependency("OSK.BepInEx.Hp2BaseMod", "1.0.0")]
-public class Plugin : BaseUnityPlugin
+public partial class Plugin : Hp2BaseModPlugin
 {
-    public static Plugin Instance => _instance;
-    private static Plugin _instance;
-
     internal static readonly string RootDir = Path.Combine(Paths.PluginPath, MyPluginInfo.PLUGIN_NAME);
     internal static readonly string ImagesDir = Path.Combine(RootDir, "images");
 
-    private static readonly string ConfigGeneralName = "General";
+    public static ConfigEntry<string> DigitalArtCollectionDir => _digitalArtCollectionDir;
+    private static ConfigEntry<string> _digitalArtCollectionDir;
 
-    public string DigitalArtCollectionDir => this.Config.TryGetEntry<string>(ConfigGeneralName, nameof(DigitalArtCollectionDir), out var config)
-        ? config.Value
-        : string.Empty;
+    public static ConfigEntry<bool> UseModLogo => _useModLogo;
+    private static ConfigEntry<bool> _useModLogo;
 
-    internal static TweaksSaveData Save => _save;
-    private static TweaksSaveData _save;
+    internal static TweaksSaveData Save => _instance._save;
+    private TweaksSaveData _save;
 
-    internal static Dictionary<string, (string ModImagePath, List<(string CreditButtonPath, string CreditButtonOverPath, string RedirectLink)> CreditEntries)> GetModCredits()
-        => ModInterface.GetInterModValue<Dictionary<string, (string ModImagePath, List<(string CreditButtonPath, string CreditButtonOverPath, string RedirectLink)> CreditEntries)>>(ModId, "ModCredits");
+    internal static List<CreditEntry> ModCredits => _instance._modCredits;
+    private List<CreditEntry> _modCredits;
 
-    internal static IEnumerable<string> GetLogoPaths() => ModInterface.GetInterModValue<IEnumerable<string>>(ModId, "LogoPaths");
+    internal static List<string> LogoPaths => _instance._logoPaths;
+    private List<string> _logoPaths;
 
-    public static readonly int ModId = ModInterface.GetSourceId(MyPluginInfo.PLUGIN_GUID);
+    public static new int ModId => ((Hp2BaseModPlugin)_instance).ModId;
 
-    private void Awake()
+    private static Plugin _instance;
+
+    public Plugin() : base(MyPluginInfo.PLUGIN_GUID) { }
+
+    protected override void Awake()
     {
         _instance = this;
+        base.Awake();
+
         Config.SaveOnConfigSet = false;
-        this.Config.Bind(ConfigGeneralName, nameof(DigitalArtCollectionDir), Path.Combine(Paths.PluginPath, "..", "..", "Digital Art Collection"), "Directory containing the Huniepop 2 Digital Art Collection Dlc");
 
-        ModInterface.RegisterInterModValue(ModId, "ModCredits", new Dictionary<string, (string ModImagePath, List<(string CreditButtonPath, string CreditButtonOverPath, string RedirectLink)> CreditEntries)>() {
-            {MyPluginInfo.PLUGIN_GUID, (
-                Path.Combine(ImagesDir, "CreditsLogo.png"),
-                new List<(string creditButtonPath, string creditButtonOverPath, string redirectLink)>(){
-                    (
-                        Path.Combine(ImagesDir, "onesuchkeeper_credits.png"),
-                        Path.Combine(ImagesDir, "onesuchkeeper_credits_over.png"),
-                        "https://www.youtube.com/@onesuchkeeper8389"
-                    )
-                }
-            )}
-        });
+        _useModLogo = Config.Bind(Hp2BaseModPlugin.CONFIG_GENERAL, nameof(UseModLogo), true, "If the \"HuneiePop 2: Modded\" logo should be included in logo rotation. You may want to disable this if you've installed a mod with another custom logo.");
+        _digitalArtCollectionDir = Config.Bind(Hp2BaseModPlugin.CONFIG_GENERAL, nameof(DigitalArtCollectionDir), Path.Combine(Paths.PluginPath, "..", "..", "Digital Art Collection"), "Directory containing the HuniePop 2 Digital Art Collection Dlc");
 
-        ModInterface.RegisterInterModValue(ModId, "LogoPaths",
-            new List<string> {
-                Path.Combine(ImagesDir, "logo.png")
-            });
+        _modCredits = new List<CreditEntry>()
+        {
+            new CreditEntry(Path.Combine(ImagesDir, "CreditsLogo.png"),
+            [
+                new CreditMember(Path.Combine(ImagesDir, "onesuchkeeper_credits_art.png"),
+                    Path.Combine(ImagesDir, "onesuchkeeper_credits_art_over.png"),
+                    "https://linktr.ee/onesuchkeeper")
+            ])
+        };
+
+        _logoPaths = _useModLogo.Value
+            ? new List<string> { Path.Combine(ImagesDir, "logo.png") }
+            : new();
 
         UiPrefabs.Init();
         ToggleCodeMods.AddMods(ModId);
@@ -94,6 +96,22 @@ public class Plugin : BaseUnityPlugin
 
         new Harmony(MyPluginInfo.PLUGIN_GUID).PatchAll();
     }
+
+    /// <summary>
+    /// Adds a logo to the title logo pool.
+    /// </summary>
+    /// <param name="value"></param>
+    [InteropMethod]
+    public void AddLogoPath(string value) => LogoPaths.Add(value);
+
+    /// <summary>
+    /// Adds a credit entry.
+    /// </summary>
+    /// <param name="logoPath"></param>
+    /// <param name="creditEntries"></param>
+    [InteropMethod]
+    public void AddModCredit(string logoPath, IEnumerable<(string creditButtonPath, string creditButtonOverPath, string redirectLink)> creditEntries)
+        => ModCredits.Add(new CreditEntry(logoPath, creditEntries.Select(x => new CreditMember(x.creditButtonPath, x.creditButtonOverPath, x.redirectLink))));
 
     private void On_PrePersistenceReset(SaveData data)
     {
@@ -155,12 +173,12 @@ public class Plugin : BaseUnityPlugin
 
         if (ModInterface.GameData.IsCodeUnlocked(ToggleCodeMods.FairyWingsCodeId))
         {
-            var kyu = ModInterface.GameData.GetGirl(Girls.KyuId);
+            var kyu = ModInterface.GameData.GetGirl(Girls.Kyu);
 
-            ModInterface.Log.LogInfo("Applying wings");
+            ModInterface.Log.Message("Applying wings");
             if (kyu == null)
             {
-                ModInterface.Log.LogWarning("Unable to find Kyu, \"PINK BITCH!\" wings not applied D:");
+                ModInterface.Log.Warning("Unable to find Kyu, \"PINK BITCH!\" wings not applied D:");
                 return;
             }
 
@@ -184,131 +202,38 @@ public class Plugin : BaseUnityPlugin
     {
         ModInterface.Events.PreDataMods -= On_PreDataMods;
 
-        ModInterface.AddDataMod(new GirlDataMod(Girls.AbiaId, InsertStyle.replace)
+        void MakeBackPosMod(RelativeId girlId, int x, int y)
         {
-            BackPosition = new VectorInfo()
+            ModInterface.AddDataMod(new GirlDataMod(girlId, InsertStyle.replace)
             {
-                Xpos = 423 - 420 + 250,
-                Ypos = 957 - 24 - 460
-            }
-        });
+                bodies = new()
+                {
+                    new GirlBodyDataMod(new RelativeId(-1, 0), InsertStyle.append)
+                    {
+                        BackPosition = new VectorInfo()
+                        {
+                            Xpos = x,
+                            Ypos = y
+                        }
+                    }
+                }
+            });
+        }
 
-        ModInterface.AddDataMod(new GirlDataMod(Girls.AshleyId, InsertStyle.replace)
-        {
-            BackPosition = new VectorInfo()
-            {
-                Xpos = 387 - 420 + 260,
-                Ypos = 964 - 24 - 400
-            }
-        });
-
-        ModInterface.AddDataMod(new GirlDataMod(Girls.BrookeId, InsertStyle.replace)
-        {
-            BackPosition = new VectorInfo()
-            {
-                Xpos = 378 - 420 + 305,
-                Ypos = 960 - 24 - 440
-            }
-        });
-
-        ModInterface.AddDataMod(new GirlDataMod(Girls.CandaceId, InsertStyle.replace)
-        {
-            BackPosition = new VectorInfo()
-            {
-                Xpos = 348 - 420 + 300,
-                Ypos = 972 - 24 - 430
-            }
-        });
-
-        ModInterface.AddDataMod(new GirlDataMod(Girls.JessieId, InsertStyle.replace)
-        {
-            BackPosition = new VectorInfo()
-            {
-                Xpos = 457 - 420 + 190,
-                Ypos = 983 - 24 - 445
-            }
-        });
-
-        ModInterface.AddDataMod(new GirlDataMod(Girls.JewnId, InsertStyle.replace)
-        {
-            BackPosition = new VectorInfo()
-            {
-                Xpos = 228 - 420 + 450,
-                Ypos = 1019 - 24 - 500
-            }
-        });
-
-        ModInterface.AddDataMod(new GirlDataMod(Girls.LailaniId, InsertStyle.replace)
-        {
-            BackPosition = new VectorInfo()
-            {
-                Xpos = 345 - 420 + 350,
-                Ypos = 931 - 24 - 420
-            }
-        });
-
-        ModInterface.AddDataMod(new GirlDataMod(Girls.LillianId, InsertStyle.replace)
-        {
-            BackPosition = new VectorInfo()
-            {
-                Xpos = 435 - 420 + 248,
-                Ypos = 918 - 24 - 400
-            }
-        });
-
-        ModInterface.AddDataMod(new GirlDataMod(Girls.LolaId, InsertStyle.replace)
-        {
-            BackPosition = new VectorInfo()
-            {
-                Xpos = 414 - 420 + 270,
-                Ypos = 985 - 24 - 450
-            }
-        });
-
-        ModInterface.AddDataMod(new GirlDataMod(Girls.MoxieId, InsertStyle.replace)
-        {
-            BackPosition = new VectorInfo()
-            {
-                Xpos = 262 - 420 + 390,
-                Ypos = 956 - 24 - 450
-            }
-        });
-
-        ModInterface.AddDataMod(new GirlDataMod(Girls.NoraId, InsertStyle.replace)
-        {
-            BackPosition = new VectorInfo()
-            {
-                Xpos = 478 - 420 + 240,
-                Ypos = 966 - 24 - 420
-            }
-        });
-
-        ModInterface.AddDataMod(new GirlDataMod(Girls.PollyId, InsertStyle.replace)
-        {
-            BackPosition = new VectorInfo()
-            {
-                Xpos = 384 - 420 + 300,
-                Ypos = 949 - 24 - 420
-            }
-        });
-
-        ModInterface.AddDataMod(new GirlDataMod(Girls.SarahId, InsertStyle.replace)
-        {
-            BackPosition = new VectorInfo()
-            {
-                Xpos = 414 - 420 + 270,
-                Ypos = 917 - 24 - 420
-            }
-        });
-
-        ModInterface.AddDataMod(new GirlDataMod(Girls.ZoeyId, InsertStyle.replace)
-        {
-            BackPosition = new VectorInfo()
-            {
-                Xpos = 522 - 420 + 170,
-                Ypos = 900 - 24 - 410
-            }
-        });
+        MakeBackPosMod(Girls.Abia, 253, 473);
+        MakeBackPosMod(Girls.Ashley, 227, 540);
+        MakeBackPosMod(Girls.Brooke, 263, 496);
+        MakeBackPosMod(Girls.Candace, 228, 518);
+        MakeBackPosMod(Girls.Jessie, 227, 514);
+        MakeBackPosMod(Girls.Jewn, 258, 495);
+        MakeBackPosMod(Girls.Lailani, 275, 487);
+        MakeBackPosMod(Girls.Lillian, 263, 494);
+        MakeBackPosMod(Girls.Lola, 264, 511);
+        MakeBackPosMod(Girls.Moxie, 232, 482);
+        MakeBackPosMod(Girls.Nora, 298, 522);
+        MakeBackPosMod(Girls.Polly, 264, 505);
+        MakeBackPosMod(Girls.Sarah, 264, 473);
+        MakeBackPosMod(Girls.Zoey, 272, 466);
 
         var kyuEyesGlowNeutralPartId = new RelativeId(ModId, 0);
         var kyuEyesGlowNeutralPart = new GirlPartDataMod(kyuEyesGlowNeutralPartId, InsertStyle.replace)
@@ -316,7 +241,7 @@ public class Plugin : BaseUnityPlugin
             X = 590,
             Y = 854,
             PartType = GirlPartType.EYESGLOW,
-            SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(ImagesDir, "kyu_eyesglow_neutral.png")))
+            SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(ImagesDir, "kyu_eyesglow_neutral.png"), true))
         };
 
         var kyuEyesGlowAnnoyedPartId = new RelativeId(ModId, 1);
@@ -325,7 +250,7 @@ public class Plugin : BaseUnityPlugin
             X = 592,
             Y = 852,
             PartType = GirlPartType.EYESGLOW,
-            SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(ImagesDir, "kyu_eyesglow_annoyed.png")))
+            SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(ImagesDir, "kyu_eyesglow_annoyed.png"), true))
         };
 
         var kyuEyesGlowHornyPartId = new RelativeId(ModId, 2);
@@ -334,63 +259,64 @@ public class Plugin : BaseUnityPlugin
             X = 590,
             Y = 851,
             PartType = GirlPartType.EYESGLOW,
-            SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(ImagesDir, "kyu_eyesglow_horny.png")))
+            SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(ImagesDir, "kyu_eyesglow_horny.png"), true))
         };
 
-        ModInterface.AddDataMod(new GirlDataMod(Girls.KyuId, InsertStyle.append)
+        ModInterface.AddDataMod(new GirlDataMod(Girls.Kyu, InsertStyle.append)
         {
-            parts = new List<IGirlSubDataMod<GirlPartSubDefinition>>(){
-                kyuEyesGlowNeutralPart,
-                kyuEyesGlowAnnoyedPart,
-                kyuEyesGlowHornyPart,
-            },
-            expressions = new List<IGirlSubDataMod<GirlExpressionSubDefinition>>() {
-                new GirlExpressionDataMod(GirlExpressions.Neutral, InsertStyle.replace){
-                    PartIdEyesGlow = kyuEyesGlowNeutralPartId
-                },
-                new GirlExpressionDataMod(GirlExpressions.Annoyed, InsertStyle.replace){
-                    PartIdEyesGlow = kyuEyesGlowAnnoyedPartId
-                },
-                new GirlExpressionDataMod(new RelativeId(-1, (int)GirlExpressionType.HORNY), InsertStyle.replace){
-                    PartIdEyesGlow = kyuEyesGlowHornyPartId
-                },
-                new GirlExpressionDataMod(GirlExpressions.Disappointed, InsertStyle.replace){
-                    PartIdEyesGlow = kyuEyesGlowNeutralPartId
-                },
-                new GirlExpressionDataMod(GirlExpressions.Excited, InsertStyle.replace){
-                    PartIdEyesGlow = kyuEyesGlowNeutralPartId
-                },
-                new GirlExpressionDataMod(GirlExpressions.Confused, InsertStyle.replace){
-                    PartIdEyesGlow = kyuEyesGlowNeutralPartId
-                },
-                new GirlExpressionDataMod(GirlExpressions.Inquisitive, InsertStyle.replace){
-                    PartIdEyesGlow = kyuEyesGlowNeutralPartId
-                },
-                new GirlExpressionDataMod(GirlExpressions.Sarcastic, InsertStyle.replace){
-                    PartIdEyesGlow = kyuEyesGlowNeutralPartId
-                },
-                new GirlExpressionDataMod(GirlExpressions.Shy, InsertStyle.replace){
-                    PartIdEyesGlow = kyuEyesGlowNeutralPartId
-                },
-                new GirlExpressionDataMod(GirlExpressions.Exhausted, InsertStyle.replace){
-                    PartIdEyesGlow = kyuEyesGlowAnnoyedPartId
-                },
-                new GirlExpressionDataMod(GirlExpressions.Upset, InsertStyle.replace){
-                    PartIdEyesGlow = kyuEyesGlowAnnoyedPartId
-                },
-            },
-            HeadPosition = new VectorInfo()
+            bodies = new()
             {
-                Xpos = 420 + 250 - 420,
-                Ypos = 968 - 140 - 24,
+                new GirlBodyDataMod(new RelativeId(-1, 0), InsertStyle.append)
+                {
+                    expressions = new List<IBodySubDataMod<GirlExpressionSubDefinition>>() {
+                        new GirlExpressionDataMod(GirlExpressions.Neutral, InsertStyle.append){
+                            PartEyesGlow = kyuEyesGlowNeutralPart
+                        },
+                        new GirlExpressionDataMod(GirlExpressions.Annoyed, InsertStyle.append){
+                            PartEyesGlow = kyuEyesGlowAnnoyedPart
+                        },
+                        new GirlExpressionDataMod(GirlExpressions.Horny, InsertStyle.append){
+                            PartEyesGlow = kyuEyesGlowHornyPart
+                        },
+                        new GirlExpressionDataMod(GirlExpressions.Disappointed, InsertStyle.append){
+                            PartEyesGlow = kyuEyesGlowNeutralPart
+                        },
+                        new GirlExpressionDataMod(GirlExpressions.Excited, InsertStyle.append){
+                            PartEyesGlow = kyuEyesGlowNeutralPart
+                        },
+                        new GirlExpressionDataMod(GirlExpressions.Confused, InsertStyle.append){
+                            PartEyesGlow = kyuEyesGlowNeutralPart
+                        },
+                        new GirlExpressionDataMod(GirlExpressions.Inquisitive, InsertStyle.append){
+                            PartEyesGlow = kyuEyesGlowNeutralPart
+                        },
+                        new GirlExpressionDataMod(GirlExpressions.Sarcastic, InsertStyle.append){
+                            PartEyesGlow = kyuEyesGlowNeutralPart
+                        },
+                        new GirlExpressionDataMod(GirlExpressions.Shy, InsertStyle.append){
+                            PartEyesGlow = kyuEyesGlowNeutralPart
+                        },
+                        new GirlExpressionDataMod(GirlExpressions.Exhausted, InsertStyle.append){
+                            PartEyesGlow = kyuEyesGlowAnnoyedPart
+                        },
+                        new GirlExpressionDataMod(GirlExpressions.Upset, InsertStyle.append){
+                            PartEyesGlow = kyuEyesGlowAnnoyedPart
+                        },
+                    },
+                    HeadPosition = new VectorInfo()
+                    {
+                        Xpos = 250,
+                        Ypos = 804,
+                    }
+                },
             },
             CellphoneMiniHead = new SpriteInfoInternal("ui_title_icon_kyu")
         });
 
-        if (Directory.Exists(DigitalArtCollectionDir))
+        if (Directory.Exists(_digitalArtCollectionDir.Value))
         {
-            CellphoneSprites.AddUiCellphoneSprites("Jewn", Girls.JewnId, new Vector2(2636, 1990), new Vector2(3911, 4711));
-            CellphoneSprites.AddUiCellphoneSprites("Moxie", Girls.MoxieId, new Vector2(2411, 2287), new Vector2(3900, 5068));
+            CellphoneSprites.AddUiCellphoneSprites("Jewn", Girls.Jewn, new Vector2(2636, 1990), new Vector2(3911, 4711));
+            CellphoneSprites.AddUiCellphoneSprites("Moxie", Girls.Moxie, new Vector2(2411, 2287), new Vector2(3900, 5068));
         }
     }
 
@@ -410,15 +336,17 @@ public class Plugin : BaseUnityPlugin
 
         Game.Data.Girls.GetAllBySpecial(true)
             .SelectMany(x => x.expressions)
-            .Where(x => x.partIndexEyesGlow == -1)
+            .Where(x => x != null && x.partIndexEyesGlow == -1)
             .ForEach(x => x.partIndexEyesGlow = x.partIndexEyes);
+
+        var kyu = ModInterface.GameData.GetGirl(Girls.Kyu).Expansion();
     }
 
     private void On_PostCodeSubmitted(CodeDefinition codeDefinition)
     {
         if (codeDefinition == null)
         {
-            ModInterface.Log.LogInfo("null code");
+            ModInterface.Log.Message("null code");
             return;
         }
 

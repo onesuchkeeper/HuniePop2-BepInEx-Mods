@@ -40,6 +40,18 @@ namespace Hp2BaseMod.GameDataInfo
 
         public RelativeId? IntroRelationshipCutsceneDefinitionID;
 
+        public RelativeId? SuccessCutsceneDefinitionID;
+
+        public RelativeId? FailureCutsceneDefinitionID;
+
+        public RelativeId? CompatibleSuccessCutsceneDefinitionID;
+
+        public RelativeId? AttractSuccessCutsceneDefinitionID;
+
+        public RelativeId? BonusNewRoundCutsceneDefinitionID;
+
+        public RelativeId? BonusSuccessCutsceneDefinitionID;
+
         public RelativeId? AttractRelationshipCutsceneDefinitionID;
 
         public RelativeId? PreSexRelationshipCutsceneDefinitionID;
@@ -110,11 +122,20 @@ namespace Hp2BaseMod.GameDataInfo
 
             ValidatedSet.SetListValue(ref def.favQuestions, FavQuestions, InsertStyle, gameDataProvider, assetProvider);
             ValidatedSet.SetListValue(ref def.relationshipCutsceneDefinitions,
-                                      new[] { gameDataProvider.GetCutscene(IntroRelationshipCutsceneDefinitionID),
+                                      [ gameDataProvider.GetCutscene(IntroRelationshipCutsceneDefinitionID),
                                               gameDataProvider.GetCutscene(AttractRelationshipCutsceneDefinitionID),
                                               gameDataProvider.GetCutscene(PreSexRelationshipCutsceneDefinitionID),
-                                              gameDataProvider.GetCutscene(PostSexRelationshipCutsceneDefinitionID)},
+                                              gameDataProvider.GetCutscene(PostSexRelationshipCutsceneDefinitionID)],
                                       InsertStyle);
+
+            var expansion = def.Expansion();
+
+            ValidatedSet.SetValue(ref expansion.CutsceneNormalCompatibleSuccessId, CompatibleSuccessCutsceneDefinitionID);
+            ValidatedSet.SetValue(ref expansion.CutsceneNormalAttractedSuccessId, AttractSuccessCutsceneDefinitionID);
+            ValidatedSet.SetValue(ref expansion.CutsceneNormalBonusNewRoundId, BonusNewRoundCutsceneDefinitionID);
+            ValidatedSet.SetValue(ref expansion.CutsceneNormalBonusSuccessId, BonusSuccessCutsceneDefinitionID);
+            ValidatedSet.SetValue(ref expansion.CutsceneNormalFailureId, FailureCutsceneDefinitionID);
+            ValidatedSet.SetValue(ref expansion.CutsceneNormalSuccessId, SuccessCutsceneDefinitionID);
         }
 
         public PairStyleInfo GetStyles() => Styles;
