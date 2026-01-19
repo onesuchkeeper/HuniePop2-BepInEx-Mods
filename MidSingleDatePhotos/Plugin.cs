@@ -6,7 +6,7 @@ using BepInEx.Configuration;
 using Hp2BaseMod;
 using Hp2BaseMod.GameDataInfo;
 
-namespace MidDatePhotos;
+namespace MidRelationshipPhotos;
 
 [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
 [BepInDependency("OSK.BepInEx.Hp2BaseMod", "1.0.0")]
