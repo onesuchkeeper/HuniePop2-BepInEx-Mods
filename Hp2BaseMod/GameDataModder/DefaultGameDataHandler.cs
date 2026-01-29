@@ -192,11 +192,16 @@ internal static class DefaultGameDataHandler
                 {
                     var expansion = def.Expansion();
 
-                    if (def.locationType == LocationType.DATE && !_specialDateLocationIds.Contains(def.id))
+                    if (def.locationType == LocationType.DATE)
                     {
-                        expansion.AllowNormal = true;
-                        expansion.PostBoss = false;
-                        expansion.AllowNonStop = true;
+                        expansion.DefaultStyle = new RelativeId(-1, (int)def.dateGirlStyleType);
+
+                        if (!_specialDateLocationIds.Contains(def.id))
+                        {
+                            expansion.AllowNormal = true;
+                            expansion.PostBoss = false;
+                            expansion.AllowNonStop = true;
+                        }
                     }
 
                     if (_locationIdToDateTime.TryGetValue(def.id, out var time))
@@ -204,8 +209,6 @@ internal static class DefaultGameDataHandler
                         expansion.DateTimes ??= new List<ClockDaytimeType>();
                         expansion.DateTimes.Add(time);
                     }
-
-                    expansion.DefaultStyle = new RelativeId(-1, (int)def.dateGirlStyleType);
                 }
             }
 

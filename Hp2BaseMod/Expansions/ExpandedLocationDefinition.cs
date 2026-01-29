@@ -69,5 +69,5 @@ public class ExpandedLocationDefinition
             && (!PostBoss || Game.Persistence.playerFile.storyProgress >= 12)
             && DateTimes.Contains(time);
 
-    public RelativeId DefaultStyle;
+    public RelativeId? DefaultStyle;
 }

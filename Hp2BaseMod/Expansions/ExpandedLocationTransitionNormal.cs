@@ -54,7 +54,7 @@ internal class ExpandedLocationTransitionNormal
 
     public bool ArriveStep()
     {
-        //override arrive step 1 to allow additions to the sequence before it plays
+        // override arrive step 1 to allow additions to the sequence before it plays
         var stepIndex = f_stepIndex.GetValue<int>(_core);
         stepIndex++;
         f_stepIndex.SetValue(_core, stepIndex);
@@ -147,7 +147,7 @@ internal class ExpandedLocationTransitionNormal
 
     public bool DepartStep()
     {
-        //override depart step 1 at sim locations to notify random doll selection
+        // override depart step 1 at sim locations to notify random doll selection
         var stepIndex = f_stepIndex.GetValue<int>(_core);
 
         switch (stepIndex)
