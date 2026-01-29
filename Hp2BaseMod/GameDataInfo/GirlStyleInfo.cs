@@ -65,4 +65,6 @@ public class GirlStyleInfo
                 : defaultHairstyleIndex);
         }
     }
+
+    public override string ToString() => $"(Hair - {(HairstyleId.HasValue ? HairstyleId.Value : "null")}, Outfit - {(OutfitId.HasValue ? OutfitId.Value : "null")})";
 }

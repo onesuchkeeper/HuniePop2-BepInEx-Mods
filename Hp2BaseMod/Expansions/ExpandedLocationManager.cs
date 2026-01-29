@@ -247,8 +247,9 @@ public class ExpandedLocationManager
 
                 if (pairStyle != null)
                 {
-                    leftStyle = pairStyle.MeetingGirlOne;
-                    rightStyle = pairStyle.MeetingGirlTwo;
+                    leftStyle = flipped ? pairStyle.MeetingGirlTwo : pairStyle.MeetingGirlOne;
+                    rightStyle = flipped ? pairStyle.MeetingGirlOne : pairStyle.MeetingGirlTwo;
+                    ModInterface.Log.Message($"Using Pair Meeting Styles. Left {leftStyle}. Right {rightStyle}");
                 }
             }
             else if (_core.AtLocationType(LocationType.DATE))
@@ -279,8 +280,9 @@ public class ExpandedLocationManager
 
                     if (pairStyle != null)
                     {
-                        leftStyle = pairStyle.SexGirlOne;
-                        rightStyle = pairStyle.SexGirlTwo;
+                        leftStyle = flipped ? pairStyle.SexGirlTwo : pairStyle.SexGirlOne;
+                        rightStyle = flipped ? pairStyle.SexGirlOne : pairStyle.SexGirlTwo;
+                        ModInterface.Log.Message($"Using Pair Sex Styles. Left {leftStyle}. Right {rightStyle}");
                     }
                 }
                 else if (args.Style == PreDateDollResetArgs.StyleType.Location)
@@ -291,14 +293,20 @@ public class ExpandedLocationManager
                     {
                         var girlId = ModInterface.Data.GetDataId(GameDataType.Girl, leftGirlDef.id);
                         var girlExpansion = ExpandedGirlDefinition.Get(girlId);
-                        girlExpansion.GetCurrentBody().LocationIdToOutfitId.TryGetValue(locationId, out leftStyle);
+                        if (girlExpansion.GetCurrentBody().LocationIdToOutfitId.TryGetValue(locationId, out var girlStyle))
+                        {
+                            leftStyle = girlStyle;
+                        }
                     }
 
                     if (!Game.Session.Puzzle.puzzleStatus.girlStatusRight.playerFileGirl.stylesOnDates)
                     {
                         var girlId = ModInterface.Data.GetDataId(GameDataType.Girl, rightGirlDef.id);
                         var girlExpansion = ExpandedGirlDefinition.Get(girlId);
-                        girlExpansion.GetCurrentBody().LocationIdToOutfitId.TryGetValue(locationId, out rightStyle);
+                        if (girlExpansion.GetCurrentBody().LocationIdToOutfitId.TryGetValue(locationId, out var girlStyle))
+                        {
+                            rightStyle = girlStyle;
+                        }
                     }
                 }
             }
