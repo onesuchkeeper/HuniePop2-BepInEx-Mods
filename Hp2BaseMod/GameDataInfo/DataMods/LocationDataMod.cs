@@ -75,7 +75,8 @@ namespace Hp2BaseMod.GameDataInfo
             ValidatedSet.SetValue(ref expansion.AllowNonStop, AllowNonStop);
             ValidatedSet.SetValue(ref expansion.PostBoss, PostBoss);
             ValidatedSet.SetListValue(ref expansion.DateTimes, DateTimes, InsertStyle);
-            ValidatedSet.SetValue(ref expansion.DefaultStyle, DefaultStyle);
+
+            if (DefaultStyle.HasValue) expansion.DefaultStyle = DefaultStyle;
         }
 
         /// <inheritdoc/>
