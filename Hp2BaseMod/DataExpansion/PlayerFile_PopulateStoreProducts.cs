@@ -13,8 +13,8 @@ namespace Hp2BaseMod;
 public static class PlayerFile_PopulateStoreProducts
 {
     private const int STAMINA_FOOD_ITEM_PRIORITY = 3_000_000;
-    private const int GIRL_ITEM_PRIORITY = 2_000_000;
-    private const int DATE_ITEM_PRIORITY = 1_000_000;
+    private const int GIRL_ITEM_PRIORITY = 1_000_000;
+    private const int DATE_ITEM_PRIORITY = 2_000_000;
     private const int FOOD_ITEM_PRIORITY = int.MaxValue;
     private const int SMOOTHIE_ITEM_PRIORITY = 0;
 
@@ -180,12 +180,6 @@ public static class PlayerFile_PopulateStoreProducts
                 .ToList()
         };
 
-        dateGiftCategory.Pool = Game.Data.Items.GetAllOfTypes([ItemType.DATE_GIFT])
-            .Where(x => !playerFile.IsItemInInventory(x, true, 2)
-                        && (!x.difficultyExclusive
-                            || x.difficulty == playerFile.settingDifficulty))
-            .Select(x => new Category<ItemDefinition>.Entry(x, 1))
-            .ToList();
 
         return dateGiftCategory;
     }
@@ -216,8 +210,7 @@ public static class PlayerFile_PopulateStoreProducts
             {
                 // shoes
                 var obtainedShoes = playerFileGirl.girlDefinition.shoesItemDefs
-                    .Where(x => playerFile.IsItemInInventory(x, false))
-                    .Concat(playerFileGirl.receivedShoes.Select(Game.Data.Items.Get));
+                    .Where(x => playerFile.IsItemInInventory(x, true));
 
                 var remainingShoes = playerFileGirl.girlDefinition.shoesItemDefs.Except(obtainedShoes).ToArray();
 
@@ -231,8 +224,7 @@ public static class PlayerFile_PopulateStoreProducts
             {
                 // uniques
                 var obtainedUniques = playerFileGirl.girlDefinition.uniqueItemDefs
-                    .Where(x => playerFile.IsItemInInventory(x, false))
-                    .Concat(playerFileGirl.receivedUniques.Select(Game.Data.Items.Get));
+                    .Where(x => playerFile.IsItemInInventory(x, true));
 
                 var remainingUniques = playerFileGirl.girlDefinition.uniqueItemDefs.Except(obtainedUniques).ToArray();
 
