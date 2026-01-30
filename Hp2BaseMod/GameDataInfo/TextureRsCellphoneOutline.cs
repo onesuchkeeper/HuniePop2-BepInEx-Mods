@@ -112,11 +112,6 @@ public class TextureRsCellphoneOutline : ITextureRenderStep
         target.Apply();
     }
 
-    public void RequestInternals(AssetProvider assetProvider)
-    {
-        //noop
-    }
-
     private Color AlphaMix(Color back, Color front)
     {
         var result = new Color();
