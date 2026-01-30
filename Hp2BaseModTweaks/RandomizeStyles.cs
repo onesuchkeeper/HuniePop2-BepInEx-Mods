@@ -31,6 +31,8 @@ public static class RandomizeStyles
 
     private static void RandomizeStyle(ExpandedGirlDefinition girlExpansion, PlayerFileGirl playerFileGirl, bool unpaired, bool nsfw, out GirlStyleInfo style)
     {
+        ModInterface.Log.Message("Randomizing Styles");
+
         IEnumerable<RelativeId> hairstyles;
         IEnumerable<RelativeId> outfits;
 

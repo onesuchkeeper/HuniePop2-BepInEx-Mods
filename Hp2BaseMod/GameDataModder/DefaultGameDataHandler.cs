@@ -97,20 +97,20 @@ internal static class DefaultGameDataHandler
                         var body = new GirlBodySubDefinition(girl)
                         {
                             BodyName = "HuniePop 2",
-                            LocationIdToOutfitId = new(){
-                                {Locations.MassageSpa, new GirlStyleInfo() { HairstyleId = Styles.Relaxing, OutfitId = Styles.Relaxing}},
-                                {Locations.Aquarium, new GirlStyleInfo() { HairstyleId = Styles.Activity, OutfitId = Styles.Activity}},
-                                {Locations.SecludedCabana, new GirlStyleInfo() { HairstyleId = Styles.Relaxing, OutfitId = Styles.Relaxing}},
-                                {Locations.PoolsideBar, new GirlStyleInfo() { HairstyleId = Styles.Water, OutfitId = Styles.Water}},
-                                {Locations.GolfCourse, new GirlStyleInfo() { HairstyleId = Styles.Activity, OutfitId = Styles.Activity}},
-                                {Locations.CruiseShip, new GirlStyleInfo() { HairstyleId = Styles.Water, OutfitId = Styles.Water}},
-                                {Locations.RooftopLounge, new GirlStyleInfo() { HairstyleId = Styles.Romantic, OutfitId = Styles.Romantic}},
-                                {Locations.Casino, new GirlStyleInfo() { HairstyleId = Styles.Party, OutfitId = Styles.Party}},
-                                {Locations.PrivateTable, new GirlStyleInfo() { HairstyleId = Styles.Romantic, OutfitId = Styles.Romantic}},
-                                {Locations.SecretGrotto, new GirlStyleInfo() { HairstyleId = Styles.Water, OutfitId = Styles.Water}},
-                                {Locations.RoyalSuite, new GirlStyleInfo() { HairstyleId = Styles.Sexy, OutfitId = Styles.Sexy}},
-                                {Locations.AirplaneBathroom, new GirlStyleInfo() { HairstyleId = Styles.Activity, OutfitId = Styles.Activity}},
-                                {Locations.OuterSpace, new GirlStyleInfo() { HairstyleId = Styles.Sexy, OutfitId = Styles.Sexy}},
+                            LocationIdToOutfitId = new() {
+                                {Locations.MassageSpa, new GirlStyleInfo(Styles.Relaxing)},
+                                {Locations.Aquarium, new GirlStyleInfo(Styles.Activity)},
+                                {Locations.SecludedCabana, new GirlStyleInfo(Styles.Relaxing)},
+                                {Locations.PoolsideBar, new GirlStyleInfo(Styles.Water)},
+                                {Locations.GolfCourse, new GirlStyleInfo(Styles.Activity)},
+                                {Locations.CruiseShip, new GirlStyleInfo(Styles.Water)},
+                                {Locations.RooftopLounge, new GirlStyleInfo(Styles.Romantic)},
+                                {Locations.Casino, new GirlStyleInfo(Styles.Party)},
+                                {Locations.PrivateTable, new GirlStyleInfo(Styles.Romantic)},
+                                {Locations.SecretGrotto, new GirlStyleInfo(Styles.Water)},
+                                {Locations.RoyalSuite, new GirlStyleInfo(Styles.Sexy)},
+                                {Locations.AirplaneBathroom, new GirlStyleInfo(Styles.Activity)},
+                                {Locations.OuterSpace, new GirlStyleInfo(Styles.Sexy)},
                             }
                         };
                         expansion.Bodies.Add(new RelativeId(-1, 0), body);
@@ -192,11 +192,16 @@ internal static class DefaultGameDataHandler
                 {
                     var expansion = def.Expansion();
 
-                    if (def.locationType == LocationType.DATE && !_specialDateLocationIds.Contains(def.id))
+                    if (def.locationType == LocationType.DATE)
                     {
-                        expansion.AllowNormal = true;
-                        expansion.PostBoss = false;
-                        expansion.AllowNonStop = true;
+                        expansion.DefaultStyle = new RelativeId(-1, (int)def.dateGirlStyleType);
+
+                        if (!_specialDateLocationIds.Contains(def.id))
+                        {
+                            expansion.AllowNormal = true;
+                            expansion.PostBoss = false;
+                            expansion.AllowNonStop = true;
+                        }
                     }
 
                     if (_locationIdToDateTime.TryGetValue(def.id, out var time))
@@ -204,8 +209,6 @@ internal static class DefaultGameDataHandler
                         expansion.DateTimes ??= new List<ClockDaytimeType>();
                         expansion.DateTimes.Add(time);
                     }
-
-                    expansion.DefaultStyle = new RelativeId(-1, (int)def.dateGirlStyleType);
                 }
             }
 

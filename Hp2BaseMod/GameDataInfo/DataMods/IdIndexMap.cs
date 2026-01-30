@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Hp2BaseMod.GameDataInfo;
 
@@ -76,4 +77,6 @@ public class IdIndexMap
         _idToIndex[id] = index;
         _indexToId[index] = id;
     }
+
+    public override string ToString() => $"[{string.Join(", ", _idToIndex.Select(x => $"({x.Key}, {x.Value})"))}]";
 }
