@@ -38,6 +38,9 @@ public partial class HpExtraction
         ((GirlSpecialPartDataMod)body.specialParts[0]).RequiredHairstyles = new List<RelativeId>(){
             Hp2BaseMod.Styles.Relaxing
         };
+
+        //the celebrity front hair has a different anchor point
+        //in hp1 from every other doll part, so correct for it here
         var celebrityFrontHair = (GirlPartDataMod)((HairstyleDataMod)body.hairstyles[3]).FrontHairPart;
         celebrityFrontHair.X = celebrityFrontHair.X.Value + 82;
         celebrityFrontHair.Y = celebrityFrontHair.Y.Value - 25;

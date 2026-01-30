@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Hp2BaseMod.Extension;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
@@ -39,6 +40,7 @@ public class TextureInfoSprite : ITextureInfo
             if (_renderSprite)
             {
                 _texture = new Texture2D((int)sprite.rect.width, (int)sprite.rect.height);
+                _texture.SetPixels(Enumerable.Repeat(Color.clear, (int)sprite.rect.width * (int)sprite.rect.height).ToArray());
 
                 if (_forceTight)
                 {
