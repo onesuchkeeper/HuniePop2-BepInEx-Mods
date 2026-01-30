@@ -231,7 +231,6 @@ internal static class DefaultGameDataHandler
                     {
                         case ItemType.DATE_GIFT:
                             item.storeCost = 6;
-                            item.storeSectionPreference = true;
                             break;
                         case ItemType.SMOOTHIE:
                             item.storeCost = 5;

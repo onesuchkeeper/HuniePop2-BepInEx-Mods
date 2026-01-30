@@ -20,6 +20,8 @@ public class Category<T>
             Value = def;
             Weight = weight;
         }
+
+        public override string ToString() => $"{Weight}-{Value}";
     }
 
     /// <summary>
@@ -104,4 +106,6 @@ public class Category<T>
 
     public static Entry PopWeighted(List<Entry> values)
         => PopWeighted(values, values.Sum(x => x.Weight));
+
+    public override string ToString() => $"[{string.Join(", ", Pool.Select(x => x.ToString()))}]";
 }
