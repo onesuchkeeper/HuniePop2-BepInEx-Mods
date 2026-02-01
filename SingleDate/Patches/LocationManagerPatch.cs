@@ -1,4 +1,5 @@
 using HarmonyLib;
+using Hp2BaseMod.Utility;
 
 namespace SingleDate;
 
@@ -10,6 +11,7 @@ internal static class LocationManagerPatch
     public static void Awake(LocationManager __instance)
     {
         UiPrefabs.InitActionBubbles(__instance.actionBubblesWindow);
+        UiPrefabs.InitCutsceneMeeting(__instance.cutsceneMeeting);
     }
 
     [HarmonyPatch(nameof(LocationManager.Depart))]

@@ -71,12 +71,14 @@ public class ExpandedLocationManager
 
     public event Action OnRefreshUi;
 
+    private CutsceneDefinition _baseCutsceneMeeting;
     private UiWindow _actionBubblesWindow;
     private LocationManager _core;
     private ExpandedLocationManager(LocationManager core)
     {
         _core = core;
         _actionBubblesWindow = _core.actionBubblesWindow;
+        _baseCutsceneMeeting = _core.cutsceneMeeting;
     }
 
     /// <summary>
@@ -103,9 +105,12 @@ public class ExpandedLocationManager
             girlPairDef = girlPairDef,
             sidesFlipped = sidesFlipped,
             initialArrive = initialArrive,
-            cellphoneOnLeft = ModInterface.State.CellphoneOnLeft
+            cellphoneOnLeft = ModInterface.State.CellphoneOnLeft,
+            meetingCutscene = _baseCutsceneMeeting
         };
         ModInterface.Events.NotifyPreLocationArrive(args);
+
+        _core.cutsceneMeeting = args.meetingCutscene ?? _baseCutsceneMeeting;
 
         locationDef = args.locationDef;
         girlPairDef = args.girlPairDef;

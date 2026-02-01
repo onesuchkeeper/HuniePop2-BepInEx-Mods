@@ -11,4 +11,5 @@ public class LocationArriveArgs
     public bool initialArrive;
 
     public bool cellphoneOnLeft;
+    public CutsceneDefinition meetingCutscene;
 }

@@ -32,6 +32,9 @@ public static class UiPrefabs
     public static UiWindow SingleDateBubbles => _singleBubbles;
     private static UiWindowActionBubbles _singleBubbles;
 
+    public static CutsceneDefinition SingleCutsceneMeeting => _singleCutsceneMeeting;
+    private static CutsceneDefinition _singleCutsceneMeeting;
+
     private static Sprite _defaultCharmSprite;
 
     public static void InitExternals()
@@ -140,5 +143,19 @@ public static class UiPrefabs
         }
 
         return _defaultCharmSprite;
+    }
+
+    internal static void InitCutsceneMeeting(CutsceneDefinition cutsceneMeeting)
+    {
+        _singleCutsceneMeeting = new CutsceneDefinition()
+        {
+            cleanUpType = CutsceneCleanUpType.NONE,
+            steps = new(){
+                CutsceneStepUtility.MakeDollMove(DollPositionType.INNER, DollOrientationType.RIGHT, CutsceneStepProceedType.AUTOMATIC),
+                CutsceneStepUtility.MakeSubCutsceneGirlPair(GirlPairRelationshipType.UNKNOWN, CutsceneStepProceedType.AUTOMATIC),
+                cutsceneMeeting.steps[5],//compat banner
+                CutsceneStepUtility.MakeTogglePhoneAndHeader(true, CutsceneStepProceedType.AUTOMATIC)
+            }
+        };
     }
 }

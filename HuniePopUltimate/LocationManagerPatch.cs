@@ -35,6 +35,12 @@ public static class LocationManagerPatch
             return true;
         }
 
+        // and dates
+        if (locationDef.locationType == LocationType.DATE)
+        {
+            return true;
+        }
+
         var nobodyDef = ModInterface.GameData.GetGirl(Plugin.SingleDateNobodyId);
         var kyuDef = ModInterface.GameData.GetGirl(Hp2BaseMod.Girls.Kyu);
         var momoDef = ModInterface.GameData.GetGirl(Girls.Momo);

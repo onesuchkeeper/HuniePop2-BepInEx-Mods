@@ -302,6 +302,7 @@ internal static class ModEventHandles
         if (State.IsSingle(args.girlPairDef))
         {
             args.cellphoneOnLeft = true;
+            args.meetingCutscene = UiPrefabs.SingleCutsceneMeeting;
         }
     }
 
