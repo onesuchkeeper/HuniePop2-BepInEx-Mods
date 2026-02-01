@@ -32,15 +32,14 @@ public static class State
     }
     private static SingleSaveData _save;
 
-    public static bool IsSingleDate => _isSingleDate;
-    private static bool _isSingleDate;
+    public static bool IsSingleDate => IsSingle(Game.Session.Location.currentGirlPair);
 
     public static int SensitivityExp => SaveFile.SensitivityExp;
     public static float SensitivityPercentage => SaveFile.SensitivityExp / (Plugin.MaxSensitivityLevel.Value * 6f);
 
     public static bool IsSingle(GirlPairDefinition def)
     {
-        if (def == null || def.girlDefinitionOne == null)
+        if (def?.girlDefinitionOne == null)
         {
             return false;
         }
@@ -60,9 +59,9 @@ public static class State
     public static void On_LocationManger_Arrive(GirlPairDefinition pair)
     {
         ModInterface.Log.Message("State isSingleDate init");
-        _isSingleDate = IsSingle(pair);
-        Game.Session.gameCanvas.dollLeft.dropZoneCanvasGroup.blocksRaycasts = !_isSingleDate;
-        ModInterface.State.CellphoneOnLeft = _isSingleDate;
+        var isSingleDate = IsSingle(pair);
+        Game.Session.gameCanvas.dollLeft.dropZoneCanvasGroup.blocksRaycasts = !isSingleDate;
+        ModInterface.State.CellphoneOnLeft = isSingleDate;
     }
 
     public static void On_Plugin_Awake()

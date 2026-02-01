@@ -299,9 +299,17 @@ internal static class ModEventHandles
     {
         State.On_LocationManger_Arrive(args.girlPairDef);
 
-        if (State.IsSingleDate)
+        if (State.IsSingle(args.girlPairDef))
         {
             args.cellphoneOnLeft = true;
+        }
+    }
+
+    internal static void On_PreLocationSettled(LocationSettledArgs args)
+    {
+        if (State.IsSingleDate)
+        {
+            args.actionBubblesWindow = UiPrefabs.SingleDateBubbles;
         }
     }
 }

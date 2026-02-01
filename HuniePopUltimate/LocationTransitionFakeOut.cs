@@ -236,59 +236,57 @@ public class LocationTransitionFakeOut
     private void ArriveStep()
     {
         _stepIndex++;
-        int stepIndex = _stepIndex;
-        if (stepIndex != 0)
-        {
-            if (stepIndex != 1)
-            {
-                return;
-            }
-            ArrivalComplete();
-            return;
-        }
-        else
-        {
-            TweenUtils.KillTween(_sequence, false, true);
-            _sequence = DOTween.Sequence();
-            var time = 0f;
-            _sequence.Insert(time, Game.Session.gameCanvas.bgLocations.currentBg.bar.frontMaskRectTransform.DOSizeDelta(Game.Session.gameCanvas.bgLocations.currentBg.bar.maskHiddenSizeDelta, 0.25f, false).SetEase(Ease.InOutCubic));
-            _sequence.Insert(time, Game.Session.gameCanvas.bgLocations.currentBg.bar.backgroundRectTransform.DOSizeDelta(Game.Session.gameCanvas.bgLocations.currentBg.bar.hiddenSizeDelta, 0.25f, false).SetEase(Ease.InOutCubic));
-            _sequence.Insert(time, Game.Session.gameCanvas.bgLocations.shadowsCanvasGroup.DOFade(0f, 1f).SetEase(Ease.InOutSine));
-            _sequence.Insert(time, Game.Session.gameCanvas.bgLocations.overlaysCanvasGroup.DOFade(0f, 1f).SetEase(Ease.InOutSine));
-            time += 0.25f;
-            _sequence.Insert(time, Game.Session.gameCanvas.bgLocations.barsCanvasGroup.DOFade(0f, 0.5f).SetEase(Ease.Linear));
-            _sequence.Insert(time + 0.2f, DOTween.To(() => Game.Session.gameCanvas.bgLocations.currentBg.art.uiEffect.effectFactor, delegate (float x)
-            {
-                Game.Session.gameCanvas.bgLocations.currentBg.art.uiEffect.effectFactor = x;
-            }, 0f, 0.4f).SetEase(Ease.InOutSine));
-            time += 0.1f;
-            _sequence.Insert(time, Game.Session.gameCanvas.frameTop.rectTransform.DOAnchorPosY(Game.Session.gameCanvas.frameTop.origPosition.y, 0.2f, false).SetEase(Ease.InOutCubic));
-            _sequence.Insert(time, Game.Session.gameCanvas.frameBottom.rectTransform.DOAnchorPosY(Game.Session.gameCanvas.frameBottom.origPosition.y, 0.2f, false).SetEase(Ease.InOutCubic));
-            _sequence.Insert(time, Game.Session.gameCanvas.bgLocations.currentBg.art.rectTransform.DOAnchorPosY(Game.Persistence.playerFile.locationDefinition.bgYOffset, 0.2f, false).SetEase(Ease.InOutCubic));
-            _sequence.Insert(time + 0.05f, Game.Session.gameCanvas.bgLocations.rectTransform.DOShakePosition(0.2f, 10f, 20, 90f, false, false));
 
-            if (_arriveWithGirls)
-            {
-                _sequence.Insert(time, Game.Session.gameCanvas.header.rectTransform.DOAnchorPosY(Game.Session.gameCanvas.header.yValues.y, 1.25f, false).SetEase(Ease.InOutCubic));
-                _sequence.Insert(time, Game.Session.gameCanvas.cellphone.rectTransform.DOAnchorPosY(Game.Session.gameCanvas.cellphone.yValues.y, 1.25f, false).SetEase(Ease.InOutCubic));
-                _sequence.Insert(time + 1, Game.Session.gameCanvas.dollRight.slideLayer.DOAnchorPos(Game.Session.gameCanvas.dollRight.GetPositionByType(DollPositionType.OUTER), 1f, false).SetEase(Ease.InOutCubic));
-                _sequence.Insert(time + 1, Game.Session.gameCanvas.dollLeft.slideLayer.DOAnchorPos(Game.Session.gameCanvas.dollLeft.GetPositionByType(DollPositionType.OUTER), 1f, false).SetEase(Ease.InOutCubic));
-            }
-
-            if (!Game.Manager.testMode)
-            {
-                _sequence.OnComplete(new TweenCallback(OnArriveAnimationsComplete));
-                if (Game.Persistence.playerData.unlockedCodes.Contains(Game.Session.Location.codeDefQuickTransitions))
+        switch (_stepIndex)
+        {
+            case 0:
                 {
-                    _sequence.timeScale = 3f;
-                }
-                _sequence.Play();
-                return;
-            }
+                    TweenUtils.KillTween(_sequence, false, true);
+                    _sequence = DOTween.Sequence();
+                    var time = 0f;
+                    _sequence.Insert(time, Game.Session.gameCanvas.bgLocations.currentBg.bar.frontMaskRectTransform.DOSizeDelta(Game.Session.gameCanvas.bgLocations.currentBg.bar.maskHiddenSizeDelta, 0.25f, false).SetEase(Ease.InOutCubic));
+                    _sequence.Insert(time, Game.Session.gameCanvas.bgLocations.currentBg.bar.backgroundRectTransform.DOSizeDelta(Game.Session.gameCanvas.bgLocations.currentBg.bar.hiddenSizeDelta, 0.25f, false).SetEase(Ease.InOutCubic));
+                    _sequence.Insert(time, Game.Session.gameCanvas.bgLocations.shadowsCanvasGroup.DOFade(0f, 1f).SetEase(Ease.InOutSine));
+                    _sequence.Insert(time, Game.Session.gameCanvas.bgLocations.overlaysCanvasGroup.DOFade(0f, 1f).SetEase(Ease.InOutSine));
+                    time += 0.25f;
+                    _sequence.Insert(time, Game.Session.gameCanvas.bgLocations.barsCanvasGroup.DOFade(0f, 0.5f).SetEase(Ease.Linear));
+                    _sequence.Insert(time + 0.2f, DOTween.To(() => Game.Session.gameCanvas.bgLocations.currentBg.art.uiEffect.effectFactor, delegate (float x)
+                    {
+                        Game.Session.gameCanvas.bgLocations.currentBg.art.uiEffect.effectFactor = x;
+                    }, 0f, 0.4f).SetEase(Ease.InOutSine));
+                    time += 0.1f;
+                    _sequence.Insert(time, Game.Session.gameCanvas.frameTop.rectTransform.DOAnchorPosY(Game.Session.gameCanvas.frameTop.origPosition.y, 0.2f, false).SetEase(Ease.InOutCubic));
+                    _sequence.Insert(time, Game.Session.gameCanvas.frameBottom.rectTransform.DOAnchorPosY(Game.Session.gameCanvas.frameBottom.origPosition.y, 0.2f, false).SetEase(Ease.InOutCubic));
+                    _sequence.Insert(time, Game.Session.gameCanvas.bgLocations.currentBg.art.rectTransform.DOAnchorPosY(Game.Persistence.playerFile.locationDefinition.bgYOffset, 0.2f, false).SetEase(Ease.InOutCubic));
+                    _sequence.Insert(time + 0.05f, Game.Session.gameCanvas.bgLocations.rectTransform.DOShakePosition(0.2f, 10f, 20, 90f, false, false));
 
-            _sequence.Complete(false);
-            ArriveStep();
-            return;
+                    if (_arriveWithGirls)
+                    {
+                        _sequence.Insert(time, Game.Session.gameCanvas.header.rectTransform.DOAnchorPosY(Game.Session.gameCanvas.header.yValues.y, 1.25f, false).SetEase(Ease.InOutCubic));
+                        _sequence.Insert(time, Game.Session.gameCanvas.cellphone.rectTransform.DOAnchorPosY(Game.Session.gameCanvas.cellphone.yValues.y, 1.25f, false).SetEase(Ease.InOutCubic));
+                        _sequence.Insert(time + 1, Game.Session.gameCanvas.dollRight.slideLayer.DOAnchorPos(Game.Session.gameCanvas.dollRight.GetPositionByType(DollPositionType.OUTER), 1f, false).SetEase(Ease.InOutCubic));
+                        _sequence.Insert(time + 1, Game.Session.gameCanvas.dollLeft.slideLayer.DOAnchorPos(Game.Session.gameCanvas.dollLeft.GetPositionByType(DollPositionType.OUTER), 1f, false).SetEase(Ease.InOutCubic));
+                    }
+
+                    if (Game.Manager.testMode)
+                    {
+                        _sequence.Complete(false);
+                        ArriveStep();
+                    }
+                    else
+                    {
+                        _sequence.OnComplete(new TweenCallback(OnArriveAnimationsComplete));
+                        if (Game.Persistence.playerData.unlockedCodes.Contains(Game.Session.Location.codeDefQuickTransitions))
+                        {
+                            _sequence.timeScale = 3f;
+                        }
+                        _sequence.Play();
+                    }
+                }
+                break;
+            case 1:
+                ArrivalComplete();
+                break;
         }
     }
 
@@ -315,6 +313,8 @@ public class LocationTransitionFakeOut
     private static FieldInfo f_currentGirlPair = AccessTools.Field(typeof(LocationManager), "_currentGirlPair");
     private static FieldInfo f_currentSidesFlipped = AccessTools.Field(typeof(LocationManager), "_currentSidesFlipped");
 
+    private static MethodInfo m_OnLocationSettled = AccessTools.Method(typeof(LocationManager), "OnLocationSettled");
+
     private void OnDepartureComplete()
     {
         Game.Session.Location.ResetDolls(true);
@@ -323,7 +323,6 @@ public class LocationTransitionFakeOut
 
     private void OnArrivalComplete()
     {
-        ModInterface.Log.Message();
         var locationManager = Game.Session.Location;
 
         f_isTraveling.SetValue(locationManager, false);
@@ -339,25 +338,13 @@ public class LocationTransitionFakeOut
             return;
         }
 
-        ModInterface.Log.Message($"no arrival cutscene");
-
-        OnLocationSettled();
+        m_OnLocationSettled.Invoke(Game.Session.Location, []);
     }
 
     private void OnCutsceneComplete()
     {
         Game.Session.Cutscenes.CutsceneCompleteEvent -= OnCutsceneComplete;
-        OnLocationSettled();
-    }
-
-    private void OnLocationSettled()
-    {
-        var locationManager = Game.Session.Location;
-
-        f_isLocked.SetValue(locationManager, false);
-        Game.Manager.Windows.ShowWindow(locationManager.actionBubblesWindow, false);
-
-        f_arrivalCutscene.SetValue(locationManager, null);
+        m_OnLocationSettled.Invoke(Game.Session.Location, []);
     }
 
     private LocationDefinition _fakeLoc;

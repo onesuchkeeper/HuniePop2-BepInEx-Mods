@@ -32,9 +32,6 @@ public static class UiPrefabs
     public static UiWindow SingleDateBubbles => _singleBubbles;
     private static UiWindowActionBubbles _singleBubbles;
 
-    public static UiWindow DefaultDateBubbles => _defaultBubbles;
-    private static UiWindow _defaultBubbles;
-
     private static Sprite _defaultCharmSprite;
 
     public static void InitExternals()
@@ -78,8 +75,6 @@ public static class UiPrefabs
 
     public static void InitActionBubbles(UiWindow actionBubblesWindow)
     {
-        _defaultBubbles = actionBubblesWindow;
-
         var delta = Game.Session.gameCanvas.header.xValues.y - Game.Session.gameCanvas.header.xValues.x;
         _singleBubbles = (UiWindowActionBubbles)Object.Instantiate(actionBubblesWindow);
 

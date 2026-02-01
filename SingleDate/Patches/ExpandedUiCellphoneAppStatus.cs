@@ -69,6 +69,7 @@ internal class ExpandedUiCellphoneAppStatus
         {
             return;
         }
+        ModInterface.Log.Message("Using single date UiCellphoneAppStatus");
 
         _core.StartCoroutine(BuildUi());
     }

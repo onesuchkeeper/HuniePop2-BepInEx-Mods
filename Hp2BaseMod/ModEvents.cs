@@ -103,5 +103,8 @@ namespace Hp2BaseMod
 
         public event Action<LocationArriveArgs> PreLocationArrive;
         internal void NotifyPreLocationArrive(LocationArriveArgs args) => PreLocationArrive?.Invoke(args);
+
+        public event Action<LocationSettledArgs> PreLocationSettled;
+        internal void NotifyPreLocationSettled(LocationSettledArgs args) => PreLocationSettled?.Invoke(args);
     }
 }

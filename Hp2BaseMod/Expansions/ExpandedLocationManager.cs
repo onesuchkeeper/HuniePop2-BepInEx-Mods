@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -33,7 +34,7 @@ internal static class LocationManagerPatch
     [HarmonyPatch("OnLocationSettled")]
     [HarmonyPrefix]
     private static bool OnLocationSettled(LocationManager __instance)
-        => ExpandedLocationManager.Get(__instance).OnLocationSettled();
+        => ExpandedLocationManager.Get(__instance).PreLocationSettled();
 
     [HarmonyPatch(nameof(LocationManager.ResetDolls))]
     [HarmonyPostfix]
@@ -68,10 +69,14 @@ public class ExpandedLocationManager
     private static readonly FieldInfo f_currentSidesFlipped = AccessTools.Field(typeof(LocationManager), "_currentSidesFlipped");
     private static readonly FieldInfo f_currentLocation = AccessTools.Field(typeof(LocationManager), "_currentLocation");
 
+    public event Action OnRefreshUi;
+
+    private UiWindow _actionBubblesWindow;
     private LocationManager _core;
     private ExpandedLocationManager(LocationManager core)
     {
         _core = core;
+        _actionBubblesWindow = _core.actionBubblesWindow;
     }
 
     /// <summary>
@@ -140,35 +145,48 @@ public class ExpandedLocationManager
     /// <summary>
     /// Notifies of a random doll selection, allowing selection to be overwritten.
     /// </summary>
-    public bool OnLocationSettled()
+    public bool PreLocationSettled()
     {
-        if (_core.currentLocation.locationType != LocationType.SIM)
+        var locationSettledArgs = new LocationSettledArgs()
         {
-            return true;
-        }
+            locationType = _core.currentLocation.locationType,
+            actionBubblesWindow = _actionBubblesWindow
+        };
 
-        var arrivalCutscene = f_arrivalCutscene.GetValue<CutsceneDefinition>(_core);
-
-        if (arrivalCutscene != null)
-        {
-            return true;
-        }
+        ModInterface.Events.NotifyPreLocationSettled(locationSettledArgs);
+        _core.actionBubblesWindow = locationSettledArgs.actionBubblesWindow ?? _actionBubblesWindow;
 
         f_isLocked.SetValue(_core, false);
-
         Game.Session.Logic.ProcessBundleList(_core.currentLocation.departBundleList, false);
+        var arrivalCutscene = f_arrivalCutscene.GetValue<CutsceneDefinition>(_core);
+        switch (locationSettledArgs.locationType)
+        {
+            case LocationType.SIM:
+                Game.Manager.Windows.ShowWindow(_core.actionBubblesWindow, false);
+                if (arrivalCutscene == null)
+                {
+                    var randomDollArgs = new RandomDollSelectedArgs();
+                    ModInterface.Events.NotifyRandomDollSelected(randomDollArgs);
 
-        Game.Manager.Windows.ShowWindow(_core.actionBubblesWindow, false);
+                    var uiDoll = randomDollArgs.SelectedDoll ?? Game.Session.gameCanvas.GetDoll(MathUtils.RandomBool());
+                    var greetingIndex = Mathf.Clamp(Game.Persistence.playerFile.daytimeElapsed % 4, 0, _core.dtGreetings.Length - 1);
 
-        var args = new RandomDollSelectedArgs();
-        ModInterface.Events.NotifyRandomDollSelected(args);
-        var uiDoll = args.SelectedDoll ?? Game.Session.gameCanvas.GetDoll(MathUtils.RandomBool());
-
-        var greetingIndex = Mathf.Clamp(Game.Persistence.playerFile.daytimeElapsed % 4, 0, _core.dtGreetings.Length - 1);
-
-        uiDoll.ReadDialogTrigger(_core.dtGreetings[greetingIndex], DialogLineFormat.PASSIVE, -1);
-
+                    uiDoll.ReadDialogTrigger(_core.dtGreetings[greetingIndex], DialogLineFormat.PASSIVE, -1);
+                }
+                break;
+            case LocationType.DATE:
+                Game.Session.Puzzle.StartPuzzle();
+                break;
+            case LocationType.HUB:
+                if (arrivalCutscene == null)
+                {
+                    Game.Session.gameCanvas.GetDoll(DollOrientationType.RIGHT).ReadDialogTrigger(Game.Session.Hub.GetGreeting(), DialogLineFormat.PASSIVE, -1);
+                }
+                Game.Session.Hub.StartHub();
+                break;
+        }
         f_arrivalCutscene.SetValue(_core, null);
+
         return false;
     }
 
@@ -327,6 +345,11 @@ public class ExpandedLocationManager
             leftStyle?.Apply(Game.Session.gameCanvas.dollLeft, leftGirlDef.defaultOutfitIndex, leftGirlDef.defaultHairstyleIndex);
             rightStyle?.Apply(Game.Session.gameCanvas.dollRight, rightGirlDef.defaultOutfitIndex, rightGirlDef.defaultHairstyleIndex);
         }
+    }
+
+    public void RefreshUi()
+    {
+        OnRefreshUi?.Invoke();
     }
 
     internal void OnDestroy()

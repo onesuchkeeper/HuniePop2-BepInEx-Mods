@@ -8,8 +8,8 @@ namespace HuniePopUltimate;
 [HarmonyPatch(typeof(LocationManager))]
 public static class LocationManagerPatch
 {
+    private static readonly LocationTransitionFakeOut _fakeTransition = new();
     private static bool _removeOverride;
-    private static LocationTransitionFakeOut _fakeTransition = new();
     private static LocationType? _overrideLocationType;
 
     [HarmonyPatch(nameof(LocationManager.AtLocationType))]
@@ -41,7 +41,7 @@ public static class LocationManagerPatch
         var celesteDef = ModInterface.GameData.GetGirl(Girls.Celeste);
         var currentLocId = __instance.currentLocation.ModId();
 
-        if (VenusOverride(locationDef, nobodyDef, momoDef, celesteDef, ref girlPairDef))
+        if (VenusOverride(nobodyDef, momoDef, celesteDef, ref girlPairDef))
         {
             Plugin.ThrewOutGoldfish = false;
             return true;
@@ -99,8 +99,7 @@ public static class LocationManagerPatch
         return false;
     }
 
-    private static bool VenusOverride(LocationDefinition locationDef,
-        GirlDefinition nobodyDef,
+    private static bool VenusOverride(GirlDefinition nobodyDef,
         GirlDefinition momoDef,
         GirlDefinition celesteDef,
         ref GirlPairDefinition girlPairDef)
@@ -140,10 +139,13 @@ public static class LocationManagerPatch
         GirlDefinition celesteDef,
         bool sidesFlipped)
     {
-        var time = (ClockDaytimeType)(Game.Persistence.playerFile.daytimeElapsed % 4);
+        var time = (ClockDaytimeType)(Game.Persistence.playerFile.daytimeElapsed % 4) - 1;
+        var isTimeValid = time == ClockDaytimeType.EVENING || time == ClockDaytimeType.NIGHT;
+
+        ModInterface.Log.Message($"Checking for celeste unlock scene, isTimeValid: {isTimeValid}");
 
         if (currentLocId == LocationIds.Beach
-            && (time == ClockDaytimeType.EVENING || time == ClockDaytimeType.NIGHT))
+            && isTimeValid)
         {
             var weirdThing = ModInterface.GameData.GetItem(Items.WeirdThing);
 

@@ -221,11 +221,7 @@ public static class PlayerFile_PopulateStoreProducts
 
                 if (remainingItems.Count > 0)
                 {
-                    // vanilla biases by (remaining ^ 2)
-                    int weight = remainingItems.Count * remainingItems.Count;
-
-                    var chosen = remainingItems.GetRandom();
-                    pool.Add(new(chosen, weight));
+                    pool.Add(new(remainingItems.GetRandom(), remainingItems.Count * remainingItems.Count));
                 }
             }
         }

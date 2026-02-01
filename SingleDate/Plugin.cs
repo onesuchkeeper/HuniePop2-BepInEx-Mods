@@ -125,6 +125,7 @@ internal partial class Plugin : Hp2BaseModPlugin
         ModInterface.Events.PreDateDollReset += ModEventHandles.On_PreDateDollsRefresh;
         ModInterface.Events.FavQuestionResponse += ModEventHandles.On_TalkFavQuestionResponse;
         ModInterface.Events.PreLocationArrive += ModEventHandles.On_PreLocationArrive;
+        ModInterface.Events.PreLocationSettled += ModEventHandles.On_PreLocationSettled;
 
         new Harmony(MyPluginInfo.PLUGIN_GUID).PatchAll();
     }
