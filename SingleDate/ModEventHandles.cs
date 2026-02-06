@@ -200,14 +200,14 @@ internal static class ModEventHandles
                 && Game.Persistence.playerFile.daytimeElapsed % 4 == (int)playerFileGirlPair.girlPairDefinition.sexDaytime
                 && Plugin.TryGetSingleDateGirl(girlId, out var singleDateGirl))
             {
-                //pick a photo with a loc
+                // pick a photo with a loc
                 if (singleDateGirl.SexPhotos.Any()
                     && singleDateGirl.SexPhotos.Select(x => x.LocationId).ToArray().GetRandom() is var randomLocId
                     && randomLocId != RelativeId.Default)
                 {
                     args.Location = ModInterface.GameData.GetLocation(randomLocId);
                 }
-                //or is the photo doesn't have a loc pick randomly
+                // or if the photo doesn't have a loc pick randomly
                 else
                 {
                     args.Location = playerFileGirlPair.girlPairDefinition.sexLocationDefinition;

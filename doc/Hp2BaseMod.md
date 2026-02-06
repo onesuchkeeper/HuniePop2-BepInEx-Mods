@@ -4,7 +4,13 @@ The Hp2BaseMod overwrites many behaviors from the base game to make mod developm
 
 [Hp2BaseModTweaks](./Hp2BaseModTweaks.md) is a companion mod and provides ui changes and additional features that naturally arise from a modded environment.
 
-If you are developing a Hp2BaseMod dependant mod, you will likely want to include [Hp2BaseMod.SourceGen](./Hp2BaseMod.SourceGen.md) as a dependency which will warn about use of depreciated features from the base game.
+If you are developing a Hp2BaseMod dependant mod, you will likely want to include [Hp2BaseMod.Analyzer](./Hp2BaseMod.Analyzer.md) as a dependency which will warn about use of depreciated features from the base game.
+
+## Philosophy
+
+HuniePop 2 is designed in a very coupled way, in many places designed in more of a functional programming style rather than an object oriented style. Because of this, the base mod must overwrite large chunks of the base game's behaviour. When developing mods, it is very important to check to see if the base mod has overwritten the method you are attempting to work with and if so, use the hooks provided by ModInterface.Events instead.
+
+This is in active development and will hopefully become more organized over time. The nature of Hp2's design makes it very difficult.
 
 ## ModInterface
 

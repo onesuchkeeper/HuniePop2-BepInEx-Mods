@@ -19,6 +19,7 @@ public static class RandomizeStyles
             if (args.Loc.locationType != LocationType.DATE
                 || (playerFileGirl != null && playerFileGirl.stylesOnDates))
             {
+                ModInterface.Log.Message($"Randomizing Style for {args.Def.girlName}");
                 args.ApplyChance = 1;
                 RandomizeStyle(args.Def.Expansion(),
                     playerFileGirl,

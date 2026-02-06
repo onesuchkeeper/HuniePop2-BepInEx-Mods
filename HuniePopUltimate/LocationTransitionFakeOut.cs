@@ -344,6 +344,7 @@ public class LocationTransitionFakeOut
     private void OnCutsceneComplete()
     {
         Game.Session.Cutscenes.CutsceneCompleteEvent -= OnCutsceneComplete;
+        ModInterface.Log.Message("Settling Via Fakeout");
         m_OnLocationSettled.Invoke(Game.Session.Location, []);
     }
 
@@ -378,6 +379,14 @@ public class LocationTransitionFakeOut
         Game.Persistence.playerFile.sidesFlipped = sidesFlipped;
 
         var currentLocation = Game.Persistence.playerFile.locationDefinition;
+
+        // Make a fake sim location if the current loc isn't already one.
+        if (currentLocation.locationType != LocationType.SIM)
+        {
+            currentLocation = GameObject.Instantiate(currentLocation);
+            currentLocation.locationType = LocationType.SIM;
+        }
+
         f_currentLocation.SetValue(locationManager, currentLocation);
 
         var currentGirlPair = Game.Persistence.playerFile.girlPairDefinition;

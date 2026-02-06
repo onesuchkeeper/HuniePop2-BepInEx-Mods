@@ -32,7 +32,7 @@ public static class LastName
                 {Belrose, "Belrose"},
                 {AnnMarie, "Ann-Marie"},
                 {Lapran, "Lapran"},
-                {NotApplicable, "N/A"},
+                {NotApplicable, "Not Applicable"},
                 {Luvendass, "Luvendass"},
                 {Sugardust, "Sugardust"},
                 {Venus, "Venus"},

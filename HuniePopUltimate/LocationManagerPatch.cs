@@ -9,18 +9,6 @@ namespace HuniePopUltimate;
 public static class LocationManagerPatch
 {
     private static readonly LocationTransitionFakeOut _fakeTransition = new();
-    private static bool _removeOverride;
-    private static LocationType? _overrideLocationType;
-
-    [HarmonyPatch(nameof(LocationManager.AtLocationType))]
-    [HarmonyPostfix]
-    public static void AtLocationType(LocationType[] locationTypes, ref bool __result)
-    {
-        if (_overrideLocationType.HasValue)
-        {
-            __result = locationTypes.Contains(_overrideLocationType.Value);
-        }
-    }
 
     [HarmonyPatch(nameof(LocationManager.Depart))]
     [HarmonyPrefix]
@@ -53,31 +41,10 @@ public static class LocationManagerPatch
             return true;
         }
 
-        var shouldOverride = KyuOverride(__instance, kyuDef, nobodyDef, locationDef, sidesFlipped)
-            || CelesteOverride(currentLocId, locationDef, celesteDef, sidesFlipped)
-            || MomoOverride(currentLocId, momoDef, locationDef, sidesFlipped);
-
-        if (!shouldOverride)
-        {
-            _removeOverride = true;
-        }
-
         Plugin.ThrewOutGoldfish = false;
-        return !shouldOverride;
-    }
-
-    [HarmonyPatch(nameof(LocationManager.Arrive))]
-    [HarmonyPrefix]
-    public static void Arrive()
-    {
-        // we can't remove the override when departing
-        // since it's needed for the transition, so instead
-        // remove it here
-        if (_removeOverride)
-        {
-            _removeOverride = false;
-            _overrideLocationType = null;
-        }
+        return !(KyuOverride(__instance, kyuDef, nobodyDef, locationDef, sidesFlipped)
+            || CelesteOverride(currentLocId, locationDef, celesteDef, sidesFlipped)
+            || MomoOverride(currentLocId, momoDef, locationDef, sidesFlipped));
     }
 
     private static bool KyuOverride(LocationManager locationManager,
@@ -96,7 +63,6 @@ public static class LocationManagerPatch
                     ModInterface.Log.Message("Starting Kyu cutscene");
                     _fakeTransition.Depart(locationDef, ModInterface.GameData.GetGirlPair(Pairs.KyuSingleDate), sidesFlipped);
                     ModInterface.State.CellphoneOnLeft = true;
-                    _overrideLocationType = LocationType.SIM;
                     return true;
                 }
             }
@@ -131,7 +97,6 @@ public static class LocationManagerPatch
                     ModInterface.Log.Message("Changing pair to venus");
                     girlPairDef = ModInterface.GameData.GetGirlPair(Girls.Venus);
                     ModInterface.State.CellphoneOnLeft = true;
-                    _overrideLocationType = LocationType.SIM;
                     return true;
                 }
             }
@@ -168,7 +133,6 @@ public static class LocationManagerPatch
 
                     _fakeTransition.Depart(locationDef, ModInterface.GameData.GetGirlPair(Girls.Celeste), sidesFlipped);
                     ModInterface.State.CellphoneOnLeft = true;
-                    _overrideLocationType = LocationType.SIM;
                     return true;
                 }
             }
@@ -191,7 +155,6 @@ public static class LocationManagerPatch
                 ModInterface.Log.Message("Starting Momo cutscene");
                 _fakeTransition.Depart(locationDef, ModInterface.GameData.GetGirlPair(Girls.Momo), sidesFlipped);
                 ModInterface.State.CellphoneOnLeft = true;
-                _overrideLocationType = LocationType.SIM;
                 return true;
             }
         }

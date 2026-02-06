@@ -140,7 +140,7 @@ public partial class HpExtraction
                     if (background.TryGetValue("backgroundName", out string backgroundName)
                         && !string.IsNullOrEmpty(backgroundName)
                         && spriteLookup.TryGetValue(backgroundName, out var spriteDef)
-                        && TryMakeSpriteInfo(spriteDef, spriteTextureInfo, out var spriteInfo)
+                        && TryMakeSpriteInfo(spriteDef, spriteTextureInfo, true, out var spriteInfo)
                         && background.TryGetValue("daytime", out int dayTime))
                     {
                         backgroundSprites[(ClockDaytimeType)dayTime] = spriteInfo;

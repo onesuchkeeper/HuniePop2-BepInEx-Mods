@@ -14,7 +14,7 @@ public partial class HpExtraction
         if (def.TryGetValue("iconName", out string iconName)
             && def.TryGetValue("description", out string description)
             && spriteLookup.TryGetValue(iconName, out var iconSpriteDef)
-            && TryMakeSpriteInfo(iconSpriteDef, textureInfo, out var spriteInfo)
+            && TryMakeSpriteInfo(iconSpriteDef, textureInfo, false, out var spriteInfo)
             && def.TryGetValue("name", out string name))
         {
             return new ItemDataMod(id, Hp2BaseMod.Utility.InsertStyle.append, 0)

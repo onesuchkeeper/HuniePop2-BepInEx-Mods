@@ -641,7 +641,7 @@ public partial class HpExtraction
                     {
                         if (!string.IsNullOrEmpty(name)
                             && thumbLookup.TryGetValue(name, out var def)
-                            && TryMakeSpriteInfo(def, thumbTextureInfo, out var info))
+                            && TryMakeSpriteInfo(def, thumbTextureInfo, false, out var info))
                         {
                             thumbnailInfo[i] = info;
                         }
@@ -663,7 +663,7 @@ public partial class HpExtraction
                             continue;
                         }
 
-                        if (TryMakeSpriteInfo(photoDef, photoTextureInfo, out var photoInfo))
+                        if (TryMakeSpriteInfo(photoDef, photoTextureInfo, false, out var photoInfo))
                         {
                             if (isSinglePhoto)
                             {

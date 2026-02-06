@@ -69,8 +69,6 @@ public class ExpandedLocationManager
     private static readonly FieldInfo f_currentSidesFlipped = AccessTools.Field(typeof(LocationManager), "_currentSidesFlipped");
     private static readonly FieldInfo f_currentLocation = AccessTools.Field(typeof(LocationManager), "_currentLocation");
 
-    public event Action OnRefreshUi;
-
     private CutsceneDefinition _baseCutsceneMeeting;
     private UiWindow _actionBubblesWindow;
     private LocationManager _core;
@@ -148,6 +146,7 @@ public class ExpandedLocationManager
     }
 
     /// <summary>
+    /// Notifies of location settling, allowing location type and ui to be overwritten.
     /// Notifies of a random doll selection, allowing selection to be overwritten.
     /// </summary>
     public bool PreLocationSettled()
@@ -167,6 +166,7 @@ public class ExpandedLocationManager
         switch (locationSettledArgs.locationType)
         {
             case LocationType.SIM:
+                ModInterface.Log.Message("Location settled as sim - Starting sim");
                 Game.Manager.Windows.ShowWindow(_core.actionBubblesWindow, false);
                 if (arrivalCutscene == null)
                 {
@@ -180,6 +180,7 @@ public class ExpandedLocationManager
                 }
                 break;
             case LocationType.DATE:
+                ModInterface.Log.Message("Location settled as date - Starting puzzle");
                 Game.Session.Puzzle.StartPuzzle();
                 break;
             case LocationType.HUB:
@@ -187,6 +188,7 @@ public class ExpandedLocationManager
                 {
                     Game.Session.gameCanvas.GetDoll(DollOrientationType.RIGHT).ReadDialogTrigger(Game.Session.Hub.GetGreeting(), DialogLineFormat.PASSIVE, -1);
                 }
+                ModInterface.Log.Message("Location settled as hub - Starting hub");
                 Game.Session.Hub.StartHub();
                 break;
         }
@@ -350,11 +352,6 @@ public class ExpandedLocationManager
             leftStyle?.Apply(Game.Session.gameCanvas.dollLeft, leftGirlDef.defaultOutfitIndex, leftGirlDef.defaultHairstyleIndex);
             rightStyle?.Apply(Game.Session.gameCanvas.dollRight, rightGirlDef.defaultOutfitIndex, rightGirlDef.defaultHairstyleIndex);
         }
-    }
-
-    public void RefreshUi()
-    {
-        OnRefreshUi?.Invoke();
     }
 
     internal void OnDestroy()

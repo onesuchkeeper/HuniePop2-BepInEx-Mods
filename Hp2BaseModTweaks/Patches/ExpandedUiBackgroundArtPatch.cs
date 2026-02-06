@@ -1,8 +1,5 @@
 using System.Collections.Generic;
-using DG.Tweening;
 using HarmonyLib;
-using Hp2BaseMod;
-using Hp2BaseModTweaks;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -27,7 +24,9 @@ public static class UiBackgroundBlurPatch
     [HarmonyPostfix]
     public static void Start(UiBackgroundBlur __instance)
     {
+        __instance.image.type = Image.Type.Simple;
         __instance.image.useSpriteMesh = true;
+        __instance.image.preserveAspect = false;
     }
 }
 
@@ -47,8 +46,8 @@ public class ExpandedUiBackgroundArt
         return expansion;
     }
 
-    private Image _bgImage;
-    protected UiBackgroundArt _core;
+    private Vector2 _bgRectSizeDelta;
+    private UiBackgroundArt _core;
     private ExpandedUiBackgroundArt(UiBackgroundArt core)
     {
         _core = core;
@@ -56,74 +55,40 @@ public class ExpandedUiBackgroundArt
 
     public void Start()
     {
+        _core.image.type = Image.Type.Simple;
         _core.image.useSpriteMesh = true;
-        _core.image.preserveAspect = true;
-
-        var bg_go = new GameObject();
-        _bgImage = bg_go.AddComponent<Image>();
-        _bgImage.useSpriteMesh = true;
-
-        _bgImage.rectTransform.SetParent(_core.image.rectTransform.parent);
-        _bgImage.rectTransform.SetAsFirstSibling();
-        _bgImage.rectTransform.sizeDelta = _core.image.rectTransform.sizeDelta;
-        _bgImage.rectTransform.localPosition = _core.image.rectTransform.localPosition;
-        _bgImage.sprite = _core.image.sprite;
-
-        _bgImage.material = UiPrefabs.BgBlur;// _core.image.material;
-
-        ModInterface.Events.LocationArriveSequence += On_LocationArriveSequence;
-        ModInterface.Events.LocationDepartSequence += On_LocationDepartSequence;
+        _core.image.preserveAspect = false;
+        _bgRectSizeDelta = _core.image.rectTransform.sizeDelta;
     }
-
-    private void On_LocationDepartSequence(LocationDepartSequenceArgs args)
-    {
-        args.Sequence ??= DOTween.Sequence();
-
-        Saturation = 1;
-
-        args.Sequence.Insert(0.75f, DOTween.To(
-                () => Saturation,
-                x => Saturation = x,
-                0f,
-                0.875f)
-            .SetEase(Ease.InOutSine));
-    }
-
-    private void On_LocationArriveSequence(LocationArriveSequenceArgs args)
-    {
-        args.Sequence ??= DOTween.Sequence();
-
-        Saturation = 0;
-
-        args.Sequence.Insert(2.375f, DOTween.To(
-                () => Saturation,
-                x => Saturation = x,
-                1f,
-                0.875f)
-            .SetEase(Ease.InOutSine));
-    }
-
-    private float Saturation
-    {
-        get => x_saturation;
-        set
-        {
-            _bgImage.material.SetFloat("_Saturation", value);
-            x_saturation = value;
-        }
-    }
-    private float x_saturation = 0;
 
     internal void Refresh()
     {
-        _bgImage.sprite = _core.image.sprite;
+        var image = _core.image;
+        var sprite = image.sprite;
+        if (sprite == null) return;
 
-        // if (_bgImage.sprite != null)
-        // {
-        //     var ratio = (_bgImage.sprite.rect.size.x / _bgImage.sprite.rect.size.y)
-        //         / (_bgImage.rectTransform.sizeDelta.x / _bgImage.rectTransform.sizeDelta.y);
+        float spriteWidth = sprite.rect.width;
+        float spriteHeight = sprite.rect.height;
 
-        //     _bgImage.material.SetFloat("_AspectRatio", ratio);
-        // }
+        float rectWidth = _bgRectSizeDelta.x;
+        float rectHeight = _bgRectSizeDelta.y;
+
+        float spriteRatio = spriteWidth / spriteHeight;
+        float rectRatio = rectWidth / rectHeight;
+
+        Vector2 size;
+
+        if (rectRatio > spriteRatio)
+        {
+            size.x = rectWidth;
+            size.y = rectWidth / spriteRatio;
+        }
+        else
+        {
+            size.y = rectHeight;
+            size.x = rectHeight * spriteRatio;
+        }
+
+        image.rectTransform.sizeDelta = size;
     }
 }

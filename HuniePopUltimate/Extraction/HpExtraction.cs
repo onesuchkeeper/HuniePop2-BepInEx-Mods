@@ -213,62 +213,119 @@ public partial class HpExtraction : BaseExtraction
         }
     }
 
-    private bool TryMakeSpriteInfo(OrderedDictionary spriteDef, TextureInfoRaw textureInfo, out SpriteInfoTexture info)
+    private bool TryMakeSpriteInfo(
+    OrderedDictionary spriteDef,
+    TextureInfoRaw textureInfo,
+    bool mirrorHorizontal,
+    out SpriteInfoTexture info)
     {
-        if (spriteDef.TryGetValue("boundsData", out List<object> bounds)
-            && bounds.Count == 2
-            && TryGetVector2((OrderedDictionary)bounds[0], out float centerX, out float centerY)
-            && TryGetVector2((OrderedDictionary)bounds[1], out float sizeX, out float sizeY)
-            && spriteDef.TryGetValue("uvs", out List<object> uvs)
-            && spriteDef.TryGetValue("positions", out List<object> positions)
-            && spriteDef.TryGetValue("indices", out List<object> indices))
+        info = null;
+
+        if (!spriteDef.TryGetValue("boundsData", out List<object> bounds)
+            || bounds.Count != 2
+            || !TryGetVector2((OrderedDictionary)bounds[0], out var centerX, out var centerY)
+            || !TryGetVector2((OrderedDictionary)bounds[1], out var sizeX, out var sizeY)
+            || !spriteDef.TryGetValue("uvs", out List<object> uvs)
+            || !spriteDef.TryGetValue("positions", out List<object> positions)
+            || !spriteDef.TryGetValue("indices", out List<object> indices))
         {
-            var uvVecs = uvs.OfType<OrderedDictionary>().Select(o => TryGetVector2(o, out float u, out float v)
-                    ? new UnityEngine.Vector2(u, v)
-                    : throw new Exception())
-                .ToArray();
-
-            //scale verts down to fit in texture rect
-            //annoying but unity won't accept verts outside and
-            //sprites should be scaled up to their ui anyways
-            var textureSize = textureInfo.GetSize();
-            var spriteSize = new UnityEngine.Vector2(sizeX, sizeY);
-            var diffSizeMult = textureSize / spriteSize;
-
-            var vertScaler = Mathf.Min(Mathf.Min(diffSizeMult.x, diffSizeMult.y), 1f);
-
-            var positionVerts = positions.OfType<OrderedDictionary>().Select(o => TryGetVector2(o, out float x, out float y)
-                    ? new UnityEngine.Vector2(x, sizeY + y) * vertScaler
-                    : UnityEngine.Vector2.zero).ToArray();
-
-            //some have negative verts, so shift min to zero
-            if (positionVerts.Any())
-            {
-                var minPos = new UnityEngine.Vector2(positionVerts[0].x, positionVerts[0].y);
-
-                foreach (var pos in positionVerts.Skip(1))
-                {
-                    minPos.x = Mathf.Min(minPos.x, pos.x);
-                    minPos.y = Mathf.Min(minPos.y, pos.y);
-                }
-
-                positionVerts = positionVerts.Select(x => x - minPos).ToArray();
-            }
-
-            var triangles = indices.OfType<int>().Select(x => (ushort)x).ToArray();
-
-            info = new SpriteInfoTexture(textureInfo,
-                new Rect(0, 0, sizeX * vertScaler, sizeY * vertScaler),
-                positionVerts,
-                uvVecs,
-                triangles);
-
-            return true;
+            ModInterface.Log.Message("Failed to make sprite info");
+            return false;
         }
 
-        ModInterface.Log.Message($"Failed to make sprite info");
-        info = null;
-        return false;
+        // uvs
+        var uvVecs = uvs.OfType<OrderedDictionary>()
+            .Select(o => TryGetVector2(o, out var u, out var v) ? new UnityEngine.Vector2(u, v) : throw new Exception())
+            .ToArray();
+
+        if (mirrorHorizontal)
+        {
+            uvVecs = uvVecs.Concat(uvVecs).Concat(uvVecs).ToArray();
+        }
+
+        var positionVerts = positions.OfType<OrderedDictionary>()
+            .Select(o => TryGetVector2(o, out float x, out float y)
+                ? new UnityEngine.Vector2(x, sizeY + y)
+                : UnityEngine.Vector2.zero)
+            .ToArray();
+
+        var vertCount = positionVerts.Length;
+
+        // find min and max so we can normalize
+        UnityEngine.Vector2 minPos = positionVerts[0];
+        UnityEngine.Vector2 maxPos = positionVerts[0];
+
+        foreach (var v in positionVerts.Skip(1))
+        {
+            minPos.x = Mathf.Min(minPos.x, v.x);
+            minPos.y = Mathf.Min(minPos.y, v.y);
+            maxPos.x = Mathf.Max(maxPos.x, v.x);
+            maxPos.y = Mathf.Max(maxPos.y, v.y);
+        }
+
+        if (mirrorHorizontal)
+        {
+            var centerVerts = positionVerts;
+
+            // mirror around left edge
+            var leftVerts = positionVerts.Select(v =>
+                new UnityEngine.Vector2(minPos.x - (v.x - minPos.x), v.y));
+
+            // mirror around right edge
+            var rightVerts = positionVerts.Select(v =>
+                new UnityEngine.Vector2(maxPos.x + (maxPos.x - v.x), v.y));
+
+            positionVerts = leftVerts.Concat(centerVerts).Concat(rightVerts).ToArray();
+
+            // Recompute min/max after mirroring
+            minPos = positionVerts[0];
+            maxPos = positionVerts[0];
+
+            foreach (var v in positionVerts.Skip(1))
+            {
+                minPos.x = Mathf.Min(minPos.x, v.x);
+                minPos.y = Mathf.Min(minPos.y, v.y);
+                maxPos.x = Mathf.Max(maxPos.x, v.x);
+                maxPos.y = Mathf.Max(maxPos.y, v.y);
+            }
+        }
+
+        var triangles = indices.OfType<int>().Select(x => (ushort)x).ToArray();
+        if (mirrorHorizontal)
+        {
+            var twiceCount = vertCount * 2;
+            triangles = triangles
+                .Concat(triangles.Select(x => (ushort)(x + vertCount)))
+                .Concat(triangles.Select(x => (ushort)(x + twiceCount)))
+                .ToArray();
+        }
+
+        // unity requires geometry fit inside texture
+        var textureSize = textureInfo.GetSize();
+        var geomSize = maxPos - minPos;
+        var scaleX = textureSize.x / geomSize.x;
+        var scaleY = textureSize.y / geomSize.y;
+        var scale = Mathf.Min(scaleX, scaleY, 1f);
+
+        // use a power of 2 for accuracy
+        var correctedScale = 1f;
+        while (correctedScale > scale)
+        {
+            correctedScale *= 0.5f;
+        }
+        scale = correctedScale;
+
+        positionVerts = positionVerts.Select(v => (v - minPos) * scale).ToArray();
+        var finalSize = geomSize * scale;
+
+        info = new SpriteInfoTexture(
+            textureInfo,
+            new Rect(0, 0, finalSize.x, finalSize.y),
+            positionVerts,
+            uvVecs,
+            triangles);
+
+        return true;
     }
 
     private bool TryGetSpriteLookup((SerializedFile file, OrderedDictionary def) spriteCollection,

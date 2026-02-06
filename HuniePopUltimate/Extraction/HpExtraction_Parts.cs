@@ -115,7 +115,7 @@ public partial class HpExtraction
                 }
 
                 if (spriteLookup.TryGetValue(spriteName, out var spriteDef)
-                    && TryMakeSpriteInfo(spriteDef, spriteTextureInfo, out spriteInfo))
+                    && TryMakeSpriteInfo(spriteDef, spriteTextureInfo, false, out spriteInfo))
                 {
                     part = new(new RelativeId(Plugin.ModId, _partCount++), InsertStyle.append);
                     part.X = x - 400;
