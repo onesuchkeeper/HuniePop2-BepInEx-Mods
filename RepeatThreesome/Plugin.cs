@@ -103,8 +103,6 @@ internal class Plugin : Hp2BaseModPlugin
 
     private void On_PreDataMods()
     {
-        var _partCount = 0;
-
         var emptySpriteInfo = new SpriteInfoInternal("EmptySprite");
 
         var nudeOutfitPart = new GirlPartDataMod(Constants.NudeOutfitId, InsertStyle.replace)
@@ -116,7 +114,7 @@ internal class Plugin : Hp2BaseModPlugin
             SpriteInfo = emptySpriteInfo
         };
 
-        var pollyNudeOutfitPartAlt = new GirlPartDataMod(new RelativeId(ModId, _partCount++), InsertStyle.replace)
+        var pollyNudeOutfitPartAlt = new GirlPartDataMod(Constants.AltNudeOutfitId, InsertStyle.replace)
         {
             PartType = GirlPartType.OUTFIT,
             PartName = "nudeOutfitPollyAlt",

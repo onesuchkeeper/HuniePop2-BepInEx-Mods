@@ -38,13 +38,13 @@ internal static class LocationManagerPatch
 
     [HarmonyPatch(nameof(LocationManager.ResetDolls))]
     [HarmonyPostfix]
-    public static void ResetDolls(LocationManager __instance, bool unload = false)
+    private static void ResetDolls(LocationManager __instance, bool unload = false)
         => ExpandedLocationManager.Get(__instance).ResetDolls(unload);
 
     [HarmonyPatch("OnDestroy")]
     [HarmonyPostfix]
-    public static void OnDestroy(LocationManager __instance)
-    => ExpandedLocationManager.Get(__instance).OnDestroy();
+    private static void OnDestroy(LocationManager __instance)
+        => ExpandedLocationManager.Get(__instance).OnDestroy();
 }
 
 public class ExpandedLocationManager
@@ -116,9 +116,16 @@ public class ExpandedLocationManager
         initialArrive = args.initialArrive;
         ModInterface.State.CellphoneOnLeft = args.cellphoneOnLeft;
 
+        if (locationDef == null)
+        {
+            ModInterface.Log.Error("Location def was set to null pre arrival, defaulting to hub");
+            locationDef = ModInterface.GameData.GetLocation(Locations.HotelRoom);
+            girlPairDef = null;
+        }
+
         var strBuilder = new StringBuilder($"Arriving at {locationDef.locationName}");
         if (girlPairDef == null) strBuilder.Append(" with no pair.");
-        else strBuilder.Append($" with {girlPairDef?.girlDefinitionOne.girlName} and {girlPairDef?.girlDefinitionTwo.girlName}");
+        else strBuilder.Append($" with {girlPairDef.girlDefinitionOne.girlName} and {girlPairDef.girlDefinitionTwo.girlName}");
         ModInterface.Log.Message(strBuilder.ToString());
     }
 
@@ -198,160 +205,354 @@ public class ExpandedLocationManager
     }
 
     /// <summary>
-    /// When dolls reset via location, use the location's
-    /// default style and notify to allow overwriting
+    /// Resets doll styles based on current location and context.
+    /// 
+    /// HUB:
+    /// - Uses randomized outfit with paired/random hairstyle.
+    /// 
+    /// DATE / OTHER:
+    /// - Resolves styles based on relationship, location, or player file.
+    /// - Allows mod hooks to override styles.
     /// </summary>
-    /// <param name="unload"></param>
     public void ResetDolls(bool unload)
     {
-        if (unload) { return; }// if the hub girl does not have the needed indexes
+        // Early exit: nothing to do if unloading
+        if (unload) return;
 
         var currentLocation = f_currentLocation.GetValue(_core) as LocationDefinition;
 
         if (_core.AtLocationType(LocationType.HUB))
         {
-            // the base method already randomizes hub girl outfit, so just use default
-            var girlExpansion = Game.Session.Hub.hubGirlDefinition.Expansion();
-
-            var i = 0;
-            var outfitIndex = Game.Session.Hub.hubGirlDefinition.outfits.Select(x => (x, i++)).Where(x => x.Item1 != null).ToArray().GetRandom().Item2;
-            var outfit = Game.Session.Hub.hubGirlDefinition.outfits[outfitIndex];
-
-            var hubStyle = new GirlStyleInfo()
-            {
-                OutfitId = girlExpansion.OutfitLookup[outfitIndex],
-            };
-
-            if (outfit.pairHairstyleIndex != -1)
-            {
-                hubStyle.HairstyleId = girlExpansion.HairstyleLookup[outfit.pairHairstyleIndex];
-            }
-            else
-            {
-                i = 0;
-                var randomIndex = Game.Session.Hub.hubGirlDefinition.hairstyles.Select(x => (x, i++)).Where(x => x.Item1 != null).ToArray().GetRandom().Item2;
-                hubStyle.HairstyleId = girlExpansion.HairstyleLookup[randomIndex];
-            }
-
-            var args = ModInterface.Events.NotifyRequestStyleChange(Game.Session.Hub.hubGirlDefinition, currentLocation, 0.1f, hubStyle);
-
-            if (args.ApplyChance > 0f
-                && args.ApplyChance <= 100f
-                && UnityEngine.Random.Range(0f, 1f) <= args.ApplyChance)
-            {
-                args.Style.Apply(Game.Session.gameCanvas.dollRight,
-                    Game.Session.Hub.hubGirlDefinition.defaultOutfitIndex,
-                    Game.Session.Hub.hubGirlDefinition.defaultHairstyleIndex);
-            }
+            ApplyHubStyle(currentLocation);
+            return;
         }
+
+        ApplyNonHubStyles(currentLocation);
+    }
+
+    /// <summary>
+    /// Applies randomized HUB style to the hub girl.
+    /// </summary>
+    private void ApplyHubStyle(LocationDefinition location)
+    {
+        var hubDef = Game.Session.Hub.hubGirlDefinition;
+        var expansion = hubDef.Expansion();
+
+        int outfitIndex = GetRandomValidIndex(hubDef.outfits);
+        var outfit = hubDef.outfits[outfitIndex];
+
+        var style = new GirlStyleInfo
+        {
+            OutfitId = expansion.OutfitLookup[outfitIndex],
+            HairstyleId = outfit.pairHairstyleIndex != -1 
+                ? expansion.HairstyleLookup[outfit.pairHairstyleIndex]
+                : expansion.HairstyleLookup[GetRandomValidIndex(hubDef.hairstyles)]
+        };
+
+        var args = ModInterface.Events.NotifyRequestStyleChange(hubDef, location, 0.1f, style);
+
+        if (ShouldApply(args.ApplyChance))
+        {
+            args.Style.Apply(
+                Game.Session.gameCanvas.dollRight,
+                hubDef.defaultOutfitIndex,
+                hubDef.defaultHairstyleIndex
+            );
+        }
+    }
+
+    /// <summary>
+    /// Handles all non-HUB doll reset logic (DATE, etc).
+    /// </summary>
+    private void ApplyNonHubStyles(LocationDefinition location)
+    {
+        var pair = f_currentGirlPair.GetValue(_core) as GirlPairDefinition;
+        var playerPair = Game.Persistence.playerFile.GetPlayerFileGirlPair(pair);
+
+        if (playerPair == null) return;
+
+        ResolveGirlDefinitions(pair, out var leftDef, out var rightDef);
+
+        // Resolve base styles
+        var (leftStyle, rightStyle) = ResolveBaseStyles(pair, playerPair, location, leftDef, rightDef);
+
+        // Allow mod overrides
+        leftStyle = ApplyStyleOverride(leftDef, location, leftStyle);
+        rightStyle = ApplyStyleOverride(rightDef, location, rightStyle);
+
+        // Apply to dolls
+        ApplyStyleToDoll(leftStyle, Game.Session.gameCanvas.dollLeft, leftDef);
+        ApplyStyleToDoll(rightStyle, Game.Session.gameCanvas.dollRight, rightDef);
+    }
+
+    /// <summary>
+    /// Determines initial styles before mod overrides.
+    /// </summary>
+    private (GirlStyleInfo left, GirlStyleInfo right) ResolveBaseStyles(
+        GirlPairDefinition pair,
+        PlayerFileGirlPair playerPair,
+        LocationDefinition location,
+        GirlDefinition leftDef,
+        GirlDefinition rightDef)
+    {
+        var locationExp = location.Expansion();
+
+        // UNKNOWN relationship → meeting styles
+        if (playerPair.relationshipType == GirlPairRelationshipType.UNKNOWN)
+        {
+            return GetPairMeetingStyles(pair);
+        }
+
+        // DATE-specific logic
+        if (_core.AtLocationType(LocationType.DATE))
+        {
+            return ResolveDateStyles(pair, playerPair, location, leftDef, rightDef);
+        }
+
+        // Location default style
+        if (locationExp.DefaultStyle.HasValue)
+        {
+            return (new GirlStyleInfo(locationExp.DefaultStyle.Value),new GirlStyleInfo(locationExp.DefaultStyle.Value));
+        }
+
+        return (null, null);
+    }
+
+    private (GirlStyleInfo, GirlStyleInfo) ResolveDateStyles(
+        GirlPairDefinition pair,
+        PlayerFileGirlPair playerPair,
+        LocationDefinition location,
+        GirlDefinition leftDef,
+        GirlDefinition rightDef)
+    {
+        var args = BuildPreDateArgs(playerPair, location);
+        ModInterface.Events.NotifyPreDateDollReset(args);
+
+        return args.Style switch
+        {
+            PreDateDollResetArgs.StyleType.Sex =>
+                GetPairSexStyles(pair),
+
+            PreDateDollResetArgs.StyleType.Location =>
+                ResolveLocationStyles(location, leftDef, rightDef),
+
+            _ =>
+                ResolveFileStyles()
+        };
+    }
+
+    /// <summary>
+    /// Resolves pair-based styles (Meeting / Sex).
+    /// </summary>
+    private (GirlStyleInfo, GirlStyleInfo) GetPairSexStyles(GirlPairDefinition pair)
+    {
+        var pairId = ModInterface.Data.GetDataId(GameDataType.GirlPair, pair.id);
+        var pairStyle = ExpandedGirlPairDefinition.Get(pairId).PairStyle;
+
+        if (pairStyle == null) return (null, null);
+
+        bool flipped = (bool)f_currentSidesFlipped.GetValue(_core);
+
+        return flipped
+            ? (pairStyle.SexGirlTwo, pairStyle.SexGirlOne)
+            : (pairStyle.SexGirlOne, pairStyle.SexGirlTwo);
+    }
+
+    /// <summary>
+    /// Resolves pair-based styles (Meeting / Sex).
+    /// </summary>
+    private (GirlStyleInfo, GirlStyleInfo) GetPairMeetingStyles(GirlPairDefinition pair)
+    {
+        var pairId = ModInterface.Data.GetDataId(GameDataType.GirlPair, pair.id);
+        var pairStyle = ExpandedGirlPairDefinition.Get(pairId).PairStyle;
+
+        if (pairStyle == null) return (null, null);
+
+        bool flipped = f_currentSidesFlipped.GetValue<bool>(_core);
+
+        return flipped
+            ? (pairStyle.MeetingGirlTwo, pairStyle.MeetingGirlOne)
+            : (pairStyle.MeetingGirlOne, pairStyle.MeetingGirlTwo);
+    }
+
+    /// <summary>
+    /// Resolves styles based on player file data.
+    /// </summary>
+    private (GirlStyleInfo, GirlStyleInfo) ResolveFileStyles()
+    {
+        var leftFile = Game.Session.Puzzle.puzzleStatus.girlStatusLeft.playerFileGirl;
+        var rightFile = Game.Session.Puzzle.puzzleStatus.girlStatusRight.playerFileGirl;
+
+        return (
+            BuildStyleFromFile(leftFile),
+            BuildStyleFromFile(rightFile)
+        );
+    }
+
+    /// <summary>
+    /// Builds a GirlStyleInfo from player file indices.
+    /// </summary>
+    private GirlStyleInfo BuildStyleFromFile(PlayerFileGirl file)
+    {
+        var exp = ExpandedGirlDefinition.Get(file.girlDefinition.id);
+
+        return new GirlStyleInfo(
+            exp.OutfitLookup.GetId(file.outfitIndex),
+            exp.HairstyleLookup.GetId(file.hairstyleIndex)
+        );
+    }
+
+    /// <summary>
+    /// Applies mod override logic.
+    /// </summary>
+    private GirlStyleInfo ApplyStyleOverride(GirlDefinition def, LocationDefinition loc, GirlStyleInfo style)
+    {
+        var args = ModInterface.Events.NotifyRequestStyleChange(def, loc, 0, style);
+
+        return ShouldApply(args.ApplyChance) ? args.Style : style;
+    }
+
+    /// <summary>
+    /// Determines if a probabilistic style should be applied.
+    /// </summary>
+    private bool ShouldApply(float chance) =>
+        chance >= 1f || (chance > 0f && UnityEngine.Random.Range(0f, 1f) <= chance);
+
+    /// <summary>
+    /// Applies style safely to a doll.
+    /// </summary>
+    private void ApplyStyleToDoll(GirlStyleInfo style, UiDoll doll, GirlDefinition def)
+    {
+        style?.Apply(doll, def.defaultOutfitIndex, def.defaultHairstyleIndex);
+    }
+
+    /// <summary>
+    /// Gets a random valid (non-null) index from a collection.
+    /// </summary>
+    private int GetRandomValidIndex<T>(IReadOnlyList<T> collection) => collection
+        .Select((item, index) => (item, index))
+        .Where(x => x.item != null)
+        .ToArray()
+        .GetRandom()
+        .index;
+
+    /// <summary>
+    /// Resolves left/right definitions accounting for flipped state.
+    /// </summary>
+    private void ResolveGirlDefinitions(
+        GirlPairDefinition pair,
+        out GirlDefinition left,
+        out GirlDefinition right)
+    {
+        bool flipped = (bool)f_currentSidesFlipped.GetValue(_core);
+
+        left = flipped ? pair.girlDefinitionTwo : pair.girlDefinitionOne;
+        right = flipped ? pair.girlDefinitionOne : pair.girlDefinitionTwo;
+    }
+
+    /// <summary>
+    /// Builds PreDateDollResetArgs based on relationship state and gameplay context.
+    /// Mirrors original branching logic.
+    /// </summary>
+    private PreDateDollResetArgs BuildPreDateArgs(
+        PlayerFileGirlPair playerPair,
+        LocationDefinition currentLocation)
+    {
+        var args = new PreDateDollResetArgs();
+
+        // Sex condition:
+        // - Must be ATTRACTED
+        // - Must match the scheduled "sex daytime"
+        if (playerPair.relationshipType == GirlPairRelationshipType.ATTRACTED &&
+            Game.Persistence.playerFile.daytimeElapsed % 4 ==
+            (int)playerPair.girlPairDefinition.sexDaytime)
+        {
+            args.Style = PreDateDollResetArgs.StyleType.Sex;
+        }
+        // Location condition:
+        // - Puzzle is active
+        // - Not at boss location
+        else if (!Game.Session.Puzzle.puzzleStatus.isEmpty &&
+                currentLocation != Game.Session.Puzzle.bossLocationDefinition)
+        {
+            args.Style = PreDateDollResetArgs.StyleType.Location;
+        }
+        // Default fallback
         else
         {
-            var currentGirlPair = f_currentGirlPair.GetValue(_core) as GirlPairDefinition;
-            var playerFileGirlPair = Game.Persistence.playerFile.GetPlayerFileGirlPair(currentGirlPair);
-
-            if (playerFileGirlPair == null) { return; }
-
-            var flipped = (bool)f_currentSidesFlipped.GetValue(_core);
-            var leftGirlDef = flipped ? currentGirlPair.girlDefinitionTwo : currentGirlPair.girlDefinitionOne;
-            var rightGirlDef = flipped ? currentGirlPair.girlDefinitionOne : currentGirlPair.girlDefinitionTwo;
-
-            var locationExp = currentLocation.Expansion();
-
-            GirlStyleInfo leftStyle = null;
-            GirlStyleInfo rightStyle = null;
-
-            if (locationExp.DefaultStyle.HasValue)
-            {
-                leftStyle = rightStyle = new GirlStyleInfo(locationExp.DefaultStyle.Value);
-            }
-
-            if (playerFileGirlPair.relationshipType == GirlPairRelationshipType.UNKNOWN)
-            {
-                var pairId = ModInterface.Data.GetDataId(GameDataType.GirlPair, currentGirlPair.id);
-                var pairStyle = ExpandedGirlPairDefinition.Get(pairId).PairStyle;
-
-                if (pairStyle != null)
-                {
-                    leftStyle = flipped ? pairStyle.MeetingGirlTwo : pairStyle.MeetingGirlOne;
-                    rightStyle = flipped ? pairStyle.MeetingGirlOne : pairStyle.MeetingGirlTwo;
-                    ModInterface.Log.Message($"Using Pair Meeting Styles. Left {leftStyle}. Right {rightStyle}");
-                }
-            }
-            else if (_core.AtLocationType(LocationType.DATE))
-            {
-                var args = new PreDateDollResetArgs();
-
-                if (playerFileGirlPair.relationshipType == GirlPairRelationshipType.ATTRACTED
-                    && Game.Persistence.playerFile.daytimeElapsed % 4 == (int)playerFileGirlPair.girlPairDefinition.sexDaytime)
-                {
-                    args.Style = PreDateDollResetArgs.StyleType.Sex;
-                }
-                else if (!Game.Session.Puzzle.puzzleStatus.isEmpty
-                    && currentLocation != Game.Session.Puzzle.bossLocationDefinition)
-                {
-                    args.Style = PreDateDollResetArgs.StyleType.Location;
-                }
-                else
-                {
-                    args.Style = PreDateDollResetArgs.StyleType.File;
-                }
-
-                ModInterface.Events.NotifyPreDateDollReset(args);
-
-                if (args.Style == PreDateDollResetArgs.StyleType.Sex)
-                {
-                    var pairId = ModInterface.Data.GetDataId(GameDataType.GirlPair, currentGirlPair.id);
-                    var pairStyle = ExpandedGirlPairDefinition.Get(pairId).PairStyle;
-
-                    if (pairStyle != null)
-                    {
-                        leftStyle = flipped ? pairStyle.SexGirlTwo : pairStyle.SexGirlOne;
-                        rightStyle = flipped ? pairStyle.SexGirlOne : pairStyle.SexGirlTwo;
-                        ModInterface.Log.Message($"Using Pair Sex Styles. Left {leftStyle}. Right {rightStyle}");
-                    }
-                }
-                else if (args.Style == PreDateDollResetArgs.StyleType.Location)
-                {
-                    var locationId = ModInterface.Data.GetDataId(GameDataType.Location, currentLocation.id);
-
-                    if (!Game.Session.Puzzle.puzzleStatus.girlStatusLeft.playerFileGirl.stylesOnDates)
-                    {
-                        var girlId = ModInterface.Data.GetDataId(GameDataType.Girl, leftGirlDef.id);
-                        var girlExpansion = ExpandedGirlDefinition.Get(girlId);
-                        if (girlExpansion.GetCurrentBody().LocationIdToOutfitId.TryGetValue(locationId, out var girlStyle))
-                        {
-                            leftStyle = girlStyle;
-                        }
-                    }
-
-                    if (!Game.Session.Puzzle.puzzleStatus.girlStatusRight.playerFileGirl.stylesOnDates)
-                    {
-                        var girlId = ModInterface.Data.GetDataId(GameDataType.Girl, rightGirlDef.id);
-                        var girlExpansion = ExpandedGirlDefinition.Get(girlId);
-                        if (girlExpansion.GetCurrentBody().LocationIdToOutfitId.TryGetValue(locationId, out var girlStyle))
-                        {
-                            rightStyle = girlStyle;
-                        }
-                    }
-                }
-            }
-
-            var leftArgs = ModInterface.Events.NotifyRequestStyleChange(leftGirlDef, currentLocation, 0, leftStyle);
-            var rightArgs = ModInterface.Events.NotifyRequestStyleChange(rightGirlDef, currentLocation, 0, rightStyle);
-
-            if (UnityEngine.Random.Range(0f, 1f) <= leftArgs.ApplyChance)
-            {
-                leftStyle = leftArgs.Style;
-            }
-
-            if (UnityEngine.Random.Range(0f, 1f) <= rightArgs.ApplyChance)
-            {
-                rightStyle = rightArgs.Style;
-            }
-
-            leftStyle?.Apply(Game.Session.gameCanvas.dollLeft, leftGirlDef.defaultOutfitIndex, leftGirlDef.defaultHairstyleIndex);
-            rightStyle?.Apply(Game.Session.gameCanvas.dollRight, rightGirlDef.defaultOutfitIndex, rightGirlDef.defaultHairstyleIndex);
+            args.Style = PreDateDollResetArgs.StyleType.File;
         }
+
+        return args;
+    }
+
+    /// <summary>
+    /// Resolves styles based on location mappings or player file preferences.
+    /// Handles both left and right girls symmetrically.
+    /// </summary>
+    private (GirlStyleInfo left, GirlStyleInfo right) ResolveLocationStyles(
+        LocationDefinition location,
+        GirlDefinition leftDef,
+        GirlDefinition rightDef)
+    {
+        var locationId = ModInterface.Data.GetDataId(GameDataType.Location, location.id);
+
+        var puzzle = Game.Session.Puzzle.puzzleStatus;
+
+        var left = ResolveSingleLocationStyle(
+            puzzle.girlStatusLeft.playerFileGirl,
+            leftDef,
+            locationId,
+            "left");
+
+        var right = ResolveSingleLocationStyle(
+            puzzle.girlStatusRight.playerFileGirl,
+            rightDef,
+            locationId,
+            "right");
+
+        return (left, right);
+    }
+
+    /// <summary>
+    /// Resolves a single girl's style using either location mapping or file data.
+    /// </summary>
+    private GirlStyleInfo ResolveSingleLocationStyle(
+        PlayerFileGirl playerFile,
+        GirlDefinition girlDef,
+        RelativeId locationId,
+        string sideLabel)
+    {
+        // If stylesOnDates is disabled → use location-based style
+        if (!playerFile.stylesOnDates)
+        {
+            var girlId = ModInterface.Data.GetDataId(GameDataType.Girl, girlDef.id);
+            var expansion = ExpandedGirlDefinition.Get(girlId);
+
+            if (expansion.GetCurrentBody()
+                .LocationIdToOutfitId
+                .TryGetValue(locationId, out var style))
+            {
+                ModInterface.Log.Message($"Using location style for {sideLabel} girl: {style}");
+                return style;
+            }
+
+            // No mapping found → fall through (returns null)
+            ModInterface.Log.Message($"No location style found for {sideLabel} girl");
+            return null;
+        }
+
+        // Otherwise → use player file style
+        var exp = ExpandedGirlDefinition.Get(playerFile.girlDefinition.id);
+
+        var fileStyle = new GirlStyleInfo(
+            exp.OutfitLookup.GetId(playerFile.outfitIndex),
+            exp.HairstyleLookup.GetId(playerFile.hairstyleIndex)
+        );
+
+        ModInterface.Log.Message($"Using file style for {sideLabel} girl: {fileStyle}");
+
+        return fileStyle;
     }
 
     internal void OnDestroy()

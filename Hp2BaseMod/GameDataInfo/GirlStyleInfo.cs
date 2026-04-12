@@ -66,5 +66,5 @@ public class GirlStyleInfo
         }
     }
 
-    public override string ToString() => $"(Hair - {(HairstyleId.HasValue ? HairstyleId.Value : "null")}, Outfit - {(OutfitId.HasValue ? OutfitId.Value : "null")})";
+    public override string ToString() => $"(Hair: {(HairstyleId.HasValue ? HairstyleId.Value : "null")}, Outfit: {(OutfitId.HasValue ? OutfitId.Value : "null")})";
 }

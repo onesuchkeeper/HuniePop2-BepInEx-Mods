@@ -36,7 +36,7 @@ internal static class UiWindowActionBubblesPatch
             && Game.Persistence.playerFile.daytimeElapsed % 4 == (int)playerFileGirlPair.girlPairDefinition.sexDaytime)
         {
             args.Location = playerFileGirlPair.girlPairDefinition.sexLocationDefinition;
-            ModInterface.Log.Message($"Pair is targeting sex location - {args.Location.locationName}");
+            ModInterface.Log.Message($"Pair is targeting sex location - {args.Location?.locationName ?? "random"}");
         }
 
         ModInterface.Events.NotifyDateLocationSelected(args);

@@ -30,33 +30,32 @@ public static class LocationManagerPatch
         }
 
         var nobodyDef = ModInterface.GameData.GetGirl(Plugin.SingleDateNobodyId);
-        var kyuDef = ModInterface.GameData.GetGirl(Hp2BaseMod.Girls.Kyu);
-        var momoDef = ModInterface.GameData.GetGirl(Girls.Momo);
-        var celesteDef = ModInterface.GameData.GetGirl(Girls.Celeste);
         var currentLocId = __instance.currentLocation.ModId();
 
-        if (VenusOverride(nobodyDef, momoDef, celesteDef, ref girlPairDef))
+        if (VenusOverride(nobodyDef, ref girlPairDef))
         {
             Plugin.ThrewOutGoldfish = false;
             return true;
         }
 
+        var shouldOverride =!(KyuOverride(__instance, nobodyDef, locationDef, sidesFlipped)
+            || CelesteOverride(currentLocId, locationDef, sidesFlipped)
+            || MomoOverride(currentLocId, locationDef, sidesFlipped));
+
         Plugin.ThrewOutGoldfish = false;
-        return !(KyuOverride(__instance, kyuDef, nobodyDef, locationDef, sidesFlipped)
-            || CelesteOverride(currentLocId, locationDef, celesteDef, sidesFlipped)
-            || MomoOverride(currentLocId, momoDef, locationDef, sidesFlipped));
+        return shouldOverride;
     }
 
     private static bool KyuOverride(LocationManager locationManager,
-        GirlDefinition kyuDef,
         GirlDefinition nobodyDef,
         LocationDefinition locationDef,
         bool sidesFlipped)
     {
         if (Game.Session.Puzzle.puzzleStatus.bonusRound)
         {
-            var kyuSave = Game.Persistence.playerFile.GetPlayerFileGirl(kyuDef);
-            if (!kyuSave.playerMet)
+            var kyuPair = Game.Persistence.playerFile.GetPlayerFileGirlPair(ModInterface.GameData.GetGirlPair(Pairs.KyuSingleDate));
+
+            if (kyuPair.relationshipType == GirlPairRelationshipType.UNKNOWN)
             {
                 if (locationManager.currentGirlPair.girlDefinitionOne == nobodyDef)
                 {
@@ -72,21 +71,22 @@ public static class LocationManagerPatch
     }
 
     private static bool VenusOverride(GirlDefinition nobodyDef,
-        GirlDefinition momoDef,
-        GirlDefinition celesteDef,
         ref GirlPairDefinition girlPairDef)
     {
         var pairId = girlPairDef?.ModId();
 
-        // I'm only doing when kyu is at a sim loc, not at the hub
-        // the hub is too coupled and messy and I don't wanna fix it
         if (pairId.HasValue
             && pairId.Value == Pairs.KyuSingleDate)
         {
-            var venusDef = ModInterface.GameData.GetGirl(Girls.Venus);
-            var venusSave = Game.Persistence.playerFile.GetPlayerFileGirl(venusDef);
-            if (!venusSave.playerMet)
+            var pair = ModInterface.GameData.GetGirlPair(Girls.Venus);
+           
+            var pairSave = Game.Persistence.playerFile.GetPlayerFileGirlPair(pair);
+            if (pairSave.relationshipType == GirlPairRelationshipType.UNKNOWN)
             {
+                var venusDef = ModInterface.GameData.GetGirl(Girls.Venus);
+                var momoDef = ModInterface.GameData.GetGirl(Girls.Momo);
+                var celesteDef = ModInterface.GameData.GetGirl(Girls.Celeste);
+
                 if (Game.Persistence.playerFile.girlPairs
                     .Where(x => x.girlPairDefinition.girlDefinitionOne == nobodyDef
                         && x.girlPairDefinition.girlDefinitionTwo != venusDef
@@ -95,7 +95,7 @@ public static class LocationManagerPatch
                     .All(x => x.relationshipType == GirlPairRelationshipType.LOVERS))
                 {
                     ModInterface.Log.Message("Changing pair to venus");
-                    girlPairDef = ModInterface.GameData.GetGirlPair(Girls.Venus);
+                    girlPairDef = pair;
                     ModInterface.State.CellphoneOnLeft = true;
                     return true;
                 }
@@ -107,13 +107,12 @@ public static class LocationManagerPatch
 
     private static bool CelesteOverride(RelativeId currentLocId,
         LocationDefinition locationDef,
-        GirlDefinition celesteDef,
         bool sidesFlipped)
     {
-        var time = (ClockDaytimeType)(Game.Persistence.playerFile.daytimeElapsed % 4) - 1;
+        //time gets updated, so -1 to checks. Not handling data location anymore so 
+        //don't have to worry about date transitions not updating time
+        var time = (ClockDaytimeType)((Game.Persistence.playerFile.daytimeElapsed - 1) % 4);
         var isTimeValid = time == ClockDaytimeType.EVENING || time == ClockDaytimeType.NIGHT;
-
-        ModInterface.Log.Message($"Checking for celeste unlock scene, isTimeValid: {isTimeValid}");
 
         if (currentLocId == LocationIds.Beach
             && isTimeValid)
@@ -122,8 +121,10 @@ public static class LocationManagerPatch
 
             if (Game.Persistence.playerFile.IsItemInInventory(weirdThing, false))
             {
-                var girlSave = Game.Persistence.playerFile.GetPlayerFileGirl(celesteDef);
-                if (!girlSave.playerMet)
+                var pair = ModInterface.GameData.GetGirlPair(Girls.Celeste);
+                var pairSave = Game.Persistence.playerFile.GetPlayerFileGirlPair(pair);
+
+                if (pairSave.relationshipType == GirlPairRelationshipType.UNKNOWN)
                 {
                     ModInterface.Log.Message("Starting Celeste cutscene");
 
@@ -142,18 +143,19 @@ public static class LocationManagerPatch
     }
 
     private static bool MomoOverride(RelativeId currentLocId,
-        GirlDefinition momoDef,
         LocationDefinition locationDef,
         bool sidesFlipped)
     {
         if (currentLocId == LocationIds.Park
             && Plugin.ThrewOutGoldfish)
         {
-            var girlSave = Game.Persistence.playerFile.GetPlayerFileGirl(momoDef);
-            if (!girlSave.playerMet)
+            var pair = ModInterface.GameData.GetGirlPair(Girls.Momo);
+            var pairSave = Game.Persistence.playerFile.GetPlayerFileGirlPair(pair);
+
+            if (pairSave.relationshipType == GirlPairRelationshipType.UNKNOWN)
             {
                 ModInterface.Log.Message("Starting Momo cutscene");
-                _fakeTransition.Depart(locationDef, ModInterface.GameData.GetGirlPair(Girls.Momo), sidesFlipped);
+                _fakeTransition.Depart(locationDef, pair, sidesFlipped);
                 ModInterface.State.CellphoneOnLeft = true;
                 return true;
             }

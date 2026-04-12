@@ -8,6 +8,7 @@ public static class Constants
     public static RelativeId LocalCodeId;
     public static RelativeId NudeCodeId;
     public static RelativeId NudeOutfitId;
+    public static RelativeId AltNudeOutfitId;
 
     internal static void Init(int modId)
     {
@@ -15,5 +16,6 @@ public static class Constants
         NudeCodeId = new RelativeId(modId, 1);
 
         NudeOutfitId = new RelativeId(modId, 0);
+        AltNudeOutfitId = new RelativeId(modId, 1);
     }
 }

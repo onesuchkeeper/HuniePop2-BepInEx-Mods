@@ -68,10 +68,10 @@ namespace Hp2BaseMod.GameDataInfo
 
         /// <inheritdoc/>
         public void SetData(GirlPartSubDefinition def,
-                            GameDefinitionProvider gameDataProvider,
-                            AssetProvider assetProvider,
-                            RelativeId girlId,
-                            GirlBodySubDefinition bodyDef)
+            GameDefinitionProvider gameDataProvider,
+            AssetProvider assetProvider,
+            RelativeId girlId,
+            GirlBodySubDefinition bodyDef)
         {
             if (def == null) throw new ArgumentNullException(nameof(def));
             if (bodyDef == null) throw new ArgumentNullException(nameof(bodyDef));
