@@ -4,6 +4,7 @@ using Hp2BaseMod;
 using Hp2BaseMod.GameDataInfo;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
+using UnityEngine;
 
 namespace ExpandedWardrobe;
 
@@ -11,7 +12,7 @@ internal partial class Styles
 {
     private static int _partCount = 0;
 
-    public static void AddHair(List<IBodySubDataMod<GirlHairstyleSubDefinition>> hairstyles,
+    public static void AddHair(AssetBundle assets, List<IBodySubDataMod<GirlHairstyleSubDefinition>> hairstyles,
         string name, string displayName, string girlName, int frontX, int frontY, int backX, int backY, bool isNSFW, bool isCodeUnlocked, bool isPurchased)
     {
         hairstyles.Add(new HairstyleDataMod(new RelativeId(Ids.ModId, hairstyles.Count), InsertStyle.replace)
@@ -23,7 +24,7 @@ internal partial class Styles
                 PartName = $"{name}Fronthair{girlName}",
                 X = frontX,
                 Y = frontY,
-                SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.IMAGES_DIR, $"{girlName}_fronthair_{name}.png"), true))
+                SpriteInfo = new SpriteInfoSprite(assets.LoadAsset<Sprite>($"{girlName}_fronthair_{name}.png"))
             },
             BackHairPart = new GirlPartDataMod(new RelativeId(Ids.ModId, _partCount++), InsertStyle.replace)
             {
@@ -31,7 +32,7 @@ internal partial class Styles
                 PartName = $"{name}Backhair{girlName}",
                 X = backX,
                 Y = backY,
-                SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.IMAGES_DIR, $"{girlName}_backhair_{name}.png"), true))
+                SpriteInfo = new SpriteInfoSprite(assets.LoadAsset<Sprite>($"{girlName}_backhair_{name}.png"))
             },
             IsNSFW = isNSFW,
             IsCodeUnlocked = isCodeUnlocked,
@@ -40,7 +41,7 @@ internal partial class Styles
         });
     }
 
-    public static void AddOutfit(List<IBodySubDataMod<GirlOutfitSubDefinition>> outfits,
+    public static void AddOutfit(AssetBundle assets, List<IBodySubDataMod<GirlOutfitSubDefinition>> outfits,
         string name, string displayName, string girlName, int x, int y, bool isNSFW, bool isCodeUnlocked, bool isPurchased, bool hideNipples)
     {
         outfits.Add(new OutfitDataMod(new RelativeId(Ids.ModId, outfits.Count), InsertStyle.replace)
@@ -52,7 +53,7 @@ internal partial class Styles
                 PartName = $"{name}Outfit{girlName}",
                 X = x,
                 Y = y,
-                SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.IMAGES_DIR, $"{girlName}_outfit_{name}.png"), true))
+                SpriteInfo = new SpriteInfoSprite(assets.LoadAsset<Sprite>($"{girlName}_outfit_{name}.png"))
             },
             IsNSFW = isNSFW,
             HideNipples = hideNipples,
@@ -62,7 +63,7 @@ internal partial class Styles
         });
     }
 
-    public static void AddPair(List<IBodySubDataMod<GirlOutfitSubDefinition>> outfits,
+    public static void AddPair(AssetBundle assets, List<IBodySubDataMod<GirlOutfitSubDefinition>> outfits,
         List<IBodySubDataMod<GirlHairstyleSubDefinition>> hairstyles,
         string name, string displayName, string girlName,
         int outfitX, int outfitY, int frontX, int frontY, int backX, int backY,
@@ -80,7 +81,7 @@ internal partial class Styles
                 PartName = $"{name}Fronthair{girlName}",
                 X = frontX,
                 Y = frontY,
-                SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.IMAGES_DIR, $"{girlName}_fronthair_{name}.png"), true))
+                SpriteInfo = new SpriteInfoSprite(assets.LoadAsset<Sprite>($"{girlName}_fronthair_{name}.png"))
             },
             BackHairPart = new GirlPartDataMod(new RelativeId(Ids.ModId, _partCount++), InsertStyle.replace)
             {
@@ -88,7 +89,7 @@ internal partial class Styles
                 PartName = $"{name}Backhair{girlName}",
                 X = backX,
                 Y = backY,
-                SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.IMAGES_DIR, $"{girlName}_backhair_{name}.png"), true))
+                SpriteInfo = new SpriteInfoSprite(assets.LoadAsset<Sprite>($"{girlName}_backhair_{name}.png"))
             },
             IsNSFW = isNSFW,
             IsCodeUnlocked = isCodeUnlocked,
@@ -106,7 +107,7 @@ internal partial class Styles
                 PartName = $"{name}Outfit{girlName}",
                 X = outfitX,
                 Y = outfitY,
-                SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.IMAGES_DIR, $"{girlName}_outfit_{name}.png"), true))
+                SpriteInfo = new SpriteInfoSprite(assets.LoadAsset<Sprite>($"{girlName}_outfit_{name}.png"))
             },
             IsNSFW = isNSFW,
             HideNipples = hideNipples,

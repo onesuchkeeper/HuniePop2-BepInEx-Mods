@@ -3,6 +3,7 @@ using Hp2BaseMod;
 using Hp2BaseMod.GameDataInfo;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
+using UnityEngine;
 
 namespace ExpandedWardrobe;
 
@@ -10,12 +11,12 @@ internal static partial class Styles
 {
     private static readonly int _moxieBodyX = 262;
     private static readonly int _moxieBodyY = 956;
-    public static void AddMoxieStyles()
+    public static void AddMoxieStyles(AssetBundle assets)
     {
         var modOutfits = new List<IBodySubDataMod<GirlOutfitSubDefinition>>();
         var modHairstyles = new List<IBodySubDataMod<GirlHairstyleSubDefinition>>();
 
-        AddOutfit(modOutfits, "roost", "Roost", "moxie", _moxieBodyX + 105, _moxieBodyY - 247, true, false, false, false);
+        AddOutfit(assets, modOutfits, "roost", "Roost", "moxie", _moxieBodyX + 105, _moxieBodyY - 247, true, false, false, false);
 
         //Shoulder Boulders
 

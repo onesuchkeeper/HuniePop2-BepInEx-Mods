@@ -3,6 +3,7 @@ using Hp2BaseMod;
 using Hp2BaseMod.GameDataInfo;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
+using UnityEngine;
 
 namespace ExpandedWardrobe;
 
@@ -10,12 +11,12 @@ internal static partial class Styles
 {
     private static readonly int _pollyBodyX = 384;
     private static readonly int _pollyBodyY = 949;
-    public static void AddPollyStyles()
+    public static void AddPollyStyles(AssetBundle assets)
     {
         var modOutfits = new List<IBodySubDataMod<GirlOutfitSubDefinition>>();
         var modHairstyles = new List<IBodySubDataMod<GirlHairstyleSubDefinition>>();
 
-        AddPair(modOutfits, modHairstyles, "finalGirl", "Final Girl", "polly",
+        AddPair(assets, modOutfits, modHairstyles, "finalGirl", "Final Girl", "polly",
             _pollyBodyX + 53, _pollyBodyY - 245,
             _pollyBodyX + 156, _pollyBodyY + 35,
             _pollyBodyX + 187, _pollyBodyY - 142,

@@ -5,6 +5,7 @@ using System.Linq;
 using BepInEx;
 using BepInEx.Configuration;
 using Hp2BaseMod;
+using UnityEngine;
 
 namespace ExpandedWardrobe;
 
@@ -88,21 +89,29 @@ internal class Plugin : BaseUnityPlugin
 
         _unlockAll = Config.Bind(Hp2BaseModPlugin.CONFIG_GENERAL, "Unlock All Styles", true, "If all expanded wardrobe outfits and hairstyles should be automatically unlocked.");
 
-        if (_abiaStyles.Value) Styles.AddAbiaStyles();
-        if (_ashleyStyles.Value) Styles.AddAshleyStyles();
-        if (_brookeStyles.Value) Styles.AddBrookeStyles();
-        if (_candaceStyles.Value) Styles.AddCandaceStyles();
-        if (_jessieStyles.Value) Styles.AddJessieStyles();
-        if (_jewnStyles.Value) Styles.AddJewnStyles();
-        if (_kyuStyles.Value) Styles.AddKyuStyles();
-        if (_lailaniStyles.Value) Styles.AddLailaniStyles();
-        if (_lillianStyles.Value) Styles.AddLillianStyles();
-        if (_lolaStyles.Value) Styles.AddLolaStyles();
-        if (_moxieStyles.Value) Styles.AddMoxieStyles();
-        if (_noraStyles.Value) Styles.AddNoraStyles();
-        if (_pollyStyles.Value) Styles.AddPollyStyles();
-        if (_sarahStyles.Value) Styles.AddSarahStyles();
-        if (_zoeyStyles.Value) Styles.AddZoeyStyles();
+        var bundle = AssetBundle.LoadFromFile(Path.Combine(ROOT_DIR, "expandedwardrobe_assetbundle"));
+
+        if (bundle == null)
+        {
+            ModInterface.Log.Error("Failed to load AssetBundle");
+            return;
+        }
+
+        if (_abiaStyles.Value) Styles.AddAbiaStyles(bundle);
+        if (_ashleyStyles.Value) Styles.AddAshleyStyles(bundle);
+        if (_brookeStyles.Value) Styles.AddBrookeStyles(bundle);
+        if (_candaceStyles.Value) Styles.AddCandaceStyles(bundle);
+        if (_jessieStyles.Value) Styles.AddJessieStyles(bundle);
+        if (_jewnStyles.Value) Styles.AddJewnStyles(bundle);
+        if (_kyuStyles.Value) Styles.AddKyuStyles(bundle);
+        if (_lailaniStyles.Value) Styles.AddLailaniStyles(bundle);
+        if (_lillianStyles.Value) Styles.AddLillianStyles(bundle);
+        if (_lolaStyles.Value) Styles.AddLolaStyles(bundle);
+        if (_moxieStyles.Value) Styles.AddMoxieStyles(bundle);
+        if (_noraStyles.Value) Styles.AddNoraStyles(bundle);
+        if (_pollyStyles.Value) Styles.AddPollyStyles(bundle);
+        if (_sarahStyles.Value) Styles.AddSarahStyles(bundle);
+        if (_zoeyStyles.Value) Styles.AddZoeyStyles(bundle);
 
         if (ModInterface.TryGetInterModValue("OSK.BepInEx.Hp2BaseModTweaks", "AddModCredit",
                 out Action<string, IEnumerable<(string creditButtonPath, string creditButtonOverPath, string redirectLink)>> m_addModConfig))

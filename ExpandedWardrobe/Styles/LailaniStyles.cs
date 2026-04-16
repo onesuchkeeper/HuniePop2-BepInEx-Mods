@@ -3,6 +3,7 @@ using Hp2BaseMod;
 using Hp2BaseMod.GameDataInfo;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
+using UnityEngine;
 
 namespace ExpandedWardrobe;
 
@@ -10,13 +11,13 @@ internal static partial class Styles
 {
     private static readonly int _lailaniBodyX = 345;
     private static readonly int _lailaniBodyY = 931;
-    public static void AddLailaniStyles()
+    public static void AddLailaniStyles(AssetBundle assets)
     {
         var modOutfits = new List<IBodySubDataMod<GirlOutfitSubDefinition>>();
         var modHairstyles = new List<IBodySubDataMod<GirlHairstyleSubDefinition>>();
 
-        AddOutfit(modOutfits, "keyWest", "Key West", "lailani", _lailaniBodyX + 76, _lailaniBodyY - 249, false, false, false, true);
-        AddOutfit(modOutfits, "topless", "Chest Puppies", "lailani", _lailaniBodyX + 101, _lailaniBodyY - 284, true, false, false, false);
+        AddOutfit(assets, modOutfits, "keyWest", "Key West", "lailani", _lailaniBodyX + 76, _lailaniBodyY - 249, false, false, false, true);
+        AddOutfit(assets, modOutfits, "topless", "Chest Puppies", "lailani", _lailaniBodyX + 101, _lailaniBodyY - 284, true, false, false, false);
 
         ModInterface.AddDataMod(new GirlDataMod(Girls.Lailani, InsertStyle.append)
         {
