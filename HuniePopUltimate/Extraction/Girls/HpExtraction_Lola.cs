@@ -10,29 +10,29 @@ public partial class HpExtraction
     {
         var body = (GirlBodyDataMod)girlMod.bodies[0];
 
-        if (!Plugin.UseHp1LolaStats.Value)
+        if (!Plugin.PConfig.UseHp1LolaStats.Value)
         {
             girlMod.FavoriteAffectionType = null;
             girlMod.LeastFavoriteAffectionType = null;
         }
 
-        if (!Plugin.UseHp1LolaLines.Value)
+        if (!Plugin.PConfig.UseHp1LolaLines.Value)
         {
             girlMod.LinesByDialogTriggerId = null;
         }
 
         girlMod.FavAnswers = new() {
-            {Questions.LastName,                       LastName.Rembrite},
-            {Questions.Education,                      Education.College_4},
-            {Questions.Height,                         Height._5_7},
-            {Questions.Weight,                         Weight._122},
-            {Questions.Occupation,                     Occupation.Stewardess},
-            {Questions.CupSize,                        CupSize.E_Cup},
-            {Questions.Birthday,                       Birthday.Feb_23},
-            {Questions.Hobby,                          FavHobby.Tennis},
-            {Questions.FavColour,                      FavColour.Blue},
-            {Questions.FavSeason,                      FavSeason.Spring},
-            {Questions.FavHangout,                     FavHangout.Cafe},
+            {Questions.LastName, LastName.Rembrite},
+            {Questions.Education, Education.College_4},
+            {Questions.Height, Height._5_7},
+            {Questions.Weight, Weight._122},
+            {Questions.Occupation, Occupation.Stewardess},
+            {Questions.CupSize, CupSize.E_Cup},
+            {Questions.Birthday, Birthday.Feb_23},
+            {Questions.Hobby, FavHobby.Tennis},
+            {Questions.FavColour, FavColour.Blue},
+            {Questions.FavSeason, FavSeason.Spring},
+            {Questions.FavHangout, FavHangout.Cafe},
         };
 
         body.BackPosition = new VectorInfo(200, 450);

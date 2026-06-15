@@ -10,29 +10,29 @@ public partial class HpExtraction
     {
         var body = (GirlBodyDataMod)girlMod.bodies[0];
 
-        if (!Plugin.UseHp1JessieStats.Value)
+        if (!Plugin.PConfig.UseHp1JessieStats.Value)
         {
             girlMod.FavoriteAffectionType = null;
             girlMod.LeastFavoriteAffectionType = null;
         }
 
-        if (!Plugin.UseHp1JessieLines.Value)
+        if (!Plugin.PConfig.UseHp1JessieLines.Value)
         {
             girlMod.LinesByDialogTriggerId = null;
         }
 
         girlMod.FavAnswers = new(){
-            {Questions.LastName,                       LastName.Maye},
-            {Questions.Education,                      Education.Dropout},
-            {Questions.Height,                         Height._5_7},
-            {Questions.Weight,                         Weight._126},
-            {Questions.Occupation,                     Occupation.PornStar},
-            {Questions.CupSize,                        CupSize.G_Cup},
-            {Questions.Birthday,                       Birthday.Jan_27},
-            {Questions.Hobby,                          FavHobby.Drinking},
-            {Questions.FavColour,                      FavColour.Orange},
-            {Questions.FavSeason,                      FavSeason.Winter},
-            {Questions.FavHangout,                     FavHangout.Bar},
+            {Questions.LastName, LastName.Maye},
+            {Questions.Education, Education.Dropout},
+            {Questions.Height, Height._5_7},
+            {Questions.Weight, Weight._126},
+            {Questions.Occupation, Occupation.PornStar},
+            {Questions.CupSize, CupSize.G_Cup},
+            {Questions.Birthday, Birthday.Jan_27},
+            {Questions.Hobby, FavHobby.Drinking},
+            {Questions.FavColour, FavColour.Orange},
+            {Questions.FavSeason, FavSeason.Winter},
+            {Questions.FavHangout, FavHangout.Bar},
         };
 
         ((GirlSpecialPartDataMod)body.specialParts[0]).RequiredHairstyles = new List<RelativeId>(){

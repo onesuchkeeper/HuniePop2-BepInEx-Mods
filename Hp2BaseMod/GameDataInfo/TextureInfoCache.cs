@@ -8,6 +8,8 @@ namespace Hp2BaseMod.GameDataInfo;
 
 public class TextureInfoCache : ITextureInfo
 {
+    public TextureWrapMode WrapMode => _decorated.WrapMode;
+
     private readonly string _path;
     private readonly ITextureInfo _decorated;
     private readonly bool _readOnly;
@@ -31,7 +33,7 @@ public class TextureInfoCache : ITextureInfo
 
         if (File.Exists(_path))
         {
-            _texture = TextureUtility.LoadFromPng(_path, _readOnly);
+            _texture = TextureUtility.LoadFromPng(_path, _readOnly, _decorated.WrapMode);
             return _texture;
         }
         else

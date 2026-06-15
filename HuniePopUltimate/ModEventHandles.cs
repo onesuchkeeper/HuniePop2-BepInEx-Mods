@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using BepInEx.Bootstrap;
 using Hp2BaseMod;
@@ -41,9 +42,10 @@ public static class ModEventHandles
         HpExtraction hpExtraction = null;
         try
         {
-            hpExtraction = new HpExtraction(Plugin.HuniePopDir.Value, m_AddGirlDatePhotos, m_AddGirlSexPhotos, m_SetCharmSprite, nudeOutfitPart);
+            hpExtraction = new HpExtraction(Plugin.PConfig.HuniePopDir.Value, m_AddGirlDatePhotos, m_AddGirlSexPhotos, m_SetCharmSprite, nudeOutfitPart, Plugin.AssetBundle);
             using (ModInterface.Log.MakeIndent("HuniePop assembly loaded successfully, beginning import:"))
             {
+                hpExtraction.InitAudioCache(Path.Combine(Plugin.ROOT_DIR, "audio.pcmx"));
                 hpExtraction.Extract();
             }
         }
@@ -198,7 +200,7 @@ public static class ModEventHandles
 
     internal static void On_RequestUnlockedPhotos(RequestUnlockedPhotosEventArgs args)
     {
-        if (!Plugin.UnlockPhotos.Value) return;
+        if (!Plugin.PConfig.UnlockPhotos.Value) return;
 
         args.UnlockedPhotos ??= new();
 
@@ -212,7 +214,7 @@ public static class ModEventHandles
     {
         Plugin.GameStarted = true;
 
-        if (Plugin.UnlockStyles.Value)
+        if (Plugin.PConfig.UnlockStyles.Value)
         {
             using (ModInterface.Log.MakeIndent())
             {

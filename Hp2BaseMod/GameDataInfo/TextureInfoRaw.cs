@@ -9,13 +9,15 @@ namespace Hp2BaseMod.GameDataInfo;
 
 public class TextureInfoRaw : ITextureInfo
 {
+    public TextureWrapMode WrapMode => _wrapMode;
+    private readonly TextureWrapMode _wrapMode;
+
     private readonly byte[] _data;
     private readonly TextureFormat _format = TextureFormat.ARGB32;
     private readonly int _width;
     private readonly int _height;
     private readonly IEnumerable<ITextureRenderStep> _renderSteps;
     private readonly FilterMode _filterMode;
-    private readonly TextureWrapMode _wrapMode;
     private readonly bool _readOnly;
 
     private Texture2D _texture;

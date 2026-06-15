@@ -6,8 +6,8 @@ class AlphaBleedFix
     static void Main(string[] args)
     {
         args = [
-            "C:\\Git\\HuniePop2-BepInEx-Mods\\Unity\\AssetBundle Generator\\Assets\\ExpandedWardrobeTextures\\hairTextures",
-            "C:\\Git\\HuniePop2-BepInEx-Mods\\Unity\\AssetBundle Generator\\Assets\\ExpandedWardrobeTextures\\hairTextures_Fixed"
+            "C:\\Git\\HuniePop2-BepInEx-Mods\\Unity\\AssetBundle Generator\\Assets\\HpUltimate\\UiTextues",
+            "C:\\Git\\HuniePop2-BepInEx-Mods\\Unity\\AssetBundle Generator\\Assets\\HpUltimate\\UiTextues_Fixed",
         ];
 
         if (args.Length < 2)

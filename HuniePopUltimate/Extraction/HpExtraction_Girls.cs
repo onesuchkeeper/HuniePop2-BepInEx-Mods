@@ -31,10 +31,10 @@ public partial class HpExtraction
 
     void SetCellphoneImages(GirlDataMod girlMod, string name)
     {
-        girlMod.CellphonePortrait = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.IMAGES_DIR, $"ui_girl_portrait_{name}.png"), true));
-        girlMod.CellphoneHead = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.IMAGES_DIR, $"{name}_cellphoneHead.png"), true));
-        girlMod.CellphoneMiniHead = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.IMAGES_DIR, $"{name}_cellphoneHeadMini.png"), true));
-        m_SetCharmSprite?.Invoke(girlMod.Id, new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Plugin.IMAGES_DIR, $"charm_{name}.png"), true)).GetSprite());
+        girlMod.CellphonePortrait = new SpriteInfoSprite(_assetBundle.LoadAsset<UnityEngine.Sprite>($"ui_girl_portrait_{name}"));
+        girlMod.CellphoneHead = new SpriteInfoSprite(_assetBundle.LoadAsset<UnityEngine.Sprite>($"{name}_cellphoneHead"));
+        girlMod.CellphoneMiniHead = new SpriteInfoSprite(_assetBundle.LoadAsset<UnityEngine.Sprite>($"{name}_cellphoneHeadMini"));
+        m_SetCharmSprite?.Invoke(girlMod.Id, _assetBundle.LoadAsset<UnityEngine.Sprite>($"charm_{name}"));
     }
 
     private void ExtractGirl(SerializedFile file, OrderedDictionary girlDef, Dictionary<string, (SerializedFile, OrderedDictionary)> collectionData)
@@ -641,7 +641,7 @@ public partial class HpExtraction
                     {
                         if (!string.IsNullOrEmpty(name)
                             && thumbLookup.TryGetValue(name, out var def)
-                            && TryMakeSpriteInfo(def, thumbTextureInfo, false, out var info))
+                            && TryMakeSpriteInfo(def, thumbTextureInfo, out var info))
                         {
                             thumbnailInfo[i] = info;
                         }
@@ -663,7 +663,7 @@ public partial class HpExtraction
                             continue;
                         }
 
-                        if (TryMakeSpriteInfo(photoDef, photoTextureInfo, false, out var photoInfo))
+                        if (TryMakeSpriteInfoTiled(Path.Combine(Plugin.IMAGES_DIR, $"{name}.png"), photoDef, photoTextureInfo, out var photoInfo))
                         {
                             if (isSinglePhoto)
                             {

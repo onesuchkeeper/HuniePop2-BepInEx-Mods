@@ -4,6 +4,8 @@ namespace Hp2BaseMod.GameDataInfo.Interface;
 
 public interface ITextureInfo
 {
+    TextureWrapMode WrapMode { get; }
+
     Texture2D GetTexture();
 
     /// <summary>

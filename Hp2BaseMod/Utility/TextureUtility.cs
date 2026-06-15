@@ -8,15 +8,15 @@ namespace Hp2BaseMod.Utility
 {
     public static class TextureUtility
     {
-        public static Sprite SpriteFromPng(string path, bool readOnly)
+        public static Sprite SpriteFromPng(string path, bool readOnly, TextureWrapMode wrapMode = TextureWrapMode.Clamp)
         {
-            var texture = LoadFromPng(path, readOnly);
+            var texture = LoadFromPng(path, readOnly, wrapMode);
             return texture == null
                 ? null
                 : TextureToSprite(texture, Vector2.zero);
         }
 
-        public static Texture2D LoadFromPng(string path, bool readOnly)
+        public static Texture2D LoadFromPng(string path, bool readOnly, TextureWrapMode wrapMode = TextureWrapMode.Clamp)
         {
             if (!File.Exists(path))
             {
@@ -24,13 +24,14 @@ namespace Hp2BaseMod.Utility
                 return null;
             }
 
-            return LoadFromBytes(File.ReadAllBytes(path), readOnly);
+            return LoadFromBytes(File.ReadAllBytes(path), readOnly, wrapMode);
         }
 
-        public static Texture2D LoadFromBytes(byte[] bytes, bool readOnly)
+        public static Texture2D LoadFromBytes(byte[] bytes, bool readOnly, TextureWrapMode wrapMode = TextureWrapMode.Clamp)
         {
             var texture = new Texture2D(2, 2);
             texture.LoadImage(bytes, readOnly);
+            texture.wrapMode = wrapMode;
 
             return texture;
         }

@@ -8,17 +8,20 @@ namespace Hp2BaseMod;
 
 public class TextureInfoComposite : ITextureInfo
 {
+    public TextureWrapMode WrapMode => _wrapMode;
+    private TextureWrapMode _wrapMode;
+
     private readonly IEnumerable<(ITextureInfo texture, Vector2Int offset)> _textures;
     private readonly Vector2Int _size;
     private readonly bool _readOnly;
 
     private Texture2D _texture;
-
-    public TextureInfoComposite(Vector2Int size, bool readOnly, IEnumerable<(ITextureInfo texture, Vector2Int offset)> textures)
+    public TextureInfoComposite(Vector2Int size, bool readOnly, IEnumerable<(ITextureInfo texture, Vector2Int offset)> textures, TextureWrapMode wrapMode = TextureWrapMode.Clamp)
     {
         _size = size;
         _textures = textures ?? throw new ArgumentNullException(nameof(textures));
         _readOnly = readOnly;
+        _wrapMode = wrapMode;
     }
 
     public Texture2D GetTexture()
@@ -29,6 +32,7 @@ public class TextureInfoComposite : ITextureInfo
         }
 
         _texture = new Texture2D(_size.x, _size.y);
+        _texture.wrapMode = _wrapMode;
         var clear = new Color(1f, 1f, 1f, 0f);
         var outputPixels = new Color[_size.x * _size.y];
         for (int i = 0; i < outputPixels.Length; i++)

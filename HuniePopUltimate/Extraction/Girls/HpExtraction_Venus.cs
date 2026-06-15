@@ -51,17 +51,17 @@ public partial class HpExtraction
             // {Hp2BaseMod.Favorites.SexPos,           Hp2BaseMod.FavSexPos.Missionary},
             // {Hp2BaseMod.Favorites.PornCat,          Hp2BaseMod.FavPornCategory.Vanilla},
 
-            {Questions.LastName,                       LastName.Venus},
-            {Questions.HomeWorld,                      Homeworld.SkyGarden},
-            {Questions.Height,                         Height._5_8},
-            {Questions.Weight,                         Weight._128},
-            {Questions.Occupation,                     Occupation.Goddess},
-            {Questions.CupSize,                        CupSize.DD_Cup},
-            {Questions.Birthday,                       Birthday.Sep_1},
-            {Questions.Hobby,                          FavHobby.Relaxing},
-            {Questions.FavColour,                      FavColour.White},
-            {Questions.FavSeason,                      FavSeason.Autumn},
-            {Questions.FavHangout,                     FavHangout.HotSpring},
+            {Questions.LastName, LastName.Venus},
+            {Questions.HomeWorld, Homeworld.SkyGarden},
+            {Questions.Height, Height._5_8},
+            {Questions.Weight, Weight._128},
+            {Questions.Occupation, Occupation.Goddess},
+            {Questions.CupSize, CupSize.DD_Cup},
+            {Questions.Birthday, Birthday.Sep_1},
+            {Questions.Hobby, FavHobby.Relaxing},
+            {Questions.FavColour, FavColour.White},
+            {Questions.FavSeason, FavSeason.Autumn},
+            {Questions.FavHangout, FavHangout.HotSpring},
         };
 
         body.LocationIdToStyleInfo = new Dictionary<RelativeId, GirlStyleInfo>() {

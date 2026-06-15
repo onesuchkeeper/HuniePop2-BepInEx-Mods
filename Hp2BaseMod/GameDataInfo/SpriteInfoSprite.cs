@@ -1,8 +1,9 @@
 using System;
-using Hp2BaseMod;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
 using UnityEngine;
+
+namespace Hp2BaseMod.GameDataInfo;
 
 public class SpriteInfoSprite : IGameDefinitionInfo<Sprite>
 {

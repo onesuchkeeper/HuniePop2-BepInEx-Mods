@@ -140,7 +140,7 @@ public partial class HpExtraction
                     if (background.TryGetValue("backgroundName", out string backgroundName)
                         && !string.IsNullOrEmpty(backgroundName)
                         && spriteLookup.TryGetValue(backgroundName, out var spriteDef)
-                        && TryMakeSpriteInfo(spriteDef, spriteTextureInfo, true, out var spriteInfo)
+                        && TryMakeSpriteInfoTiledMirror(Path.Combine(Plugin.IMAGES_DIR, $"{backgroundName}.png"), spriteDef, spriteTextureInfo, 2008, 1140, out var spriteInfo)
                         && background.TryGetValue("daytime", out int dayTime))
                     {
                         backgroundSprites[(ClockDaytimeType)dayTime] = spriteInfo;
@@ -155,7 +155,7 @@ public partial class HpExtraction
                         locationMod.BgMusic = new AudioKlipInfo()
                         {
                             AudioClipInfo = clipInfo,
-                            Volume = musicVolume * 2.5f //hp2 is louder
+                            Volume = musicVolume * 3f //hp2 is louder
                         };
                     }
                 }
@@ -172,10 +172,12 @@ public partial class HpExtraction
                 }
                 else
                 {
-                    var blurBg = new SpriteInfoTexture(new TextureInfoCache(Path.Combine(Plugin.IMAGES_DIR, $"{locationName}_blur.png"),
-                            new TextureInfoSprite(defaultBg, false, false, true, [new TextureRsBlur(36)])));//super inefficient...
-                    //pre render so we can later make readonly
-                    blurBg.GetSprite();
+                    var blurBg = new SpriteInfoSprite(_assetBundle.LoadAsset<UnityEngine.Sprite>($"{locationName}_blur"));
+
+                    // var blurBg = new SpriteInfoTexture(new TextureInfoCache(Path.Combine(Plugin.IMAGES_DIR, $"{locationName}_blur.png"),
+                    //         new TextureInfoSprite(defaultBg, false, false, true, [new TextureRsBlur(36)])));//super inefficient...
+                    // //pre render so we can later make readonly
+                    // blurBg.GetSprite();
                     locationMod.Backgrounds = [defaultBg, blurBg];
                 }
             }

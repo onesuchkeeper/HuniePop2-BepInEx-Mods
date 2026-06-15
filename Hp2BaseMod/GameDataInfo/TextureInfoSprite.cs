@@ -21,13 +21,17 @@ public class TextureInfoSprite : ITextureInfo
 
     private Texture2D _texture;
 
-    public TextureInfoSprite(IGameDefinitionInfo<Sprite> spriteData, bool readOnly, bool forceTight = false, bool renderSprite = true, IEnumerable<ITextureRenderStep> renderSteps = null)
+    public TextureWrapMode WrapMode => _wrapMode;
+    private TextureWrapMode _wrapMode;
+
+    public TextureInfoSprite(IGameDefinitionInfo<Sprite> spriteData, bool readOnly, bool forceTight = false, bool renderSprite = true, IEnumerable<ITextureRenderStep> renderSteps = null, TextureWrapMode wrapMode = TextureWrapMode.Clamp)
     {
         _spriteData = spriteData ?? throw new ArgumentNullException(nameof(spriteData));
         _renderSprite = renderSprite;
         _renderSteps = renderSteps;
         _forceTight = forceTight;
         _readOnly = readOnly;
+        _wrapMode = wrapMode;
     }
 
     public Texture2D GetTexture()
@@ -64,6 +68,7 @@ public class TextureInfoSprite : ITextureInfo
 
                 // if there are render steps, don't make readOnly until after
                 _texture.Apply(false, _renderSteps == null && _readOnly);
+                _texture.wrapMode = _wrapMode;
             }
             else
             {

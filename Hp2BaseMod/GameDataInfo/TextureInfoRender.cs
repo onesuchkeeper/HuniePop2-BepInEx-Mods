@@ -9,6 +9,8 @@ namespace Hp2BaseMod.GameDataInfo;
 
 public class TextureInfoRender : ITextureInfo
 {
+    public TextureWrapMode WrapMode => _decorated.WrapMode;
+
     private ITextureInfo _decorated;
     private IEnumerable<ITextureRenderStep> _renderSteps;
     private bool _readOnly;

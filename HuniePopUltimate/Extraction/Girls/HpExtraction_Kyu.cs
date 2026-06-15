@@ -10,8 +10,11 @@ public partial class HpExtraction
     {
         var body = (GirlBodyDataMod)girlMod.bodies[0];
 
-        m_AddGirlSexPhotos?.Invoke(girlMod.Id, [(Photos.KyuOld, RelativeId.Default)]);
-
+        if (Plugin.HasKyuOldPhoto)
+        {
+            m_AddGirlSexPhotos?.Invoke(girlMod.Id, [(Photos.KyuOld, RelativeId.Default)]);
+        }
+        
         girlMod.LocationGreetingDialogLines[Locations.MassageSpa] = girlMod.LocationGreetingDialogLines[LocationIds.ScenicOverlook];//seduce
         girlMod.LocationGreetingDialogLines[Locations.Aquarium] = girlMod.LocationGreetingDialogLines[LocationIds.FarmersMarket];//nothing I like
         girlMod.LocationGreetingDialogLines[Locations.SecludedCabana] = girlMod.LocationGreetingDialogLines[LocationIds.ScenicOverlook];//seduce
@@ -54,17 +57,17 @@ public partial class HpExtraction
             // {Hp2BaseMod.Favorites.SexPos,           Hp2BaseMod.FavSexPos.Missionary},
             // {Hp2BaseMod.Favorites.PornCat,          Hp2BaseMod.FavPornCategory.Hentai},
 
-            {Questions.LastName,                       LastName.Sugardust},
-            {Questions.HomeWorld,                      Homeworld.SkyGarden},
-            {Questions.Height,                         Height._5_4},
-            {Questions.Weight,                         Weight._110},
-            {Questions.Occupation,                     Occupation.LoveFairy},
-            {Questions.CupSize,                        CupSize.C_Cup},
-            {Questions.Birthday,                       Birthday.Aug_3},
-            {Questions.Hobby,                          FavHobby.Porn},
-            {Questions.FavColour,                      FavColour.Pink},
-            {Questions.FavSeason,                      FavSeason.Summer},
-            {Questions.FavHangout,                     FavHangout.Bedroom},
+            {Questions.LastName, LastName.Sugardust},
+            {Questions.HomeWorld, Homeworld.SkyGarden},
+            {Questions.Height, Height._5_4},
+            {Questions.Weight, Weight._110},
+            {Questions.Occupation, Occupation.LoveFairy},
+            {Questions.CupSize, CupSize.C_Cup},
+            {Questions.Birthday, Birthday.Aug_3},
+            {Questions.Hobby, FavHobby.Porn},
+            {Questions.FavColour, FavColour.Pink},
+            {Questions.FavSeason, FavSeason.Summer},
+            {Questions.FavHangout, FavHangout.Bedroom},
         };
 
         body.LocationIdToStyleInfo = new Dictionary<RelativeId, GirlStyleInfo>() {
