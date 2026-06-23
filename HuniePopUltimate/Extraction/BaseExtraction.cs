@@ -5,7 +5,7 @@ namespace HuniePopUltimate;
 
 public class BaseExtraction : IDisposable
 {
-    protected Extractor _extractor;
+    protected readonly Extractor _extractor;
 
     private bool _populated = true;
 

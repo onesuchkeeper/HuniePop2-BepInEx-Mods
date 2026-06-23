@@ -202,36 +202,57 @@ public static class PlayerFile_PopulateStoreProducts
         };
         args.ItemCategories[ItemTypes.Unique] = uniqueCategory;
 
-        void handleGirlItems(List<ItemDefinition> itemDefs,
-            List<int> receivedItems,
-            int maxItemCount,
-            List<Category<ItemDefinition>.Entry> pool)
+        // Build owned sets once up front, covering inventory slots and gifted items
+        var ownedShoes = new HashSet<int>(
+            playerFile.inventorySlots
+                .Where(x => x.itemDefinition?.itemType == ItemType.SHOES)
+                .Select(x => x.itemDefinition.id));
+
+        var ownedUniques = new HashSet<int>(
+            playerFile.inventorySlots
+                .Where(x => x.itemDefinition?.itemType == ItemType.UNIQUE_GIFT)
+                .Select(x => x.itemDefinition.id));
+
+        foreach (var girl in Game.Data.Girls.GetAllBySpecial(false))
         {
-            int ownedItemCount =
-                    receivedItems.Count +
-                    playerFile.GetInventoryItemsCount(itemDefs, false);
+            var pfg = playerFile.GetPlayerFileGirl(girl);
 
-            if (ownedItemCount < maxItemCount)
+            foreach (var item in girl.shoesItemDefs.Where(pfg.HasShoes))
             {
-                var remainingItems = itemDefs
-                    .Where(x =>
-                        !playerFile.IsItemInInventory(x, false) &&
-                        !receivedItems.Contains(x.id))
-                    .ToList();
-
-                if (remainingItems.Count > 0)
-                {
-                    pool.Add(new(remainingItems.GetRandom(), remainingItems.Count * remainingItems.Count));
-                }
+                ownedShoes.Add(item.id);
             }
+                
+            foreach (var item in girl.uniqueItemDefs.Where(pfg.HasUnique))
+            {
+                ownedUniques.Add(item.id);
+            } 
         }
 
         foreach (var girl in Game.Data.Girls.GetAllBySpecial(false))
         {
             var pfg = playerFile.GetPlayerFileGirl(girl);
             var maxItems = pfg.learnedBaggage.Count + 1;
-            handleGirlItems(girl.shoesItemDefs, pfg.receivedShoes, maxItems, shoesCategory.Pool);
-            handleGirlItems(girl.uniqueItemDefs, pfg.receivedUniques, maxItems, uniqueCategory.Pool);
+
+            void handleGirlItems(
+                List<ItemDefinition> itemDefs,
+                HashSet<int> ownedItems,
+                List<Category<ItemDefinition>.Entry> pool)
+            {
+                var remainingItems = itemDefs
+                    .Where(x => !ownedItems.Contains(x.id))
+                    .ToList();
+
+                var ownedItemCount = itemDefs.Count - remainingItems.Count;
+
+                if (ownedItemCount < maxItems
+                    && remainingItems.Count > 0)
+                {
+                    pool.Add(new(remainingItems.GetRandom(), remainingItems.Count * remainingItems.Count));
+                }
+            }
+
+            handleGirlItems(girl.shoesItemDefs, ownedShoes, shoesCategory.Pool);
+            handleGirlItems(girl.uniqueItemDefs, ownedUniques, uniqueCategory.Pool);
         }
     }
 

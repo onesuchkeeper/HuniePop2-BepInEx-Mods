@@ -1,27 +1,65 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using Hp2BaseMod;
+using Hp2BaseMod.Extension;
 using Hp2BaseMod.GameDataInfo;
+using Hp2BaseMod.Utility;
+using UnityEngine;
 
 namespace HuniePopUltimate;
 
-public partial class HpExtraction
+public class LolaConfigurator : IGirlConfigurator
 {
-    public void HandleLola(GirlDataMod girlMod)
-    {
-        var body = (GirlBodyDataMod)girlMod.bodies[0];
+    public bool ExtractUniqueAcceptDialogLines => false;
 
+    public IEnumerable<RelativeId> FavQuestionOrder => _favQuestionOrder;
+    private static RelativeId[] _favQuestionOrder = [
+        Questions.LastName,
+        Questions.Birthday,
+        Questions.Age,
+        Questions.Education,
+        Questions.FavColour,
+        Questions.Hobby,
+        Questions.FavHangout,
+        Questions.CupSize,
+        Questions.FavSeason,
+        Questions.Weight,
+        Questions.Height,
+        Questions.Occupation,
+    ];
+
+    public (int censoredIndex, int nudeIndex, int wetIndex) PhotoIndexes => (0,2,3);
+
+    public GirlDataMod Mod => _mod;
+    private readonly GirlDataMod _mod;
+
+    public IEnumerable<(RelativeId, int)> ExtractItemIds => Enumerable.Empty<(RelativeId, int)>();
+
+    public string UnderwearName => "Underwear";
+
+    public (RelativeId outfit, RelativeId hairstyle)[] MeetingCutsceneStyleSequence => null;
+
+    public LolaConfigurator()
+    {
+        _mod = new GirlDataMod(Hp2BaseMod.Girls.Lola, InsertStyle.append);
+        ModInterface.AddDataMod(_mod);
+    }
+
+    public  void ConfigureGirl(GirlBodyDataMod hpBody, AssetBundle assetBundle, HpSpriteCache sprites, HpAudioCache audio, HpItemCache items)
+    {
         if (!Plugin.PConfig.UseHp1LolaStats.Value)
         {
-            girlMod.FavoriteAffectionType = null;
-            girlMod.LeastFavoriteAffectionType = null;
+            _mod.FavoriteAffectionType = null;
+            _mod.LeastFavoriteAffectionType = null;
         }
 
         if (!Plugin.PConfig.UseHp1LolaLines.Value)
         {
-            girlMod.LinesByDialogTriggerId = null;
+            _mod.LinesByDialogTriggerId = null;
         }
 
-        girlMod.FavAnswers = new() {
+        _mod.FavAnswers = new(){
             {Questions.LastName, LastName.Rembrite},
             {Questions.Education, Education.College_4},
             {Questions.Height, Height._5_7},
@@ -35,10 +73,10 @@ public partial class HpExtraction
             {Questions.FavHangout, FavHangout.Cafe},
         };
 
-        body.BackPosition = new VectorInfo(200, 450);
-        body.HeadPosition = new VectorInfo(230, 780);
+        hpBody.BackPosition = new VectorInfo(200, 450);
+        hpBody.HeadPosition = new VectorInfo(230, 780);
 
-        body.LocationIdToStyleInfo = new Dictionary<RelativeId, GirlStyleInfo>() {
+        hpBody.LocationIdToStyleInfo = new Dictionary<RelativeId, GirlStyleInfo>() {
             {LocationIds.BotanicalGarden, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)},
             {LocationIds.HikingTrail, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
             {LocationIds.FarmersMarket, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
@@ -58,7 +96,7 @@ public partial class HpExtraction
             {LocationIds.BedRoomDate, new GirlStyleInfo(Hp2BaseMod.Styles.Sexy)},
 
             {Locations.MassageSpa, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
-            {Locations.Aquarium, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
+            {Locations.Aquarium, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)},
             {Locations.SecludedCabana, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
             {Locations.PoolsideBar, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
             {Locations.GolfCourse, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)},
@@ -70,6 +108,10 @@ public partial class HpExtraction
             {Locations.RoyalSuite, new GirlStyleInfo(Hp2BaseMod.Styles.Sexy)},
             {Locations.AirplaneBathroom, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)},
             {Locations.OuterSpace, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)},
+            {Locations.StripClub, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
+            {Locations.VolcanoTop, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)}
         };
     }
+
+    public  bool IsPhotoIndexNsfw(int photoIndex) => photoIndex == 3;
 }

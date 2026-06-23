@@ -1,5 +1,6 @@
 ﻿// Hp2BaseMod 2021, By OneSuchKeeper
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Hp2BaseMod.GameDataInfo.Interface;
@@ -8,7 +9,20 @@ using Hp2BaseMod.Utility;
 namespace Hp2BaseMod.GameDataInfo
 {
     /// <summary>
-    /// Information to make a <see cref="AbilityDefinition"/>.
+    /// Information to make or modify an <see cref="AbilityDefinition"/>.
+    /// Set <see cref="ScriptedAbilityFactory"/> to attach code-driven behaviour that wraps
+    /// or replaces the data-driven step pipeline. Leave it null for purely data-driven abilities.
+    ///
+    /// Scripted behaviour executes in three stages around the data-driven pipeline:
+    ///   1. <see cref="IScriptedAbility.PrePerform"/>       may abort before any steps run
+    ///   2. <see cref="IScriptedAbility.ReplacePerform"/>   when non-null, replaces all steps
+    ///   3. <see cref="IScriptedAbility.PostPerform"/>      may override the final result
+    ///
+    /// Note: abilities are already the preferred way to implement enable/disable effects on
+    /// scripted ailments via <see cref="AilmentDefinition.enableAbilityDef"/> and
+    /// <see cref="AilmentDefinition.disableAbilityDef"/>. Use <see cref="IScriptedAilment"/>
+    /// only for behaviour that requires direct access to trigger context or move/match/gift
+    /// modifiers, which abilities cannot reach.
     /// </summary>
     public class AbilityDataMod : DataMod, IGameDataMod<AbilityDefinition>
     {
@@ -19,6 +33,13 @@ namespace Hp2BaseMod.GameDataInfo
         public IGameDefinitionInfo<TokenConditionSet> TargetConditionSetInfo;
 
         public List<IGameDefinitionInfo<AbilityStepSubDefinition>> Steps;
+
+        /// <summary>
+        /// Factory invoked once per <see cref="Ability"/> construction to produce scripted behaviour.
+        /// Receives the newly constructed Ability so the factory can capture instance-specific context.
+        /// Null if this is a purely data-driven ability.
+        /// </summary>
+        public Func<Ability, IScriptedAbility> ScriptedAbilityFactory;
 
         /// <inheritdoc/>
         public AbilityDataMod() { }
@@ -47,6 +68,9 @@ namespace Hp2BaseMod.GameDataInfo
             ValidatedSet.SetValue(ref def.targetConditionSet, TargetConditionSetInfo, InsertStyle, gameDataProvider, assetProvider);
 
             ValidatedSet.SetListValue(ref def.steps, Steps, InsertStyle, gameDataProvider, assetProvider);
+
+            // Always write the factory null clears scripted behaviour, non-null sets it.
+            ValidatedSet.SetValue(ref def.Expansion().ScriptedAbilityFactory, ScriptedAbilityFactory, InsertStyle);
         }
 
         /// <inheritdoc/>

@@ -1,5 +1,6 @@
 ﻿// Hp2BaseMod 2021, By OneSuchKeeper
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Hp2BaseMod.GameDataInfo.Interface;
@@ -8,7 +9,9 @@ using Hp2BaseMod.Utility;
 namespace Hp2BaseMod.GameDataInfo
 {
     /// <summary>
-    /// Information to make a <see cref="AilmentDefinition"/>.
+    /// Information to make or modify a <see cref="AilmentDefinition"/>.
+    /// Set <see cref="ScriptedAilmentFactory"/> to attach code-driven behaviour that runs
+    /// alongside the data-driven pipeline. Leave it null for purely data-driven ailments.
     /// </summary>
     public class AilmentDataMod : DataMod, IGameDataMod<AilmentDefinition>
     {
@@ -37,6 +40,13 @@ namespace Hp2BaseMod.GameDataInfo
         public List<AilmentHintSubDefinition> Hints;
 
         public List<IGameDefinitionInfo<AilmentTriggerSubDefinition>> Triggers;
+
+        /// <summary>
+        /// Factory invoked once per <see cref="Ailment"/> construction to produce scripted behaviour.
+        /// Receives the newly constructed Ailment so the factory can capture instance-specific context.
+        /// Null if this is a purely data-driven ailment.
+        /// </summary>
+        public Func<Ailment, IScriptedAilment> ScriptedAilmentFactory;
 
         /// <inheritdoc/>
         public AilmentDataMod() { }
@@ -95,6 +105,8 @@ namespace Hp2BaseMod.GameDataInfo
             ValidatedSet.SetValue(ref def.enableStringVal, EnableStringVal, InsertStyle);
             ValidatedSet.SetListValue(ref def.hints, Hints, InsertStyle);
             ValidatedSet.SetListValue(ref def.triggers, Triggers, InsertStyle, gameDataProvider, assetProvider);
+
+            ValidatedSet.SetValue(ref def.Expansion().ScriptedAilmentFactory, ScriptedAilmentFactory, InsertStyle);
         }
 
         /// <inheritdoc/>

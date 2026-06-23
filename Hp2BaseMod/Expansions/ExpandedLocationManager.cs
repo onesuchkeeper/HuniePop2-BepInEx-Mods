@@ -331,7 +331,7 @@ public class ExpandedLocationManager
         return args.Style switch
         {
             PreDateDollResetArgs.StyleType.Sex =>
-                GetPairSexStyles(pair),
+                GetPairSexStyles(pair, location, leftDef, rightDef),
 
             PreDateDollResetArgs.StyleType.Location =>
                 ResolveLocationStyles(location, leftDef, rightDef),
@@ -344,18 +344,44 @@ public class ExpandedLocationManager
     /// <summary>
     /// Resolves pair-based styles (Meeting / Sex).
     /// </summary>
-    private (GirlStyleInfo, GirlStyleInfo) GetPairSexStyles(GirlPairDefinition pair)
+    private (GirlStyleInfo, GirlStyleInfo) GetPairSexStyles(
+        GirlPairDefinition pair,
+        LocationDefinition location,
+        GirlDefinition leftDef,
+        GirlDefinition rightDef)
     {
         var pairId = ModInterface.Data.GetDataId(GameDataType.GirlPair, pair.id);
         var pairStyle = ExpandedGirlPairDefinition.Get(pairId).PairStyle;
 
         if (pairStyle == null) return (null, null);
 
-        bool flipped = (bool)f_currentSidesFlipped.GetValue(_core);
+        bool flipped = f_currentSidesFlipped.GetValue<bool>(_core);
 
-        return flipped
-            ? (pairStyle.SexGirlTwo, pairStyle.SexGirlOne)
-            : (pairStyle.SexGirlOne, pairStyle.SexGirlTwo);
+        var left = flipped
+            ? pairStyle.SexGirlTwo
+            : pairStyle.SexGirlOne;
+
+        var right = flipped
+            ? pairStyle.SexGirlOne
+            : pairStyle.SexGirlTwo;
+
+        var locationStyles = ResolveLocationStyles(location, leftDef, rightDef);
+
+        if (left != null &&
+            left.OutfitId == RelativeId.Default &&
+            left.HairstyleId == RelativeId.Default)
+        {
+            left = locationStyles.left;
+        }
+
+        if (right != null &&
+            right.OutfitId == RelativeId.Default &&
+            right.HairstyleId == RelativeId.Default)
+        {
+            right = locationStyles.right;
+        }
+
+        return (left, right);
     }
 
     /// <summary>

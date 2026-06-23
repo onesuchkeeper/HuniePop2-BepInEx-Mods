@@ -45,8 +45,7 @@ public static class ModEventHandles
             hpExtraction = new HpExtraction(Plugin.PConfig.HuniePopDir.Value, m_AddGirlDatePhotos, m_AddGirlSexPhotos, m_SetCharmSprite, nudeOutfitPart, Plugin.AssetBundle);
             using (ModInterface.Log.MakeIndent("HuniePop assembly loaded successfully, beginning import:"))
             {
-                hpExtraction.InitAudioCache(Path.Combine(Plugin.ROOT_DIR, "audio.pcmx"));
-                hpExtraction.Extract();
+                hpExtraction.Extract(Path.Combine(Plugin.ROOT_DIR, "audio.pcmx"));
             }
         }
         catch (Exception e)
@@ -98,6 +97,10 @@ public static class ModEventHandles
                     MeetingLocationDefinitionID = meetingLoc,
                     SexDayTime = sexTime,
                     SexLocationDefinitionID = null,
+                    Styles = new PairStyleInfo()
+                    {
+                        SexGirlTwo = new GirlStyleInfo(RelativeId.Default)
+                    },
 
                     BonusSuccessCutsceneDefinitionID = Cutscenes.BonusRoundSuccess,
                     AttractSuccessCutsceneDefinitionID = Cutscenes.SuccessAttracted,
@@ -143,37 +146,57 @@ public static class ModEventHandles
 
     /// <summary>
     /// Adds "Weird Thing" for Celeste to shop
+    /// Removes secret girl items from store until they are unlocked
     /// </summary>
     internal static void On_PopulateStoreProducts(StoreProductsPopulateArgs args)
     {
-        if (UnityEngine.Random.Range(0, 5) > 1) return;
-
-        var category = new Hp2BaseMod.Elements.Category<ItemDefinition>()
-        {
-            Priority = -1,
-            TargetCount = 1,
-            Pool = new()
-        };
-
         var playerFile = Game.Persistence.playerFile;
-
-        // using goldfish plush instead
-        // var momoDef = ModInterface.GameData.GetGirl(Girls.Momo);
-        // var momoSave = playerFile.GetPlayerFileGirl(momoDef);
-        // if (!momoSave.playerMet)
-        // {
-        //     category.Pool.Add(new Hp2BaseMod.Elements.Category<ItemDefinition>.Entry(ModInterface.GameData.GetItem(Items.Goldfish), 1));
-        // }
 
         var celesteDef = ModInterface.GameData.GetGirl(Girls.Celeste);
         var celesteSave = playerFile.GetPlayerFileGirl(celesteDef);
-        if (!celesteSave.playerMet
-            && !playerFile.IsItemInInventory(ModInterface.GameData.GetItem(Items.WeirdThing), false))
+        if (!celesteSave.playerMet)
         {
-            category.Pool.Add(new Hp2BaseMod.Elements.Category<ItemDefinition>.Entry(ModInterface.GameData.GetItem(Items.WeirdThing), 1));
+            args.ItemCategories[ItemTypes.Unique].Pool.RemoveAll(x => Items.Celeste.IsUniqueItem(x.Value.ModId()));
+            args.ItemCategories[ItemTypes.Shoe].Pool.RemoveAll(x => Items.Celeste.IsShoeItem(x.Value.ModId()));
+
+            if (UnityEngine.Random.Range(0, 5) == 0 
+                && !playerFile.IsItemInInventory(ModInterface.GameData.GetItem(Items.WeirdThing), false))
+            {
+                var category = new Hp2BaseMod.Elements.Category<ItemDefinition>()
+                {
+                    Priority = -1,
+                    TargetCount = 1,
+                    Pool = new()
+                };
+
+                category.Pool.Add(new Hp2BaseMod.Elements.Category<ItemDefinition>.Entry(ModInterface.GameData.GetItem(Items.WeirdThing), 1));
+                args.ItemCategories[new RelativeId(Plugin.ModId, 0)] = category;
+            }
         }
 
-        args.ItemCategories[new RelativeId(Plugin.ModId, 0)] = category;
+        var kyuDef = ModInterface.GameData.GetGirl(Hp2BaseMod.Girls.Kyu);
+        var kyuSave = playerFile.GetPlayerFileGirl(kyuDef);
+        if (!kyuSave.playerMet)
+        {
+            args.ItemCategories[ItemTypes.Unique].Pool.RemoveAll(x => Items.Kyu.IsUniqueItem(x.Value.ModId()));
+            args.ItemCategories[ItemTypes.Shoe].Pool.RemoveAll(x => Items.Kyu.IsShoeItem(x.Value.ModId()));
+        }
+
+        var momoDef = ModInterface.GameData.GetGirl(Girls.Momo);
+        var momoSave = playerFile.GetPlayerFileGirl(momoDef);
+        if (!momoSave.playerMet)
+        {
+            args.ItemCategories[ItemTypes.Unique].Pool.RemoveAll(x => Items.Momo.IsUniqueItem(x.Value.ModId()));
+            args.ItemCategories[ItemTypes.Shoe].Pool.RemoveAll(x => Items.Momo.IsShoeItem(x.Value.ModId()));
+        }
+
+        var venusDef = ModInterface.GameData.GetGirl(Girls.Venus);
+        var venusSave = playerFile.GetPlayerFileGirl(venusDef);
+        if (!venusSave.playerMet)
+        {
+            args.ItemCategories[ItemTypes.Unique].Pool.RemoveAll(x => Items.Venus.IsUniqueItem(x.Value.ModId()));
+            args.ItemCategories[ItemTypes.Shoe].Pool.RemoveAll(x => Items.Venus.IsShoeItem(x.Value.ModId()));
+        }
     }
 
     internal static void On_FinderSlotsPopulate(FinderSlotPopulateEventArgs args)

@@ -120,9 +120,9 @@ public static class RandomizeUtil
             ("Renee", null),
             
             // The Named
-            ("Lily", null),         // Half Baked
-            ("Schmendolyn", null),  // Mallot
-            //opted for no name     // Tobias
+            ("Lily", null),                 // Half Baked
+            ("Schmendolyn", "Schmendy"),    // Mallot
+            //opted for no name             // Tobias
 
             // Tele
             ("Nila", null),

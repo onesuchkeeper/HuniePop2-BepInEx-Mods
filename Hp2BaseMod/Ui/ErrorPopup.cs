@@ -40,7 +40,8 @@ public class ErrorPopup : MonoBehaviour
         }
     }
     private void CreateUI()
-    { // ---------------------- // Canvas // ---------------------- 
+    { 
+        // Canvas
         _canvasGO = new GameObject("ErrorCanvas");
         _canvasGO.transform.SetParent(transform);
         var canvas = _canvasGO.AddComponent<Canvas>();
@@ -58,7 +59,7 @@ public class ErrorPopup : MonoBehaviour
         blockerRT.anchorMax = Vector2.one;
         blockerRT.offsetMin = Vector2.zero;
         blockerRT.offsetMax = Vector2.zero;
-        // ---------------------- // Window Shadow // ---------------------- 
+        // Window Shadow
         var shadowGO = new GameObject("Shadow");
         shadowGO.transform.SetParent(_canvasGO.transform);
         var shadowImg = shadowGO.AddComponent<Image>();
@@ -69,7 +70,7 @@ public class ErrorPopup : MonoBehaviour
         shadowRT.anchorMax = new Vector2(0.5f, 0.5f);
         shadowRT.pivot = new Vector2(0.5f, 0.5f);
         shadowRT.anchoredPosition = new Vector2(5, -5);
-        // ---------------------- // Window // ---------------------- 
+        // Window
         _windowGO = new GameObject("Window");
         _windowGO.transform.SetParent(_canvasGO.transform);
         var windowImg = _windowGO.AddComponent<Image>();
@@ -95,7 +96,7 @@ public class ErrorPopup : MonoBehaviour
         borderRT.anchorMax = Vector2.one;
         borderRT.offsetMin = Vector2.zero;
         borderRT.offsetMax = Vector2.zero;
-        // ---------------------- // Title Bar // ---------------------- 
+        // Title Bar
         var titleBarGO = new GameObject("TitleBar");
         titleBarGO.transform.SetParent(_windowGO.transform);
         var titleBarImg = titleBarGO.AddComponent<Image>();
@@ -126,7 +127,7 @@ public class ErrorPopup : MonoBehaviour
         var titleShadow = titleTextGO.AddComponent<Shadow>();
         titleShadow.effectColor = new Color(0, 0, 0, 0.5f);
         titleShadow.effectDistance = new Vector2(2, -2);
-        // ---------------------- // Content Background // ---------------------- 
+        // Content Background
         var contentBgGO = new GameObject("ContentBackground");
         contentBgGO.transform.SetParent(_windowGO.transform);
         var contentBgImg = contentBgGO.AddComponent<Image>();
@@ -141,7 +142,7 @@ public class ErrorPopup : MonoBehaviour
         var contentBorder = contentBgGO.AddComponent<Outline>();
         contentBorder.effectColor = new Color(0.3f, 0.3f, 0.35f, 1f);
         contentBorder.effectDistance = new Vector2(1, -1);
-        // ---------------------- // Scrollable Text // ---------------------- 
+        // Scrollable Text
 
         var scrollGO = new GameObject("Scroll");
         var scrollImg = scrollGO.AddComponent<Image>();
@@ -186,10 +187,10 @@ public class ErrorPopup : MonoBehaviour
         _scrollRect.content = contentRT;
         _scrollRect.horizontal = false;
         _scrollRect.vertical = true;
-        // ---------------------- // Buttons // ---------------------- 
+        // Buttons
         CreateButton("COPY", new Vector2(-130, 60), new Color(0.35f, 0.35f, 0.55f, 1f), () => GUIUtility.systemCopyBuffer = _text.text);
         CreateButton("OK", new Vector2(130, 60), new Color(0.9f, 0.3f, 0.6f, 1f), () => _canvasGO.SetActive(false));
-        // ---------------------- // Corner Image (Top Right) - Created last so it's in front // ---------------------- 
+        // Corner Image (Top Right) Created last so it's in front
         var cornerImageGO = new GameObject("CornerImage");
         cornerImageGO.transform.SetParent(_windowGO.transform);
         _cornerImage = cornerImageGO.AddComponent<Image>();
