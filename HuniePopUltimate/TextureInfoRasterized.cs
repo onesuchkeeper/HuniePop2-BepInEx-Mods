@@ -63,9 +63,6 @@ public class TextureInfoRasterized : ITextureInfo
         var material = new Material(_shader);
         var sourceTex = _source.GetTexture();
 
-        // sourceTex.wrapMode = TextureWrapMode.Clamp;
-        // sourceTex.filterMode = FilterMode.Bilinear;
-
         var rt = new RenderTexture(_width, _height, 0, RenderTextureFormat.ARGB32)
         {
             wrapMode = TextureWrapMode.Clamp,
@@ -82,7 +79,7 @@ public class TextureInfoRasterized : ITextureInfo
         material.SetPass(0);
 
         GL.PushMatrix();
-        GL.LoadOrtho(); // normalized 0–1 space
+        GL.LoadOrtho();
 
         GL.Begin(GL.TRIANGLES);
 
@@ -93,7 +90,6 @@ public class TextureInfoRasterized : ITextureInfo
             var pos = _verts[idx];
             var uv = _uvs[idx];
 
-            // Convert pixel space → normalized 0–1
             float nx = pos.x / _width;
             float ny = pos.y / _height;
 

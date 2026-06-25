@@ -121,7 +121,6 @@ public class Plugin : Hp2BaseModPlugin
         }
 
         TextureInfoRasterized._shader = _assetBundle.LoadAsset<Shader>("TextureRasterize");
-
         if (TextureInfoRasterized._shader == null)
         {
             ModInterface.Log.Error("Failed to load TextureRasterize shader");
@@ -129,6 +128,12 @@ public class Plugin : Hp2BaseModPlugin
         }
 
         TextureInfoCenterMirrored._material = new Material(_assetBundle.LoadAsset<Shader>("EdgePadHorizontal"));
+        if (TextureInfoCenterMirrored._material == null)
+        {
+            ModInterface.Log.Error("Failed to load EdgePadHorizontal shader");
+            return;
+        }
+
 
         var sexLocs = new List<RelativeId>()
         {

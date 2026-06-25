@@ -157,6 +157,7 @@ public class KyuConfigurator : GirlConfiguratorBase
     public override void ConfigureGirl(GirlBodyDataMod hpBody, AssetBundle assetBundle, HpSpriteCache sprites, HpAudioCache audio, HpItemCache items)
     {
         base.ConfigureGirl(hpBody, assetBundle, sprites, audio, items);
+        if (Plugin.HasKyuOldPhoto) AddSexPhotos([(Photos.KyuOld, RelativeId.Default)]);
         Mod.SpecialCharacter = false;
         hpBody.SpecialEffect = SpecialParts.KyuWingId;
     }

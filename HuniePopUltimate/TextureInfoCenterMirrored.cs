@@ -48,7 +48,7 @@ public class TextureInfoCenterMirrored : ITextureInfo
         var targetWidth = _targetWidth;
 
         var centerStart = (targetWidth - sourceWidth) / (2f * targetWidth);
-        var centerEnd = centerStart + (sourceWidth / targetWidth);
+        var centerEnd = centerStart + (sourceWidth / (float)targetWidth);
 
         _material.SetFloat("_CenterStart", centerStart);
         _material.SetFloat("_CenterEnd", centerEnd);

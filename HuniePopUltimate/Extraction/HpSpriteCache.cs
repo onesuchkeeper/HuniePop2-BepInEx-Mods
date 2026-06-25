@@ -251,7 +251,7 @@ public class HpSpriteCache
     {
         if (!spriteDef.TryGetValue("boundsData", out List<object> bounds)
             || bounds.Count != 2
-            || !TryGetVector2((OrderedDictionary)bounds[1], out _, out var sizeY)
+            || !TryGetVector2((OrderedDictionary)bounds[1], out var sizeX, out var sizeY)
             || !spriteDef.TryGetValue("uvs", out List<object> uvs)
             || !spriteDef.TryGetValue("positions", out List<object> positions)
             || !spriteDef.TryGetValue("indices", out List<object> indices))
@@ -267,37 +267,30 @@ public class HpSpriteCache
                 : throw new Exception("Malformed UV entry"))
             .ToArray();
 
+        // Positions are stored in pixel coordinates with y-flipped origin.
+        // sizeY from boundsData[1] is used to flip y back to top-left origin.
         var positionVerts = positions.OfType<OrderedDictionary>()
             .Select(o => TryGetVector2(o, out float x, out float y)
                 ? new UE.Vector2(x, sizeY + y)
                 : UE.Vector2.zero)
             .ToArray();
 
+        // Find the minimum position to use as the origin offset.
+        // The declared boundsData[1] size is the authoritative canvas size —
+        // we do not derive it from the atlas texture dimensions, which vary
+        // between sprite collections and would produce wrong canvas sizes for
+        // sprites on smaller atlases.
         var minPos = positionVerts[0];
-        var maxPos = positionVerts[0];
-        foreach (var v in positionVerts)
-        {
+        foreach (var v in positionVerts.Skip(1))
             minPos = UE.Vector2.Min(minPos, v);
-            maxPos = UE.Vector2.Max(maxPos, v);
-        }
 
-        // Convert from Unity world units to pixel units using the atlas size
-        // as the reference. Without this, RoundToInt on sub-unit floats collapses
-        // the geometry to 1x1 pixels for backgrounds whose world-unit extents are < 1.
-        var worldSize = maxPos - minPos;
-        var texSize = textureInfo.GetSize();
-        float scaleX = texSize.x / worldSize.x;
-        float scaleY = texSize.y / worldSize.y;
-        float scale = UE.Mathf.Min(scaleX, scaleY);
-
+        // Shift verts so the canvas origin is (0, 0). No scaling is applied
+        // because the verts are already in pixel coordinates matching sizeX x sizeY.
         for (int i = 0; i < positionVerts.Length; i++)
-        {
-            positionVerts[i] = (positionVerts[i] - minPos) * scale;
-        }
+            positionVerts[i] = positionVerts[i] - minPos;
 
-        var sourceSize = worldSize * scale;
-        int sourceWidth  = UE.Mathf.RoundToInt(sourceSize.x);
-        int sourceHeight = UE.Mathf.RoundToInt(sourceSize.y);
+        int sourceWidth  = UE.Mathf.RoundToInt(sizeX);
+        int sourceHeight = UE.Mathf.RoundToInt(sizeY);
 
         if (sourceWidth <= 0 || sourceHeight <= 0)
         {

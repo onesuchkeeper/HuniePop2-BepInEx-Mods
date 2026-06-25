@@ -36,16 +36,26 @@ public class HpLocationExtractor
         new TextureRsCellphoneOutline(4f, 0f, 1f),
     ];
 
+    private static readonly ITextureRenderStep[] FINDER_ICON_FLIPPED_STEPS =
+    [
+        new TextureRsTransform(false, true, false),
+        new TextureRsCellphoneOutline(4f, 0f, 1f),
+    ];
+
     private static readonly Dictionary<RelativeId, string> LOCATION_ICON_OUTLINED = new()
     {
         {LocationIds.Bar, "item_unique_whisky"},
         {LocationIds.Beach, "item_date_beach_ball"},
         {LocationIds.Cafe, "item_baggage_caffeine_junkie"},
-        {LocationIds.Campus, "item_baggage_intellectually_challenged"},
         {LocationIds.Gym, "item_baggage_abandonment_issues"},
         {LocationIds.Mall, "item_baggage_brand_loyalist"},
         {LocationIds.NightClub, "item_unique_gin"},
         {LocationIds.Park, "item_date_green_clover"},
+    };
+
+    private static readonly Dictionary<RelativeId, string> LOCATION_ICON_FLIPPED_OUTLINED = new()
+    {
+        {LocationIds.Campus, "item_baggage_intellectually_challenged"},
     };
 
     private static readonly Dictionary<RelativeId, string> LOCATION_ICON_INTERNAL = new()
@@ -116,6 +126,13 @@ public class HpLocationExtractor
                 new TextureInfoCache(
                     Path.Combine(Plugin.IMAGES_DIR, $"{locationName}_icon.png"),
                     new TextureInfoSprite(new SpriteInfoInternal(iconOutlinedName), false, false, true, FINDER_ICON_STEPS)));
+        }
+        else if (LOCATION_ICON_FLIPPED_OUTLINED.TryGetValue(id, out var iconOutlinedFlippedName))
+        {
+            locationMod.FinderLocationIcon = new SpriteInfoTexture(
+                new TextureInfoCache(
+                    Path.Combine(Plugin.IMAGES_DIR, $"{locationName}_icon.png"),
+                    new TextureInfoSprite(new SpriteInfoInternal(iconOutlinedFlippedName), false, false, true, FINDER_ICON_FLIPPED_STEPS)));
         }
         else if (LOCATION_ICON_INTERNAL.TryGetValue(id, out var iconInternalName))
         {
@@ -211,7 +228,7 @@ public class HpLocationExtractor
         if (locationMod.LocationType == LocationType.SIM)
         {
             locationMod.Backgrounds = [
-                backgroundSprites.TryGetValue(ClockDaytimeType.AFTERNOON, out var morningBg) ? morningBg : defaultBg,
+                backgroundSprites.TryGetValue(ClockDaytimeType.MORNING, out var morningBg) ? morningBg : defaultBg,
                 backgroundSprites.TryGetValue(ClockDaytimeType.AFTERNOON, out var afternoonBg) ? afternoonBg : defaultBg,
                 backgroundSprites.TryGetValue(ClockDaytimeType.EVENING, out var eveningBg) ? eveningBg : defaultBg,
                 backgroundSprites.TryGetValue(ClockDaytimeType.NIGHT, out var nightBg) ? nightBg : defaultBg,
