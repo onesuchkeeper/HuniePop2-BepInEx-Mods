@@ -95,7 +95,7 @@ public class TextureInfoRasterized : ITextureInfo
 
             GL.TexCoord2(uv.x, uv.y);
             GL.Vertex3(nx, ny, 0);
-        }
+        } 
 
         GL.End();
 
