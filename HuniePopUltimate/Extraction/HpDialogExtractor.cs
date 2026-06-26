@@ -116,6 +116,8 @@ public class HpDialogExtractor
                     // 4 - default / reject
                     // 5 - dirty magazine given to kyu
 
+                    ExtractDialogLineSet(DialogTriggers.LovesAccept, lineSets[0], file);
+
                     ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.UniqueAccept, lineSets[3], file);
                     ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.UniqueReject, lineSets[4], file);
 
@@ -253,8 +255,6 @@ public class HpDialogExtractor
             return;
         }
 
-        var isUniqueAcceptDt = dtId == Hp2BaseMod.DialogTriggers.UniqueAccept;
-
         foreach (var line in lines.OfType<OrderedDictionary>())
         {
             if (!line.TryGetValue("dialogLine", out List<object> dialogLines))
@@ -268,12 +268,17 @@ public class HpDialogExtractor
             {
                 var girlConfig = _configs[index];
 
-                if ((!isUniqueAcceptDt || girlConfig.ExtractUniqueAcceptDialogLines)
-                    && TryExtractDialogLine(dialogLine, file, getId(), out var lineMod))
+                if (!girlConfig.CleanDialogTrigger(dtId, out var cleanDtId))
+                {
+                    index++;
+                    continue;
+                }
+
+                if (TryExtractDialogLine(dialogLine, file, getId(), out var lineMod))
                 {
                     var girlMod = girlConfig.Mod;
                     girlMod.LinesByDialogTriggerId ??= new();
-                    girlMod.LinesByDialogTriggerId.GetOrNew(dtId).Add(lineMod);
+                    girlMod.LinesByDialogTriggerId.GetOrNew(cleanDtId).Add(lineMod);
                 }
 
                 index++;

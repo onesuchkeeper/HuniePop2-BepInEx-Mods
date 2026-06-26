@@ -9,7 +9,7 @@ namespace HuniePopUltimate;
 public class VenusConfigurator : GirlConfiguratorBase
 {
     protected override string UniqueCategoryDescription => "Gemstones";
-    protected override string ShoeCategoryDescription => "Idk";
+    protected override string ShoeCategoryDescription => "Exalted";
 
     protected override RelativeId GirlId => Girls.Venus;
     protected override string GirlAssetFileName => "venus";

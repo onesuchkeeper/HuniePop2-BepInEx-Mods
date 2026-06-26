@@ -46,7 +46,7 @@ public class LolaConfigurator : IGirlConfigurator
         ModInterface.AddDataMod(_mod);
     }
 
-    public  void ConfigureGirl(GirlBodyDataMod hpBody, AssetBundle assetBundle, HpSpriteCache sprites, HpAudioCache audio, HpItemCache items)
+    public void ConfigureGirl(GirlBodyDataMod hpBody, AssetBundle assetBundle, HpSpriteCache sprites, HpAudioCache audio, HpItemCache items)
     {
         if (!Plugin.PConfig.UseHp1LolaStats.Value)
         {
@@ -113,5 +113,17 @@ public class LolaConfigurator : IGirlConfigurator
         };
     }
 
-    public  bool IsPhotoIndexNsfw(int photoIndex) => photoIndex == 3;
+    public bool IsPhotoIndexNsfw(int photoIndex) => photoIndex == 3;
+
+    public bool CleanDialogTrigger(RelativeId dialogTriggerId, out RelativeId cleanedDialogTriggerId)
+    {
+        if (dialogTriggerId == DialogTriggers.LovesAccept)
+        {
+            cleanedDialogTriggerId = default;
+            return false;
+        }
+
+        cleanedDialogTriggerId = dialogTriggerId;
+        return dialogTriggerId != Hp2BaseMod.DialogTriggers.UniqueAccept;
+    }
 }

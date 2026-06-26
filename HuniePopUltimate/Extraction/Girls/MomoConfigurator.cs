@@ -10,7 +10,7 @@ namespace HuniePopUltimate;
 public class MomoConfigurator : GirlConfiguratorBase
 {
     protected override string UniqueCategoryDescription => "Cat Toys";
-    protected override string ShoeCategoryDescription => "Idk";
+    protected override string ShoeCategoryDescription => "Feline";
 
     protected override RelativeId GirlId => Girls.Momo;
     protected override string GirlAssetFileName => "momo";

@@ -38,8 +38,6 @@ public class JessieConfigurator : IGirlConfigurator
 
     public (RelativeId outfit, RelativeId hairstyle)[] MeetingCutsceneStyleSequence => null;
 
-    public bool ExtractUniqueAcceptDialogLines => false;
-
     public JessieConfigurator()
     {
         _mod = new GirlDataMod(Hp2BaseMod.Girls.Jessie, InsertStyle.append);
@@ -132,4 +130,16 @@ public class JessieConfigurator : IGirlConfigurator
     }
 
     public  bool IsPhotoIndexNsfw(int photoIndex) => photoIndex.InInclusiveRange(2,3);
+
+    public bool CleanDialogTrigger(RelativeId dialogTriggerId, out RelativeId cleanedDialogTriggerId)
+    {
+        if (dialogTriggerId == DialogTriggers.LovesAccept)
+        {
+            cleanedDialogTriggerId = default;
+            return false;
+        }
+
+        cleanedDialogTriggerId = dialogTriggerId;
+        return dialogTriggerId != Hp2BaseMod.DialogTriggers.UniqueAccept;
+    }
 }

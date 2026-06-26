@@ -163,7 +163,7 @@ public class HpLocationExtractor
                 && _sprites.TryGetSpriteLookup(spriteCollection, out var spriteLookup, out var spriteTextureInfo)
                 && locationDef.TryGetValue("backgrounds", out List<object> backgrounds))
             {
-                ExtractBackgrounds(file, locationDef, locationMod, locationName, backgrounds, spriteLookup, spriteTextureInfo);
+                ExtractBackgrounds(file, locationMod, locationName, backgrounds, spriteLookup, spriteTextureInfo);
             }
 
             if (locationMod.LocationType == LocationType.DATE && LOCATION_DATETIME.TryGetValue(id, out var dateTime))
@@ -182,7 +182,6 @@ public class HpLocationExtractor
 
     private void ExtractBackgrounds(
         SerializedFile file,
-        OrderedDictionary locationDef,
         LocationDataMod locationMod,
         string locationName,
         List<object> backgrounds,

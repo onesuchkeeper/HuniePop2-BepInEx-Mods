@@ -13,7 +13,13 @@ namespace HuniePopUltimate;
 /// </summary>
 public interface IGirlConfigurator
 {
-    bool ExtractUniqueAcceptDialogLines {get;}
+    /// <summary>
+    /// Allows the config to remap dialog triggers
+    /// </summary>
+    /// <param name="dialogTriggerId"></param>
+    /// <param name="cleanedDialogTriggerId"></param>
+    /// <returns>True if the dialog trigger should be extracted. False if it should be skipped.</returns>
+    bool CleanDialogTrigger(RelativeId dialogTriggerId, out RelativeId cleanedDialogTriggerId);
 
     IEnumerable<RelativeId> FavQuestionOrder {get;}
 

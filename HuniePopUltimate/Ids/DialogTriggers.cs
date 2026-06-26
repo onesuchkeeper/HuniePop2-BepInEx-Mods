@@ -12,4 +12,7 @@ public static class DialogTriggers
 
     public static RelativeId PostSex => _postSex;
     public static readonly RelativeId _postSex = new RelativeId(Plugin.ModId, 2);
+
+    public static RelativeId LovesAccept => _lovesAccept;
+    public static readonly RelativeId _lovesAccept = new RelativeId(Plugin.ModId, 3);
 }

@@ -65,8 +65,6 @@ public abstract class GirlConfiguratorBase : IGirlConfigurator
     /// <inheritdoc/>
     public virtual (int censoredIndex, int nudeIndex, int wetIndex) PhotoIndexes => (0,2,3);
 
-    public bool ExtractUniqueAcceptDialogLines => true;
-
     private readonly Action<RelativeId, IEnumerable<(RelativeId, RelativeId)>> _addGirlSexPhotos;
     private readonly Action<RelativeId, Sprite> _setCharmSprite;
 
@@ -84,6 +82,19 @@ public abstract class GirlConfiguratorBase : IGirlConfigurator
         ModInterface.AddDataMod(_mod);
         _addGirlSexPhotos = addGirlSexPhotos;
         _setCharmSprite = setCharmSprite;
+    }
+
+    /// <inheritdoc/>
+    public virtual bool CleanDialogTrigger(RelativeId dialogTriggerId, out RelativeId cleanedDialogTriggerId)
+    {
+        if (dialogTriggerId == DialogTriggers.LovesAccept)
+        {
+            cleanedDialogTriggerId = default;
+            return false;
+        }
+
+        cleanedDialogTriggerId = dialogTriggerId;
+        return true;
     }
 
     /// <inheritdoc/>

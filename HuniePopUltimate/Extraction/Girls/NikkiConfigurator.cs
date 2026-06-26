@@ -9,7 +9,7 @@ namespace HuniePopUltimate;
 public class NikkiConfigurator : GirlConfiguratorBase
 {
     protected override string UniqueCategoryDescription => "Gaming";
-    protected override string ShoeCategoryDescription => "Comfy";
+    protected override string ShoeCategoryDescription => "Low-Key";
 
     protected override RelativeId GirlId => Girls.Nikki;
     protected override string GirlAssetFileName => "nikki";

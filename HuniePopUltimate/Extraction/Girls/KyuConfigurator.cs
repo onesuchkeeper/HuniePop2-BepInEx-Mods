@@ -10,7 +10,7 @@ namespace HuniePopUltimate;
 public class KyuConfigurator : GirlConfiguratorBase
 {
     protected override string UniqueCategoryDescription => "Sex Toys";
-    protected override string ShoeCategoryDescription => "Idk";
+    protected override string ShoeCategoryDescription => "Ballet Flats";
 
     protected override bool HasUiSprites => false;
     protected override RelativeId GirlId => Hp2BaseMod.Girls.Kyu;

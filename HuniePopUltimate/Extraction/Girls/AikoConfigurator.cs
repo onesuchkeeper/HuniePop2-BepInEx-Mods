@@ -8,7 +8,7 @@ namespace HuniePopUltimate;
 
 public class AikoConfigurator : GirlConfiguratorBase
 {
-    protected override string UniqueCategoryDescription => "Japan";
+    protected override string UniqueCategoryDescription => "Toys";
     protected override string ShoeCategoryDescription => "Idk";
 
     protected override RelativeId GirlId => Girls.Aiko;
@@ -65,10 +65,14 @@ public class AikoConfigurator : GirlConfiguratorBase
         => _uniqueItemIds;
     private static readonly (RelativeId, int)[] _uniqueItemIds =
     [
-        (Items.Aiko.Unique1, 9204), // Chopsticks
-        (Items.Aiko.Unique2, 9205), // Rice Balls
-        (Items.Aiko.Unique3, 9206), // Bonsai Tree
-        (Items.Aiko.Unique4, 9207), // Wooden Sandals
+        // (Items.Aiko.Unique1, 9204), // Chopsticks
+        // (Items.Aiko.Unique2, 9205), // Rice Balls
+        // (Items.Aiko.Unique3, 9206), // Bonsai Tree
+        // (Items.Aiko.Unique4, 9207), // Wooden Sandals
+        (Items.Aiko.Unique1, 9121), // ChessSet
+        (Items.Aiko.Unique2, 9117), // Puzzle Cube
+        (Items.Aiko.Unique3, 9118), // Sudoku Books
+        (Items.Aiko.Unique4, 9119), // Dart Board
     ];
 
     protected override IEnumerable<(RelativeId id, string name, string description)> ShoeItems
@@ -76,7 +80,7 @@ public class AikoConfigurator : GirlConfiguratorBase
     private static readonly (RelativeId id, string name, string description)[] _shoeItems =
     [
         (Items.Aiko.Shoe1, "Red Kittens", "Give to an AIKO for +1 [[style]@Style] EXP."),
-        (Items.Aiko.Shoe2, "Textured Kittens", "Give to an AIKO for +1 [[style]@Style] EXP."),
+        (Items.Aiko.Shoe2, "Peeptoe Kittens", "Give to an AIKO for +1 [[style]@Style] EXP."),
         (Items.Aiko.Shoe3, "Clog Sandals", "Give to an AIKO for +1 [[style]@Style] EXP."),
         (Items.Aiko.Shoe4, "Cutout Kittens", "Give to an AIKO for +1 [[style]@Style] EXP."),
     ];
@@ -88,6 +92,9 @@ public class AikoConfigurator : GirlConfiguratorBase
     [
         //(Items.Aiko.Baggage1, 9208), // Kimono
         //(Items.Aiko.Baggage2, 9209), // Samurai Helmet
+
+        //(Items.Aiko.Baggage1, 9120), // Board Game
+        //(Items.Aiko.Baggage2, 9116), // Old Fashioned Yoyo
         //(Items.Aiko.Baggage3, ), // TODO
     ];
 
@@ -152,4 +159,22 @@ public class AikoConfigurator : GirlConfiguratorBase
     }
 
     public override bool IsPhotoIndexNsfw(int photoIndex) => photoIndex == 2;
+
+    public override bool CleanDialogTrigger(RelativeId dialogTriggerId, out RelativeId cleanedDialogTriggerId)
+    {
+        if (dialogTriggerId == DialogTriggers.LovesAccept)
+        {
+            cleanedDialogTriggerId = Hp2BaseMod.DialogTriggers.UniqueAccept;
+            return true;
+        }
+
+        if (dialogTriggerId == Hp2BaseMod.DialogTriggers.UniqueAccept)
+        {
+            cleanedDialogTriggerId = default;
+            return false;
+        }
+
+        cleanedDialogTriggerId = dialogTriggerId;
+        return true;
+    }
 }

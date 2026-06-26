@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Hp2BaseMod;
-using Hp2BaseMod.Extension;
 using Hp2BaseMod.GameDataInfo;
 using UnityEngine;
 
@@ -9,7 +8,7 @@ namespace HuniePopUltimate;
 
 public class KyannaConfigurator : GirlConfiguratorBase
 {
-    protected override string UniqueCategoryDescription => "Mexico";
+    protected override string UniqueCategoryDescription => "Fitness";
     protected override string ShoeCategoryDescription => "Idk";
 
     protected override RelativeId GirlId => Girls.Kyanna;
@@ -63,10 +62,14 @@ public class KyannaConfigurator : GirlConfiguratorBase
         => _uniqueItemIds;
     private static readonly (RelativeId, int)[] _uniqueItemIds =
     [
-        (Items.Kyanna.Unique1, 9210), // Maracas
-        (Items.Kyanna.Unique2, 9211), // Sombrero
-        (Items.Kyanna.Unique3, 9212), // Poncho
-        (Items.Kyanna.Unique4, 9213), // Luchador
+        // (Items.Kyanna.Unique1, 9210), // Maracas
+        // (Items.Kyanna.Unique2, 9211), // Sombrero
+        // (Items.Kyanna.Unique3, 9212), // Poncho
+        // (Items.Kyanna.Unique4, 9213), // Luchador
+        (Items.Kyanna.Unique1, 9122), // Water Bottle
+        (Items.Kyanna.Unique2, 9123), // Cardio Weights
+        (Items.Kyanna.Unique3, 9214), // Skipping Rope
+        (Items.Kyanna.Unique4, 9215), // Kettle Bell
     ];
 
     protected override IEnumerable<(RelativeId id, string name, string description)> ShoeItems
@@ -86,6 +89,9 @@ public class KyannaConfigurator : GirlConfiguratorBase
     [
         //(Items.Kyanna.Baggage1, 9214), // Pinata
         //(Items.Kyanna.Baggage2, 9215), // Vinuela
+
+        //(Items.Kyanna.Baggage1, 9216), // Boxing Gloves
+        //(Items.Kyanna.Baggage2, 9217), // Punching Bag
         //(Items.Kyanna.Baggage3, ), // TODO
     ];
 
@@ -155,4 +161,22 @@ public class KyannaConfigurator : GirlConfiguratorBase
     }
 
     public override bool IsPhotoIndexNsfw(int photoIndex) => photoIndex == 2;
+
+    public override bool CleanDialogTrigger(RelativeId dialogTriggerId, out RelativeId cleanedDialogTriggerId)
+    {
+        if (dialogTriggerId == DialogTriggers.LovesAccept)
+        {
+            cleanedDialogTriggerId = Hp2BaseMod.DialogTriggers.UniqueAccept;
+            return true;
+        }
+
+        if (dialogTriggerId == Hp2BaseMod.DialogTriggers.UniqueAccept)
+        {
+            cleanedDialogTriggerId = default;
+            return false;
+        }
+
+        cleanedDialogTriggerId = dialogTriggerId;
+        return true;
+    }
 }
