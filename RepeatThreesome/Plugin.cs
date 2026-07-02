@@ -9,6 +9,7 @@ using Hp2BaseMod;
 using Hp2BaseMod.GameDataInfo;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
+using UnityEngine;
 
 namespace RepeatThreesome;
 
@@ -42,19 +43,18 @@ internal class Plugin : Hp2BaseModPlugin
         _isBonusRoundNude = Config.Bind(GENERAL_CONFIG_CAT, nameof(IsBonusRoundNude), true, "If characters will change to nude outfits during bonus rounds.");
 
         if (ModInterface.TryGetInterModValue("OSK.BepInEx.Hp2BaseModTweaks", "AddModCredit",
-                out Action<string, IEnumerable<(string creditButtonPath, string creditButtonOverPath, string redirectLink)>> m_addModCredit))
+            out Action<Sprite, IEnumerable<(Sprite creditButtonPath, Sprite creditButtonOverPath, string redirectLink)>> m_addModConfig))
         {
-            m_addModCredit(Path.Combine(IMAGES_DIR, "CreditsLogo.png"),
-            [
+            m_addModConfig(TextureUtility.SpriteFromPng(Path.Combine(IMAGES_DIR, "CreditsLogo.png"), true), [
                 (
-                    Path.Combine(IMAGES_DIR, "onesuchkeeper_credits_dev.png"),
-                    Path.Combine(IMAGES_DIR, "onesuchkeeper_credits_dev_over.png"),
+                    TextureUtility.SpriteFromPng(Path.Combine(IMAGES_DIR, "onesuchkeeper_credits_dev.png"), true),
+                    TextureUtility.SpriteFromPng(Path.Combine(IMAGES_DIR, "onesuchkeeper_credits_dev_over.png"), true),
                     "https://linktr.ee/onesuchkeeper"
                 ),
                 (
-                        Path.Combine(IMAGES_DIR, "silverwoodwork_credits_art.png"),
-                        Path.Combine(IMAGES_DIR, "silverwoodwork_credits_art_over.png"),
-                        "https://twitter.com/silverwoodwork"
+                    TextureUtility.SpriteFromPng(Path.Combine(IMAGES_DIR, "silverwoodwork_credits_art.png"), true),
+                    TextureUtility.SpriteFromPng(Path.Combine(IMAGES_DIR, "silverwoodwork_credits_art_over.png"), true),
+                    "https://twitter.com/silverwoodwork"
                 ),
             ]);
         }

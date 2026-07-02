@@ -18,7 +18,7 @@ public static class Occupation
     public static RelativeId Stewardess = new RelativeId(Plugin.ModId, 9);
     public static RelativeId PornStar = new RelativeId(Plugin.ModId, 10);
 
-    public static void AddDataMods()
+    internal static void AddDataMods()
     {
         ModInterface.AddDataMod(new FavQuestionDataMod(Questions.Occupation, Hp2BaseMod.Utility.InsertStyle.append)
         {

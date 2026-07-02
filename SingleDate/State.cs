@@ -44,7 +44,7 @@ public static class State
             return false;
         }
 
-        return ModInterface.Data.GetDataId(GameDataType.Girl, def.girlDefinitionOne.id) == GirlNobody.Id;
+        return ModInterface.Data.GetDataId(GameDataType.Girl, def.girlDefinitionOne.id) == Girls.Nobody;
     }
 
     public static float GetBrokenMult() => Math.Max(0.01f, _baseBrokenMult - (GetSensitivityLevel() * _deltaBrokenMult));

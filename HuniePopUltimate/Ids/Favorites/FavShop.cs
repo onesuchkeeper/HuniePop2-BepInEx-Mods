@@ -7,7 +7,7 @@ public static class FavShop
 {
     public static readonly RelativeId HobbyShop = new RelativeId(Plugin.ModId, 0);
     public static readonly RelativeId Bakery = new RelativeId(Plugin.ModId, 1);
-    public static void AddDataMods()
+    internal static void AddDataMods()
     {
         ModInterface.AddDataMod(new FavQuestionDataMod(Hp2BaseMod.Favorites.Shop, Hp2BaseMod.Utility.InsertStyle.append)
         {

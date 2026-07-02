@@ -6,7 +6,7 @@ namespace SingleDate;
 
 public static class BonusRoundSuccessCutscene
 {
-    public static void AddDataMods()
+    internal static void AddDataMods()
     {
         var mod = new CutsceneDataMod(CutsceneIds.BonusSuccess, InsertStyle.append)
         {

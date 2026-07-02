@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Hp2BaseMod;
 using Hp2BaseMod.GameDataInfo;
+using Hp2BaseMod.Utility;
 using UnityEngine;
 
 namespace HuniePopUltimate;
@@ -168,9 +169,40 @@ public class AudreyConfigurator : GirlConfiguratorBase
             Hp2BaseMod.Styles.Activity
         };
 
-        MomentumAilment.AddMods();
-        AudreyBaggageTestCutscene.AddDataMods();
+        AddMommyIssuesBaggage();
     }
 
     public override bool IsPhotoIndexNsfw(int photoIndex) => false;
+
+    private void AddMommyIssuesBaggage()
+    {
+        var ailment = new AilmentDataMod(Items.Audrey.Baggage1, InsertStyle.append)
+        {
+            ItemDefinitionID = Items.Audrey.Baggage1,
+            ScriptedAilmentFactory = (Ailment) => new RomancePoisonAilment(),
+        };
+        ModInterface.AddDataMod(ailment);
+
+        var cutscene = new CutsceneDataMod(Items.Audrey.Baggage1, InsertStyle.append)
+        {
+            Steps = new()
+            {
+                CutsceneStepUtility.MakeDialogTriggerInfo(Hp2BaseMod.DialogTriggers.BrokenRecovered, CutsceneStepProceedType.AUTOMATIC, CutsceneStepDollTargetType.RANDOM),
+                new FunctionalCutsceneStepInfo(completed =>
+                {
+                    ModInterface.Log.Message("TEST IM HERE IT WORKED");
+                    completed.Invoke();
+                }),
+                CutsceneStepUtility.MakeGameActionInfo(new LogicActionInfo()
+                {
+                    Type = LogicActionType.SET_FLAG,
+                    StringValue = Flags.NOTIFICATION_ITEM_ID,
+                    IntValue = ModInterface.Data.GetRuntimeDataId(GameDataType.Item, Items.Audrey.Baggage1)
+                }, CutsceneStepProceedType.AUTOMATIC),
+                CutsceneStepUtility.MakeWaitInfo(0.25f),
+            },
+            CleanUpType = (CutsceneCleanUpType)(-1)
+        };
+        ModInterface.AddDataMod(cutscene);
+    }
 }

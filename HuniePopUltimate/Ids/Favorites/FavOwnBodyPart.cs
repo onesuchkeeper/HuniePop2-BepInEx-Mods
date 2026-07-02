@@ -9,7 +9,7 @@ public static class FavOwnBodyPart
     public static readonly RelativeId Horns = new RelativeId(Plugin.ModId, 1);
     public static readonly RelativeId Wings = new RelativeId(Plugin.ModId, 2);
 
-    public static void AddDataMods()
+    internal static void AddDataMods()
     {
         ModInterface.AddDataMod(new FavQuestionDataMod(Hp2BaseMod.Favorites.BodyPart, Hp2BaseMod.Utility.InsertStyle.append)
         {

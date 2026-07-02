@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using BepInEx;
 using BepInEx.Configuration;
+using DG.Tweening;
 using HarmonyLib;
 using Hp2BaseMod;
 using Hp2BaseMod.Extension;
@@ -46,6 +47,14 @@ internal partial class Plugin : Hp2BaseModPlugin
     public static ConfigEntry<int> MaxSensitivityLevel => _maxSensitivityLevel;
     private static ConfigEntry<int> _maxSensitivityLevel;
 
+    public static AssetBundle AssetBundle => _instance._assetBundle;
+    private AssetBundle _assetBundle;
+
+    public static CharmAnimationRegistry CharmAnimationRegistry => _instance._charmAnimationRegistry;
+    private CharmAnimationRegistry _charmAnimationRegistry;
+
+    public static new int ModId => ((Hp2BaseModPlugin)_instance).ModId;
+
     private Dictionary<RelativeId, SingleDateGirl> _singleDateGirls = new();
     private static Plugin _instance;
     public Plugin() : base(MyPluginInfo.PLUGIN_GUID) { }
@@ -53,18 +62,20 @@ internal partial class Plugin : Hp2BaseModPlugin
     protected override void Awake()
     {
         _instance = this;
+        _charmAnimationRegistry = new();
         base.Awake();
 
+        _assetBundle = AssetBundle.LoadFromFile(Path.Combine(ROOT_DIR, "singledate_assetbundle")); 
+
         if (ModInterface.TryGetInterModValue("OSK.BepInEx.Hp2BaseModTweaks", "AddModCredit",
-                out Action<string, IEnumerable<(string creditButtonPath, string creditButtonOverPath, string redirectLink)>> m_addModCredit))
+            out Action<Sprite, IEnumerable<(Sprite creditButtonPath, Sprite creditButtonOverPath, string redirectLink)>> m_addModConfig))
         {
-            m_addModCredit(Path.Combine(IMAGES_DIR, "CreditsLogo.png"),
-            [
+            m_addModConfig(_assetBundle.LoadAsset<Sprite>("CreditsLogo"), [
                 (
-                    Path.Combine(IMAGES_DIR, "onesuchkeeper_credits_art.png"),
-                    Path.Combine(IMAGES_DIR, "onesuchkeeper_credits_art_over.png"),
+                    _assetBundle.LoadAsset<Sprite>("onesuchkeeper_credits_art"),
+                    _assetBundle.LoadAsset<Sprite>("onesuchkeeper_credits_art_over"),
                     "https://linktr.ee/onesuchkeeper"
-                )
+                ),
             ]);
         }
 
@@ -77,7 +88,7 @@ internal partial class Plugin : Hp2BaseModPlugin
         State.On_Plugin_Awake();
 
         GirlNobody.AddDataMods();
-        ItemSensitivitySmoothie.AddDataMods();
+        ItemSensitivitySmoothie.AddDataMods(_assetBundle);
 
         SingleDateMeetingCutscene.AddDataMods();
         SingleDateAttractCutscene.AddDataMods();
@@ -86,28 +97,28 @@ internal partial class Plugin : Hp2BaseModPlugin
         SingleDateSuccessCutscene.AddDataMods();
         BonusRoundSuccessCutscene.AddDataMods();
 
-        PhotoDefault.AddDataMods();
-        PhotoAbia.AddDataMods();
-        PhotoBrooke.AddDataMods();
-        PhotoCandace.AddDataMods();
-        PhotoLailani.AddDataMods();
-        PhotoLillian.AddDataMods();
-        PhotoNora.AddDataMods();
-        PhotoPolly.AddDataMods();
-        PhotoSarah.AddDataMods();
-        PhotoZoey.AddDataMods();
+        AddPhotoMod(Photos.DefaultSex, "default");
+        AddPhotoMod(Photos.AbiaSex, "abia");
+        AddPhotoMod(Photos.BrookeSex, "brooke");
+        AddPhotoMod(Photos.CandaceSex, "candace");
+        AddPhotoMod(Photos.LailaniSex, "lailani");
+        AddPhotoMod(Photos.LillianSex, "lillian");
+        AddPhotoMod(Photos.NoraSex, "nora");
+        AddPhotoMod(Photos.PollySex, "polly", true);
+        AddPhotoMod(Photos.SarahSex, "sarah");
+        AddPhotoMod(Photos.ZoeySex, "zoey");
 
-        AddGirlSexPhotos(Girls.Abia, [(PhotoAbia.Id, Locations.RoyalSuite)]);
-        AddGirlSexPhotos(Girls.Brooke, [(PhotoBrooke.Id, Locations.RoyalSuite)]);
-        AddGirlSexPhotos(Girls.Candace, [(PhotoCandace.Id, Locations.RoyalSuite)]);
-        AddGirlSexPhotos(Girls.Lailani, [(PhotoLailani.Id, Locations.RoyalSuite)]);
-        AddGirlSexPhotos(Girls.Lillian, [(PhotoLillian.Id, Locations.RoyalSuite)]);
-        AddGirlSexPhotos(Girls.Nora, [(PhotoNora.Id, Locations.RoyalSuite)]);
-        AddGirlSexPhotos(Girls.Polly, [(PhotoPolly.Id, Locations.RoyalSuite)]);
-        AddGirlSexPhotos(Girls.Sarah, [(PhotoSarah.Id, Locations.RoyalSuite)]);
-        AddGirlSexPhotos(Girls.Zoey, [(PhotoZoey.Id, Locations.RoyalSuite)]);
+        AddGirlSexPhotos(Hp2BaseMod.Girls.Abia, [(Photos.AbiaSex, Locations.RoyalSuite)]);
+        AddGirlSexPhotos(Hp2BaseMod.Girls.Brooke, [(Photos.BrookeSex, Locations.RoyalSuite)]);
+        AddGirlSexPhotos(Hp2BaseMod.Girls.Candace, [(Photos.CandaceSex, Locations.RoyalSuite)]);
+        AddGirlSexPhotos(Hp2BaseMod.Girls.Lailani, [(Photos.LailaniSex, Locations.RoyalSuite)]);
+        AddGirlSexPhotos(Hp2BaseMod.Girls.Lillian, [(Photos.LillianSex, Locations.RoyalSuite)]);
+        AddGirlSexPhotos(Hp2BaseMod.Girls.Nora, [(Photos.NoraSex, Locations.RoyalSuite)]);
+        AddGirlSexPhotos(Hp2BaseMod.Girls.Polly, [(Photos.PollySex, Locations.RoyalSuite)]);
+        AddGirlSexPhotos(Hp2BaseMod.Girls.Sarah, [(Photos.SarahSex, Locations.RoyalSuite)]);
+        AddGirlSexPhotos(Hp2BaseMod.Girls.Zoey, [(Photos.ZoeySex, Locations.RoyalSuite)]);
 
-        UiPrefabs.InitExternals();
+        UiPrefabs.InitExternals(_assetBundle);
 
         ModInterface.AddExp(new SensitivityExp());
 
@@ -176,6 +187,14 @@ internal partial class Plugin : Hp2BaseModPlugin
     [InteropMethod]
     public static IGameDefinitionInfo<CutsceneStepSubDefinition> MakeDatePhotoCutsceneStep() => new ShowDatePhotoCutsceneStep.Info();
 
+    [InteropMethod]
+        public void RegisterCharmAnimation(
+        float weight, 
+        float cost,
+        Func<Sequence, (RectTransform transform, bool dir, RelativeId girlId), bool> build,
+        HashSet<RelativeId> allowedCharacters) 
+            => _charmAnimationRegistry.Register(weight, cost, build, allowedCharacters);
+
     public static SingleDateGirl GetSingleDateGirl(RelativeId girlId)
             => _instance._singleDateGirls.GetOrNew(girlId);
 
@@ -206,10 +225,10 @@ internal partial class Plugin : Hp2BaseModPlugin
         {
             var mod = new GirlPairDataMod(new RelativeId(State.ModId, i), InsertStyle.replace)
             {
-                GirlDefinitionOneID = GirlNobody.Id,
+                GirlDefinitionOneID = Girls.Nobody,
                 GirlDefinitionTwoID = new RelativeId(-1, i),
                 SpecialPair = false,
-                PhotoDefinitionID = PhotoDefault.Id,
+                PhotoDefinitionID = Photos.DefaultSex,
                 IntroductionPair = false,
                 IntroSidesFlipped = false,
                 HasMeetingStyleOne = false,
@@ -228,5 +247,54 @@ internal partial class Plugin : Hp2BaseModPlugin
 
             ModInterface.AddDataMod(mod);
         }
+    }
+
+    private void AddPhotoMod(RelativeId id, string name, bool hasAlts = false)
+    {
+        if (!(
+                TryGetSprite($"photo_{name}_1", out var photoSprite)
+                && TryGetSprite($"photo_{name}_1_thumb", out var photoThumbSprite)
+            ))
+        {
+            ModInterface.Log.Warning($"Failed to get photo for {name}");
+            return;
+        }
+
+        var photoMod = new PhotoDataMod(id, InsertStyle.replace)
+        {
+            HasAlts = false,
+
+            //BigPhotoCensored = photoInfo,
+            BigPhotoUncensored = new SpriteInfoSprite(photoSprite),
+            //BigPhotoWet = photoInfo,
+
+            //ThumbnailCensored = thumbInfo,
+            ThumbnailUncensored = new SpriteInfoSprite(photoThumbSprite),
+            //ThumbnailWet = thumbInfo,
+        };
+
+        ModInterface.AddDataMod(photoMod);
+
+        if (hasAlts)
+        {
+            if (!(
+                    TryGetSprite($"photo_{name}_1", out var photoSpriteAlt)
+                    && TryGetSprite($"photo_{name}_1_thumb", out var photoThumbSpriteAlt)
+                ))
+            {
+                ModInterface.Log.Warning($"Failed to get alt photo for {name}");
+                return;
+            }
+
+            photoMod.HasAlts = true;
+            photoMod.BigPhotoUncensoredAlt = new SpriteInfoSprite(photoSpriteAlt);
+            photoMod.ThumbnailUncensoredAlt = new SpriteInfoSprite(photoThumbSpriteAlt);
+        }
+    }
+
+    private bool TryGetSprite(string assetName, out Sprite sprite)
+    {
+        sprite = _assetBundle.LoadAsset<Sprite>(assetName);
+        return sprite != null;
     }
 }

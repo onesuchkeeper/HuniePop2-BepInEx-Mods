@@ -199,7 +199,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
 
             var modConfig = Plugin.ModCredits[_creditsIndex];
 
-            ModLogo.sprite = TextureUtility.SpriteFromPng(modConfig.LogoPath, true);
+            ModLogo.sprite = modConfig.LogoSprite;
             ModLogo.SetNativeSize();
 
             // add new contributors
@@ -209,8 +209,8 @@ namespace Hp2BaseModTweaks.CellphoneApps
             foreach (var contributorConfig in modConfig.Members.OrEmptyIfNull())
             {
                 var newContributorButton = Hp2ButtonWrapper.MakeCellphoneButton($"Contributor {i++}",
-                    TextureUtility.SpriteFromPng(contributorConfig.ButtonPath, true),
-                    TextureUtility.SpriteFromPng(contributorConfig.ButtonOverPath, true),
+                    contributorConfig.ButtonSprite,
+                    contributorConfig.ButtonOverSprite,
                     _cellphoneButtonPressedKlip);
 
                 newContributorButton.GameObject.transform.SetParent(ContributorsPanel.transform, false);

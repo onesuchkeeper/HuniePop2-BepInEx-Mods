@@ -5,6 +5,8 @@ using BepInEx;
 using BepInEx.Configuration;
 using Hp2BaseMod;
 using Hp2BaseMod.GameDataInfo;
+using Hp2BaseMod.Utility;
+using UnityEngine;
 
 namespace MidRelationshipPhotos;
 
@@ -29,19 +31,19 @@ internal class Plugin : BaseUnityPlugin
         _unlockPhotos = Config.Bind(Hp2BaseModPlugin.CONFIG_GENERAL, "Unlock All Photos", false, "If all photos should be automatically unlocked.");
 
         if (ModInterface.TryGetInterModValue("OSK.BepInEx.Hp2BaseModTweaks", "AddModCredit",
-            out Action<string, IEnumerable<(string creditButtonPath, string creditButtonOverPath, string redirectLink)>> m_addModConfig))
+            out Action<Sprite, IEnumerable<(Sprite creditButtonPath, Sprite creditButtonOverPath, string redirectLink)>> m_addModConfig))
         {
-            m_addModConfig(Path.Combine(IMAGES_DIR, "CreditsLogo.png"), [
+            m_addModConfig(TextureUtility.SpriteFromPng(Path.Combine(IMAGES_DIR, "CreditsLogo.png"), true), [
                 (
-                        Path.Combine(IMAGES_DIR, "ScallyCapFan_credits.png"),
-                        Path.Combine(IMAGES_DIR, "ScallyCapFan_credits_over.png"),
-                        "https://www.reddit.com/user/scallycapfan/"
-                    ),
-                    (
-                        Path.Combine(IMAGES_DIR, "onesuchkeeper_credits_dev.png"),
-                        Path.Combine(IMAGES_DIR, "onesuchkeeper_credits_dev_over.png"),
-                        "https://linktr.ee/onesuchkeeper"
-                    )
+                    TextureUtility.SpriteFromPng(Path.Combine(IMAGES_DIR, "ScallyCapFan_credits.png"), true),
+                    TextureUtility.SpriteFromPng(Path.Combine(IMAGES_DIR, "ScallyCapFan_credits_over.png"), true),
+                    "https://www.reddit.com/user/scallycapfan/"
+                ),
+                (
+                    TextureUtility.SpriteFromPng(Path.Combine(IMAGES_DIR, "onesuchkeeper_credits_dev.png"), true),
+                    TextureUtility.SpriteFromPng(Path.Combine(IMAGES_DIR, "onesuchkeeper_credits_dev_over.png"), true),
+                    "https://linktr.ee/onesuchkeeper"
+                ),
             ]);
         }
 

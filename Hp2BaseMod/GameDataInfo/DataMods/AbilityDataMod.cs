@@ -14,9 +14,9 @@ namespace Hp2BaseMod.GameDataInfo
     /// or replaces the data-driven step pipeline. Leave it null for purely data-driven abilities.
     ///
     /// Scripted behaviour executes in three stages around the data-driven pipeline:
-    ///   1. <see cref="IScriptedAbility.PrePerform"/>       may abort before any steps run
-    ///   2. <see cref="IScriptedAbility.ReplacePerform"/>   when non-null, replaces all steps
-    ///   3. <see cref="IScriptedAbility.PostPerform"/>      may override the final result
+    ///   1. <see cref="IScriptedAbility.PrePerform"/> may abort before any steps run
+    ///   2. <see cref="IScriptedAbility.ReplacePerform"/> when non-null, replaces all steps
+    ///   3. <see cref="IScriptedAbility.PostPerform"/> may override the final result
     ///
     /// Note: abilities are already the preferred way to implement enable/disable effects on
     /// scripted ailments via <see cref="AilmentDefinition.enableAbilityDef"/> and

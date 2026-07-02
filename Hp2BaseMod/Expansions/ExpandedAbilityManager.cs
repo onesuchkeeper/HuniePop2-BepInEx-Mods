@@ -80,7 +80,7 @@ public class ExpandedAbilityManager
         var ability = new Ability(abilityDef, altGirl);
         if (insertValues != null)
         {
-            ListUtils.DictionaryAddRangeUnique<string, int>(ability.values, insertValues);
+            ListUtils.DictionaryAddRangeUnique(ability.values, insertValues);
         }
 
         var scripted = factory(ability);

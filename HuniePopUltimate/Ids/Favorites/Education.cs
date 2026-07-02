@@ -13,7 +13,7 @@ public static class Education
     public static RelativeId College_2 = new RelativeId(Plugin.ModId, 4);
     public static RelativeId College_4 = new RelativeId(Plugin.ModId, 5);
 
-    public static void AddDataMods()
+    internal static void AddDataMods()
     {
         ModInterface.AddDataMod(new FavQuestionDataMod(Questions.Education, Hp2BaseMod.Utility.InsertStyle.append)
         {

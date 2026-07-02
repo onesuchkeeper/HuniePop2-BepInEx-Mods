@@ -2,6 +2,7 @@ using System.IO;
 using Hp2BaseMod;
 using Hp2BaseMod.GameDataInfo;
 using Hp2BaseMod.Utility;
+using UnityEngine;
 
 namespace SingleDate;
 
@@ -16,18 +17,18 @@ internal static class ItemSensitivitySmoothie
     public static RelativeId Level => _levelId;
     private static RelativeId _levelId;
 
-    public static void AddDataMods()
+    public static void AddDataMods(AssetBundle assetBundle)
     {
         _smoothieId = new RelativeId(State.ModId, 0);
         _expId = new RelativeId(State.ModId, 1);
         _levelId = new RelativeId(State.ModId, 2);
 
-        var smoothieTexture = new TextureInfoExternal(Path.Combine(Plugin.IMAGES_DIR, "item_smoothie_sensitivity.png"), true);
+        var spriteInfo = new SpriteInfoSprite(assetBundle.LoadAsset<Sprite>("item_smoothie_sensitivity"));
 
         ModInterface.AddDataMod(new ItemDataMod(_smoothieId, InsertStyle.replace)
         {
             ItemType = ItemType.SMOOTHIE,
-            ItemSpriteInfo = new SpriteInfoTexture(smoothieTexture),
+            ItemSpriteInfo = spriteInfo,
             ItemName = "Sensitivity Smoothie",
             ItemDescription = "+1 [[broken]@Sensitivity] EXP.",
             TooltipColorIndex = 6,
@@ -40,7 +41,7 @@ internal static class ItemSensitivitySmoothie
         ModInterface.AddDataMod(new ItemDataMod(_expId, InsertStyle.replace)
         {
             ItemType = ItemType.MISC,
-            ItemSpriteInfo = new SpriteInfoTexture(smoothieTexture),
+            ItemSpriteInfo = spriteInfo,
             ItemName = "Sensitivity EXP",
             ItemDescription = "Earn [[broken]@Sensitivity] EXP by giving [[broken]@Sensitivity] smoothies to girls.",
             TooltipColorIndex = 6,

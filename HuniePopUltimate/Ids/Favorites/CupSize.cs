@@ -13,7 +13,7 @@ public static class CupSize
     public static RelativeId E_Cup = new RelativeId(Plugin.ModId, 4);
     public static RelativeId G_Cup = new RelativeId(Plugin.ModId, 5);
 
-    public static void AddDataMods()
+    internal static void AddDataMods()
     {
         ModInterface.AddDataMod(new FavQuestionDataMod(Questions.CupSize, Hp2BaseMod.Utility.InsertStyle.append)
         {

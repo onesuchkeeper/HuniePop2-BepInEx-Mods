@@ -29,7 +29,7 @@ internal static class UiCellphoneAppStatusPatch
     }
 }
 
-internal class ExpandedUiCellphoneAppStatus
+internal class ExpandedUiCellphoneAppStatus : UiPatchController<UiCellphoneAppStatus>
 {
     private static readonly float _heartDist = 96;
     private static readonly Vector3 _heartSize = new Vector3(100, 100);
@@ -55,29 +55,16 @@ internal class ExpandedUiCellphoneAppStatus
 
     private RelativeId _girlId;
     private RectTransform _charmTransform;
-    private List<Sequence> _sequences = new List<Sequence>();
-    private UiCellphoneAppStatus _core;
+    private List<Sequence> _heartSequences = new List<Sequence>();
+    private Sequence _charmSequence;
+    private CharmAnimationContext _charmContext;
 
-    public ExpandedUiCellphoneAppStatus(UiCellphoneAppStatus uiCellphoneAppStatus)
-    {
-        _core = uiCellphoneAppStatus;
-    }
+    public ExpandedUiCellphoneAppStatus(UiCellphoneAppStatus uiCellphoneAppStatus) : base(uiCellphoneAppStatus) {}
 
-    public void Start()
+    protected override void Apply()
     {
-        if (!State.IsSingleDate)
-        {
-            return;
-        }
+        if (!State.IsSingleDate) return;
         ModInterface.Log.Message("Using single date UiCellphoneAppStatus");
-
-        _core.StartCoroutine(BuildUi());
-    }
-
-    private IEnumerator BuildUi()
-    {
-        yield return new WaitForEndOfFrame();
-        Canvas.ForceUpdateCanvases();
 
         // move right things more to the center
         foreach (var left_right in _core.baggageSlotsLeft
@@ -121,8 +108,6 @@ internal class ExpandedUiCellphoneAppStatus
         charmBG_transform.SetParent(canvasRect, false);
         charmBG_transform.anchoredPosition = leftPortraitRect.anchoredPosition + new Vector2(37.5f, 0);
 
-        ModInterface.Log.Message("Before hearts");
-
         // Build hearts
         var saveGirl = State.SaveFile.GetGirl(_girlId);
 
@@ -134,8 +119,6 @@ internal class ExpandedUiCellphoneAppStatus
         // There is some kind of DoTween issue here I think
         // this fixed it but it isn't a great solution...
 
-        yield return null;
-
         //this literally kills all the game's tweens
         //_uiCellphoneAppStatus.relationshipSlot.DestroyAndKillTweens();
 
@@ -145,21 +128,28 @@ internal class ExpandedUiCellphoneAppStatus
         if (Game.Session.Puzzle.puzzleStatus.bonusRound)
         {
             for (int i = 0; i < maxSingleGirlRelationshipLevel; i++)
+            {
                 MakeHeart(_core.relationshipSlot.hornyIcon, i, radAllotment, _core.relationshipSlot.pauseDefinition, leftPortraitRect);
+            }
         }
         else if (maxSingleGirlRelationshipLevel == saveGirl.RelationshipLevel)
         {
             for (int i = 0; i < maxSingleGirlRelationshipLevel; i++)
+            {
                 MakeHeart(_core.relationshipSlot.relationshipIcons[3], i, radAllotment, _core.relationshipSlot.pauseDefinition, leftPortraitRect);
+            }  
         }
         else
         {
-            int i = 0;
-            for (; i < maxSingleGirlRelationshipLevel - saveGirl.RelationshipLevel; i++)
+            for (int i = 0; i < maxSingleGirlRelationshipLevel - saveGirl.RelationshipLevel; i++)
+            {
                 MakeHeart(_core.relationshipSlot.relationshipIcons[0], i, radAllotment, _core.relationshipSlot.pauseDefinition, leftPortraitRect);
-
-            for (; i < maxSingleGirlRelationshipLevel; i++)
+            }
+                
+            for (int i = 0; i < maxSingleGirlRelationshipLevel; i++)
+            {
                 MakeHeart(_core.relationshipSlot.relationshipIcons[2], i, radAllotment, _core.relationshipSlot.pauseDefinition, leftPortraitRect);
+            }  
         }
 
         // Charm
@@ -173,142 +163,52 @@ internal class ExpandedUiCellphoneAppStatus
         _charmTransform.anchoredPosition = leftPortraitRect.anchoredPosition + new Vector2(_charmOffset.x, _charmOffset.y);
         _charmTransform.pivot = new Vector2(0.5f, 0f);
 
-        MakeCharmSequence(null);
+        MakeCharmSequence();
 
         _core.canvasGroupLeft.transform.SetParent(null);
         _core.statusPortraitLeft.transform.SetParent(null);
         _core.relationshipSlot.transform.SetParent(null);
     }
 
-    private int _charmDir = 1;
-
-    public void MakeCharmSequence(Sequence previous)
+    public void MakeCharmSequence()
     {
-        if (previous != null)
+        if (_charmSequence != null)
         {
-            Game.Manager.Time.KillTween(previous);
-            _sequences.Remove(previous);
+            Game.Manager.Time.KillTween(_charmSequence);
         }
-
-        var sequence = DOTween.Sequence().SetLoops(1, LoopType.Restart);
-        _sequences.Add(sequence);
-        sequence.OnComplete(() => MakeCharmSequence(sequence));
-
-        for (int i = 0; i < 15; i++)
+        else
         {
-            switch (Random.Range(0, 15))
+            _charmContext = new CharmAnimationContext()
             {
-                case 0:
-                case 1:
-                    sequence.Append(_charmTransform.DOLocalJump(_charmTransform.localPosition + new Vector3(Random.Range(-60f, 60f), 0), Random.Range(10f, 20f), Random.Range(1, 2), 1.2f).SetEase(Ease.Linear));
-                    break;
-                case 2:
-                case 3:
-                    _charmDir = _charmDir * -1;
-                    break;
-                case 4:
-                    sequence.Join(_charmTransform.DOScaleY(0.95f, 1f).SetEase(Ease.InOutElastic));
-                    sequence.Join(_charmTransform.DOScaleX(1.05f * _charmDir, 1f).SetEase(Ease.InOutElastic));
-                    break;
-                case 5:
-                    sequence.Join(_charmTransform.DOScaleY(1.05f, 1f).SetEase(Ease.InOutElastic));
-                    sequence.Join(_charmTransform.DOScaleX(0.95f * _charmDir, 1.2f).SetEase(Ease.InOutElastic));
-                    break;
-                case 6:
-                case 7:
-                    sequence.Append(_charmTransform.DOScaleX(-1f * _charmDir, 1).SetEase(Ease.InSine));
-                    sequence.Append(_charmTransform.DOScaleX(1f * _charmDir, 1).SetEase(Ease.OutSine));
-                    break;
-                case 8:
-                    //build up
-                    sequence.Append(_charmTransform.DOScaleX(1.4f * _charmDir, 1.2f).SetEase(Ease.InOutSine));
-                    sequence.Join(_charmTransform.DOScaleY(0.75f, 1.2f).SetEase(Ease.InOutSine));
-                    sequence.AppendInterval(0.45f);
-
-                    //jump
-                    sequence.Append(_charmTransform.DOLocalJump(_charmTransform.localPosition, 200f, 1, 3.5f).SetEase(Ease.OutBack));
-
-                    //spin
-                    var squashNSpin = DOTween.Sequence().SetLoops(1, LoopType.Incremental);
-
-                    squashNSpin.Append(_charmTransform.DOScaleX(0.85f * _charmDir, 0.25f).SetEase(Ease.OutSine)).OnComplete(() =>
-                    {
-                        _charmTransform.pivot = new Vector2(0.5f, 0.5f);
-                    });
-                    squashNSpin.Join(_charmTransform.DOScaleY(1.1f, 0.25f).SetEase(Ease.OutSine));
-
-                    squashNSpin.Append(_charmTransform.DORotate(new Vector3(0f, 0f, _charmDir * 360f), 2.3f, RotateMode.FastBeyond360).SetEase(Ease.OutBack)).OnComplete(() =>
-                    {
-                        _charmTransform.pivot = new Vector2(0.5f, 0f);
-                    });
-
-                    squashNSpin.Append(_charmTransform.DOScaleX(_charmDir, 1f).SetEase(Ease.OutElastic));
-                    squashNSpin.Join(_charmTransform.DOScaleY(1f, 1f).SetEase(Ease.OutElastic));
-                    sequence.Join(squashNSpin);
-                    break;
-                case 9:
-                    if (_girlId == Girls.Sarah)
-                    {
-                        sequence.Append(_charmTransform.DOScaleX(_charmDir * 1.3f, 0.4f).SetEase(Ease.OutElastic));
-                        sequence.Join(_charmTransform.DOScaleY(0.5f, 0.4f).SetEase(Ease.OutElastic));
-
-                        sequence.Append(_charmTransform.DOScaleX(_charmDir * 0.5f, 0.4f).SetEase(Ease.OutElastic));
-                        sequence.Join(_charmTransform.DOScaleY(1.3f, 0.4f).SetEase(Ease.OutElastic));
-
-                        sequence.Append(_charmTransform.DOScaleX(_charmDir * 1.3f, 0.4f).SetEase(Ease.OutElastic));
-                        sequence.Join(_charmTransform.DOScaleY(0.5f, 0.4f).SetEase(Ease.OutElastic));
-
-                        sequence.Append(_charmTransform.DOScaleX(_charmDir * 0.5f, 0.4f).SetEase(Ease.OutElastic));
-                        sequence.Join(_charmTransform.DOScaleY(1.3f, 0.4f).SetEase(Ease.OutElastic));
-                    }
-                    else if (_girlId == Girls.Lillian)
-                    {
-                        sequence.Append(_charmTransform.DOLocalMoveX(_charmTransform.localPosition.x + (90 * _charmDir), 1.2f));
-                        sequence.Join(_charmTransform.DOLocalMoveY(_charmTransform.localPosition.y + 48, 1.2f));
-                        sequence.Join(_charmTransform.DOScaleY(0.9f, 1.2f));
-                        sequence.Join(_charmTransform.DOScaleX(1.1f * _charmDir, 1.2f));
-                        sequence.Join(_charmTransform.DORotate(new Vector3(0f, 0f, _charmDir * 90), 1.2f));
-
-                        sequence.Append(_charmTransform.DOScaleY(1.1f, 1.2f).SetEase(Ease.InOutElastic));
-                        sequence.Join(_charmTransform.DOScaleX(0.9f * _charmDir, 1.2f).SetEase(Ease.InOutElastic));
-
-                        sequence.AppendInterval(Random.Range(8f, 30f));
-
-                        sequence.Append(_charmTransform.DOScaleY(0.9f, 1.2f).SetEase(Ease.InOutSine));
-                        sequence.Join(_charmTransform.DOScaleX(1.1f * _charmDir, 1.2f).SetEase(Ease.InOutSine));
-                        sequence.Join(_charmTransform.DORotate(new Vector3(0f, 0f, 0), 1.2f));
-                        sequence.Join(_charmTransform.DOLocalMoveX(_charmTransform.localPosition.x, 1.2f));
-                        sequence.Join(_charmTransform.DOLocalMoveY(_charmTransform.localPosition.y, 1.2f));
-
-                        sequence.Append(_charmTransform.DOScaleY(1f, 1.2f).SetEase(Ease.InOutElastic));
-                        sequence.Join(_charmTransform.DOScaleX(1f * _charmDir, 1.2f).SetEase(Ease.InOutElastic));
-                    }
-                    else if (_girlId == Girls.Abia)
-                    {
-                        sequence.Append(_charmTransform.DOShakeAnchorPos(4f, 30));
-                    }
-                    break;
-                default:
-                    sequence.AppendInterval(2f);
-                    break;
-            }
+                Dir = 1,
+                GirlId = _girlId,
+                Transform = _charmTransform
+            };
         }
 
-        sequence.Append(_charmTransform.DOLocalJump(_charmTransform.localPosition, 20f, 2, 3f).SetEase(Ease.OutBounce));
-        sequence.Join(_charmTransform.DOScaleX(_charmDir, 1.5f).SetEase(Ease.InOutElastic));
-        sequence.Join(_charmTransform.DOScaleY(1f, 1.5f).SetEase(Ease.InOutElastic));
-        sequence.AppendInterval(1f);
+        _charmSequence = Plugin.CharmAnimationRegistry.CreateSequence(_charmContext, 10f);
+        _charmSequence.OnComplete(MakeCharmSequence);
 
-        Game.Manager.Time.Play(sequence, _core.relationshipSlot.pauseDefinition, 0f);
+        _charmSequence.Append(_charmTransform.DOLocalJump(_charmTransform.localPosition, 20f, 2, 3f).SetEase(Ease.OutBounce));
+        _charmSequence.Join(_charmTransform.DOScaleX(_charmContext.Dir, 1.5f).SetEase(Ease.InOutElastic));
+        _charmSequence.Join(_charmTransform.DOScaleY(1f, 1.5f).SetEase(Ease.InOutElastic));
+        _charmSequence.AppendInterval(1f);
+
+        Game.Manager.Time.Play(_charmSequence, _core.relationshipSlot.pauseDefinition, 0f);
     }
 
-    public void OnDestroy()
+    protected override void OnCleanup()
     {
-        foreach (var sequence in _sequences)
+        foreach (var sequence in _heartSequences)
         {
             Game.Manager.Time.KillTween(sequence, false, false);
         }
 
+        if (_charmSequence != null)
+        {
+            Game.Manager.Time.KillTween(_charmSequence, false, false);
+        }
+        
         _expansions.Remove(_core);
     }
 
@@ -328,7 +228,7 @@ internal class ExpandedUiCellphoneAppStatus
             + new Vector2(Mathf.Cos(rads), Mathf.Sin(rads)) * _heartDist;
 
         var sequence = DOTween.Sequence().SetLoops(-1, LoopType.Restart);
-        _sequences.Add(sequence);
+        _heartSequences.Add(sequence);
 
         sequence.Append(heart_rectTransform.DOLocalMoveY(heart_rectTransform.localPosition.y + 8f, 0.7f).SetEase(Ease.InOutSine));
         sequence.Append(heart_rectTransform.DOLocalMoveY(heart_rectTransform.localPosition.y, 2.5f).SetEase(Ease.OutElastic));

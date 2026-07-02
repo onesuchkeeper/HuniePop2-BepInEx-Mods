@@ -4,6 +4,8 @@ using System.IO;
 using BepInEx;
 using HarmonyLib;
 using Hp2BaseMod;
+using Hp2BaseMod.Utility;
+using UnityEngine;
 
 namespace AnniversaryTitle;
 
@@ -19,14 +21,14 @@ public class Plugin : BaseUnityPlugin
     private void Awake()
     {
         if (ModInterface.TryGetInterModValue("OSK.BepInEx.Hp2BaseModTweaks", "AddModCredit",
-            out Action<string, IEnumerable<(string creditButtonPath, string creditButtonOverPath, string redirectLink)>> m_addModConfig))
+            out Action<Sprite, IEnumerable<(Sprite creditButtonPath, Sprite creditButtonOverPath, string redirectLink)>> m_addModConfig))
         {
-            m_addModConfig(Path.Combine(IMAGES_DIR, "CreditsLogo.png"), [
+            m_addModConfig(TextureUtility.SpriteFromPng(Path.Combine(IMAGES_DIR, "CreditsLogo.png"), true), [
                 (
-                        Path.Combine(IMAGES_DIR, "onesuchKeeper_credits_dev.png"),
-                        Path.Combine(IMAGES_DIR, "onesuchKeeper_credits_dev_over.png"),
-                        "https://linktr.ee/onesuchkeeper"
-                    )
+                    TextureUtility.SpriteFromPng(Path.Combine(IMAGES_DIR, "onesuchKeeper_credits_dev.png"), true),
+                    TextureUtility.SpriteFromPng(Path.Combine(IMAGES_DIR, "onesuchKeeper_credits_dev_over.png"), true),
+                    "https://linktr.ee/onesuchkeeper"
+                )
             ]);
         }
 

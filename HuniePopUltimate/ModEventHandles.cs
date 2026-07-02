@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using BepInEx.Bootstrap;
+using DG.Tweening;
 using Hp2BaseMod;
 using Hp2BaseMod.GameDataInfo;
 using Hp2BaseMod.GameDataInfo.Interface;
@@ -30,12 +31,24 @@ public static class ModEventHandles
 
         if (!(ModInterface.TryGetInterModValue(singleDateId, "AddGirlDatePhotos", out Action<RelativeId, IEnumerable<(RelativeId, float)>> m_AddGirlDatePhotos)
                 && ModInterface.TryGetInterModValue(singleDateId, "AddGirlSexPhotos", out Action<RelativeId, IEnumerable<(RelativeId, RelativeId)>> m_AddGirlSexPhotos)
-                && ModInterface.TryGetInterModValue(singleDateId, "SetGirlCharm", out Action<RelativeId, Sprite> m_SetCharmSprite)))
+                && ModInterface.TryGetInterModValue(singleDateId, "SetGirlCharm", out Action<RelativeId, Sprite> m_SetCharmSprite)
+                && ModInterface.TryGetInterModValue(singleDateId, "RegisterCharmAnimation", out Action<float, float, Func<Sequence, (RectTransform transform, bool dir, RelativeId girlId), bool>, HashSet<RelativeId>> m_RegisterCharmAnimation)))
         {
             m_AddGirlDatePhotos = null;
             m_AddGirlSexPhotos = null;
             m_SetCharmSprite = null;
+            m_RegisterCharmAnimation = null;
         }
+        else
+        {
+            SingleDateCharmAnimation.AddCharmAnimations(m_RegisterCharmAnimation);
+        }
+
+        // float weight, 
+        // float cost,
+        // Func<Sequence, (RectTransform transform, bool dir, RelativeId girlId), bool> build,
+        // HashSet<RelativeId> allowedCharacters
+        
 
         ModInterface.Log.Message("Loading HuniePop assembly (this may take a bit)");
 
@@ -223,13 +236,24 @@ public static class ModEventHandles
 
     internal static void On_RequestUnlockedPhotos(RequestUnlockedPhotosEventArgs args)
     {
-        if (!Plugin.PConfig.UnlockPhotos.Value) return;
-
         args.UnlockedPhotos ??= new();
 
-        for (int i = 0; i < Photos.Count; i++)
+        foreach ((int baseId, int count) in Photos.BonusIdRanges)
         {
-            args.UnlockedPhotos.Add(ModInterface.GameData.GetPhoto(new RelativeId(Plugin.ModId, i)));
+            for (int i = 0; i < count; i++)
+            {
+                args.UnlockedPhotos.Add(ModInterface.GameData.GetPhoto(new RelativeId(Plugin.ModId, baseId + i)));
+            }
+        }
+
+        if (Plugin.HasThankYouPhoto) args.UnlockedPhotos.Add(ModInterface.GameData.GetPhoto(Photos.ThankYou));
+
+        if (Plugin.PConfig.UnlockPhotos.Value)
+        {
+            for (int i = 0; i < Photos.Count; i++)
+            {
+                args.UnlockedPhotos.Add(ModInterface.GameData.GetPhoto(new RelativeId(Plugin.ModId, i)));
+            }
         }
     }
 

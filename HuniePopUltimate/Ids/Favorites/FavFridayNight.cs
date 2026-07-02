@@ -7,7 +7,7 @@ public static class FavFridayNight
 {
     public static readonly RelativeId Reading = new RelativeId(Plugin.ModId, 0);
 
-    public static void AddDataMods()
+    internal static void AddDataMods()
     {
         ModInterface.AddDataMod(new FavQuestionDataMod(Hp2BaseMod.Favorites.FridayNight, Hp2BaseMod.Utility.InsertStyle.append)
         {

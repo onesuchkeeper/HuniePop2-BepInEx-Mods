@@ -19,7 +19,7 @@ public static class Weight
     public static RelativeId _122 = new RelativeId(Plugin.ModId, 10);
     public static RelativeId _126 = new RelativeId(Plugin.ModId, 11);
 
-    public static void AddDataMods()
+    internal static void AddDataMods()
     {
         ModInterface.AddDataMod(new FavQuestionDataMod(Questions.Weight, Hp2BaseMod.Utility.InsertStyle.append)
         {

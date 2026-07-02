@@ -8,7 +8,7 @@ public static class FavDrink
     public static RelativeId Soda = new RelativeId(Plugin.ModId, 0);
     public static RelativeId Juice = new RelativeId(Plugin.ModId, 1);
 
-    public static void AddDataMods()
+    internal static void AddDataMods()
     {
         ModInterface.AddDataMod(new FavQuestionDataMod(Hp2BaseMod.Favorites.Drink, Hp2BaseMod.Utility.InsertStyle.append)
         {

@@ -18,7 +18,7 @@ public static class Age
     public static RelativeId _20 = new RelativeId(Plugin.ModId, 10);
     public static RelativeId _10000 = new RelativeId(Plugin.ModId, 5);
 
-    public static void AddDataMods()
+    internal static void AddDataMods()
     {
         ModInterface.AddDataMod(new FavQuestionDataMod(Questions.Age, Hp2BaseMod.Utility.InsertStyle.append)
         {

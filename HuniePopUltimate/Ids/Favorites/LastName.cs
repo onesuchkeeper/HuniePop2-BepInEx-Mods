@@ -18,7 +18,7 @@ public static class LastName
     public static RelativeId Venus = new RelativeId(Plugin.ModId, 9);
     public static RelativeId Rembrite = new RelativeId(Plugin.ModId, 10);
 
-    public static void AddDataMods()
+    internal static void AddDataMods()
     {
         ModInterface.AddDataMod(new FavQuestionDataMod(Questions.LastName, Hp2BaseMod.Utility.InsertStyle.append)
         {

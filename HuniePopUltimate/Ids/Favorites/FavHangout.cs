@@ -19,7 +19,7 @@ public static class FavHangout
     public static RelativeId Cafe = new RelativeId(Plugin.ModId, 10);
     public static RelativeId Bar = new RelativeId(Plugin.ModId, 11);
 
-    public static void AddDataMods()
+    internal static void AddDataMods()
     {
         ModInterface.AddDataMod(new FavQuestionDataMod(Questions.FavHangout, Hp2BaseMod.Utility.InsertStyle.append)
         {

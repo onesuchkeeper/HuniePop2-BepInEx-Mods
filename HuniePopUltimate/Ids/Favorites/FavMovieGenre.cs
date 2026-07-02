@@ -7,7 +7,7 @@ public static class FavMovieGenre
 {
     public static readonly RelativeId Drama = new RelativeId(Plugin.ModId, 0);
 
-    public static void AddDataMods()
+    internal static void AddDataMods()
     {
         ModInterface.AddDataMod(new FavQuestionDataMod(Hp2BaseMod.Favorites.MovieGenre, Hp2BaseMod.Utility.InsertStyle.append)
         {

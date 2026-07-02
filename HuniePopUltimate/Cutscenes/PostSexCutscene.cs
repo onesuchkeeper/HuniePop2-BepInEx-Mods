@@ -7,7 +7,7 @@ namespace HuniePopUltimate;
 
 public static class PostSexCutscene
 {
-    public static void AddDataMods()
+    internal static void AddDataMods()
     {
         var mod = new CutsceneDataMod(Cutscenes.PostSex, InsertStyle.append)
         {

@@ -7,7 +7,7 @@ namespace SingleDate;
 
 public static class SingleDatePostSexCutscene
 {
-    public static void AddDataMods()
+    internal static void AddDataMods()
     {
         ModInterface.AddDataMod(new CutsceneDataMod(CutsceneIds.PostSex, InsertStyle.replace)
         {

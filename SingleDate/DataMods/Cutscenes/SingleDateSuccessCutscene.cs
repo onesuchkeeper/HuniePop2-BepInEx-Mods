@@ -7,7 +7,7 @@ namespace SingleDate;
 
 public static class SingleDateSuccessCutscene
 {
-    public static void AddDataMods()
+    internal static void AddDataMods()
     {
         ModInterface.AddDataMod(new CutsceneDataMod(CutsceneIds.Success, InsertStyle.replace)
         {

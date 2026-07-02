@@ -20,15 +20,8 @@ namespace Hp2BaseModTweaks
 
         public static void Prefix(UiTitleCanvas __instance)
         {
-            var logoPaths = Plugin.LogoPaths
-                .Where(x => !string.IsNullOrEmpty(x))
-                .Where(File.Exists)
-                .ToArray();
-
-            if (logoPaths.Length > 0)
+            if (Plugin.LogoSprites.Any())
             {
-                var path = logoPaths.GetRandom();
-
                 if (!(f_coverArt.GetValue(__instance) is UiCoverArt coverArt))
                 {
                     ModInterface.Log.Warning("Unable to find title canvas cover art");
@@ -37,9 +30,7 @@ namespace Hp2BaseModTweaks
 
                 if (coverArt.logo.TryGetComponent<Image>(out var LogoImage))
                 {
-                    var logoTexture = TextureUtility.LoadFromPng(path, true);
-
-                    LogoImage.sprite = TextureUtility.TextureToSprite(logoTexture, new Vector2(logoTexture.width / 2, logoTexture.height / 2));
+                    LogoImage.sprite = Plugin.LogoSprites.GetRandom();
 
                     LogoImage.rectTransform.DOSpiral(0.7f, null, SpiralMode.Expand, 5).Play();
                     LogoImage.rectTransform.DOShakeAnchorPos(0.7f, 40, 15, 100).Play();

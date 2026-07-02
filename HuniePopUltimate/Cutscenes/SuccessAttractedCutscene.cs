@@ -6,7 +6,7 @@ namespace HuniePopUltimate;
 
 public static class SuccessAttractedCutscene
 {
-    public static void AddDataMods()
+    internal static void AddDataMods()
     {
         var mod = new CutsceneDataMod(Cutscenes.SuccessAttracted, InsertStyle.append)
         {

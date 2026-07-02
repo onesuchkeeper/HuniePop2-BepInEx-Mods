@@ -37,34 +37,34 @@ public static class UiPrefabs
 
     private static Sprite _defaultCharmSprite;
 
-    public static void InitExternals()
+    public static void InitExternals(AssetBundle assetBundle)
     {
-        _singleUiAppPairSlotBg = TextureUtility.SpriteFromPng(Path.Combine(SingleDate.Plugin.IMAGES_DIR, "ui_app_pairs_pair_bg.png"), true);
-        _singleUiAppPairSlotBgOver = TextureUtility.SpriteFromPng(Path.Combine(SingleDate.Plugin.IMAGES_DIR, "ui_app_pairs_pair_bg_over.png"), true);
-        _sensitivityIcon = TextureUtility.SpriteFromPng(Path.Combine(SingleDate.Plugin.IMAGES_DIR, "ui_app_pair_icon_sensitivity.png"), true);
-        _sensitivityPlate = TextureUtility.SpriteFromPng(Path.Combine(SingleDate.Plugin.IMAGES_DIR, "ui_app_pair_sensitivity.png"), true);
-        _sensitivityMeter = TextureUtility.SpriteFromPng(Path.Combine(SingleDate.Plugin.IMAGES_DIR, "ui_app_pair_meter_sensitivity.png"), true);
+        _singleUiAppPairSlotBg = assetBundle.LoadAsset<Sprite>("ui_app_pairs_pair_bg");
+        _singleUiAppPairSlotBgOver = assetBundle.LoadAsset<Sprite>("ui_app_pairs_pair_bg_over");
+        _sensitivityIcon = assetBundle.LoadAsset<Sprite>("ui_app_pair_icon_sensitivity");
+        _sensitivityPlate = assetBundle.LoadAsset<Sprite>("ui_app_pair_sensitivity");
+        _sensitivityMeter = assetBundle.LoadAsset<Sprite>("ui_app_pair_meter_sensitivity");
 
         if (Directory.Exists(_charmsDir))
         {
-            Plugin.SetGirlCharm(Girls.Abia, GetCharmSprite("Abia"));
-            Plugin.SetGirlCharm(Girls.Ashley, GetCharmSprite("Ashley"));
-            Plugin.SetGirlCharm(Girls.Brooke, GetCharmSprite("Brooke"));
-            Plugin.SetGirlCharm(Girls.Candace, GetCharmSprite("Candace"));
-            Plugin.SetGirlCharm(Girls.Jessie, GetCharmSprite("Jessie"));
-            Plugin.SetGirlCharm(Girls.Jewn, GetCharmSprite("Jewn"));
-            Plugin.SetGirlCharm(Girls.Kyu, GetCharmSprite("Kyu"));
-            Plugin.SetGirlCharm(Girls.Lailani, GetCharmSprite("Lailani"));
-            Plugin.SetGirlCharm(Girls.Lillian, GetCharmSprite("Lillian"));
-            Plugin.SetGirlCharm(Girls.Lola, GetCharmSprite("Lola"));
-            Plugin.SetGirlCharm(Girls.Moxie, GetCharmSprite("Moxie"));
-            Plugin.SetGirlCharm(Girls.Nora, GetCharmSprite("Nora"));
-            Plugin.SetGirlCharm(Girls.Polly, GetCharmSprite("Polly"));
-            Plugin.SetGirlCharm(Girls.Sarah, GetCharmSprite("Sarah"));
-            Plugin.SetGirlCharm(Girls.Zoey, GetCharmSprite("Zoey"));
+            Plugin.SetGirlCharm(Hp2BaseMod.Girls.Abia, GetCharmSprite("Abia"));
+            Plugin.SetGirlCharm(Hp2BaseMod.Girls.Ashley, GetCharmSprite("Ashley"));
+            Plugin.SetGirlCharm(Hp2BaseMod.Girls.Brooke, GetCharmSprite("Brooke"));
+            Plugin.SetGirlCharm(Hp2BaseMod.Girls.Candace, GetCharmSprite("Candace"));
+            Plugin.SetGirlCharm(Hp2BaseMod.Girls.Jessie, GetCharmSprite("Jessie"));
+            Plugin.SetGirlCharm(Hp2BaseMod.Girls.Jewn, GetCharmSprite("Jewn"));
+            Plugin.SetGirlCharm(Hp2BaseMod.Girls.Kyu, GetCharmSprite("Kyu"));
+            Plugin.SetGirlCharm(Hp2BaseMod.Girls.Lailani, GetCharmSprite("Lailani"));
+            Plugin.SetGirlCharm(Hp2BaseMod.Girls.Lillian, GetCharmSprite("Lillian"));
+            Plugin.SetGirlCharm(Hp2BaseMod.Girls.Lola, GetCharmSprite("Lola"));
+            Plugin.SetGirlCharm(Hp2BaseMod.Girls.Moxie, GetCharmSprite("Moxie"));
+            Plugin.SetGirlCharm(Hp2BaseMod.Girls.Nora, GetCharmSprite("Nora"));
+            Plugin.SetGirlCharm(Hp2BaseMod.Girls.Polly, GetCharmSprite("Polly"));
+            Plugin.SetGirlCharm(Hp2BaseMod.Girls.Sarah, GetCharmSprite("Sarah"));
+            Plugin.SetGirlCharm(Hp2BaseMod.Girls.Zoey, GetCharmSprite("Zoey"));
         }
 
-        _defaultCharmSprite = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(SingleDate.Plugin.IMAGES_DIR, $"DefaultCharm.png"), true)).GetSprite();
+        _defaultCharmSprite = assetBundle.LoadAsset<Sprite>("DefaultCharm");
     }
 
     private static TextureRsScale _charmScale = new TextureRsScale(new Vector2(14 / 45f, 14 / 45f));

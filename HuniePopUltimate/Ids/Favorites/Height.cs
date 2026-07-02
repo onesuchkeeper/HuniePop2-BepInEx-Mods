@@ -15,7 +15,7 @@ public static class Height
     public static RelativeId _5_8 = new RelativeId(Plugin.ModId, 6);
     public static RelativeId _5_7 = new RelativeId(Plugin.ModId, 7);
 
-    public static void AddDataMods()
+    internal static void AddDataMods()
     {
         ModInterface.AddDataMod(new FavQuestionDataMod(Questions.Height, Hp2BaseMod.Utility.InsertStyle.append)
         {

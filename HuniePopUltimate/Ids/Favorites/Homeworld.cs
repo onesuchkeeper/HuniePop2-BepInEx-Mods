@@ -11,7 +11,7 @@ public static class Homeworld
     public static RelativeId Tendricide = new RelativeId(Plugin.ModId, 2);
     public static RelativeId SkyGarden = new RelativeId(Plugin.ModId, 3);
 
-    public static void AddDataMods()
+    internal static void AddDataMods()
     {
         ModInterface.AddDataMod(new FavQuestionDataMod(Questions.HomeWorld, Hp2BaseMod.Utility.InsertStyle.append)
         {

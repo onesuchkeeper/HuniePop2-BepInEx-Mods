@@ -19,7 +19,7 @@ public static class FavHobby
     public static RelativeId Tennis = new RelativeId(Plugin.ModId, 10);
     public static RelativeId Drinking = new RelativeId(Plugin.ModId, 11);
 
-    public static void AddDataMods()
+    internal static void AddDataMods()
     {
         ModInterface.AddDataMod(new FavQuestionDataMod(Questions.Hobby, Hp2BaseMod.Utility.InsertStyle.append)
         {

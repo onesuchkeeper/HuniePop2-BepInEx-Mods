@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using HarmonyLib;
 
-namespace SingleDate;
+namespace Hp2BaseMod;
 
 [HarmonyPatch(typeof(UiPuzzleStaminaHint))]
 internal static class UiPuzzleStaminaHintPatch
@@ -44,13 +44,13 @@ internal class ExpandedUiPuzzleStaminaHint
 
     public void Start()
     {
-        ExpandedUiPuzzleGrid.Get(Game.Session.Puzzle.puzzleGrid).MoveCompleteEvent += OnShouldCheck;
+        ExpandedUiPuzzleGrid.Get().MoveCompleteEvent += OnShouldCheck;
     }
 
     public void OnDestroy()
     {
         _expansions.Remove(_uiPuzzleStaminaHint);
-        ExpandedUiPuzzleGrid.Get(Game.Session.Puzzle.puzzleGrid).MoveCompleteEvent -= OnShouldCheck;
+        ExpandedUiPuzzleGrid.Get().MoveCompleteEvent -= OnShouldCheck;
     }
 
     public void OnShouldCheck() => m_onShouldCheck.Invoke(_uiPuzzleStaminaHint, null);

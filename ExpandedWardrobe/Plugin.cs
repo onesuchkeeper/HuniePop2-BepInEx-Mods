@@ -5,6 +5,7 @@ using System.Linq;
 using BepInEx;
 using BepInEx.Configuration;
 using Hp2BaseMod;
+using Hp2BaseMod.Utility;
 using UnityEngine;
 
 namespace ExpandedWardrobe;
@@ -114,19 +115,19 @@ internal class Plugin : BaseUnityPlugin
         if (_zoeyStyles.Value) Styles.AddZoeyStyles(bundle);
 
         if (ModInterface.TryGetInterModValue("OSK.BepInEx.Hp2BaseModTweaks", "AddModCredit",
-                out Action<string, IEnumerable<(string creditButtonPath, string creditButtonOverPath, string redirectLink)>> m_addModConfig))
+            out Action<Sprite, IEnumerable<(Sprite creditButtonPath, Sprite creditButtonOverPath, string redirectLink)>> m_addModConfig))
         {
-            m_addModConfig(Path.Combine(IMAGES_DIR, "CreditsLogo.png"), [
+            m_addModConfig(TextureUtility.SpriteFromPng(Path.Combine(IMAGES_DIR, "CreditsLogo.png"), true), [
                 (
-                        Path.Combine(IMAGES_DIR, "ScallyCapFan_credits.png"),
-                        Path.Combine(IMAGES_DIR, "ScallyCapFan_credits_over.png"),
-                        "https://www.reddit.com/user/scallycapfan/"
-                    ),
-                    (
-                        Path.Combine(IMAGES_DIR, "onesuchKeeper_credits_art.png"),
-                        Path.Combine(IMAGES_DIR, "onesuchKeeper_credits_art_over.png"),
-                        "https://linktr.ee/onesuchkeeper"
-                    )
+                    TextureUtility.SpriteFromPng(Path.Combine(IMAGES_DIR, "ScallyCapFan_credits.png"), true),
+                    TextureUtility.SpriteFromPng(Path.Combine(IMAGES_DIR, "ScallyCapFan_credits_over.png"), true),
+                    "https://www.reddit.com/user/scallycapfan/"
+                ),
+                (
+                    TextureUtility.SpriteFromPng(Path.Combine(IMAGES_DIR, "onesuchKeeper_credits_art.png"), true),
+                    TextureUtility.SpriteFromPng(Path.Combine(IMAGES_DIR, "onesuchKeeper_credits_art_over.png"), true),
+                    "https://linktr.ee/onesuchkeeper"
+                ),
             ]);
         }
 

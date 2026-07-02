@@ -8,13 +8,8 @@ namespace SingleDate;
 
 internal static class GirlNobody
 {
-    public static RelativeId Id => _id;
-    private static RelativeId _id;
-
-    public static void AddDataMods()
+    internal static void AddDataMods()
     {
-        _id = new RelativeId(State.ModId, 0);
-
         var emptyPartId = new RelativeId(State.ModId, 0);
         var emptySpriteInfo = new SpriteInfoInternal("EmptySprite");
 
@@ -29,12 +24,10 @@ internal static class GirlNobody
 
         var neutralExpressionId = new RelativeId(-1, (int)GirlExpressionType.NEUTRAL);
 
-        ModInterface.AddDataMod(new GirlDataMod(_id, InsertStyle.replace)
+        ModInterface.AddDataMod(new GirlDataMod(Girls.Nobody, InsertStyle.replace)
         {
             GirlName = "Nobody",
             SpecialCharacter = true,
-
-
 
             bodies = new List<IGirlBodyDataMod>()
             {
@@ -87,6 +80,10 @@ internal static class GirlNobody
             CellphoneMiniHeadAlt = emptySpriteInfo,
             CellphonePortrait = emptySpriteInfo,
             CellphonePortraitAlt = emptySpriteInfo,
+
+            //Make sure these don't match any real types so they don't interfere with abilities
+            FavoriteAffectionType = (PuzzleAffectionType)(-1),
+            LeastFavoriteAffectionType = (PuzzleAffectionType)(-1)
         });
     }
 }

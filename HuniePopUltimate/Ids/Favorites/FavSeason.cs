@@ -11,7 +11,7 @@ public static class FavSeason
     public static RelativeId Spring = new RelativeId(Plugin.ModId, 2);
     public static RelativeId Winter = new RelativeId(Plugin.ModId, 3);
 
-    public static void AddDataMods()
+    internal static void AddDataMods()
     {
         ModInterface.AddDataMod(new FavQuestionDataMod(Questions.FavSeason, Hp2BaseMod.Utility.InsertStyle.append)
         {

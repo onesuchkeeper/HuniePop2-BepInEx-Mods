@@ -17,7 +17,7 @@ public static class FavColour
     public static RelativeId White = new RelativeId(Plugin.ModId, 8);
     public static RelativeId Orange = new RelativeId(Plugin.ModId, 9);
 
-    public static void AddDataMods()
+    internal static void AddDataMods()
     {
         ModInterface.AddDataMod(new FavQuestionDataMod(Questions.FavColour, Hp2BaseMod.Utility.InsertStyle.append)
         {

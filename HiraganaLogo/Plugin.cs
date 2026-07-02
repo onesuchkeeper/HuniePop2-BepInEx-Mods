@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using BepInEx;
 using Hp2BaseMod;
+using Hp2BaseMod.Utility;
+using UnityEngine;
 
 namespace HiraganaLogo;
 
@@ -17,27 +19,27 @@ public class Plugin : BaseUnityPlugin
 
     private void Awake()
     {
-        if (ModInterface.TryGetInterModValue(TWEAKS_GUID, "AddModCredit",
-                out Action<string, IEnumerable<(string creditButtonPath, string creditButtonOverPath, string redirectLink)>> m_addModConfig))
+        if (ModInterface.TryGetInterModValue("OSK.BepInEx.Hp2BaseModTweaks", "AddModCredit",
+            out Action<Sprite, IEnumerable<(Sprite creditButtonPath, Sprite creditButtonOverPath, string redirectLink)>> m_addModConfig))
         {
-            m_addModConfig(Path.Combine(IMAGES_DIR, "CreditsLogo.png"), [
+            m_addModConfig(TextureUtility.SpriteFromPng(Path.Combine(IMAGES_DIR, "CreditsLogo.png"), true), [
                 (
-                        Path.Combine(IMAGES_DIR, "silverwoodwork_credits_art.png"),
-                        Path.Combine(IMAGES_DIR, "silverwoodwork_credits_art_over.png"),
-                        "https://twitter.com/silverwoodwork"
+                    TextureUtility.SpriteFromPng(Path.Combine(IMAGES_DIR, "silverwoodwork_credits_art.png"), true),
+                    TextureUtility.SpriteFromPng(Path.Combine(IMAGES_DIR, "silverwoodwork_credits_art_over.png"), true),
+                    "https://twitter.com/silverwoodwork"
                 ),
                 (
-                    Path.Combine(IMAGES_DIR, "onesuchKeeper_credits_dev.png"),
-                    Path.Combine(IMAGES_DIR, "onesuchKeeper_credits_dev_over.png"),
+                    TextureUtility.SpriteFromPng(Path.Combine(IMAGES_DIR, "onesuchKeeper_credits_dev.png"), true),
+                    TextureUtility.SpriteFromPng(Path.Combine(IMAGES_DIR, "onesuchKeeper_credits_dev_over.png"), true),
                     "https://linktr.ee/onesuchkeeper"
-                )
+                ),
             ]);
         }
 
-        if (ModInterface.TryGetInterModValue(TWEAKS_GUID, "AddLogoPath",
-            out Action<string> m_addLogoPath))
+        if (ModInterface.TryGetInterModValue(TWEAKS_GUID, "AddLogoSprite",
+            out Action<Sprite> m_addLogoSprite))
         {
-            m_addLogoPath(Path.Combine(IMAGES_DIR, "logo.png"));
+            m_addLogoSprite(Hp2BaseMod.Utility.TextureUtility.SpriteFromPng(Path.Combine(IMAGES_DIR, "logo.png"), true));
         }
     }
 }

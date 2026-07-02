@@ -33,8 +33,8 @@ public partial class Plugin : Hp2BaseModPlugin
     internal static List<CreditEntry> ModCredits => _instance._modCredits;
     private List<CreditEntry> _modCredits;
 
-    internal static List<string> LogoPaths => _instance._logoPaths;
-    private List<string> _logoPaths;
+    internal static List<Sprite> LogoSprites => _instance._logoSprites;
+    private List<Sprite> _logoSprites;
 
     public static new int ModId => ((Hp2BaseModPlugin)_instance).ModId;
 
@@ -54,16 +54,16 @@ public partial class Plugin : Hp2BaseModPlugin
 
         _modCredits = new List<CreditEntry>()
         {
-            new CreditEntry(Path.Combine(ImagesDir, "CreditsLogo.png"),
+            new CreditEntry(TextureUtility.SpriteFromPng(Path.Combine(ImagesDir, "CreditsLogo.png"), true),
             [
-                new CreditMember(Path.Combine(ImagesDir, "onesuchkeeper_credits_art.png"),
-                    Path.Combine(ImagesDir, "onesuchkeeper_credits_art_over.png"),
+                new CreditMember(TextureUtility.SpriteFromPng(Path.Combine(ImagesDir, "onesuchkeeper_credits_art.png"), true),
+                    TextureUtility.SpriteFromPng(Path.Combine(ImagesDir, "onesuchkeeper_credits_art_over.png"), true),
                     "https://linktr.ee/onesuchkeeper")
             ])
         };
 
-        _logoPaths = _useModLogo.Value
-            ? new List<string> { Path.Combine(ImagesDir, "logo.png") }
+        _logoSprites = _useModLogo.Value
+            ? new List<Sprite> { TextureUtility.SpriteFromPng(Path.Combine(ImagesDir, "logo.png"), true) }
             : new();
 
         UiPrefabs.Init();
@@ -102,7 +102,7 @@ public partial class Plugin : Hp2BaseModPlugin
     /// </summary>
     /// <param name="value"></param>
     [InteropMethod]
-    public void AddLogoPath(string value) => LogoPaths.Add(value);
+    public void AddLogoSprite(Sprite value) => LogoSprites.Add(value);
 
     /// <summary>
     /// Adds a credit entry.
@@ -110,8 +110,8 @@ public partial class Plugin : Hp2BaseModPlugin
     /// <param name="logoPath"></param>
     /// <param name="creditEntries"></param>
     [InteropMethod]
-    public void AddModCredit(string logoPath, IEnumerable<(string creditButtonPath, string creditButtonOverPath, string redirectLink)> creditEntries)
-        => ModCredits.Add(new CreditEntry(logoPath, creditEntries.Select(x => new CreditMember(x.creditButtonPath, x.creditButtonOverPath, x.redirectLink))));
+    public void AddModCredit(Sprite logoSprite, IEnumerable<(Sprite creditButtonSprite, Sprite creditButtonOverSprite, string redirectLink)> creditEntries)
+        => ModCredits.Add(new CreditEntry(logoSprite, creditEntries.Select(x => new CreditMember(x.creditButtonSprite, x.creditButtonOverSprite, x.redirectLink))));
 
     private void On_PrePersistenceReset(SaveData data)
     {

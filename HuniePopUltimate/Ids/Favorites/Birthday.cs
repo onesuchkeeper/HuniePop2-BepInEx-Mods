@@ -19,7 +19,7 @@ public static class Birthday
     public static RelativeId Feb_23 = new RelativeId(Plugin.ModId, 10);
     public static RelativeId Jan_27 = new RelativeId(Plugin.ModId, 11);
 
-    public static void AddDataMods()
+    internal static void AddDataMods()
     {
         ModInterface.AddDataMod(new FavQuestionDataMod(Questions.Birthday, Hp2BaseMod.Utility.InsertStyle.append)
         {
