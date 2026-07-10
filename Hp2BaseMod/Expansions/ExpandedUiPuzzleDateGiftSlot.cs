@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Reflection;
 using HarmonyLib;
 
 namespace Hp2BaseMod;
@@ -15,45 +13,22 @@ internal static class UiPuzzleDateGiftSlotPatch
     [HarmonyPatch("OnDestroy")]
     [HarmonyPostfix]
     public static void OnDestroy(UiPuzzleDateGiftSlot __instance)
-        => ExpandedUiPuzzleDateGiftSlot.Get(__instance).OnDestroy();
+        => ExpandedUiPuzzleDateGiftSlot.Destroy(__instance);
 }
 
 /// <summary>
 /// Handles <see cref="ExpandedItemSlotBehavior.PreShowEvent"/>.
 /// </summary>
-internal class ExpandedUiPuzzleDateGiftSlot
+[Expansion(typeof(UiPuzzleDateGiftSlot), Methods = new[]{"OnTooltipPreShow"})]
+public partial class ExpandedUiPuzzleDateGiftSlot
 {
-    private static Dictionary<UiPuzzleDateGiftSlot, ExpandedUiPuzzleDateGiftSlot> _expansions
-        = new Dictionary<UiPuzzleDateGiftSlot, ExpandedUiPuzzleDateGiftSlot>();
-
-    public static ExpandedUiPuzzleDateGiftSlot Get(UiPuzzleDateGiftSlot core)
-    {
-        if (!_expansions.TryGetValue(core, out var expansion))
-        {
-            expansion = new ExpandedUiPuzzleDateGiftSlot(core);
-            _expansions[core] = expansion;
-        }
-
-        return expansion;
-    }
-
-    private static readonly MethodInfo m_onTooltipPreShow = AccessTools.Method(typeof(UiPuzzleDateGiftSlot), "OnTooltipPreShow");
-
-    protected UiPuzzleDateGiftSlot _core;
-    private ExpandedUiPuzzleDateGiftSlot(UiPuzzleDateGiftSlot core)
-    {
-        _core = core;
-    }
-
     public void Start()
     {
         ExpandedItemSlotBehavior.Get(_core.itemSlot).PreShowEvent += OnTooltipPreShow;
     }
 
-    public void OnDestroy()
+    private void OnDestroy()
     {
         ExpandedItemSlotBehavior.Get(_core.itemSlot).PreShowEvent -= OnTooltipPreShow;
     }
-
-    private void OnTooltipPreShow() => m_onTooltipPreShow.Invoke(_core, null);
 }

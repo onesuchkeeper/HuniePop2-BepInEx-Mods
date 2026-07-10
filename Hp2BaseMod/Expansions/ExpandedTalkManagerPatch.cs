@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using HarmonyLib;
 using Hp2BaseMod.Extension;
 
@@ -12,76 +11,45 @@ public static class TalkManagerPatch
     [HarmonyPatch("TalkStep")]
     [HarmonyPrefix]
     public static bool TalkStep(TalkManager __instance)
-        => ExpandedTalkManager.Get(__instance).TalkStep();
+        => ExpandedTalkManager.Get(__instance).TalkStep_Prefix();
 }
 
-public class ExpandedTalkManager
+[Expansion(typeof(TalkManager), 
+    Fields = new[]{ "_talkType", "_talkStepIndex", "_questionPool", "_fileGirlPair", "_fileGirl", 
+        "_oppositeFileGirl", "_girlPair", "_targetDoll", "_oppositeDoll"},
+    Methods = new[]{"OnDialogOptionSelected", "OnDialogLineComplete", "ReceiveFruitFromGirl", "TalkStep"})]
+public partial class ExpandedTalkManager
 {
-    private static Dictionary<TalkManager, ExpandedTalkManager> _expansions
-        = new Dictionary<TalkManager, ExpandedTalkManager>();
-
-    public static ExpandedTalkManager Get(TalkManager core)
+    public bool TalkStep_Prefix()
     {
-        if (!_expansions.TryGetValue(core, out var expansion))
-        {
-            expansion = new ExpandedTalkManager(core);
-            _expansions[core] = expansion;
-        }
-
-        return expansion;
-    }
-
-    private static readonly FieldInfo f_talkType = AccessTools.Field(typeof(TalkManager), "_talkType");
-    private static readonly FieldInfo f_talkStepIndex = AccessTools.Field(typeof(TalkManager), "_talkStepIndex");
-    private static readonly FieldInfo f_questionsPool = AccessTools.Field(typeof(TalkManager), "_questionPool");
-    private static readonly FieldInfo f_fileGirlPair = AccessTools.Field(typeof(TalkManager), "_fileGirlPair");
-    private static readonly FieldInfo f_fileGirl = AccessTools.Field(typeof(TalkManager), "_fileGirl");
-    private static readonly FieldInfo f_oppositeFileGirl = AccessTools.Field(typeof(TalkManager), "_oppositeFileGirl");
-    private static readonly FieldInfo f_girlPair = AccessTools.Field(typeof(TalkManager), "_girlPair");
-    private static readonly FieldInfo f_targetDoll = AccessTools.Field(typeof(TalkManager), "_targetDoll");
-    private static readonly FieldInfo f_oppositeDoll = AccessTools.Field(typeof(TalkManager), "_oppositeDoll");
-
-    private static readonly MethodInfo m_OnDialogOptionSelected = AccessTools.Method(typeof(TalkManager), "OnDialogOptionSelected");
-    private static readonly MethodInfo m_OnDialogLineComplete = AccessTools.Method(typeof(TalkManager), "OnDialogLineComplete");
-    private static readonly MethodInfo m_ReceiveFruitFromGirl = AccessTools.Method(typeof(TalkManager), "ReceiveFruitFromGirl");
-    private static readonly MethodInfo m_TalkStep = AccessTools.Method(typeof(TalkManager), "TalkStep");
-
-    protected TalkManager _core;
-    private ExpandedTalkManager(TalkManager core)
-    {
-        _core = core;
-    }
-
-    public bool TalkStep()
-    {
-        var talkType = f_talkType.GetValue<TalkWithType>(_core);
-        var talkStepIndex = f_talkStepIndex.GetValue<int>(_core) + 1;
-
-        switch (talkType)
+        var nextIndex = _talkStepIndex + 1;
+        switch (_talkType)
         {
             case TalkWithType.HER_QUESTION:
-                switch (talkStepIndex)
+                ModInterface.Log.Message($"HER_QUESTION {nextIndex}");
+                switch (nextIndex)
                 {
                     // case 1:
                     //     HerQuestionAskOptions();
-                    //     f_talkStepIndex.SetValue(_core, talkStepIndex);
+                    //     _talkStepIndex++;
                     //     return false;
                 }
                 break;
             case TalkWithType.FAVORITE_QUESTION:
-                switch (talkStepIndex)
+                ModInterface.Log.Message($"FAVORITE_QUESTION {nextIndex}");
+                switch (nextIndex)
                 {
                     case 1:
-                        f_talkStepIndex.SetValue(_core, talkStepIndex);
+                        _talkStepIndex++;
                         FavoriteQuestionShowOptions();
                         return false;
                     case 2:
-                        f_talkStepIndex.SetValue(_core, talkStepIndex);
+                        _talkStepIndex++;
                         FavoriteQuestionHandleSelection();
                         return false;
                     case 3:
-                        f_talkStepIndex.SetValue(_core, talkStepIndex);
-                        FavoriteQuestionResponse();//needs args
+                        _talkStepIndex++;
+                        FavoriteQuestionResponse();
                         return false;
                 }
                 break;
@@ -92,60 +60,51 @@ public class ExpandedTalkManager
 
     private void FavoriteQuestionResponse()
     {
-        var fileGirl = f_fileGirl.GetValue<PlayerFileGirl>(_core);
-        var girl = fileGirl.girlDefinition;
-        var girlId = ModInterface.Data.GetDataId(GameDataType.Girl, girl.id);
-        var girlPair = f_girlPair.GetValue<GirlPairDefinition>(_core);
+        var girl = _fileGirl.girlDefinition;
 
-        var oppositeDoll = f_oppositeDoll.GetValue<UiDoll>(_core);
-        var oppositeDef = oppositeDoll.girlDefinition.Expansion().FavQuestionIdToAnswerId;
-        var oppositeFileGirl = f_oppositeFileGirl.GetValue<PlayerFileGirl>(_core);
+        var oppositeDoll = _oppositeDoll;
+        var oppositeDef = oppositeDoll.girlDefinition.GetExpansion().FavQuestionIdToAnswerId;
 
         var selectedQuestionId = ModInterface.Data.GetDataId(GameDataType.Question, Game.Session.Dialog.selectedDialogOptionIndex);
         var selectedQuestion = ModInterface.GameData.GetQuestion(selectedQuestionId);
-        var answer = ExpandedGirlDefinition.Get(girlId).FavQuestionIdToAnswerId[selectedQuestionId];
 
         var args = new TalkFavQuestionResponseArgs()
         {
             OtherGirlResponds = oppositeDef.TryGetValue(selectedQuestionId, out var oppositeAnswer)
-            && oppositeAnswer == answer
+                && oppositeAnswer == girl.GetExpansion().FavQuestionIdToAnswerId[selectedQuestionId]
         };
 
         ModInterface.Events.NotifyFavQuestionResponse(args);
 
         if (args.OtherGirlResponds)
         {
-            oppositeFileGirl.LearnFavAnswer(selectedQuestion);
+            _oppositeFileGirl.LearnFavAnswer(selectedQuestion);
             m_ReceiveFruitFromGirl.Invoke(_core, [oppositeDoll, false]);
-            oppositeDoll.DialogLineCompleteEvent += OnDialogLineComplete;
-            oppositeDoll.ReadDialogTrigger(_core.dtFavQuestionAgreement, DialogLineFormat.ACTIVE, selectedQuestion.Expansion().AnswerLookup[oppositeAnswer]);
+            oppositeDoll.DialogLineCompleteEvent += OnDialogLineComplete_Hook;
+            oppositeDoll.ReadDialogTrigger(_core.dtFavQuestionAgreement, DialogLineFormat.ACTIVE, selectedQuestion.GetExpansion().AnswerLookup[oppositeAnswer]);
         }
         else
         {
-            m_TalkStep.Invoke(_core, []);
+            TalkStep();
         }
     }
 
     private void FavoriteQuestionHandleSelection()
     {
-        var questionPool = f_questionsPool.GetValue<List<QuestionDefinition>>(_core);
-        var girlPair = f_girlPair.GetValue<GirlPairDefinition>(_core);
-        var fileGirl = f_fileGirl.GetValue<PlayerFileGirl>(_core);
-        var targetDoll = f_targetDoll.GetValue<UiDoll>(_core);
-        var oppositeGirl = f_oppositeDoll.GetValue<UiDoll>(_core).girlDefinition;
+        var fileGirl = _fileGirl;
+        var targetDoll = _targetDoll;
         var girl = fileGirl.girlDefinition;
         var girlId = ModInterface.Data.GetDataId(GameDataType.Girl, girl.id);
 
         var selectedQuestionId = ModInterface.Data.GetDataId(GameDataType.Question, Game.Session.Dialog.selectedDialogOptionIndex);
         var selectedQuestion = ModInterface.GameData.GetQuestion(selectedQuestionId);
-        var answer = ExpandedGirlDefinition.Get(girlId).FavQuestionIdToAnswerId[selectedQuestionId];
 
-        questionPool.Clear();
+        _questionPool.Clear();
 
         fileGirl.LearnFavAnswer(selectedQuestion);
 
-        if (oppositeGirl.Expansion().FavQuestionIdToAnswerId.TryGetValue(selectedQuestionId, out var oppositeAnswer)
-            && oppositeAnswer == answer)
+        if (_oppositeDoll.girlDefinition.GetExpansion().FavQuestionIdToAnswerId.TryGetValue(selectedQuestionId, out var oppositeAnswer)
+            && oppositeAnswer == girl.GetExpansion().FavQuestionIdToAnswerId[selectedQuestionId])
         {
             m_ReceiveFruitFromGirl.Invoke(_core, [targetDoll, false]);
         }
@@ -154,7 +113,7 @@ public class ExpandedTalkManager
             Game.Manager.Audio.Play(AudioCategory.SOUND, Game.Manager.Ui.sfxReject, targetDoll.pauseDefinition);
         }
 
-        if (!_core.dtFavQuestionResponse.Expansion().TryGetLineSet(_core.dtFavQuestionResponse, girlId, out var lineSet))
+        if (!_core.dtFavQuestionResponse.GetExpansion().TryGetLineSet(_core.dtFavQuestionResponse, girlId, out var lineSet))
         {
             ModInterface.Log.Error($"Failed to find favorite question response DT set for girl {girlId}");
             m_OnDialogLineComplete.Invoke(_core, [targetDoll]);
@@ -164,25 +123,26 @@ public class ExpandedTalkManager
         var girlIndex = ExpandedGirlDefinition.DialogTriggerIndexes[ModInterface.Data.GetDataId(GameDataType.Girl, fileGirl.girlDefinition.id)];
         var lineIndex = ExpandedQuestionDefinition.DialogTriggerIndexes[ModInterface.Data.GetDataId(GameDataType.Question, selectedQuestion.id)];
 
-        targetDoll.DialogLineCompleteEvent += OnDialogLineComplete;
+        targetDoll.DialogLineCompleteEvent += OnDialogLineComplete_Hook;
         targetDoll.ReadDialogTrigger(_core.dtFavQuestionResponse, DialogLineFormat.ACTIVE, lineIndex);
     }
 
     private void FavoriteQuestionShowOptions()
     {
+        ModInterface.Log.Message();
         var fileGirl = f_fileGirl.GetValue<PlayerFileGirl>(_core);
         var girl = fileGirl.girlDefinition;
         var girlId = ModInterface.Data.GetDataId(GameDataType.Girl, girl.id);
         ModInterface.Log.Message($"Target girl: {girl.girlName}");
 
-        var questionPool = f_questionsPool.GetValue<List<QuestionDefinition>>(_core);
-        var targetGirlQuestions = girl.Expansion().FavQuestionIdToAnswerId.Keys.Select(ModInterface.GameData.GetQuestion);
+        var questionPool = f_questionPool.GetValue<List<QuestionDefinition>>(_core);
+        var targetGirlQuestions = girl.GetExpansion().FavQuestionIdToAnswerId.Keys.Select(ModInterface.GameData.GetQuestion);
         questionPool.Clear();
         questionPool.AddRange(targetGirlQuestions);
 
         var girlPair = f_girlPair.GetValue<GirlPairDefinition>(_core);
-        var girlOneFavs = girlPair.girlDefinitionOne.Expansion().FavQuestionIdToAnswerId;
-        var girlTwoFavs = girlPair.girlDefinitionTwo.Expansion().FavQuestionIdToAnswerId;
+        var girlOneFavs = girlPair.girlDefinitionOne.GetExpansion().FavQuestionIdToAnswerId;
+        var girlTwoFavs = girlPair.girlDefinitionTwo.GetExpansion().FavQuestionIdToAnswerId;
 
         var commonQuestions = new HashSet<int>();
 
@@ -201,7 +161,7 @@ public class ExpandedTalkManager
         {
             if (def.specialCharacter) return;
 
-            var favQuestionIdToAnswerId = def.Expansion().FavQuestionIdToAnswerId;
+            var favQuestionIdToAnswerId = def.GetExpansion().FavQuestionIdToAnswerId;
 
             questionPool.RemoveAll(x =>
             {
@@ -236,7 +196,7 @@ public class ExpandedTalkManager
         {
             // prune recent questions to ensure choice count
             var fileGirlPair = f_fileGirlPair.GetValue<PlayerFileGirlPair>(_core);
-            var delta = (questionPool.Count - fileGirlPair.recentFavQuestions.Count) - ModInterface.State.FavQuestionOptionCount;
+            var delta = questionPool.Count - fileGirlPair.recentFavQuestions.Count - ModInterface.State.FavQuestionOptionCount;
 
             if (delta < 0)
             {
@@ -266,7 +226,7 @@ public class ExpandedTalkManager
 
         var options = questionPool.Select(x => new DialogOptionInfo(x.questionText, x.id)).ToList();
 
-        Game.Session.Dialog.DialogOptionSelectedEvent += OnDialogOptionSelected;
+        Game.Session.Dialog.DialogOptionSelectedEvent += OnDialogOptionSelected_Hook;
         ModInterface.Log.Message("final option count: " + options.Count);
 
         if (options.Any())
@@ -276,20 +236,21 @@ public class ExpandedTalkManager
         else
         {
             ModInterface.Log.Warning("No question options. Skipping to step 4");
-            f_talkStepIndex.SetValue(_core, 3);
-            m_TalkStep.Invoke(_core, []);
+            _talkStepIndex = 3;
+            TalkStep();
         }
     }
 
-    private void OnDialogOptionSelected()
+    private void OnDialogOptionSelected_Hook()
     {
-        Game.Session.Dialog.DialogOptionSelectedEvent -= OnDialogOptionSelected;
-        m_OnDialogOptionSelected.Invoke(_core, []);
+        Game.Session.Dialog.DialogOptionSelectedEvent -= OnDialogOptionSelected_Hook;
+        m_OnDialogOptionSelected.Invoke(_core);
     }
 
-    private void OnDialogLineComplete(UiDoll doll)
+    private void OnDialogLineComplete_Hook(UiDoll doll)
     {
-        doll.DialogLineCompleteEvent -= OnDialogLineComplete;
+        ModInterface.Log.Message();
+        doll.DialogLineCompleteEvent -= OnDialogLineComplete_Hook;
         m_OnDialogLineComplete.Invoke(_core, [doll]);
     }
 }

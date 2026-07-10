@@ -80,10 +80,6 @@ internal static class GirlNobody
             CellphoneMiniHeadAlt = emptySpriteInfo,
             CellphonePortrait = emptySpriteInfo,
             CellphonePortraitAlt = emptySpriteInfo,
-
-            //Make sure these don't match any real types so they don't interfere with abilities
-            FavoriteAffectionType = (PuzzleAffectionType)(-1),
-            LeastFavoriteAffectionType = (PuzzleAffectionType)(-1)
         });
     }
 }

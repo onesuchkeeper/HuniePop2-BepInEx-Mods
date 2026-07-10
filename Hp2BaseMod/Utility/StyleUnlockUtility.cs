@@ -75,7 +75,7 @@ public static class StyleUnlockUtility
     public static bool HandleStyleUnlocks(PlayerFileGirl playerFileGirl, RelativeId hairId, RelativeId outfitId, bool silent)
     {
         var girlId = ModInterface.Data.GetDataId(GameDataType.Girl, playerFileGirl.girlDefinition.id);
-        var girlExpansion = playerFileGirl.girlDefinition.Expansion();
+        var girlExpansion = playerFileGirl.girlDefinition.GetExpansion();
 
         return UnlockStyle(playerFileGirl,
             girlExpansion.HairstyleLookup[hairId],

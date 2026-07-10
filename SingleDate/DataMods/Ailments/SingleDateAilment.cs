@@ -1,38 +1,26 @@
-// Example: SingleDateGridModifier
-//
-// Replaces the SingleDate mod's UiPuzzleGrid and Ailment patches entirely.
-// Registered as an IUiPuzzleGridModifier on the ExpandedUiPuzzleGrid before
-// StartPuzzle runs via a UiPuzzleGrid.StartPuzzle prefix in the SingleDate mod.
-//
-// Behaviours:
-//   - No stamina cost for moves
-//   - Exhaustion and upset silently reverted after baggage triggers fire
-//   - Focus switching suppressed
-//   - Stamina, exhaustion, and upset warning tooltips suppressed
-//   - Stamina tokens invalidated for the right girl
-
+using System.Collections.Generic;
 using Hp2BaseMod;
 
 namespace SingleDate;
 
-public class SingleDateGridModifier : IUiPuzzleGridModifier
+public class SingleDateGridModifier : IPuzzleGridModifier
 {
+    private ExpandedUiPuzzleGrid _grid;
     private TokenDefinition _staminaTokenDef;
     private PuzzleStatusGirl _rightGirl;
 
     public void OnApply(UiPuzzleGrid grid, ExpandedUiPuzzleGrid expanded, PuzzleStatus status)
     {
-        // Suppress all stamina and focus behaviour.
+        _grid = expanded;
         expanded.SuppressStaminaCost = true;
-        expanded.SuppressFocusSwitch = true;
         expanded.SuppressStaminaWarning = true;
         expanded.SuppressExhaustionWarning = true;
         expanded.SuppressUpsetWarning = true;
+        expanded.SuppressFocusSwitch();
 
-        // Invalidate stamina tokens for the right girl.
         _rightGirl = status.girlStatusRight;
         _staminaTokenDef = Game.Data.Tokens.GetByResourceType(PuzzleResourceType.STAMINA);
-        if (_staminaTokenDef != null && !_rightGirl.invalidTokenDefs.Contains(_staminaTokenDef))
+        if (_staminaTokenDef != null && !_rightGirl.invalidTokenDefs.Contains(_staminaTokenDef)) 
         {
             _rightGirl.invalidTokenDefs.Add(_staminaTokenDef);
         }
@@ -41,17 +29,53 @@ public class SingleDateGridModifier : IUiPuzzleGridModifier
     public void OnRemove(UiPuzzleGrid grid, ExpandedUiPuzzleGrid expanded, PuzzleStatus status)
     {
         expanded.SuppressStaminaCost = false;
-        expanded.SuppressFocusSwitch = false;
         expanded.SuppressStaminaWarning = false;
         expanded.SuppressExhaustionWarning = false;
         expanded.SuppressUpsetWarning = false;
+        expanded.UnsuppressFocusSwitch();
 
-        if (_staminaTokenDef != null && _rightGirl != null)
+        if (_staminaTokenDef != null && _rightGirl != null) 
         {
             _rightGirl.invalidTokenDefs.Remove(_staminaTokenDef);
         }
 
         _staminaTokenDef = null;
-        _rightGirl       = null;
+        _rightGirl = null;
+        _grid = null;
     }
+
+    public bool CanEnableAilment(Ailment ailment, PuzzleStatusGirl girl, PuzzleStatusGirl otherGirl) => true;
+
+    public void OnTrigger(
+        AilmentTriggerType triggerType,
+        PuzzleSet move,
+        MoveModifier moveModifier,
+        PuzzleMatch match,
+        MatchModifier matchModifier,
+        PuzzleStatus status) { }
+
+    public void OnPreMatchReward(PuzzleRewardContext context, PuzzleStatus status) { }
+
+    public void OnPostMatchReward(
+        PuzzleRewardContext context,
+        Dictionary<UiPuzzleSlot, PuzzleReward> rewards,
+        PuzzleStatus status) { }
+
+    public void OnPostSetReward(PuzzleConsumeContext context, PuzzleStatus status) { }
+
+    public bool OnAttemptFocusSwitch(PuzzleStatus status) => true;
+
+    public void OnRoundStart(PuzzleStatus status) { }
+
+    public void OnRoundEnd(PuzzleRoundContext context, PuzzleStatus status) { }
+
+    public void OnResourceChanged(PuzzleStatus status)
+    {
+        // Baggage triggers are allowed to fire on exhaustion, but the exhausted
+        // and upset states must not persist when stamina costs are suppressed.
+        _grid.RevertExhaustion(status.girlStatusLeft);
+        _grid.RevertExhaustion(status.girlStatusRight);
+    }
+
+    public void OnSettled(PuzzleStatus status) { }
 }

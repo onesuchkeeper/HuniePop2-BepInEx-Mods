@@ -46,7 +46,7 @@ namespace Hp2BaseMod.GameDataInfo
         /// <param name="def">The definition.</param>
         public ColorInfo(Color color)
         {
-            if (color == null) { throw new ArgumentNullException(nameof(color)); }
+            if (color == null) throw new ArgumentNullException(nameof(color));
 
             R = color.r;
             G = color.g;

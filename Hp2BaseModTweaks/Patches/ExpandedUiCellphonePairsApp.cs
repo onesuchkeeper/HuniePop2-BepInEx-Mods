@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using HarmonyLib;
 using Hp2BaseMod;
 using Hp2BaseMod.Ui;
@@ -14,48 +12,32 @@ namespace Hp2BaseModTweaks.CellphoneApps
         [HarmonyPatch("Start")]
         [HarmonyPostfix]
         public static void Start(UiCellphoneAppPairs __instance)
-            => ExpandedUiCellphonePairsApp.Get(__instance).Start();
+            => ExpandedUiCellphoneAppPairs.Get(__instance).Start();
 
         [HarmonyPatch("OnDestroy")]
         [HarmonyPrefix]
         public static void OnDestroy(UiCellphoneAppPairs __instance)
-            => ExpandedUiCellphonePairsApp.Get(__instance).OnDestroy();
+            => ExpandedUiCellphoneAppPairs.Destroy(__instance);
     }
 
-    internal class ExpandedUiCellphonePairsApp
+    [Expansion(typeof(UiCellphoneAppPairs))]
+    public partial class ExpandedUiCellphoneAppPairs
     {
-        private readonly static Dictionary<UiCellphoneAppPairs, ExpandedUiCellphonePairsApp> _expansions
-            = new Dictionary<UiCellphoneAppPairs, ExpandedUiCellphonePairsApp>();
-
-        public static ExpandedUiCellphonePairsApp Get(UiCellphoneAppPairs uiCellphoneAppPairs)
-        {
-            if (!_expansions.TryGetValue(uiCellphoneAppPairs, out var expansion))
-            {
-                expansion = new ExpandedUiCellphonePairsApp(uiCellphoneAppPairs);
-                _expansions[uiCellphoneAppPairs] = expansion;
-            }
-
-            return expansion;
-        }
-
-        private static readonly int _pairsPerPage = 24;
+        private const int PAIRS_PER_PAGE = 24;
 
         private Hp2ButtonWrapper _previousPage;
         private Hp2ButtonWrapper _nextPage;
 
         private int _currentPage = 0;
-        private readonly int _pageMax;
+        private int _pageMax;
+        private GirlPairDefinition[] _metPairs;
 
-        private readonly UiCellphoneAppPairs _pairsApp;
-        private readonly GirlPairDefinition[] _metPairs;
-
-        public ExpandedUiCellphonePairsApp(UiCellphoneAppPairs pairsApp)
+        private void OnInit()
         {
-            _pairsApp = pairsApp ?? throw new ArgumentNullException(nameof(pairsApp));
             _metPairs = Game.Persistence.playerFile.metGirlPairs.ToArray();
 
             _pageMax = _metPairs.Length > 1
-                ? (_metPairs.Length - 1) / _pairsPerPage
+                ? (_metPairs.Length - 1) / PAIRS_PER_PAGE
                 : 0;
 
             // no need for extra ui
@@ -72,7 +54,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
                     ModInterface.Assets.GetInternalAsset<Sprite>(Common.Ui_AppSettingArrowLeftOver),
                     cellphoneButtonPressedKlip);
 
-                _previousPage.GameObject.transform.SetParent(pairsApp.transform, false);
+                _previousPage.GameObject.transform.SetParent(_core.transform, false);
                 _previousPage.RectTransform.anchoredPosition = new Vector2(30, -30);
                 _previousPage.ButtonBehavior.ButtonPressedEvent += (e) =>
                 {
@@ -85,7 +67,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
                     ModInterface.Assets.GetInternalAsset<Sprite>(Common.Ui_AppSettingArrowRightOver),
                     cellphoneButtonPressedKlip);
 
-                _nextPage.GameObject.transform.SetParent(pairsApp.transform, false);
+                _nextPage.GameObject.transform.SetParent(_core.transform, false);
                 _nextPage.RectTransform.anchoredPosition = new Vector2(1024, -30);
                 _nextPage.ButtonBehavior.ButtonPressedEvent += (e) =>
                 {
@@ -106,7 +88,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
         {
             _previousPage?.Destroy();
             _nextPage?.Destroy();
-            _expansions.Remove(_pairsApp);
+            _expansions.Remove(_core);
         }
 
         public void Refresh()
@@ -114,9 +96,9 @@ namespace Hp2BaseModTweaks.CellphoneApps
             // pairs
             var renderCount = 0;
 
-            var current = _currentPage * _pairsPerPage;
+            var current = _currentPage * PAIRS_PER_PAGE;
 
-            foreach (var entry in _pairsApp.pairSlots.Take(_pairsPerPage))
+            foreach (var entry in _core.pairSlots.Take(PAIRS_PER_PAGE))
             {
                 if (current < _metPairs.Length)
                 {
@@ -135,12 +117,12 @@ namespace Hp2BaseModTweaks.CellphoneApps
                 }
             }
 
-            foreach (var entry in _pairsApp.pairSlots.Skip(_pairsPerPage))
+            foreach (var entry in _core.pairSlots.Skip(PAIRS_PER_PAGE))
             {
                 entry.Populate(null, null);
             }
 
-            _pairsApp.pairSlotsContainer.anchoredPosition = new Vector2(528 + (Mathf.Min(renderCount - 1, 3) * -128f),
+            _core.pairSlotsContainer.anchoredPosition = new Vector2(528 + (Mathf.Min(renderCount - 1, 3) * -128f),
                 -284 + (Mathf.Max(Mathf.CeilToInt(renderCount / 4f) - 1, 0) * 45f));
 
             if (_pageMax == 0)

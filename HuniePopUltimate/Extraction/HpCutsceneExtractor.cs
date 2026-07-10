@@ -362,11 +362,11 @@ public class HpCutsceneExtractor
 
         branchMod = new();
 
-        // Conditions are ignored for now — none of the extracted cutscenes need them
+        // Conditions are ignored for now, none of the extracted cutscenes need them
         // and HP1 conditions don't map cleanly to HP2.
         switch (type)
         {
-            case 0: // else — always true
+            case 0:
                 break;
             case 1: // girl met status count
                 break;

@@ -17,9 +17,9 @@ public static class UiAppFavAnswerPatch
         // manually populate them, since the original works all dumb and gross
         var questionDef = f_favQuestionDefinition.GetValue<QuestionDefinition>(__instance);
         var questionId = ModInterface.Data.GetDataId(GameDataType.Question, questionDef.id);
-        var questionDefExp = ExpandedQuestionDefinition.Get(questionId);
+        var questionDefExp = questionDef.GetExpansion();
         var girlDef = playerFileGirl.girlDefinition;
-        var girlDefExp = girlDef.Expansion();
+        var girlDefExp = girlDef.GetExpansion();
 
         var learnedAnswer = playerFileGirl.learnedFavs.Contains(questionDef.id);
 
@@ -32,11 +32,11 @@ public static class UiAppFavAnswerPatch
         bool isCommonAnswer = learnedAnswer
             && otherFileGirl != null
             && otherFileGirl.learnedFavs.Contains(questionDef.id)
-            ;//&& girlFavoriteAnswer == otherFileGirl.girlDefinition.Expansion().FavQuestionIdToAnswerId[questionId];
+            ;//&& girlFavoriteAnswer == otherFileGirl.girlDefinition.GetExpansion().FavQuestionIdToAnswerId[questionId];
 
         if (isCommonAnswer)
         {
-            var otherExp = otherFileGirl.girlDefinition.Expansion();
+            var otherExp = otherFileGirl.girlDefinition.GetExpansion();
             //in theory this should always be present since the learned faves contains it
             //need to validate
             if (otherExp.FavQuestionIdToAnswerId.TryGetValue(questionId, out var otherFavAnswer))

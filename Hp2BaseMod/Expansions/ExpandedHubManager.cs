@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using DG.Tweening;
 using HarmonyLib;
 using Hp2BaseMod.Extension;
@@ -20,59 +19,34 @@ internal static class HubManager_HubStep
 /// Allows for additional non-stop date locations
 /// by overriding the HubStep where the are handled
 /// </summary>
-public class ExpandedHubManager
+[Expansion(typeof(HubManager), 
+    Fields = new[]{"_hubStepType", "_hubStepIndex", "_hubBailed", "_hubSequence"},
+    Methods = new[] {"OnDialogSelected", "ChangeStepType"})]
+public partial class ExpandedHubManager
 {
-    private static Dictionary<HubManager, ExpandedHubManager> _expansions
-        = new Dictionary<HubManager, ExpandedHubManager>();
-
-    public static ExpandedHubManager Get(HubManager core)
-    {
-        if (!_expansions.TryGetValue(core, out var expansion))
-        {
-            expansion = new ExpandedHubManager(core);
-            _expansions[core] = expansion;
-        }
-
-        return expansion;
-    }
-    private static readonly FieldInfo f_hubStepType = AccessTools.Field(typeof(HubManager), "_hubStepType");
-    private static readonly FieldInfo f_hubStepIndex = AccessTools.Field(typeof(HubManager), "_hubStepIndex");
-    private static readonly FieldInfo f_hubBailed = AccessTools.Field(typeof(HubManager), "_hubBailed");
-    private static readonly FieldInfo f_hubSequence = AccessTools.Field(typeof(HubManager), "_hubSequence");
-    private static readonly MethodInfo m_onDialogSelected = AccessTools.Method(typeof(HubManager), "OnDialogSelected");
-    private static readonly MethodInfo m_changeStepType = AccessTools.Method(typeof(HubManager), "ChangeStepType");
-
-    protected HubManager _core;
     private LocationDefinition[] _nonStopLocs;
-
-    private ExpandedHubManager(HubManager core)
-    {
-        _core = core;
-    }
 
     public bool HubStep()
     {
         //replace nonstop step 1 and 4 to expand nonstop location options
 
         //presteps
-        var hubStepIndex = f_hubStepIndex.GetValue<int>(_core) + 1;
+        var nextHubStepIndex = f_hubStepIndex.GetValue<int>(_core) + 1;
 
         if (f_hubBailed.GetValue<bool>(_core)
             || f_hubStepType.GetValue<HubStepType>(_core) != HubStepType.NONSTOP
-            || (hubStepIndex != 1 && hubStepIndex != 4))
+            || (nextHubStepIndex != 1 && nextHubStepIndex != 4))
         {
             return true;
         }
 
-        f_hubStepIndex.SetValue(_core, hubStepIndex);
+        _hubStepIndex = nextHubStepIndex;
         List<DialogOptionInfo> list = new List<DialogOptionInfo>();
 
-        var hubSequence = f_hubSequence.GetValue<Sequence>(_core);
-        Game.Manager.Time.KillTween(hubSequence, true, true);
-        hubSequence = DOTween.Sequence();
-        f_hubSequence.SetValue(_core, hubSequence);
+        Game.Manager.Time.KillTween(_hubSequence, true, true);
+        _hubSequence = DOTween.Sequence();
 
-        switch (hubStepIndex)
+        switch (nextHubStepIndex)
         {
             case 1:
                 var time = (ClockDaytimeType)(Game.Persistence.playerFile.daytimeElapsed % 4);
@@ -80,7 +54,7 @@ public class ExpandedHubManager
                 var locs = Game.Data.Locations.GetAllByLocationType(LocationType.DATE)
                     .Where(x =>
                     {
-                        var expansion = x.Expansion();
+                        var expansion = x.GetExpansion();
 
                         return expansion.AllowNonStop
                             && (Game.Persistence.playerFile.storyProgress >= 12 || !expansion.PostBoss)
@@ -97,7 +71,7 @@ public class ExpandedHubManager
 
                 int i = 0;
                 Game.Session.Dialog.ShowDialogOptions(_nonStopLocs.Select(x => new DialogOptionInfo(x.nonStopOptionText, i++)).Append(new DialogOptionInfo(_core.optionNonStop, 3)).ToList(), false, false);
-                Game.Session.Dialog.DialogOptionSelectedEvent += OnDialogSelected;
+                Game.Session.Dialog.DialogOptionSelectedEvent += OnDialogSelected_Hook;
                 break;
             case 4:
                 if (Game.Session.Dialog.selectedDialogOptionIndex < 3)
@@ -106,7 +80,7 @@ public class ExpandedHubManager
                 }
                 else
                 {
-                    m_changeStepType.Invoke(_core, [HubStepType.ROOT]);
+                    m_ChangeStepType.Invoke(_core, [HubStepType.ROOT]);
                 }
                 break;
             default:
@@ -123,9 +97,9 @@ public class ExpandedHubManager
         return false;
     }
 
-    private void OnDialogSelected()
+    private void OnDialogSelected_Hook()
     {
-        Game.Session.Dialog.DialogOptionSelectedEvent -= OnDialogSelected;
-        m_onDialogSelected.Invoke(_core, null);
+        Game.Session.Dialog.DialogOptionSelectedEvent -= OnDialogSelected_Hook;
+        m_OnDialogSelected.Invoke(_core, null);
     }
 }

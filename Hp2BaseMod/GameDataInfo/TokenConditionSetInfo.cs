@@ -23,7 +23,7 @@ namespace Hp2BaseMod.GameDataInfo
         /// <param name="def">The definition.</param>
         public TokenConditionSetInfo(TokenConditionSet def)
         {
-            if (def == null) { throw new ArgumentNullException(nameof(def)); }
+            if (def == null) throw new ArgumentNullException(nameof(def));
 
             if (def.conditions != null)
             {

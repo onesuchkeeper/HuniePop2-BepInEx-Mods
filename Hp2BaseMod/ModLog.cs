@@ -52,7 +52,7 @@ namespace Hp2BaseMod
 
         public Indent MakeIndent(string title = null)
         {
-            if (title != null) { this.Message(title); }
+            if (title != null) Message(title);
             return new Indent(this);
         }
 
@@ -131,7 +131,7 @@ namespace Hp2BaseMod
         /// <param name="line"></param>
         public void Message([System.Runtime.CompilerServices.CallerMemberName] string line = "")
         {
-            if (line == null) { line = "null"; }
+            if (line == null) line = "null";
 
             var lines = line.Split([Environment.NewLine], StringSplitOptions.None);
             var tab = new string(' ', _indent * 2);
@@ -150,7 +150,7 @@ namespace Hp2BaseMod
 
         public void Warning(string line)
         {
-            if (line == null) { line = "null"; }
+            if (line == null) line = "null";
 
             var lines = line.Split([Environment.NewLine], StringSplitOptions.None);
             var tab = new string(' ', _indent * 2);

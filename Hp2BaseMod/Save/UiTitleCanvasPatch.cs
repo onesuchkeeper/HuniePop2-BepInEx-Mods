@@ -13,7 +13,7 @@ public static class UiTitleCanvasPatch_LoadGame
         Game.Persistence.loadedFileIndex = saveFileIndex;
         foreach (var girl in Game.Data.Girls.GetAll())
         {
-            var body = girl.Expansion().GetCurrentBody();
+            var body = girl.GetExpansion().GetCurrentBody();
 
             var bodyName = body == null
                 ? "BODY_NULL"

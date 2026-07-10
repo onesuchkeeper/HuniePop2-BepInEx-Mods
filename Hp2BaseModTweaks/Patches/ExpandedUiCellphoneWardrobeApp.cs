@@ -18,42 +18,26 @@ namespace Hp2BaseModTweaks.CellphoneApps
         [HarmonyPatch("Start")]
         [HarmonyPrefix]
         public static void PreStart(UiCellphoneAppWardrobe __instance)
-            => ExpandedUiCellphoneWardrobeApp.Get(__instance).PreStart();
+            => ExpandedUiCellphoneAppWardrobe.Get(__instance).PreStart();
 
         [HarmonyPatch("OnDestroy")]
         [HarmonyPrefix]
         public static void OnDestroy(UiCellphoneAppWardrobe __instance)
-            => ExpandedUiCellphoneWardrobeApp.Get(__instance).OnDestroy();
+            => ExpandedUiCellphoneAppWardrobe.Destroy(__instance);
 
         [HarmonyPatch("Refresh")]
         [HarmonyPostfix]
         public static void Refresh(UiCellphoneAppWardrobe __instance)
-            => ExpandedUiCellphoneWardrobeApp.Get(__instance).Refresh();
+            => ExpandedUiCellphoneAppWardrobe.Get(__instance).Refresh();
     }
 
-    internal class ExpandedUiCellphoneWardrobeApp
+    [Expansion(typeof(UiCellphoneAppWardrobe), 
+        Fields = new[]{"_selectedFileIconSlot", "_wardrobeDoll"},
+        Methods = new[]{"OnListItemSelected"})]
+    public partial class ExpandedUiCellphoneAppWardrobe
     {
-        private readonly static Dictionary<UiCellphoneAppWardrobe, ExpandedUiCellphoneWardrobeApp> _expansions
-            = new Dictionary<UiCellphoneAppWardrobe, ExpandedUiCellphoneWardrobeApp>();
-
-        public static ExpandedUiCellphoneWardrobeApp Get(UiCellphoneAppWardrobe uiCellphoneAppWardrobe)
-        {
-            if (!_expansions.TryGetValue(uiCellphoneAppWardrobe, out var expansion))
-            {
-                expansion = new ExpandedUiCellphoneWardrobeApp(uiCellphoneAppWardrobe);
-                _expansions[uiCellphoneAppWardrobe] = expansion;
-            }
-
-            return expansion;
-        }
-
-        private static readonly FieldInfo f_selectedFileIconSlot = AccessTools.Field(typeof(UiCellphoneAppWardrobe), "_selectedFileIconSlot");
-        private static readonly FieldInfo f_wardrobeDoll = AccessTools.Field(typeof(UiCellphoneAppWardrobe), "_wardrobeDoll");
-
-        private static readonly FieldInfo f_image = AccessTools.Field(typeof(ButtonBehavior), "_image");
-        private static readonly MethodInfo m_OnListItemSelected = AccessTools.Method(typeof(UiCellphoneAppWardrobe), "OnListItemSelected");
-
         private const int GIRLS_PER_PAGE = 12;
+        private static readonly FieldInfo f_image = AccessTools.Field(typeof(ButtonBehavior), "_image");
 
         private UiAppCheckBox _randomizeStylesCheckBox;
         private UiAppCheckBox _unpairRandomizeStylesCheckBox;
@@ -70,18 +54,12 @@ namespace Hp2BaseModTweaks.CellphoneApps
         private PlayerFileGirl[] _metGirls;
         private UiAppFileIconSlot _dummyFileIconSlot;
         private bool _started;
-        private UiCellphoneAppWardrobe _core;
         private TweaksSaveGirl _girlSave;
         private int _initialWardrobeGirlId;
 
-        public ExpandedUiCellphoneWardrobeApp(UiCellphoneAppWardrobe core)
-        {
-            _core = core ?? throw new ArgumentNullException(nameof(core));
-        }
-
         public void PreStart()
         {
-            // If the initial girl is modded it is not handled properly, so default to lola
+            // If the initial girl is modded it is not handled properly, so default
             // and repopulate afterwards
             _initialWardrobeGirlId = Game.Persistence.playerFile.GetFlagValue(Flags.WARDROBE_GIRL_ID);
             Game.Persistence.playerFile.SetFlagValue(Flags.WARDROBE_GIRL_ID, Girls.Ashley.LocalId);
@@ -297,7 +275,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
 
         public void OnDestroy()
         {
-            if (!_started) { return; }
+            if (!_started) return;
 
             _girlsLeft?.Destroy();
             _girlsRight?.Destroy();
@@ -319,7 +297,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
         public void Refresh()
         {
             // check valid data
-            if (!_started) { return; }
+            if (!_started) return;
 
             var wardrobeGirlId = Game.Persistence.playerFile.GetFlagValue(Flags.WARDROBE_GIRL_ID);
             var wardrobeGirlDef = Game.Data.Girls.Get(wardrobeGirlId);

@@ -36,7 +36,7 @@ namespace Hp2BaseMod.GameDataInfo
         /// <param name="def">The definition.</param>
         public TokenConditionInfo(TokenCondition def)
         {
-            if (def == null) { throw new ArgumentNullException(nameof(def)); }
+            if (def == null) throw new ArgumentNullException(nameof(def));
 
             Type = def.type;
             TokenType = def.tokenType;

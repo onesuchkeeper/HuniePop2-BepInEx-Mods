@@ -28,7 +28,7 @@ namespace Hp2BaseMod.GameDataInfo
         /// <param name="def">The definition.</param>
         public GirlPairFavQuestionInfo(GirlPairFavQuestionSubDefinition def)
         {
-            if (def == null) { throw new ArgumentNullException(nameof(def)); }
+            if (def == null) throw new ArgumentNullException(nameof(def));
 
             GirlResponseIndexOne = def.girlResponseIndexOne;
             GirlResponseIndexTwo = def.girlResponseIndexTwo;

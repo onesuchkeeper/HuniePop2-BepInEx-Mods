@@ -1,5 +1,5 @@
-using System.Collections.Generic;
 using HarmonyLib;
+using Hp2BaseMod;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -30,28 +30,10 @@ public static class UiBackgroundBlurPatch
     }
 }
 
-public class ExpandedUiBackgroundArt
+[Expansion(typeof(UiBackgroundArt))]
+public partial class ExpandedUiBackgroundArt
 {
-    private static Dictionary<UiBackgroundArt, ExpandedUiBackgroundArt> _expansions
-        = new Dictionary<UiBackgroundArt, ExpandedUiBackgroundArt>();
-
-    public static ExpandedUiBackgroundArt Get(UiBackgroundArt core)
-    {
-        if (!_expansions.TryGetValue(core, out var expansion))
-        {
-            expansion = new ExpandedUiBackgroundArt(core);
-            _expansions[core] = expansion;
-        }
-
-        return expansion;
-    }
-
     private Vector2 _bgRectSizeDelta;
-    private UiBackgroundArt _core;
-    private ExpandedUiBackgroundArt(UiBackgroundArt core)
-    {
-        _core = core;
-    }
 
     public void Start()
     {

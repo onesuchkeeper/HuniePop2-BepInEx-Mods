@@ -60,7 +60,7 @@ internal class GameDataModApplicator
                 foreach (var girlId_BodyToMods in GirlToBodyToMods)
                 {
                     var girl = context.girlDataDict[ModInterface.Data.GetRuntimeDataId(GameDataType.Girl, girlId_BodyToMods.Key)];
-                    var expansion = ExpandedGirlDefinition.Get(girlId_BodyToMods.Key);
+                    var expansion = girl.GetExpansion();
 
                     using (ModInterface.Log.MakeIndent($"Girl {girlId_BodyToMods.Key} - {girl.girlName}"))
                     {
@@ -71,15 +71,15 @@ internal class GameDataModApplicator
                                 var body = expansion.Bodies.GetOrNew(bodyId_Mods.Key);
                                 using (ModInterface.Log.MakeIndent($"Body {bodyId_Mods.Key} - {girl.girlName}"))
                                 {
-                                    SetSubDefMods(bodyId_Mods.Value.partMods, gameDataProvider, assetProvider, girlId_BodyToMods.Key, body, body.GetOrNewPart);
-                                    SetSubDefMods(bodyId_Mods.Value.specialPartMods, gameDataProvider, assetProvider, girlId_BodyToMods.Key, body, body.GetOrNewSpecialPart);
-                                    SetSubDefMods(bodyId_Mods.Value.outfitMods, gameDataProvider, assetProvider, girlId_BodyToMods.Key, body, (x) => expansion.GetOrNewOutfit(body, x));
-                                    SetSubDefMods(bodyId_Mods.Value.hairstyleMods, gameDataProvider, assetProvider, girlId_BodyToMods.Key, body, (x) => expansion.GetOrNewHairstyle(body, x));
-                                    SetSubDefMods(bodyId_Mods.Value.expressionMods, gameDataProvider, assetProvider, girlId_BodyToMods.Key, body, (x) => expansion.GetOrNewExpression(body, x));
+                                    SetSubDefMods(bodyId_Mods.Value.partMods, gameDataProvider, assetProvider, girl, body, body.GetOrNewPart);
+                                    SetSubDefMods(bodyId_Mods.Value.specialPartMods, gameDataProvider, assetProvider, girl, body, body.GetOrNewSpecialPart);
+                                    SetSubDefMods(bodyId_Mods.Value.outfitMods, gameDataProvider, assetProvider, girl, body, (x) => expansion.GetOrNewOutfit(body, x));
+                                    SetSubDefMods(bodyId_Mods.Value.hairstyleMods, gameDataProvider, assetProvider, girl, body, (x) => expansion.GetOrNewHairstyle(body, x));
+                                    SetSubDefMods(bodyId_Mods.Value.expressionMods, gameDataProvider, assetProvider, girl, body, (x) => expansion.GetOrNewExpression(body, x));
 
                                     foreach (var mod in bodyId_Mods.Value.bodyMods)
                                     {
-                                        mod.SetData(body, gameDataProvider, assetProvider, girlId_BodyToMods.Key);
+                                        mod.SetData(body, gameDataProvider, assetProvider, girl);
                                     }
                                 }
                             }
@@ -95,7 +95,7 @@ internal class GameDataModApplicator
                     foreach (var dialogTriggerId_ModsById in girlId_ModsByIdByDialogTrigger.Value)
                     {
                         var dialogTrigger = context.dialogTriggerDataDict[ModInterface.Data.GetRuntimeDataId(GameDataType.DialogTrigger, dialogTriggerId_ModsById.Key)];
-                        var dtExpansion = ExpandedDialogTriggerDefinition.Get(dialogTriggerId_ModsById.Key);
+                        var dtExpansion = dialogTrigger.GetExpansion();
 
                         foreach (var lineId_Mods in dialogTriggerId_ModsById.Value)
                         {
@@ -118,7 +118,7 @@ internal class GameDataModApplicator
                 {
                     foreach (var pairMod in context.girlPairDataMods)
                     {
-                        var expansion = ExpandedGirlPairDefinition.Get(pairMod.Id);
+                        var expansion = context.girlPairDataDict[ModInterface.Data.GetRuntimeDataId(GameDataType.GirlPair, pairMod.Id)].GetExpansion();
                         expansion.PairStyle = pairMod.GetStyles();
                     }
                 }
@@ -192,7 +192,7 @@ internal class GameDataModApplicator
     private static void SetSubDefMods<T>(Dictionary<RelativeId, List<IBodySubDataMod<T>>> idToMods,
         GameDefinitionProvider gameData,
         AssetProvider assetProvider,
-        RelativeId girlId,
+        GirlDefinition girlDef,
         GirlBodySubDefinition bodyDef,
         Func<RelativeId, T> getTarget)
     {
@@ -206,7 +206,7 @@ internal class GameDataModApplicator
 
                     foreach (var mod in id_mods.Value.OrderBy(x => x.LoadPriority))
                     {
-                        mod.SetData(target, gameData, assetProvider, girlId, bodyDef);
+                        mod.SetData(target, gameData, assetProvider, girlDef, bodyDef);
                     }
                 }
             }

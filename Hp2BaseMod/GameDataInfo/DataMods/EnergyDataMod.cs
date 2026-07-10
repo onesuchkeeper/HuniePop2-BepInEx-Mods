@@ -64,10 +64,10 @@ namespace Hp2BaseMod.GameDataInfo
             BossSurgeExpression = def.bossSurgeExpression;
             BossSurgeEyesClosed = def.bossSurgeEyesClosed;
 
-            if (def.textColor != null) { TextColorInfo = new ColorInfo(def.textColor); }
-            if (def.outlineColor != null) { OutlineColorInfo = new ColorInfo(def.outlineColor); }
-            if (def.shadowColor != null) { ShadowColorInfo = new ColorInfo(def.shadowColor); }
-            if (def.surgeColor != null) { SurgeColorInfo = new ColorInfo(def.surgeColor); }
+            if (def.textColor != null) TextColorInfo = new ColorInfo(def.textColor);
+            if (def.outlineColor != null) OutlineColorInfo = new ColorInfo(def.outlineColor);
+            if (def.shadowColor != null) ShadowColorInfo = new ColorInfo(def.shadowColor);
+            if (def.surgeColor != null) SurgeColorInfo = new ColorInfo(def.surgeColor);
         }
 
         /// <inheritdoc/>

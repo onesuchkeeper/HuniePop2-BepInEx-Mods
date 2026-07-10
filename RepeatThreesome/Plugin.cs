@@ -92,10 +92,7 @@ internal class Plugin : Hp2BaseModPlugin
 
     private void On_PostCodeSubmitted(CodeDefinition codeDefinition)
     {
-        if (codeDefinition == null)
-        {
-            return;
-        }
+        if (codeDefinition == null) return;
 
         LoversLocationRequirement.Value = ModInterface.GameData.IsCodeUnlocked(Constants.LocalCodeId);
         IsBonusRoundNude.Value = ModInterface.GameData.IsCodeUnlocked(Constants.NudeCodeId);

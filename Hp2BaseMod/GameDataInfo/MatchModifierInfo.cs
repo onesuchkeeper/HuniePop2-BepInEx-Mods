@@ -48,7 +48,7 @@ namespace Hp2BaseMod.GameDataInfo
         /// <param name="def">The definition.</param>
         public MatchModifierInfo(MatchModifier def)
         {
-            if (def == null) { return; }
+            if (def == null) return;
 
             Absorb = def.absorb;
             AbsorbAltGirl = def.absorbAltGirl;

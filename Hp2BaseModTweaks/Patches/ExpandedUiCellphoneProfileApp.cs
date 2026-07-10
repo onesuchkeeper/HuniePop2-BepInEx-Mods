@@ -20,56 +20,35 @@ namespace Hp2BaseModTweaks.CellphoneApps
         [HarmonyPatch("Start")]
         [HarmonyPrefix]
         public static void PreStart(UiCellphoneAppProfile __instance)
-            => ExpandedUiCellphoneProfileApp.Get(__instance).PreStart();
+            => ExpandedUiCellphoneAppProfile.Get(__instance).PreStart();
 
         [HarmonyPatch("Start")]
         [HarmonyPostfix]
         public static void PostStart(UiCellphoneAppProfile __instance)
-            => ExpandedUiCellphoneProfileApp.Get(__instance).PostStart();
+            => ExpandedUiCellphoneAppProfile.Get(__instance).PostStart();
 
         [HarmonyPatch("OnDestroy")]
         [HarmonyPrefix]
         public static void OnDestroy(UiCellphoneAppProfile __instance)
-            => ExpandedUiCellphoneProfileApp.Get(__instance).OnDestroy();
+            => ExpandedUiCellphoneAppProfile.Destroy(__instance);
     }
 
-    internal class ExpandedUiCellphoneProfileApp
+    [Expansion(typeof(UiCellphoneAppProfile))]
+    public partial class ExpandedUiCellphoneAppProfile
     {
-        private readonly static Dictionary<UiCellphoneAppProfile, ExpandedUiCellphoneProfileApp> _expansions
-                            = new Dictionary<UiCellphoneAppProfile, ExpandedUiCellphoneProfileApp>();
-
-        public static ExpandedUiCellphoneProfileApp Get(UiCellphoneAppProfile uiCellphoneAppProfile)
-        {
-            if (!_expansions.TryGetValue(uiCellphoneAppProfile, out var expansion))
-            {
-                expansion = new ExpandedUiCellphoneProfileApp(uiCellphoneAppProfile);
-                _expansions[uiCellphoneAppProfile] = expansion;
-            }
-
-            return expansion;
-        }
+        private static readonly string PROFILE_BACKGROUND_PATH = Path.Combine(Paths.PluginPath, "Hp2BaseModTweaks/images/ui_app_profile_modded_background.png");
+        private static readonly string PROFILE_FAVORITES_BACKGROUND_PATH = Path.Combine(Paths.PluginPath, "Hp2BaseModTweaks/images/ui_app_profile_favorites_background.png");
+        private const int PAIRS_PER_PAGE = 4;
 
         private static readonly FieldInfo f_favQuestionDefinition = AccessTools.Field(typeof(UiAppFavAnswer), "_favQuestionDefinition");
 
-        private static readonly string _profileBackgroundPath = Path.Combine(Paths.PluginPath, "Hp2BaseModTweaks/images/ui_app_profile_modded_background.png");
-        private static readonly string _profileFavoritesBackgroundPath = Path.Combine(Paths.PluginPath, "Hp2BaseModTweaks/images/ui_app_profile_favorites_background.png");
-        private static readonly int _pairsPerPage = 4;
-
         private Hp2ButtonWrapper _previousPage;
         private Hp2ButtonWrapper _nextPage;
-
         private int _currentPage = 0;
-
-        private readonly UiCellphoneAppProfile _profileApp;
-
-        public ExpandedUiCellphoneProfileApp(UiCellphoneAppProfile profileApp)
-        {
-            _profileApp = profileApp ?? throw new ArgumentNullException(nameof(profileApp));
-        }
 
         public void PreStart()
         {
-            _profileApp.girlHeadIcon.preserveAspect = true;
+            _core.girlHeadIcon.preserveAspect = true;
 
             var cellphoneButtonPressedKlip = new AudioKlip()
             {
@@ -77,10 +56,10 @@ namespace Hp2BaseModTweaks.CellphoneApps
                 volume = 1f
             };
 
-            var activeContainer = _profileApp.transform.Find("ActiveContainer");
+            var activeContainer = _core.transform.Find("ActiveContainer");
 
-            var backgroundImage = _profileApp.transform.Find("Background").GetComponent<Image>();
-            backgroundImage.sprite = TextureUtility.SpriteFromPng(_profileBackgroundPath, true);
+            var backgroundImage = _core.transform.Find("Background").GetComponent<Image>();
+            backgroundImage.sprite = TextureUtility.SpriteFromPng(PROFILE_BACKGROUND_PATH, true);
             backgroundImage.SetNativeSize();
 
             // pairs
@@ -134,8 +113,8 @@ namespace Hp2BaseModTweaks.CellphoneApps
 
             // favorites panel
             var questions = Game.Data.Questions.GetAll();
-            var girlDef = Game.Data.Girls.Get(_profileApp.cellphone.GetCellFlag("profile_girl_id"));
-            var girlDefExp = girlDef.Expansion();
+            var girlDef = Game.Data.Girls.Get(_core.cellphone.GetCellFlag("profile_girl_id"));
+            var girlDefExp = girlDef.GetExpansion();
             var playerFileGirl = Game.Persistence.playerFile.GetPlayerFileGirl(girlDef);
 
             var validFavQuestions = Game.Data.Questions.GetAll()
@@ -158,7 +137,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
             var favoritesPanelBG_GO = new GameObject("FavoritesBG");
             favoritesPanelBG_GO.transform.SetParent(favAnswersPanel_GO.transform, false);
 
-            var favoritesPanelBG_Texture = TextureUtility.LoadFromPng(_profileFavoritesBackgroundPath, true);
+            var favoritesPanelBG_Texture = TextureUtility.LoadFromPng(PROFILE_FAVORITES_BACKGROUND_PATH, true);
             favoritesPanelBG_Texture.wrapMode = TextureWrapMode.Repeat;
 
             var favoritesPanelBG_Image = favoritesPanelBG_GO.AddComponent<Image>();
@@ -179,33 +158,33 @@ namespace Hp2BaseModTweaks.CellphoneApps
             favAnswersContainer_RectTransform.pivot = new Vector2(0, 1);
             favAnswersContainer.transform.SetParent(favAnswersPanel_GO.transform, true);
 
-            var delta = validFavQuestions.Count - _profileApp.favAnswers.Length;
+            var delta = validFavQuestions.Count - _core.favAnswers.Length;
             if (delta < 0)
             {
-                foreach (var answer in _profileApp.favAnswers.Skip(validFavQuestions.Count))
+                foreach (var answer in _core.favAnswers.Skip(validFavQuestions.Count))
                 {
                     answer.transform.SetParent(null);
                     answer.Destroy();
                 }
 
-                _profileApp.favAnswers = _profileApp.favAnswers.Take(validFavQuestions.Count).ToArray();
+                _core.favAnswers = _core.favAnswers.Take(validFavQuestions.Count).ToArray();
             }
             else if (delta > 0)
             {
-                var templateQuestion = _profileApp.favAnswers[0];
-                Array.Resize(ref _profileApp.favAnswers, validFavQuestions.Count);
+                var templateQuestion = _core.favAnswers[0];
+                Array.Resize(ref _core.favAnswers, validFavQuestions.Count);
 
                 while (delta-- > 0)
                 {
                     var newQuestion_go = UnityEngine.Object.Instantiate(templateQuestion.gameObject);
                     var uiAppFavAnswer = newQuestion_go.GetComponent<UiAppFavAnswer>();
                     newQuestion_go.transform.SetParent(templateQuestion.transform.parent, false);
-                    _profileApp.favAnswers[validFavQuestions.Count - delta - 1] = uiAppFavAnswer;
+                    _core.favAnswers[validFavQuestions.Count - delta - 1] = uiAppFavAnswer;
                 }
             }
 
             var i = 0;
-            foreach (var (ui, question) in _profileApp.favAnswers
+            foreach (var (ui, question) in _core.favAnswers
                 .Zip(validFavQuestions, (ui, question) => (ui, question)))
             {
                 f_favQuestionDefinition.SetValue(ui, question);
@@ -244,13 +223,13 @@ namespace Hp2BaseModTweaks.CellphoneApps
             var pairs = Game.Persistence.playerFile.metGirlPairs.Where(x => x.HasGirlDef(profileGirl)).ToArray();
 
             var pageMax = pairs.Length > 1
-                ? (pairs.Length - 1) / _pairsPerPage
+                ? (pairs.Length - 1) / PAIRS_PER_PAGE
                 : 0;
 
             // pairs
-            var current = _currentPage * _pairsPerPage;
+            var current = _currentPage * PAIRS_PER_PAGE;
 
-            foreach (var entry in _profileApp.pairSlots.Take(_pairsPerPage))
+            foreach (var entry in _core.pairSlots.Take(PAIRS_PER_PAGE))
             {
                 if (current < pairs.Length)
                 {
@@ -267,7 +246,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
                 }
             }
 
-            foreach (var entry in _profileApp.pairSlots.Skip(_pairsPerPage))
+            foreach (var entry in _core.pairSlots.Skip(PAIRS_PER_PAGE))
             {
                 entry.Populate(null, null);
             }

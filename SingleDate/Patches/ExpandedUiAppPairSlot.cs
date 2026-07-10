@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -31,31 +30,15 @@ internal static class UiAppPairSlotPatch
     [HarmonyPatch("OnDestroy")]
     [HarmonyPostfix]
     public static void OnDestroy(UiAppPairSlot __instance)
-        => ExpandedUiAppPairSlot.Get(__instance).OnDestroy();
+        => ExpandedUiAppPairSlot.Destroy(__instance);
 }
 
-internal class ExpandedUiAppPairSlot
+[Expansion(typeof(UiAppPairSlot), 
+    Fields = new[]{"_playerFileGirlPair", "_tooltip"})]
+public partial class ExpandedUiAppPairSlot
 {
-    private static Dictionary<UiAppPairSlot, ExpandedUiAppPairSlot> _expansions
-        = new Dictionary<UiAppPairSlot, ExpandedUiAppPairSlot>();
-
-    public static ExpandedUiAppPairSlot Get(UiAppPairSlot core)
-    {
-        if (!_expansions.TryGetValue(core, out var expansion))
-        {
-            expansion = new ExpandedUiAppPairSlot(core);
-            _expansions[core] = expansion;
-        }
-
-        return expansion;
-    }
-
-    private static readonly FieldInfo f_playerFileGirlPair = AccessTools.Field(typeof(UiAppPairSlot), "_playerFileGirlPair");
-    private static readonly FieldInfo f_tooltip = AccessTools.Field(typeof(UiAppPairSlot), "_tooltip");
-
     private static readonly FieldInfo f_transitionDef = AccessTools.Field(typeof(ButtonStateTransition), "_transitionDef");
     private static readonly FieldInfo f_origSprite = AccessTools.Field(typeof(ButtonStateTransition), "_origSprite");
-
     private static readonly FieldInfo f_overTransitions = AccessTools.Field(typeof(ButtonBehavior), "_overTransitions");
 
     private ButtonStateTransitionDef _singleOverDef;
@@ -66,17 +49,6 @@ internal class ExpandedUiAppPairSlot
     private Image _background;
     private Transform _headWrapper;
     private bool _started;
-
-    protected UiAppPairSlot _core;
-    private ExpandedUiAppPairSlot(UiAppPairSlot core)
-    {
-        _core = core;
-    }
-
-    public void OnDestroy()
-    {
-        _expansions.Remove(_core);
-    }
 
     internal void Start()
     {

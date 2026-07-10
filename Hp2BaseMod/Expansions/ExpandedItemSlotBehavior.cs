@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Reflection;
 using HarmonyLib;
 using Hp2BaseMod.Extension;
 
@@ -31,34 +29,11 @@ internal static class ItemSlotBehaviorPatch
 /// Allows tooltips to be displayed when ui is offset outside the hub.
 /// Use <see cref="ModInterface.State.CellphoneOnLeft"/> to control ui position
 /// </summary>
-public class ExpandedItemSlotBehavior
+[Expansion(typeof(ItemSlotBehavior), 
+    Fields = new[]{"_itemDefinition", "_tooltip", "_offsetOverride", "_tooltipOffset"})]
+public partial class ExpandedItemSlotBehavior
 {
-    private static Dictionary<ItemSlotBehavior, ExpandedItemSlotBehavior> _expansions
-        = new Dictionary<ItemSlotBehavior, ExpandedItemSlotBehavior>();
-
-    public static ExpandedItemSlotBehavior Get(ItemSlotBehavior core)
-    {
-        if (!_expansions.TryGetValue(core, out var expansion))
-        {
-            expansion = new ExpandedItemSlotBehavior(core);
-            _expansions[core] = expansion;
-        }
-
-        return expansion;
-    }
-
-    private static readonly FieldInfo f_itemDefinition = AccessTools.Field(typeof(ItemSlotBehavior), "_itemDefinition");
-    private static readonly FieldInfo f_tooltip = AccessTools.Field(typeof(ItemSlotBehavior), "_tooltip");
-    private static readonly FieldInfo f_offsetOverride = AccessTools.Field(typeof(ItemSlotBehavior), "_offsetOverride");
-    private static readonly FieldInfo f_tooltipOffset = AccessTools.Field(typeof(ItemSlotBehavior), "_tooltipOffset");
-
     public event Action PreShowEvent;
-
-    protected ItemSlotBehavior _core;
-    private ExpandedItemSlotBehavior(ItemSlotBehavior core)
-    {
-        _core = core;
-    }
 
     public bool ShowTooltip()
     {

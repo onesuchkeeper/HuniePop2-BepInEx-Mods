@@ -33,7 +33,9 @@ namespace Hp2BaseMod.Save
 
         public void Strip(SaveFileGirl saveFileGirl)
         {
-            var girlExpanded = ExpandedGirlDefinition.Get(saveFileGirl.girlId);
+            var girlExpanded = ModInterface.GameData
+                .GetGirl(ModInterface.Data.GetDataId(GameDataType.Girl, saveFileGirl.girlId))
+                .GetExpansion();
 
             PlayerMet = saveFileGirl.playerMet;
             RelationshipPoints = saveFileGirl.relationshipPoints;
@@ -235,7 +237,9 @@ namespace Hp2BaseMod.Save
 
         private void Inject(SaveFileGirl save)
         {
-            var girlExpanded = ExpandedGirlDefinition.Get(save.girlId);
+            var girlExpanded = ModInterface.GameData
+                .GetGirl(ModInterface.Data.GetDataId(GameDataType.Girl, save.girlId))
+                .GetExpansion();
 
             if (girlExpanded.HairstyleLookup.TryGetIndex(HairstyleId, out var hairstyleIndex))
             {

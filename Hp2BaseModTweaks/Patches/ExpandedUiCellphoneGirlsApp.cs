@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using HarmonyLib;
 using Hp2BaseMod;
 using Hp2BaseMod.Ui;
@@ -14,36 +12,23 @@ namespace Hp2BaseModTweaks.CellphoneApps
         [HarmonyPatch("Start")]
         [HarmonyPrefix]
         public static void PreStart(UiCellphoneAppGirls __instance)
-            => ExpandedUiCellphoneGirlsApp.Get(__instance).PreStart();
+            => ExpandedUiCellphoneAppGirls.Get(__instance).PreStart();
 
         [HarmonyPatch("Start")]
         [HarmonyPostfix]
         public static void PostStart(UiCellphoneAppGirls __instance)
-            => ExpandedUiCellphoneGirlsApp.Get(__instance).PostStart();
+            => ExpandedUiCellphoneAppGirls.Get(__instance).PostStart();
 
         [HarmonyPatch("OnDestroy")]
         [HarmonyPrefix]
         public static void OnDestroy(UiCellphoneAppGirls __instance)
-            => ExpandedUiCellphoneGirlsApp.Get(__instance).OnDestroy();
+            => ExpandedUiCellphoneAppGirls.Destroy(__instance);
     }
 
-    internal class ExpandedUiCellphoneGirlsApp
+    [Expansion(typeof(UiCellphoneAppGirls))]
+    public partial class ExpandedUiCellphoneAppGirls
     {
-        private readonly static Dictionary<UiCellphoneAppGirls, ExpandedUiCellphoneGirlsApp> _expansions
-            = new Dictionary<UiCellphoneAppGirls, ExpandedUiCellphoneGirlsApp>();
-
-        public static ExpandedUiCellphoneGirlsApp Get(UiCellphoneAppGirls uiCellphoneAppGirls)
-        {
-            if (!_expansions.TryGetValue(uiCellphoneAppGirls, out var expansion))
-            {
-                expansion = new ExpandedUiCellphoneGirlsApp(uiCellphoneAppGirls);
-                _expansions[uiCellphoneAppGirls] = expansion;
-            }
-
-            return expansion;
-        }
-
-        private static readonly int _girlsPerPage = 12;
+        private const int GIRLS_PER_PAGE = 12;
 
         private Hp2ButtonWrapper _previousPage;
         private Hp2ButtonWrapper _nextPage;
@@ -51,18 +36,11 @@ namespace Hp2BaseModTweaks.CellphoneApps
         private int _currentPage = 0;
         public static Vector2 _defaultSlotContainerPos;
         private int _pageMax;
-
-        private UiCellphoneAppGirls _girlsApp;
         private PlayerFileGirl[] _playerFileGirls;
-
-        public ExpandedUiCellphoneGirlsApp(UiCellphoneAppGirls girlsApp)
-        {
-            _girlsApp = girlsApp ?? throw new ArgumentNullException(nameof(girlsApp));
-        }
 
         public void PreStart()
         {
-            _defaultSlotContainerPos = _girlsApp.girlSlotsContainer.anchoredPosition;
+            _defaultSlotContainerPos = _core.girlSlotsContainer.anchoredPosition;
         }
 
         public void PostStart()
@@ -73,7 +51,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
                 .ToArray();
 
             _pageMax = _playerFileGirls.Length > 1
-                ? (_playerFileGirls.Length - 1) / _girlsPerPage
+                ? (_playerFileGirls.Length - 1) / GIRLS_PER_PAGE
                 : 0;
 
             // extra ui
@@ -90,7 +68,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
                     ModInterface.Assets.GetInternalAsset<Sprite>(Common.Ui_AppSettingArrowLeftOver),
                     cellphoneButtonPressedKlip);
 
-                _previousPage.GameObject.transform.SetParent(_girlsApp.transform, false);
+                _previousPage.GameObject.transform.SetParent(_core.transform, false);
                 _previousPage.RectTransform.anchoredPosition = new Vector2(30, -30);
                 _previousPage.ButtonBehavior.ButtonPressedEvent += (e) =>
                 {
@@ -103,7 +81,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
                     ModInterface.Assets.GetInternalAsset<Sprite>(Common.Ui_AppSettingArrowRightOver),
                     cellphoneButtonPressedKlip);
 
-                _nextPage.GameObject.transform.SetParent(_girlsApp.transform, false);
+                _nextPage.GameObject.transform.SetParent(_core.transform, false);
                 _nextPage.RectTransform.anchoredPosition = new Vector2(1024, -30);
                 _nextPage.ButtonBehavior.ButtonPressedEvent += (e) =>
                 {
@@ -115,20 +93,19 @@ namespace Hp2BaseModTweaks.CellphoneApps
             Refresh();
         }
 
-        public void OnDestroy()
+        private void OnDestroy()
         {
             _previousPage?.Destroy();
             _nextPage?.Destroy();
-            _expansions.Remove(_girlsApp);
         }
 
         public void Refresh()
         {
             //girls
-            var girlIndex = _currentPage * _girlsPerPage;
+            var girlIndex = _currentPage * GIRLS_PER_PAGE;
             var renderCount = 0;
 
-            foreach (var slot in _girlsApp.girlSlots.Take(_girlsPerPage))
+            foreach (var slot in _core.girlSlots.Take(GIRLS_PER_PAGE))
             {
                 if (girlIndex < _playerFileGirls.Length)
                 {
@@ -145,12 +122,12 @@ namespace Hp2BaseModTweaks.CellphoneApps
                 }
             }
 
-            foreach (var slot in _girlsApp.girlSlots.Skip(_girlsPerPage))
+            foreach (var slot in _core.girlSlots.Skip(GIRLS_PER_PAGE))
             {
                 slot.Clear();
             }
 
-            _girlsApp.girlSlotsContainer.anchoredPosition = _defaultSlotContainerPos
+            _core.girlSlotsContainer.anchoredPosition = _defaultSlotContainerPos
                 + new Vector2(Mathf.Min(renderCount - 1, 5) * -86f,
                     Mathf.Max(Mathf.CeilToInt(renderCount / 6f) - 1, 0) * 136f);
 

@@ -29,7 +29,10 @@ public class GirlStyleInfo
     {
         if (def == null)
         {
-            def = new GirlStyleInfo() { OutfitId = RelativeId.Default, HairstyleId = RelativeId.Default };
+            def = new GirlStyleInfo() { 
+                OutfitId = RelativeId.Default, 
+                HairstyleId = RelativeId.Default 
+            };
         }
 
         ValidatedSet.SetValue(ref def.OutfitId, OutfitId, InsertStyle.replace);
@@ -44,12 +47,13 @@ public class GirlStyleInfo
 
     public void Apply(UiDoll doll, int defaultOutfitIndex, int defaultHairstyleIndex)
     {
-        if (!ModInterface.Data.TryGetDataId(GameDataType.Girl, (doll.soulGirlDefinition ?? doll.girlDefinition).id, out var girlId))
+        var def = doll.soulGirlDefinition ?? doll.girlDefinition;
+        if (!ModInterface.Data.TryGetDataId(GameDataType.Girl, def.id, out var girlId))
         {
             return;
         }
 
-        var expandedGirl = ExpandedGirlDefinition.Get(girlId);
+        var expandedGirl = def.GetExpansion();
 
         if (OutfitId.HasValue)
         {

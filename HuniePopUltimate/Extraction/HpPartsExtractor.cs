@@ -164,13 +164,13 @@ public class HpPartsExtractor
         }
 
         var it = artCollection.OfType<OrderedDictionary>().GetEnumerator();
-        if (!it.MoveNext()) { return false; }
+        if (!it.MoveNext()) return false;
         var eyeArt = it.Current;
-        if (!it.MoveNext()) { return false; }
+        if (!it.MoveNext()) return false;
         var browArt = it.Current;
-        if (!it.MoveNext()) { return false; }
+        if (!it.MoveNext()) return false;
         var mouthArt = it.Current;
-        if (!it.MoveNext()) { return false; }
+        if (!it.MoveNext()) return false;
         var faceArt = it.Current;
 
         if (!TryMakePartDataMod(GirlPartType.EYEBROWS, browArt, spriteLookup, spriteTextureInfo, out brows, out _))

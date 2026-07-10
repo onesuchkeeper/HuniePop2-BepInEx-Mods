@@ -16,6 +16,7 @@ public static class SingleDatePostSexCutscene
             {
                 //moan 
                 CutsceneStepUtility.MakeDialogTriggerInfo(Hp2BaseMod.DialogTriggers.SexMoans1, CutsceneStepProceedType.AUTOMATIC, CutsceneStepDollTargetType.RANDOM),
+                CutsceneStepUtility.MakeDialogTriggerInfo(Hp2BaseMod.DialogTriggers.DateSuccess, CutsceneStepProceedType.AUTOMATIC, CutsceneStepDollTargetType.RANDOM),
                 CutsceneStepUtility.MakeWaitInfo(0.5f),
             }
         });

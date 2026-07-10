@@ -50,12 +50,12 @@ namespace Hp2BaseMod.GameDataInfo
         public void SetData(GirlSpecialPartSubDefinition def,
                             GameDefinitionProvider gameDataProvider,
                             AssetProvider assetProvider,
-                            RelativeId girlId,
+                            GirlDefinition girlDef,
                             GirlBodySubDefinition bodyDef)
         {
-            if (def == null) { return; }
+            if (def == null) return;
 
-            var expansion = def.Expansion();
+            var expansion = def.GetExpansion();
 
             ValidatedSet.SetValue(ref expansion.RequiredHairstyles, RequiredHairstyles, InsertStyle);
 

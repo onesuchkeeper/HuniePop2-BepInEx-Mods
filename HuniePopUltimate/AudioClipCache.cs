@@ -145,7 +145,11 @@ public static class AdpcmCodec
             var diff = sample - predictor;
             var nybble = 0;
 
-            if (diff < 0) { nybble = 8; diff = -diff; }
+            if (diff < 0) 
+            { 
+                nybble = 8; 
+                diff = -diff; 
+            }
 
             if (diff >= step) 
             { 
@@ -308,7 +312,13 @@ public static class AudioPcmCache
     {
         var h = 14695981039346656037UL;
         const ulong p = 1099511628211UL;
-        foreach (var b in Encoding.UTF8.GetBytes(key)) { h ^= b; h *= p; }
+        
+        foreach (var b in Encoding.UTF8.GetBytes(key)) 
+        { 
+            h ^= b; 
+            h *= p; 
+        }
+
         return h;
     }
 
@@ -550,12 +560,21 @@ public abstract class PcmSliceHandle
 
     public void OnPCMRead(float[] data)
     {
-        if (_ended) { Array.Clear(data, 0, data.Length); return; }
+        if (_ended) 
+        { 
+            Array.Clear(data, 0, data.Length); 
+            return; 
+        }
 
         EnsureStream();
 
         long remaining = SampleCount - _pos;
-        if (remaining <= 0) { _ended = true; Array.Clear(data, 0, data.Length); return; }
+        if (remaining <= 0) 
+        { 
+            _ended = true; 
+            Array.Clear(data, 0, data.Length); 
+            return; 
+        }
 
         int written = FillBuffer(data, (int)Math.Min(data.Length, remaining * Channels));
 
@@ -570,7 +589,11 @@ public abstract class PcmSliceHandle
         SeekTo(Math.Max(0L, Math.Min(sampleFrame, SampleCount - 1)));
     }
 
-    public void ReleaseStream() { _fs?.Dispose(); _fs = null; }
+    public void ReleaseStream() 
+    { 
+        _fs?.Dispose(); 
+        _fs = null; 
+    }
 
     /// <summary>
     /// Fill up to <paramref name="maxFloats"/> interleaved floats into

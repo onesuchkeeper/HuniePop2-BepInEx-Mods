@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Reflection;
 using HarmonyLib;
 
 namespace Hp2BaseMod;
@@ -15,45 +13,22 @@ internal static class UiAppStoreSlotPatch
     [HarmonyPatch("OnDestroy")]
     [HarmonyPostfix]
     public static void OnDestroy(UiAppStoreSlot __instance)
-        => ExpandedUiAppStoreSlot.Get(__instance).OnDestroy();
+        => ExpandedUiAppStoreSlot.Destroy(__instance);
 }
 
 /// <summary>
 /// Handles <see cref="ExpandedItemSlotBehavior.PreShowEvent"/>.
 /// </summary>
-internal class ExpandedUiAppStoreSlot
+[Expansion(typeof(UiAppStoreSlot), Methods = new[] {"OnTooltipPreShow"})]
+public partial class ExpandedUiAppStoreSlot
 {
-    private static Dictionary<UiAppStoreSlot, ExpandedUiAppStoreSlot> _expansions
-        = new Dictionary<UiAppStoreSlot, ExpandedUiAppStoreSlot>();
-
-    public static ExpandedUiAppStoreSlot Get(UiAppStoreSlot core)
-    {
-        if (!_expansions.TryGetValue(core, out var expansion))
-        {
-            expansion = new ExpandedUiAppStoreSlot(core);
-            _expansions[core] = expansion;
-        }
-
-        return expansion;
-    }
-
-    private static readonly MethodInfo m_onTooltipPreShow = AccessTools.Method(typeof(UiAppStoreSlot), "OnTooltipPreShow");
-
-    protected UiAppStoreSlot _core;
-    private ExpandedUiAppStoreSlot(UiAppStoreSlot core)
-    {
-        _core = core;
-    }
-
     public void Start()
     {
         ExpandedItemSlotBehavior.Get(_core.itemSlot).PreShowEvent += OnTooltipPreShow;
     }
 
-    public void OnDestroy()
+    private void OnDestroy()
     {
         ExpandedItemSlotBehavior.Get(_core.itemSlot).PreShowEvent -= OnTooltipPreShow;
     }
-
-    private void OnTooltipPreShow() => m_onTooltipPreShow.Invoke(_core, null);
 }

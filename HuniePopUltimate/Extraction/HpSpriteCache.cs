@@ -31,12 +31,8 @@ public class HpSpriteCache
         _extractor = extractor;
     }
 
-    // -------------------------------------------------------------------------
-    // Sprite collection helpers
-    // -------------------------------------------------------------------------
-
     /// <summary>
-    /// Builds a name→definition lookup and resolves the backing
+    /// Builds a name to definition lookup and resolves the backing
     /// <see cref="TextureInfoRaw"/> for a sprite collection.
     /// </summary>
     public bool TryGetSpriteLookup(
@@ -64,10 +60,6 @@ public class HpSpriteCache
         textureInfo = GetOrCreateTextureInfo(spriteCollection.file, texturePath);
         return textureInfo != default;
     }
-
-    // -------------------------------------------------------------------------
-    // SpriteInfo builders
-    // -------------------------------------------------------------------------
 
     /// <summary>
     /// Builds a <see cref="SpriteInfoTexture"/> from a standard (non-tiled)
@@ -185,13 +177,8 @@ public class HpSpriteCache
         return true;
     }
 
-    // -------------------------------------------------------------------------
-    // Texture finalisation
-    // -------------------------------------------------------------------------
-
     /// <summary>
-    /// Should be called once all extraction is complete. Uploads every decoded
-    /// texture atlas to the GPU and marks it read-only.
+    /// Uploads every decoded texture atlas to the GPU and marks it read-only.
     /// </summary>
     public void FinalizeTextures()
     {
@@ -199,21 +186,15 @@ public class HpSpriteCache
             textureInfo.GetTexture().Apply(false, true);
     }
 
-    // -------------------------------------------------------------------------
-    // Static geometry helper
-    // -------------------------------------------------------------------------
-
-    /// <summary>Extracts x/y floats from a Unity serialised Vector2 dictionary.</summary>
+    /// <summary>
+    /// Extracts x/y floats from a Unity serialized Vector2 dictionary.
+    /// </summary>
     public static bool TryGetVector2(OrderedDictionary dict, out float x, out float y)
     {
         if (dict.TryGetValue("x", out x) && dict.TryGetValue("y", out y)) return true;
         x = y = default;
         return false;
     }
-
-    // -------------------------------------------------------------------------
-    // Private helpers
-    // -------------------------------------------------------------------------
 
     private TextureInfoRaw GetOrCreateTextureInfo(SerializedFile file, UnityAssetPath texturePath)
     {
@@ -276,7 +257,7 @@ public class HpSpriteCache
             .ToArray();
 
         // Find the minimum position to use as the origin offset.
-        // The declared boundsData[1] size is the authoritative canvas size —
+        // The declared boundsData[1] size is the authoritative canvas size
         // we do not derive it from the atlas texture dimensions, which vary
         // between sprite collections and would produce wrong canvas sizes for
         // sprites on smaller atlases.

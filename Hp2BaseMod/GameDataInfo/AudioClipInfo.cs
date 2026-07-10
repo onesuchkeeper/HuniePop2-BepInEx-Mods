@@ -30,8 +30,8 @@ namespace Hp2BaseMod.GameDataInfo
         /// <param name="assetProvider">Asset provider containing the assets referenced by the definition.</param>
         public AudioClipInfo(AudioClip def, AssetProvider assetProvider)
         {
-            if (def == null) { throw new ArgumentNullException(nameof(def)); }
-            if (assetProvider == null) { throw new ArgumentNullException(nameof(assetProvider)); }
+            if (def == null) throw new ArgumentNullException(nameof(def));
+            if (assetProvider == null) throw new ArgumentNullException(nameof(assetProvider));
 
             assetProvider.NameAndAddAsset(ref Path, def);
 
@@ -54,16 +54,12 @@ namespace Hp2BaseMod.GameDataInfo
                 {
                     if (File.Exists(Path))
                     {
-                        // byte[] fileBytes = File.ReadAllBytes(Path);
-                        // def = WAVUtility.LoadAudioClip(fileBytes);
-                        //def = Resources.Load<AudioClip>("file://" + System.IO.Path.GetFullPath(Path));
-
                         using (var request = UnityWebRequestMultimedia.GetAudioClip("file://" + System.IO.Path.GetFullPath(Path), AudioType.WAV))
                         {
                             request.SendWebRequest();
 
-                            //with the way the resource pipeline works atm there's no great way to await this
-                            while (!request.isDone) { }
+                            // with the way the resource pipeline works atm there's no great way to await this
+                            while (!request.isDone);
 
                             if (request.isNetworkError)
                             {

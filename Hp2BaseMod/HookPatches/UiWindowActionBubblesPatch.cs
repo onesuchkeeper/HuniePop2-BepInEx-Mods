@@ -99,7 +99,7 @@ internal static class UiWindowActionBubblesPatch
             var time = (ClockDaytimeType)(Game.Persistence.playerFile.daytimeElapsed % 4);
 
             var locs = Game.Data.Locations.GetAllByLocationType(LocationType.DATE)
-                .Where(x => x.Expansion().IsValidForNormalDate());
+                .Where(x => x.GetExpansion().IsValidForNormalDate());
 
             ModInterface.Log.Message($"Choosing normal date Loc from pool: [{string.Join(", ", locs.Select(x => x.locationName))}]");
 

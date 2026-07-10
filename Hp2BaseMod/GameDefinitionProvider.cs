@@ -129,7 +129,7 @@ namespace Hp2BaseMod
         /// <returns></returns>
         public bool IsCodeUnlocked(RelativeId? id)
         {
-            if (!id.HasValue) { return false; }
+            if (!id.HasValue) return false;
 
             var runtimeId = ModInterface.Data.GetRuntimeDataId(GameDataType.Code, id);
             return Game.Persistence?.playerData?.unlockedCodes.Any(x => x.id == runtimeId) ?? false;

@@ -97,10 +97,22 @@ namespace Hp2BaseMod.GameDataInfo
 
             Styles = new PairStyleInfo()
             {
-                MeetingGirlOne = new GirlStyleInfo() { HairstyleId = new RelativeId(-1, (int)def.meetingStyleTypeOne), OutfitId = new RelativeId(-1, (int)def.meetingStyleTypeOne) },
-                MeetingGirlTwo = new GirlStyleInfo() { HairstyleId = new RelativeId(-1, (int)def.meetingStyleTypeTwo), OutfitId = new RelativeId(-1, (int)def.meetingStyleTypeTwo) },
-                SexGirlOne = new GirlStyleInfo() { HairstyleId = new RelativeId(-1, (int)def.sexStyleTypeOne), OutfitId = new RelativeId(-1, (int)def.sexStyleTypeOne) },
-                SexGirlTwo = new GirlStyleInfo() { HairstyleId = new RelativeId(-1, (int)def.sexStyleTypeTwo), OutfitId = new RelativeId(-1, (int)def.sexStyleTypeTwo) }
+                MeetingGirlOne = new GirlStyleInfo() { 
+                    HairstyleId = new RelativeId(-1, (int)def.meetingStyleTypeOne), 
+                    OutfitId = new RelativeId(-1, (int)def.meetingStyleTypeOne) 
+                },
+                MeetingGirlTwo = new GirlStyleInfo() { 
+                    HairstyleId = new RelativeId(-1, (int)def.meetingStyleTypeTwo), 
+                    OutfitId = new RelativeId(-1, (int)def.meetingStyleTypeTwo) 
+                },
+                SexGirlOne = new GirlStyleInfo() { 
+                    HairstyleId = new RelativeId(-1, (int)def.sexStyleTypeOne), 
+                    OutfitId = new RelativeId(-1, (int)def.sexStyleTypeOne) 
+                },
+                SexGirlTwo = new GirlStyleInfo() { 
+                    HairstyleId = new RelativeId(-1, (int)def.sexStyleTypeTwo), 
+                    OutfitId = new RelativeId(-1, (int)def.sexStyleTypeTwo) 
+                }
             };
         }
 
@@ -128,7 +140,7 @@ namespace Hp2BaseMod.GameDataInfo
                                               gameDataProvider.GetCutscene(PostSexRelationshipCutsceneDefinitionID)],
                                       InsertStyle);
 
-            var expansion = def.Expansion();
+            var expansion = def.GetExpansion();
 
             ValidatedSet.SetValue(ref expansion.CutsceneNormalCompatibleSuccessId, CompatibleSuccessCutsceneDefinitionID);
             ValidatedSet.SetValue(ref expansion.CutsceneNormalAttractedSuccessId, AttractSuccessCutsceneDefinitionID);

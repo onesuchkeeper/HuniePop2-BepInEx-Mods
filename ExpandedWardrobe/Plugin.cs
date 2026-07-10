@@ -141,8 +141,7 @@ internal class Plugin : BaseUnityPlugin
         {
             foreach (var fileGirl in file.girls)
             {
-                var girlId = ModInterface.Data.GetDataId(GameDataType.Girl, fileGirl.girlDefinition.id);
-                var expansion = ExpandedGirlDefinition.Get(girlId);
+                var expansion = fileGirl.girlDefinition.GetExpansion();
 
                 foreach (var outfitId in expansion.OutfitLookup.Ids.Where(x => x.SourceId == Ids.ModId))
                 {

@@ -54,7 +54,7 @@ namespace Hp2BaseMod.GameDataInfo
         /// <param name="def">The definition.</param>
         public LogicConditionInfo(LogicCondition def)
         {
-            if (def == null) { throw new ArgumentNullException(nameof(def)); }
+            if (def == null) throw new ArgumentNullException(nameof(def));
 
             Type = def.type;
             Inverse = def.inverse;

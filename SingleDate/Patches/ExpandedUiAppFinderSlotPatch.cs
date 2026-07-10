@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Reflection;
 using HarmonyLib;
 using Hp2BaseMod;
@@ -16,36 +15,17 @@ internal static class UiAppFinderSlotPatch
         => ExpandedUiAppFinderSlot.Get(__instance).Populate();
 }
 
-public class ExpandedUiAppFinderSlot
+[Expansion(typeof(UiAppFinderSlot), 
+    Fields = new[]{"_playerFileFinderSlot", })]
+public partial class ExpandedUiAppFinderSlot
 {
-    private static Dictionary<UiAppFinderSlot, ExpandedUiAppFinderSlot> _expansions
-        = new Dictionary<UiAppFinderSlot, ExpandedUiAppFinderSlot>();
-
-    public static ExpandedUiAppFinderSlot Get(UiAppFinderSlot core)
-    {
-        if (!_expansions.TryGetValue(core, out var expansion))
-        {
-            expansion = new ExpandedUiAppFinderSlot(core);
-            _expansions[core] = expansion;
-        }
-
-        return expansion;
-    }
-
-    private static readonly float _singleSpacing = 48f;
-    private static readonly float _doubleSpacing = 96f;
-    private static readonly FieldInfo f_playerFileFinderSlot = AccessTools.Field(typeof(UiAppFinderSlot), "_playerFileFinderSlot");
+    private static readonly float SINGLE_SPACING = 48f;
+    private static readonly float DOUBLE_SPACING = 96f;
     private static readonly FieldInfo f_girlDefinition = AccessTools.Field(typeof(UiAppHeadSlot), "_girlDefinition");
 
     private UiAppHeadSlot _girlSlot;
     private UiAppHeadSlot _nobodySlot;
     private bool _populatedAsSingle;
-
-    protected UiAppFinderSlot _core;
-    private ExpandedUiAppFinderSlot(UiAppFinderSlot core)
-    {
-        _core = core;
-    }
 
     internal void Populate()
     {
@@ -68,12 +48,12 @@ public class ExpandedUiAppFinderSlot
                     ? _core.headSlotLeft
                     : _core.headSlotRight;
 
-                _girlSlot.rectTransform.anchoredPosition = new Vector2(-_singleSpacing, _core.headSlotLeft.rectTransform.anchoredPosition.y);
+                _girlSlot.rectTransform.anchoredPosition = new Vector2(-SINGLE_SPACING, _core.headSlotLeft.rectTransform.anchoredPosition.y);
 
                 _nobodySlot.rectTransform.SetParent(null);
 
                 var relationshipTransform = _core.relationshipSlot.GetComponent<RectTransform>();
-                relationshipTransform.anchoredPosition = new Vector2(_singleSpacing, relationshipTransform.anchoredPosition.y);
+                relationshipTransform.anchoredPosition = new Vector2(SINGLE_SPACING, relationshipTransform.anchoredPosition.y);
 
                 _populatedAsSingle = true;
             }
@@ -84,8 +64,8 @@ public class ExpandedUiAppFinderSlot
         {
             _nobodySlot.rectTransform.SetParent(_girlSlot.transform.parent);
 
-            _core.headSlotLeft.rectTransform.anchoredPosition = new Vector2(-_doubleSpacing, _girlSlot.rectTransform.anchoredPosition.y);
-            _core.headSlotRight.rectTransform.anchoredPosition = new Vector2(_doubleSpacing, _girlSlot.rectTransform.anchoredPosition.y);
+            _core.headSlotLeft.rectTransform.anchoredPosition = new Vector2(-DOUBLE_SPACING, _girlSlot.rectTransform.anchoredPosition.y);
+            _core.headSlotRight.rectTransform.anchoredPosition = new Vector2(DOUBLE_SPACING, _girlSlot.rectTransform.anchoredPosition.y);
 
             var relationshipTransform = _core.relationshipSlot.GetComponent<RectTransform>();
             relationshipTransform.anchoredPosition = new Vector2(0, relationshipTransform.anchoredPosition.y);

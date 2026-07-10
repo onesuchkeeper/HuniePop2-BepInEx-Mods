@@ -11,37 +11,38 @@ namespace Hp2BaseMod.Analyzer
     {
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
-            // Track member access expressions - group by syntax tree for caching
-            var memberAccessesBySyntaxTree = context.SyntaxProvider.CreateSyntaxProvider(
-                static (node, _) => node is MemberAccessExpressionSyntax,
-                static (ctx, _) => (Access: (MemberAccessExpressionSyntax)ctx.Node, Tree: ctx.Node.SyntaxTree))
+            // Track every identifier-name reference, not just dotted member access.
+            // This single node kind also covers:
+            //   - member access:            foo.favQuestionDefinitions
+            //   - conditional access:       foo?.favQuestionDefinitions
+            //   - object/collection init:   new TalkManager { favQuestionDefinitions = ... }
+            //   - unqualified inherited access from a derived type: favQuestionDefinitions
+            //   - nameof(...) targets, qualified or not
+            // Group by syntax tree for semantic-model caching.
+            var identifiersBySyntaxTree = context.SyntaxProvider.CreateSyntaxProvider(
+                static (node, _) => node is IdentifierNameSyntax,
+                static (ctx, _) => (Identifier: (IdentifierNameSyntax)ctx.Node, Tree: ctx.Node.SyntaxTree))
                 .Collect()
-                .Select(static (accesses, _) =>
+                .Select(static (identifiers, _) =>
                 {
-                    // Group by syntax tree to enable semantic model caching
-                    var grouped = new Dictionary<SyntaxTree, List<MemberAccessExpressionSyntax>>();
-                    foreach (var (access, tree) in accesses)
+                    var grouped = new Dictionary<SyntaxTree, List<IdentifierNameSyntax>>();
+                    foreach (var (identifier, tree) in identifiers)
                     {
                         if (!grouped.ContainsKey(tree))
-                            grouped[tree] = new List<MemberAccessExpressionSyntax>();
-                        grouped[tree].Add(access);
+                        {
+                            grouped[tree] = new List<IdentifierNameSyntax>();
+                        }
+
+                        grouped[tree].Add(identifier);
                     }
+
                     return grouped.ToImmutableDictionary(
                         kvp => kvp.Key,
                         kvp => kvp.Value.ToImmutableArray());
                 });
 
-            var compilationAndAccesses = context.CompilationProvider
-                .Combine(memberAccessesBySyntaxTree);
-
-            context.RegisterSourceOutput(
-                compilationAndAccesses,
-                static (spc, pair) =>
-                {
-                    AnalyzeCompilationWithCaching(spc, pair.Left, pair.Right);
-                });
-
-            // Track members with attributes (methods and properties)
+            // Track members and class declarations that carry any attribute. Feeds both the
+            // existing InteropMethod validation and the new Expansion-pattern analysis below.
             var membersWithAttributes = context.SyntaxProvider.CreateSyntaxProvider(
                 static (node, _) => node is MemberDeclarationSyntax member && member.AttributeLists.Count > 0,
                 static (ctx, _) => (Member: (MemberDeclarationSyntax)ctx.Node, Tree: ctx.Node.SyntaxTree))
@@ -52,16 +53,19 @@ namespace Hp2BaseMod.Analyzer
                     foreach (var (member, tree) in members)
                     {
                         if (!grouped.ContainsKey(tree))
+                        {
                             grouped[tree] = new List<MemberDeclarationSyntax>();
+                        }
+
                         grouped[tree].Add(member);
                     }
+
                     return grouped.ToImmutableDictionary(
                         kvp => kvp.Key,
                         kvp => kvp.Value.ToImmutableArray());
                 });
 
-            var compilationAndMembers = context.CompilationProvider
-                .Combine(membersWithAttributes);
+            var compilationAndMembers = context.CompilationProvider.Combine(membersWithAttributes);
 
             context.RegisterSourceOutput(
                 compilationAndMembers,
@@ -69,86 +73,184 @@ namespace Hp2BaseMod.Analyzer
                 {
                     AttributeAnalyzer.AnalyzeAttributesWithCaching(spc, pair.Left, pair.Right);
                 });
+
+            // Expansion-pattern structural checks (naming) plus discovery of
+            // [Deprecates]/[Overwrites]/[Repurposes] member attributes.
+            var expansionAnalysis = compilationAndMembers
+                .Select(static (pair, ct) => ExpansionAnalyzer.Analyze(pair.Left, pair.Right, ct));
+
+            context.RegisterSourceOutput(
+                expansionAnalysis,
+                static (spc, result) =>
+                {
+                    foreach (var diagnostic in result.Diagnostics)
+                    {
+                        spc.ReportDiagnostic(diagnostic);
+                    }
+                });
+
+            // Generates the shared half of every [Expansion] partial class.
+            context.RegisterSourceOutput(
+                compilationAndMembers,
+                static (spc, pair) =>
+                {
+                    ExpansionGenerator.GenerateWithCaching(spc, pair.Left, pair.Right);
+                });
+
+            var mergedRules = expansionAnalysis
+                .Select(static (result, _) => MergeRules(result.Rules));
+
+            var compilationAndIdentifiers = context.CompilationProvider
+                .Combine(identifiersBySyntaxTree)
+                .Combine(mergedRules);
+
+            context.RegisterSourceOutput(
+                compilationAndIdentifiers,
+                static (spc, pair) =>
+                {
+                    AnalyzeCompilationWithCaching(spc, pair.Left.Left, pair.Left.Right, pair.Right);
+                });
         }
 
         private static void AnalyzeCompilationWithCaching(
             SourceProductionContext context,
             Compilation compilation,
-            ImmutableDictionary<SyntaxTree, ImmutableArray<MemberAccessExpressionSyntax>> accessesBySyntaxTree)
+            ImmutableDictionary<SyntaxTree, ImmutableArray<IdentifierNameSyntax>> identifiersBySyntaxTree,
+            Dictionary<string, Dictionary<string, List<MemberRule>>> rulesByType)
         {
             // Cache semantic models by syntax tree
-            var semanticModelCache = new Dictionary<SyntaxTree, SemanticModel>(accessesBySyntaxTree.Count);
+            var semanticModelCache = new Dictionary<SyntaxTree, SemanticModel>(identifiersBySyntaxTree.Count);
 
-            foreach (var entry in accessesBySyntaxTree)
+            foreach (var entry in identifiersBySyntaxTree)
             {
-                // Get or create semantic model once per syntax tree
                 if (!semanticModelCache.TryGetValue(entry.Key, out var semanticModel))
                 {
                     semanticModel = compilation.GetSemanticModel(entry.Key);
                     semanticModelCache[entry.Key] = semanticModel;
                 }
 
-                // Process all accesses in this file with the cached semantic model
-                foreach (var access in entry.Value)
+                foreach (var identifier in entry.Value)
                 {
-                    AnalyzeMemberAccess(context, access, semanticModel);
+                    AnalyzeIdentifierReference(context, identifier, semanticModel, rulesByType);
                 }
             }
         }
 
-        private static void AnalyzeMemberAccess(
+        private static void AnalyzeIdentifierReference(
             SourceProductionContext context,
-            MemberAccessExpressionSyntax access,
-            SemanticModel semanticModel)
+            IdentifierNameSyntax identifier,
+            SemanticModel semanticModel,
+            Dictionary<string, Dictionary<string, List<MemberRule>>> rulesByType)
         {
-            var symbol = semanticModel.GetSymbolInfo(access, context.CancellationToken).Symbol;
+            var symbol = semanticModel.GetSymbolInfo(identifier, context.CancellationToken).Symbol;
 
             if (symbol == null)
+            {
                 return;
+            }
 
-            // Skip namespaces and types-as-symbols
+            // Skip namespaces and types-as-symbols (e.g. "TalkManager" used as a type reference)
             if (symbol is INamespaceSymbol || symbol is INamedTypeSymbol)
+            {
                 return;
+            }
 
             var containingType = symbol.ContainingType;
             if (containingType == null)
+            {
                 return;
+            }
 
-            // Use simple name for lookup (matches dictionary keys)
+            // The base game is written entirely in the global namespace. A same-named type
+            // declared inside any mod's own namespace must never be mistaken for a base-game
+            // type, so require the containing type to live in the global namespace.
+            if (!IsDeclaredInGlobalNamespace(containingType))
+            {
+                return;
+            }
+
             var typeName = containingType.Name;
 
-            // Early exit if type not in our tracked set
-            if (!RulesByType.ContainsKey(typeName))
+            if (!rulesByType.TryGetValue(typeName, out var memberRules))
+            {
                 return;
-
-            // Get member-specific rules
-            if (!RulesByType.TryGetValue(typeName, out var memberRules))
-                return;
+            }
 
             if (!memberRules.TryGetValue(symbol.Name, out var rules))
+            {
                 return;
+            }
 
             foreach (var rule in rules)
             {
-                // Optional extra condition
                 if (rule.Condition != null && !rule.Condition(symbol))
+                {
                     continue;
+                }
 
-                ReportDiagnostic(context, access, containingType, symbol, rule);
+                ReportDiagnostic(context, identifier, containingType, symbol, rule);
             }
         }
 
-        // Optimized nested dictionary: typeName -> memberName -> rules
-        // This provides O(1) lookup instead of O(n) iteration
-        private static readonly Dictionary<string, Dictionary<string, List<MemberRule>>> RulesByType = new()
+        private static bool IsDeclaredInGlobalNamespace(INamedTypeSymbol type)
         {
-            {"global::TalkManager", Rules.TalkManager},
-            {"global::GirlPairDefinition", Rules.GirlPairDefinition},
+            return type.ContainingNamespace != null && type.ContainingNamespace.IsGlobalNamespace;
+        }
+
+        // Hand-authored rules for base-game types that do not yet have an Expansion class
+        // carrying [Deprecates]/[Overwrites]/[Repurposes] attributes. As each type gains a
+        // proper Expansion, its entry here can be retired in favor of the attribute-driven rules
+        // discovered by ExpansionAnalyzer.
+        private static readonly Dictionary<string, Dictionary<string, List<MemberRule>>> StaticRulesByType = new()
+        {
+            {"TalkManager", Rules.TalkManager},
+            {"GirlPairDefinition", Rules.GirlPairDefinition},
+            {"LocationDefinition", Rules.LocationDefinition},
+            {"LocationManager", Rules.LocationManager},
         };
+
+        private static Dictionary<string, Dictionary<string, List<MemberRule>>> MergeRules(
+            ImmutableDictionary<string, Dictionary<string, List<MemberRule>>> discoveredRules)
+        {
+            // Defensive copies throughout: StaticRulesByType and its inner lists are static and
+            // must never be mutated by a generator pass, since the same instances persist across
+            // incremental runs within the same compiler process.
+            var merged = new Dictionary<string, Dictionary<string, List<MemberRule>>>(StaticRulesByType.Count);
+
+            foreach (var typeEntry in StaticRulesByType)
+            {
+                merged[typeEntry.Key] = new Dictionary<string, List<MemberRule>>(typeEntry.Value);
+            }
+
+            foreach (var typeEntry in discoveredRules)
+            {
+                if (!merged.TryGetValue(typeEntry.Key, out var existingMemberRules))
+                {
+                    existingMemberRules = new Dictionary<string, List<MemberRule>>();
+                    merged[typeEntry.Key] = existingMemberRules;
+                }
+
+                foreach (var memberEntry in typeEntry.Value)
+                {
+                    if (existingMemberRules.TryGetValue(memberEntry.Key, out var existingRules))
+                    {
+                        var combined = new List<MemberRule>(existingRules);
+                        combined.AddRange(memberEntry.Value);
+                        existingMemberRules[memberEntry.Key] = combined;
+                    }
+                    else
+                    {
+                        existingMemberRules[memberEntry.Key] = memberEntry.Value;
+                    }
+                }
+            }
+
+            return merged;
+        }
 
         private static void ReportDiagnostic(
             SourceProductionContext context,
-            MemberAccessExpressionSyntax accessSyntax,
+            IdentifierNameSyntax identifier,
             INamedTypeSymbol containingType,
             ISymbol member,
             MemberRule rule)
@@ -161,10 +263,9 @@ namespace Hp2BaseMod.Analyzer
                 defaultSeverity: rule.Severity,
                 isEnabledByDefault: true);
 
-            // Get the location from the syntax tree directly
             var location = Location.Create(
-                accessSyntax.SyntaxTree,
-                accessSyntax.Name.Span);
+                identifier.SyntaxTree,
+                identifier.Span);
 
             context.ReportDiagnostic(
                 Diagnostic.Create(

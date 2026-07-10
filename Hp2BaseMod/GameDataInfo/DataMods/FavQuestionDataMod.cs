@@ -57,7 +57,7 @@ namespace Hp2BaseMod.GameDataInfo
 
             if (QuestionAnswers != null)
             {
-                var expansion = def.Expansion();
+                var expansion = def.GetExpansion();
                 foreach (var id_answer in QuestionAnswers)
                 {
                     def.questionAnswers.FillSet(expansion.AnswerLookup[id_answer.Key], id_answer.Value);

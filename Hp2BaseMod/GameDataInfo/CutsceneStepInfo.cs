@@ -120,7 +120,7 @@ namespace Hp2BaseMod.GameDataInfo
 
             if (GirlDefinitionId.HasValue)
             {
-                var girlExpansion = ExpandedGirlDefinition.Get(GirlDefinitionId.Value);
+                var girlExpansion = ModInterface.GameData.GetGirl(GirlDefinitionId).GetExpansion();
 
                 if (HairstyleId.HasValue)
                 {

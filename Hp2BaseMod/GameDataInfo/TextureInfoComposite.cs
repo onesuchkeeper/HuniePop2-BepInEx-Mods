@@ -51,14 +51,14 @@ public class TextureInfoComposite : ITextureInfo
             for (int y = 0; y < texHeight; y++)
             {
                 int outputY = offset.y + y;
-                if (outputY < 0 || outputY >= _size.y) { continue; }
+                if (outputY < 0 || outputY >= _size.y) continue;
 
                 var rowOffset = outputY * _size.x;
                 var yShift = y * texWidth;
                 for (int x = 0; x < texWidth; x++)
                 {
                     int outputX = offset.x + x;
-                    if (outputX < 0 || outputX >= _size.x) { continue; }
+                    if (outputX < 0 || outputX >= _size.x) continue;
 
                     int outputIndex = rowOffset + outputX;
                     Color dstColor = outputPixels[outputIndex];

@@ -70,7 +70,7 @@ namespace Hp2BaseMod.GameDataInfo
         public void SetData(GirlPartSubDefinition def,
             GameDefinitionProvider gameDataProvider,
             AssetProvider assetProvider,
-            RelativeId girlId,
+            GirlDefinition girlDef,
             GirlBodySubDefinition bodyDef)
         {
             if (def == null) throw new ArgumentNullException(nameof(def));

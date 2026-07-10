@@ -54,10 +54,10 @@ namespace Hp2BaseMod.GameDataInfo
         public void SetData(GirlExpressionSubDefinition def,
             GameDefinitionProvider gameData,
             AssetProvider assetProvider,
-            RelativeId girlId,
+            GirlDefinition girlDef,
             GirlBodySubDefinition bodyDef)
         {
-            if (def == null) { return; }
+            if (def == null) return;
 
             ValidatedSet.SetValue(ref def.expressionType, ExpressionType);
             ValidatedSet.SetValue(ref def.eyesClosed, EyesClosed);

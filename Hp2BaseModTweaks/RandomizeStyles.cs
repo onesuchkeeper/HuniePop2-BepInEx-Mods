@@ -21,7 +21,7 @@ public static class RandomizeStyles
             {
                 ModInterface.Log.Message($"Randomizing Style for {args.Def.girlName}");
                 args.ApplyChance = 1;
-                RandomizeStyle(args.Def.Expansion(),
+                RandomizeStyle(args.Def.GetExpansion(),
                     playerFileGirl,
                     girlSave.UnpairRandomStyles,
                     girlSave.AllowNsfwRandomStyles && (!Game.Persistence.playerData.censoredMode),
@@ -71,7 +71,7 @@ public static class RandomizeStyles
             var outfit = girlExpansion.GetOutfit(x);
             if (outfit == null) return false;
 
-            return nsfw || !outfit.Expansion().IsNSFW;
+            return nsfw || !outfit.GetExpansion().IsNSFW;
         }).ToArray();
 
         if (!outfits.Any())
@@ -99,7 +99,7 @@ public static class RandomizeStyles
                 var hairstyle = girlExpansion.GetHairstyle(x);
                 if (hairstyle == null) return false;
 
-                return nsfw || !hairstyle.Expansion().IsNSFW;
+                return nsfw || !hairstyle.GetExpansion().IsNSFW;
             }).ToArray();
 
             hairStyleId = pool.GetRandom();

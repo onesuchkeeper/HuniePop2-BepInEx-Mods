@@ -18,7 +18,7 @@ namespace HuniePopUltimate;
 [BepInDependency(Plugin.SINGLE_DATE_GUID, BepInDependency.DependencyFlags.SoftDependency)]
 [BepInDependency(Plugin.REPEAT_THREESOME_GUID, BepInDependency.DependencyFlags.SoftDependency)]
 [BepInDependency(Plugin.EXTRA_LOCATIONS_GUID, BepInDependency.DependencyFlags.SoftDependency)]
-public class Plugin : Hp2BaseModPlugin
+public partial class Plugin : Hp2BaseModPlugin
 {
     #region Constants
 

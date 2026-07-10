@@ -6,7 +6,6 @@ namespace HuniePopUltimate;
 
 /// <summary>
 /// Debugging helpers for inspecting raw HP1 serialized data dictionaries.
-/// All methods are static — there is no instance state.
 /// </summary>
 public static class HpDebugLog
 {

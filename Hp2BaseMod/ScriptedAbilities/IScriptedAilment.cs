@@ -23,7 +23,7 @@ public interface IScriptedAilment
 
     /// <summary>
     /// Called after all data-driven AilmentTriggers have been processed for a trigger event.
-    /// Return true if the scripted trigger "succeeded" — this controls verbalization.
+    /// Return true if the scripted trigger "succeeded". This controls verbalization.
     ///
     /// Modifier objects are only non-null for their respective trigger types:
     /// moveModifier for PRE_MOVE, matchModifier for PRE_MATCH, giftModifier for PRE_GIFT.

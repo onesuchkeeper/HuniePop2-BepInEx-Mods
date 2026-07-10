@@ -4,7 +4,6 @@ using HarmonyLib;
 using Hp2BaseMod;
 using Hp2BaseMod.Extension;
 using Hp2BaseMod.Ui;
-using Hp2BaseMod.Utility;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -16,30 +15,17 @@ namespace Hp2BaseModTweaks.CellphoneApps
         [HarmonyPatch("Start")]
         [HarmonyPostfix]
         public static void PostStart(UiCellphoneAppCredits __instance)
-            => ExpandedUiCellphoneCreditsApp.Get(__instance).Start();
+            => ExpandedUiCellphoneAppCredits.Get(__instance).Start();
 
         [HarmonyPatch("OnDestroy")]
         [HarmonyPrefix]
         public static void OnDestroy(UiCellphoneAppCredits __instance)
-            => ExpandedUiCellphoneCreditsApp.Get(__instance).OnDestroy();
+            => ExpandedUiCellphoneAppCredits.Destroy(__instance);
     }
 
-    internal class ExpandedUiCellphoneCreditsApp
+    [Expansion(typeof(UiCellphoneAppCredits))]
+    public partial class ExpandedUiCellphoneAppCredits
     {
-        private readonly static Dictionary<UiCellphoneAppCredits, ExpandedUiCellphoneCreditsApp> _expansions
-                    = new Dictionary<UiCellphoneAppCredits, ExpandedUiCellphoneCreditsApp>();
-
-        public static ExpandedUiCellphoneCreditsApp Get(UiCellphoneAppCredits uiCellphoneAppCredits)
-        {
-            if (!_expansions.TryGetValue(uiCellphoneAppCredits, out var expansion))
-            {
-                expansion = new ExpandedUiCellphoneCreditsApp(uiCellphoneAppCredits);
-                _expansions[uiCellphoneAppCredits] = expansion;
-            }
-
-            return expansion;
-        }
-
         private static readonly Vector2 CREDIT_ENTRY_SIZE = new Vector2(400, 127);
 
         public Hp2ButtonWrapper ModCycleLeft;
@@ -53,14 +39,11 @@ namespace Hp2BaseModTweaks.CellphoneApps
 
         private List<Hp2ButtonWrapper> _contributors = new List<Hp2ButtonWrapper>();
 
-        private UiCellphoneAppCredits _creditsApp;
         private bool _started = false;
 
-        public ExpandedUiCellphoneCreditsApp(UiCellphoneAppCredits creditsApp)
+        private void OnInit()
         {
-            _creditsApp = creditsApp;
-
-            var backgroundImage = creditsApp.transform.Find("Background").GetComponent<Image>();
+            var backgroundImage = _core.transform.Find("Background").GetComponent<Image>();
             backgroundImage.sprite = UiPrefabs.CreditsBG;
             backgroundImage.SetNativeSize();
             backgroundImage.rectTransform.anchoredPosition = new Vector2(16, -18);
@@ -68,7 +51,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
             var modLogoGO = new GameObject("ModLogo");
             modLogoGO.AddComponent<CanvasRenderer>();
             ModLogo = modLogoGO.AddComponent<Image>();
-            modLogoGO.transform.SetParent(creditsApp.transform, false);
+            modLogoGO.transform.SetParent(_core.transform, false);
             ModLogo.rectTransform.anchoredPosition = new Vector2(528, -60);
 
             var cellphoneButtonPressedKlip = new AudioKlip()
@@ -81,7 +64,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
                 ModInterface.Assets.GetInternalAsset<Sprite>(Common.Ui_AppSettingArrowLeft),
                 ModInterface.Assets.GetInternalAsset<Sprite>(Common.Ui_AppSettingArrowLeftOver),
                 cellphoneButtonPressedKlip);
-            ModCycleLeft.GameObject.transform.SetParent(creditsApp.transform, false);
+            ModCycleLeft.GameObject.transform.SetParent(_core.transform, false);
             ModCycleLeft.RectTransform.anchoredPosition = new Vector2(528 - 134, -60);
             ModCycleLeft.ButtonBehavior.ButtonPressedEvent += (x) =>
             {
@@ -93,7 +76,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
                 ModInterface.Assets.GetInternalAsset<Sprite>(Common.Ui_AppSettingArrowRight),
                 ModInterface.Assets.GetInternalAsset<Sprite>(Common.Ui_AppSettingArrowRightOver),
                 cellphoneButtonPressedKlip);
-            ModCycleRight.GameObject.transform.SetParent(creditsApp.transform, false);
+            ModCycleRight.GameObject.transform.SetParent(_core.transform, false);
             ModCycleRight.RectTransform.anchoredPosition = new Vector2(528 + 134, -60);
             ModCycleRight.ButtonBehavior.ButtonPressedEvent += (x) =>
             {
@@ -103,7 +86,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
 
             // contributors scroll
             var contributorsScroll_GO = new GameObject("ContributorsScroll");
-            contributorsScroll_GO.transform.SetParent(creditsApp.transform, false);
+            contributorsScroll_GO.transform.SetParent(_core.transform, false);
             var contributorsScroll_RectTransform = contributorsScroll_GO.AddComponent<RectTransform>();
             contributorsScroll_RectTransform.anchorMin = new Vector2(0.5f, 1);
             contributorsScroll_RectTransform.anchorMax = new Vector2(0.5f, 1);
@@ -160,12 +143,12 @@ namespace Hp2BaseModTweaks.CellphoneApps
             }
             _contributors.Clear();
 
-            _expansions.Remove(_creditsApp);
+            _expansions.Remove(_core);
         }
 
         public void Refresh()
         {
-            if (!_started) { return; }
+            if (!_started) return;
 
             if (_creditsIndex <= 0)
             {
@@ -195,7 +178,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
             }
             _contributors.Clear();
 
-            if (!Plugin.ModCredits.Any()) { return; }
+            if (!Plugin.ModCredits.Any()) return;
 
             var modConfig = Plugin.ModCredits[_creditsIndex];
 

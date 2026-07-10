@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -20,7 +19,6 @@ internal static class ModEventHandles
         var rightOuter = Game.Session.gameCanvas.dollRight.GetPositionByType(DollPositionType.OUTER);
         var rightInnerPos = Game.Session.gameCanvas.dollRight.GetPositionByType(DollPositionType.INNER);
         var diff = rightInnerPos - rightOuter;
-        var puzzleGridRectTransform = Game.Session.Puzzle.puzzleGrid.GetComponent<RectTransform>();
 
         if (State.IsSingleDate)
         {
@@ -34,13 +32,6 @@ internal static class ModEventHandles
             }
 
             Game.Session.gameCanvas.dollRight.slideLayer.anchoredPosition += diff;
-
-            var delta = Game.Session.gameCanvas.header.xValues.y - Game.Session.gameCanvas.header.xValues.x;
-
-            puzzleGridRectTransform.anchoredPosition = new Vector3(
-                State.DefaultPuzzleGridPosition.x + delta,
-                State.DefaultPuzzleGridPosition.y,
-                0);
         }
         else
         {
@@ -49,8 +40,6 @@ internal static class ModEventHandles
                 _singleDropZone = false;
                 Game.Session.gameCanvas.dollRight.dropZone.transform.localPosition -= new Vector3(diff.x, diff.y, 0);
             }
-
-            puzzleGridRectTransform.anchoredPosition = State.DefaultPuzzleGridPosition;
         }
     }
 
@@ -217,7 +206,7 @@ internal static class ModEventHandles
                         var time = (ClockDaytimeType)(Game.Persistence.playerFile.daytimeElapsed % 4);
                         Game.Data.Locations.GetAllByLocationType(LocationType.DATE).Where(x =>
                         {
-                            var expansion = x.Expansion();
+                            var expansion = x.GetExpansion();
                             return expansion.IsValidForNormalDate(time)
                                 && !singleDateGirl.SexLocBlackList.Contains(ModInterface.Data.GetDataId(GameDataType.Location, x.id));
                         }).ToArray().TryGetRandom(out args.Location);
@@ -267,7 +256,7 @@ internal static class ModEventHandles
             var girlSave = State.SaveFile.GetGirl(playerFileGirlPair.girlPairDefinition.girlDefinitionTwo.id);
 
             // must be non default and at pre max level
-            var pairStyle = Game.Session.Location.currentGirlPair.Expansion().PairStyle;
+            var pairStyle = Game.Session.Location.currentGirlPair.GetExpansion().PairStyle;
             if (pairStyle != null && pairStyle.SexGirlTwo.OutfitId != RelativeId.Default
                 && girlSave?.RelationshipLevel == maxSingleGirlRelationshipLevel - 1)
             {

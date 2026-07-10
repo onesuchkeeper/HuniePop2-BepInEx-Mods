@@ -1,8 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Hp2BaseMod;
-using Hp2BaseMod.Extension;
 using Hp2BaseMod.GameDataInfo;
 using Hp2BaseMod.Utility;
 using UnityEngine;
@@ -11,8 +9,6 @@ namespace HuniePopUltimate;
 
 public class LolaConfigurator : IGirlConfigurator
 {
-    public bool ExtractUniqueAcceptDialogLines => false;
-
     public IEnumerable<RelativeId> FavQuestionOrder => _favQuestionOrder;
     private static RelativeId[] _favQuestionOrder = [
         Questions.LastName,
@@ -124,6 +120,7 @@ public class LolaConfigurator : IGirlConfigurator
         }
 
         cleanedDialogTriggerId = dialogTriggerId;
-        return dialogTriggerId != Hp2BaseMod.DialogTriggers.UniqueAccept;
+        return dialogTriggerId != Hp2BaseMod.DialogTriggers.UniqueAccept 
+            && dialogTriggerId != Hp2BaseMod.DialogTriggers.ShoesAccept;
     }
 }

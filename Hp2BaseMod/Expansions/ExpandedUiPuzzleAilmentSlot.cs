@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Reflection;
 using HarmonyLib;
 
 namespace Hp2BaseMod;
@@ -15,45 +13,23 @@ internal static class UiPuzzleAilmentSlotPatch
     [HarmonyPatch("OnDestroy")]
     [HarmonyPostfix]
     public static void OnDestroy(UiPuzzleAilmentSlot __instance)
-        => ExpandedUiPuzzleAilmentSlot.Get(__instance).OnDestroy();
+        => ExpandedUiPuzzleAilmentSlot.Destroy(__instance);
 }
 
 /// <summary>
 /// Handles <see cref="ExpandedItemSlotBehavior.PreShowEvent"/>.
 /// </summary>
-internal class ExpandedUiPuzzleAilmentSlot
+[Expansion(typeof(UiPuzzleAilmentSlot), 
+    Methods = new[]{"OnTooltipPreShow"})]
+public partial class ExpandedUiPuzzleAilmentSlot
 {
-    private static Dictionary<UiPuzzleAilmentSlot, ExpandedUiPuzzleAilmentSlot> _expansions
-        = new Dictionary<UiPuzzleAilmentSlot, ExpandedUiPuzzleAilmentSlot>();
-
-    public static ExpandedUiPuzzleAilmentSlot Get(UiPuzzleAilmentSlot core)
-    {
-        if (!_expansions.TryGetValue(core, out var expansion))
-        {
-            expansion = new ExpandedUiPuzzleAilmentSlot(core);
-            _expansions[core] = expansion;
-        }
-
-        return expansion;
-    }
-
-    private static readonly MethodInfo m_onTooltipPreShow = AccessTools.Method(typeof(UiPuzzleAilmentSlot), "OnTooltipPreShow");
-
-    protected UiPuzzleAilmentSlot _core;
-    private ExpandedUiPuzzleAilmentSlot(UiPuzzleAilmentSlot core)
-    {
-        _core = core;
-    }
-
     public void Start()
     {
         ExpandedItemSlotBehavior.Get(_core.itemSlot).PreShowEvent += OnTooltipPreShow;
     }
 
-    public void OnDestroy()
+    private void OnDestroy()
     {
         ExpandedItemSlotBehavior.Get(_core.itemSlot).PreShowEvent -= OnTooltipPreShow;
     }
-
-    private void OnTooltipPreShow() => m_onTooltipPreShow.Invoke(_core, null);
 }

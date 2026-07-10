@@ -20,11 +20,6 @@ internal static partial class Rules
             diagnosticId: DiagnosticStrings.ID_OVERWRITTEN_METHOD,
             severity: DiagnosticSeverity.Info,
             messageFormat: DiagnosticStrings.MESSAGE_PREFIX_OVERWRITTEN + " It now uses question ids."
-        )}},
-        {"LearnFavAnswer", new() {new MemberRule(
-            diagnosticId: DiagnosticStrings.ID_REPURPOSED_FIELD,
-            severity: DiagnosticSeverity.Info,
-            messageFormat: DiagnosticStrings.MESSAGE_REPURPOSED_FIELD + " It now uses question ids."
-        )}},
+        )}}
     };
 }

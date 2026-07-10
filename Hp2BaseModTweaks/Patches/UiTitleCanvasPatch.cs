@@ -1,14 +1,11 @@
 ﻿// Hp2BaseModTweaks 2022, By OneSuchKeeper
 
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using DG.Tweening;
 using HarmonyLib;
 using Hp2BaseMod;
 using Hp2BaseMod.Extension;
-using Hp2BaseMod.Utility;
-using UnityEngine;
 using UnityEngine.UI;
 
 namespace Hp2BaseModTweaks

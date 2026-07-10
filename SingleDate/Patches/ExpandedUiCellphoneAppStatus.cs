@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -31,11 +30,11 @@ internal static class UiCellphoneAppStatusPatch
 
 internal class ExpandedUiCellphoneAppStatus : UiPatchController<UiCellphoneAppStatus>
 {
-    private static readonly float _heartDist = 96;
-    private static readonly Vector3 _heartSize = new Vector3(100, 100);
-    private static readonly Vector3 _heartOffset = new Vector3(37.5f, -20 + 16, 0);
-    private static readonly Vector3 _charmOffset = new Vector3(37.5f, -30 - 110, 0);
-    private static readonly Vector2 _charmSize = new Vector2(220, 220);
+    private const float HEART_DIST = 96;
+    private static readonly Vector3 HEART_SIZE = new Vector3(100, 100);
+    private static readonly Vector3 HEART_OFFSET = new Vector3(37.5f, -20 + 16, 0);
+    private static readonly Vector3 CHARM_OFFSET = new Vector3(37.5f, -30 - 110, 0);
+    private static readonly Vector2 CHARM_SIZE = new Vector2(220, 220);
 
     private static Dictionary<UiCellphoneAppStatus, ExpandedUiCellphoneAppStatus> _expansions
         = new Dictionary<UiCellphoneAppStatus, ExpandedUiCellphoneAppStatus>();
@@ -111,17 +110,6 @@ internal class ExpandedUiCellphoneAppStatus : UiPatchController<UiCellphoneAppSt
         // Build hearts
         var saveGirl = State.SaveFile.GetGirl(_girlId);
 
-        // if (saveGirl == null)
-        // {
-        //     ModInterface.Log.Message("save girl null D:");
-        // }
-
-        // There is some kind of DoTween issue here I think
-        // this fixed it but it isn't a great solution...
-
-        //this literally kills all the game's tweens
-        //_uiCellphoneAppStatus.relationshipSlot.DestroyAndKillTweens();
-
         var maxSingleGirlRelationshipLevel = Plugin.MaxSingleGirlRelationshipLevel.Value;
         var radAllotment = Mathf.PI / maxSingleGirlRelationshipLevel;
 
@@ -145,22 +133,22 @@ internal class ExpandedUiCellphoneAppStatus : UiPatchController<UiCellphoneAppSt
             {
                 MakeHeart(_core.relationshipSlot.relationshipIcons[0], i, radAllotment, _core.relationshipSlot.pauseDefinition, leftPortraitRect);
             }
-                
-            for (int i = 0; i < maxSingleGirlRelationshipLevel; i++)
+
+            for (int i = maxSingleGirlRelationshipLevel - saveGirl.RelationshipLevel; i < maxSingleGirlRelationshipLevel; i++)
             {
                 MakeHeart(_core.relationshipSlot.relationshipIcons[2], i, radAllotment, _core.relationshipSlot.pauseDefinition, leftPortraitRect);
-            }  
+            }
         }
 
         // Charm
         var charm_go = new GameObject("Charm");
         _charmTransform = charm_go.AddComponent<RectTransform>();
-        _charmTransform.sizeDelta = _charmSize;
+        _charmTransform.sizeDelta = CHARM_SIZE;
         var charm_image = charm_go.AddComponent<Image>();
         charm_image.sprite = UiPrefabs.GetCharmSprite(_girlId);
 
         _charmTransform.SetParent(canvasRect, false);
-        _charmTransform.anchoredPosition = leftPortraitRect.anchoredPosition + new Vector2(_charmOffset.x, _charmOffset.y);
+        _charmTransform.anchoredPosition = leftPortraitRect.anchoredPosition + new Vector2(CHARM_OFFSET.x, CHARM_OFFSET.y);
         _charmTransform.pivot = new Vector2(0.5f, 0f);
 
         MakeCharmSequence();
@@ -216,7 +204,7 @@ internal class ExpandedUiCellphoneAppStatus : UiPatchController<UiCellphoneAppSt
     {
         var heart_go = new GameObject($"heart_{index}");
         var heart_rectTransform = heart_go.AddComponent<RectTransform>();
-        heart_rectTransform.sizeDelta = _heartSize;
+        heart_rectTransform.sizeDelta = HEART_SIZE;
         var heart_image = heart_go.AddComponent<Image>();
         heart_image.sprite = sprite;
 
@@ -224,8 +212,8 @@ internal class ExpandedUiCellphoneAppStatus : UiPatchController<UiCellphoneAppSt
 
         var rads = radAllotment * (index + 0.5f);
         heart_rectTransform.anchoredPosition = parentRect.anchoredPosition
-            + (Vector2)_heartOffset
-            + new Vector2(Mathf.Cos(rads), Mathf.Sin(rads)) * _heartDist;
+            + (Vector2)HEART_OFFSET
+            + new Vector2(Mathf.Cos(rads), Mathf.Sin(rads)) * HEART_DIST;
 
         var sequence = DOTween.Sequence().SetLoops(-1, LoopType.Restart);
         _heartSequences.Add(sequence);

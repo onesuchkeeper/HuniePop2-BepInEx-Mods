@@ -52,8 +52,8 @@ namespace Hp2BaseMod.GameDataInfo
         /// <param name="assetProvider">Asset provider containing the assets referenced by the definition.</param>
         public LogicActionInfo(LogicAction def, AssetProvider assetProvider)
         {
-            if (def == null) { throw new ArgumentNullException(nameof(def)); }
-            if (assetProvider == null) { throw new ArgumentNullException(nameof(assetProvider)); }
+            if (def == null) throw new ArgumentNullException(nameof(def));
+            if (assetProvider == null) throw new ArgumentNullException(nameof(assetProvider));
 
             Type = def.type;
             BoolValue = def.boolValue;
@@ -70,7 +70,10 @@ namespace Hp2BaseMod.GameDataInfo
             GirlDefinitionID = new RelativeId(def.girlDefinition);
             CutsceneDefinitionID = new RelativeId(def.cutsceneDefinition);
 
-            if (def.backgroundMusic != null) { BackgroundMusic = new AudioKlipInfo(def.backgroundMusic, assetProvider); }
+            if (def.backgroundMusic != null) 
+            { 
+                BackgroundMusic = new AudioKlipInfo(def.backgroundMusic, assetProvider); 
+            }
         }
 
         /// <inheritdoc/>

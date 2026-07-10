@@ -1,7 +1,6 @@
 using System.Collections.Generic;
-using System.Reflection;
 using HarmonyLib;
-using UnityEngine;
+using Hp2BaseMod.Extension;
 
 namespace Hp2BaseMod;
 
@@ -24,29 +23,26 @@ internal static class PuzzleStatusGirlPatch
 /// instances to newly constructed <see cref="Ailment"/> objects when the definition's
 /// <see cref="ExpandedAilmentDefinition.ScriptedAilmentFactory"/> is set.
 /// </summary>
-public class ExpandedPuzzleStatusGirl
+[Expansion(typeof(PuzzleStatusGirl), 
+    Fields = new[]{"_ailments", "_stamina", "_exhausted", "_upset"})]
+public partial class ExpandedPuzzleStatusGirl
 {
-    private static readonly Dictionary<PuzzleStatusGirl, ExpandedPuzzleStatusGirl> _expansions
-        = new Dictionary<PuzzleStatusGirl, ExpandedPuzzleStatusGirl>();
-
-    public static ExpandedPuzzleStatusGirl Get(PuzzleStatusGirl core)
+    public int Stamina
     {
-        if (!_expansions.TryGetValue(core, out var expansion))
-        {
-            expansion = new ExpandedPuzzleStatusGirl(core);
-            _expansions[core] = expansion;
-        }
-
-        return expansion;
+        get => _stamina;
+        set => _stamina = value;
     }
 
-    private static readonly FieldInfo f_ailments = AccessTools.Field(typeof(PuzzleStatusGirl), "_ailments");
-
-    private readonly PuzzleStatusGirl _core;
-
-    private ExpandedPuzzleStatusGirl(PuzzleStatusGirl core)
+    public bool Exhausted
     {
-        _core = core;
+        get => _exhausted;
+        set => _exhausted = value;
+    }
+
+    public bool Upset
+    {
+        get => _upset;
+        set => _upset = value;
     }
 
     /// <summary>
@@ -55,21 +51,15 @@ public class ExpandedPuzzleStatusGirl
     /// </summary>
     public void ApplyAilment(AilmentDefinition ailmentDef, bool result)
     {
-        if (!result)
-        {
-            return;
-        }
+        if (!result) return;
 
-        var factory = ailmentDef.Expansion().ScriptedAilmentFactory;
-        if (factory == null)
-        {
-            return;
-        }
+        var factory = ailmentDef.GetExpansion().ScriptedAilmentFactory;
+        if (factory == null) return;
 
         // The ailment was just added as the last entry by the original method.
-        var ailments = f_ailments.GetValue(_core) as List<Ailment>;
+        var ailments = f_ailments.GetValue<List<Ailment>>(_core);
         var ailment = ailments[ailments.Count - 1];
-        ailment.Expansion().ScriptedAilment = factory(ailment);
+        ailment.GetExpansion().ScriptedAilment = factory(ailment);
     }
 
     /// <summary>
@@ -78,23 +68,27 @@ public class ExpandedPuzzleStatusGirl
     /// </summary>
     public void PopulateAilments()
     {
-        var ailments = f_ailments.GetValue(_core) as List<Ailment>;
+        var ailments = f_ailments.GetValue<List<Ailment>>(_core);
 
-        for (int i = 0; i < ailments.Count; i++)
+        foreach (var ailment in ailments)
         {
-            Ailment ailment = ailments[i];
-            var factory = ailment.definition.Expansion().ScriptedAilmentFactory;
-            if (factory == null)
-            {
-                continue;
-            }
+            var factory = ailment.definition.GetExpansion().ScriptedAilmentFactory;
+            if (factory == null) continue;
 
             // Only attach if not already populated (guard against double-calls).
-            var expansion = ailment.Expansion();
+            var expansion = ailment.GetExpansion();
             if (expansion.ScriptedAilment == null)
             {
                 expansion.ScriptedAilment = factory(ailment);
             }
+        }
+    }
+
+    private void OnDestroy()
+    {
+        foreach (var ailment in _core.ailments)
+        {
+            ailment.DestroyExpansion();
         }
     }
 }

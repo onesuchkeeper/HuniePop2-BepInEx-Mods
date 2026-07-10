@@ -37,7 +37,7 @@ public class HpAudioCache
             return;
         }
 
-        HpDebugLog.AudioMessage("Cache not found — decoding all Ogg clips…");
+        HpDebugLog.AudioMessage("Cache not found - decoding all Ogg clips…");
 
         var requests = new List<AudioPcmCache.CacheBuildRequest>();
 
@@ -58,7 +58,7 @@ public class HpAudioCache
 
         if (requests.Count == 0)
         {
-            HpDebugLog.AudioWarning("No Ogg clips found — cache not written.");
+            HpDebugLog.AudioWarning("No Ogg clips found - cache not written.");
             return;
         }
 

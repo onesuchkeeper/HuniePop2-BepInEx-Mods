@@ -371,8 +371,8 @@ public static class RandomizeUtil
         var nymphojinnId = ModInterface.Data.GetDataId(GameDataType.Girl, nymphojinnDef.id);
         var otherId = ModInterface.Data.GetDataId(GameDataType.Girl, otherGirlDef.id);
 
-        var nymphoExpansion = ExpandedGirlDefinition.Get(nymphojinnId);
-        var otherGirlExpansion = ExpandedGirlDefinition.Get(otherId);
+        var nymphoExpansion = nymphojinnDef.GetExpansion();
+        var otherGirlExpansion = otherGirlDef.GetExpansion();
 
         // find the neutral glowing eyes to use for expressions that don't have glowing eyes
         foreach (var body in otherGirlExpansion.Bodies.Values)
@@ -428,14 +428,14 @@ public static class RandomizeUtil
 
         if (keepSwappedWings && otherGirlDef.specialEffectPrefab == null)
         {
-            foreach (var body in otherGirlDef.Expansion().Bodies.Values)
+            foreach (var body in otherGirlDef.GetExpansion().Bodies.Values)
             {
                 body.SpecialEffectPrefab = kyuDef.specialEffectPrefab;
             }
         }
 
-        var kyuExp = ExpandedGirlDefinition.Get(kyuId);
-        var otherGirlExp = ExpandedGirlDefinition.Get(otherId);
+        var kyuExp = kyuDef.GetExpansion();
+        var otherGirlExp = otherGirlDef.GetExpansion();
 
         HandleSpecialCharDtSwap(ExpandedGirlDefinition.DialogTriggerIndexes[kyuId], ExpandedGirlDefinition.DialogTriggerIndexes[otherId]);
         HandleSpecialCharFavQuestionSwap(kyuExp, otherGirlExp);

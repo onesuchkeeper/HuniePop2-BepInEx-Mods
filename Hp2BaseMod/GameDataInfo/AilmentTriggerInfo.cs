@@ -75,7 +75,7 @@ namespace Hp2BaseMod.GameDataInfo
             VerbalizedIndex = def.verbalizedIndex;
             StepsProcessType = def.stepsProcessType;
 
-            if (def.steps != null) { StepInfos = def.steps.Select(x => (IGameDefinitionInfo<AilmentStepSubDefinition>)new AilmentStepInfo(x)).ToList(); }
+            if (def.steps != null) StepInfos = def.steps.Select(x => (IGameDefinitionInfo<AilmentStepSubDefinition>)new AilmentStepInfo(x)).ToList();
         }
 
         /// <inheritdoc/>

@@ -11,7 +11,7 @@ namespace Hp2BaseMod.Save
 
         public void Strip(SaveFileFinderSlot save)
         {
-            if (save == null) { return; }
+            if (save == null) return;
 
             SidesFlipped = save.sidesFlipped;
 
@@ -25,7 +25,7 @@ namespace Hp2BaseMod.Save
 
         public void SetData(SaveFileFinderSlot save)
         {
-            if (save == null) { return; }
+            if (save == null) return;
 
             ValidatedSet.SetFromRelativeId(ref save.girlPairId, GameDataType.GirlPair, GirlPairId);
         }

@@ -69,7 +69,7 @@ namespace Hp2BaseMod.GameDataInfo
             ValidatedSet.SetListValue(ref def.arriveBundleList, ArriveBundleList, InsertStyle, gameDataProvider, assetProvider);
             ValidatedSet.SetListValue(ref def.departBundleList, DepartBundleList, InsertStyle, gameDataProvider, assetProvider);
 
-            var expansion = def.Expansion();
+            var expansion = def.GetExpansion();
 
             ValidatedSet.SetValue(ref expansion.AllowNormal, AllowNormal);
             ValidatedSet.SetValue(ref expansion.AllowNonStop, AllowNonStop);

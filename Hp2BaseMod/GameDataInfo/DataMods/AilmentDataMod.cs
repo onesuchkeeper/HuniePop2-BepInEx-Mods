@@ -106,7 +106,7 @@ namespace Hp2BaseMod.GameDataInfo
             ValidatedSet.SetListValue(ref def.hints, Hints, InsertStyle);
             ValidatedSet.SetListValue(ref def.triggers, Triggers, InsertStyle, gameDataProvider, assetProvider);
 
-            ValidatedSet.SetValue(ref def.Expansion().ScriptedAilmentFactory, ScriptedAilmentFactory, InsertStyle);
+            ValidatedSet.SetValue(ref def.GetExpansion().ScriptedAilmentFactory, ScriptedAilmentFactory, InsertStyle);
         }
 
         /// <inheritdoc/>

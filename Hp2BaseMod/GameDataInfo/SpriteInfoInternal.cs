@@ -11,7 +11,7 @@ public class SpriteInfoInternal : IGameDefinitionInfo<Sprite>
 
     public SpriteInfoInternal(Sprite def, AssetProvider assetProvider)
     {
-        if (def == null) { return; }
+        if (def == null) return;
 
         assetProvider.NameAndAddAsset(ref _spriteName, def);
     }

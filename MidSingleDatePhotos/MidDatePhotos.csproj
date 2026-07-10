@@ -16,16 +16,12 @@
     <RootNamespace>MidRelationshipPhotos</RootNamespace>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <!-- Ensure Roslyn analyzers & generators run -->
-    <RunAnalyzers>true</RunAnalyzers>
-    <RunAnalyzersDuringBuild>true</RunAnalyzersDuringBuild>
-    <RunAnalyzersDuringLiveAnalysis>true</RunAnalyzersDuringLiveAnalysis>
-    <RestoreSources>
-      $(RestoreSources);
-      C:\Git\HuniePop2-BepInEx-Mods\Hp2BaseMod.Analyzer\bin\Release
-    </RestoreSources>
-  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Hp2BaseMod\Hp2BaseMod.csproj" />
+    <ProjectReference Include="..\Hp2BaseMod.Analyzer\Hp2BaseMod.Analyzer.csproj"
+                      OutputItemType="Analyzer"
+                      ReferenceOutputAssembly="false" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Hp2BaseMod\Hp2BaseMod.csproj" />

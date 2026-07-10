@@ -173,7 +173,7 @@ namespace Hp2BaseMod
         /// </summary>
         internal void AddAsset(Type type, string identifier, UnityEngine.Object asset)
         {
-            if (string.IsNullOrWhiteSpace(identifier)) { return; }
+            if (string.IsNullOrWhiteSpace(identifier)) return;
             _assets.GetOrNew(type)[identifier] = asset;
         }
 

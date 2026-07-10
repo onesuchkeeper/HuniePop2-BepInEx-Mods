@@ -1,5 +1,4 @@
 using HarmonyLib;
-using Hp2BaseMod.Utility;
 
 namespace SingleDate;
 

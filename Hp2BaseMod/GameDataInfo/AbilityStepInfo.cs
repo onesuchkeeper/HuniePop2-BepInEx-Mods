@@ -95,8 +95,8 @@ namespace Hp2BaseMod.GameDataInfo
         /// <param name="assetProvider">Asset provider containing the assets referenced by the definition.</param>
         public AbilityStepInfo(AbilityStepSubDefinition def, AssetProvider assetProvider)
         {
-            if (def == null) { throw new ArgumentNullException(nameof(def)); }
-            if (assetProvider == null) { throw new ArgumentNullException(nameof(assetProvider)); }
+            if (def == null) throw new ArgumentNullException(nameof(def));
+            if (assetProvider == null) throw new ArgumentNullException(nameof(assetProvider));
 
             StepType = def.stepType;
             Handle = def.handle;
@@ -132,10 +132,9 @@ namespace Hp2BaseMod.GameDataInfo
             AilmentDefinitionID = new RelativeId(def.ailmentDefinition);
             EnergyDefinitionID = new RelativeId(def.energyDefinition);
 
-            if (def.audioKlip != null) { AudioKlipInfo = new AudioKlipInfo(def.audioKlip, assetProvider); }
-            if (def.tokenConditionSet != null) { TokenConditionSetInfo = new TokenConditionSetInfo(def.tokenConditionSet); }
-
-            if (def.tokenDefinitions != null) { TokenDefinitionIDs = def.tokenDefinitions.Select(x => (RelativeId?)new RelativeId(x)).ToList(); }
+            if (def.audioKlip != null) AudioKlipInfo = new AudioKlipInfo(def.audioKlip, assetProvider);
+            if (def.tokenConditionSet != null) TokenConditionSetInfo = new TokenConditionSetInfo(def.tokenConditionSet);
+            if (def.tokenDefinitions != null) TokenDefinitionIDs = def.tokenDefinitions.Select(x => (RelativeId?)new RelativeId(x)).ToList();
         }
 
         /// <inheritdoc/>

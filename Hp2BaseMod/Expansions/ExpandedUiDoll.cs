@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using HarmonyLib;
 using Hp2BaseMod.Extension;
 using UnityEngine;
@@ -39,7 +38,7 @@ class UiDoll_ChangeStyle
     [HarmonyPatch("OnDestroy")]
     [HarmonyPrefix()]
     public static void OnDestroy(UiDoll __instance)
-        => ExpandedUiDoll.Get(__instance).OnDestroy();
+        => ExpandedUiDoll.Destroy(__instance);
 
     [HarmonyPatch(nameof(UiDoll.ShowEnergySurge))]
     [HarmonyPrefix]
@@ -62,40 +61,17 @@ class UiDoll_ChangeStyle
 /// <summary>
 /// Handles <see cref="ExpandedStyleDefinition"/> fields.
 /// </summary>
-public class ExpandedUiDoll
+[Expansion(typeof(UiDoll), 
+    Fields = new[]{"_specialEffect", "_currentOutfitIndex", "_currentHairstyleIndex"},
+    Methods = new[]{"LoadPart", "GetDollPartByType"})]
+public partial class ExpandedUiDoll
 {
-    private static Dictionary<UiDoll, ExpandedUiDoll> _expansions
-        = new Dictionary<UiDoll, ExpandedUiDoll>();
-
-    public static ExpandedUiDoll Get(UiDoll core)
-    {
-        if (!_expansions.TryGetValue(core, out var expansion))
-        {
-            expansion = new ExpandedUiDoll(core);
-            _expansions[core] = expansion;
-        }
-
-        return expansion;
-    }
-
-    private static readonly FieldInfo f_specialEffect = AccessTools.Field(typeof(UiDoll), "_specialEffect");
-    private static readonly FieldInfo f_currentOutfitIndex = AccessTools.Field(typeof(UiDoll), "_currentOutfitIndex");
-    private static readonly FieldInfo f_currentHairstyleIndex = AccessTools.Field(typeof(UiDoll), "_currentHairstyleIndex");
-
-    private static readonly MethodInfo m_LoadPart = AccessTools.Method(typeof(UiDoll), "LoadPart");
-    private static readonly MethodInfo m_GetDollPartByType = AccessTools.Method(typeof(UiDoll), "GetDollPartByType");
-
-    protected UiDoll _core;
-    private UiDollSpecialEffect _specialEffect;
-    private ExpandedUiDoll(UiDoll core)
-    {
-        _core = core;
-    }
+    private UiDollSpecialEffect _specialEffect_hold;
 
     public void LoadGirl(GirlDefinition girlDef)
     {
         //scale to match body
-        var body = girlDef.Expansion().GetCurrentBody();
+        var body = girlDef.GetExpansion().GetCurrentBody();
 
         if (body != null)
         {
@@ -122,34 +98,34 @@ public class ExpandedUiDoll
             _core.soulGirlDefinition.specialEffectOffset = body.HeadPos;
         }
 
-        if (_core.soulGirlDefinition.specialCharacter) { return; }
+        if (_core.soulGirlDefinition.specialCharacter) return;
 
         var specialEffectInstance = UnityEngine.Object.Instantiate(_core.soulGirlDefinition.specialEffectPrefab);
 
-        f_specialEffect.SetValue(_core, specialEffectInstance);
+        _specialEffect = specialEffectInstance;
         specialEffectInstance.rectTransform.SetParent(Game.Session.gameCanvas.dollSpecialEffectContainer, false);
         specialEffectInstance.Init(_core);
 
         // outfit is changed before special effects are set, so correct specials here
-        if (_core.soulGirlDefinition.outfits[f_currentOutfitIndex.GetValue<int>(_core)].Expansion().HideSpecial)
+        if (_core.soulGirlDefinition.outfits[f_currentOutfitIndex.GetValue<int>(_core)].GetExpansion().HideSpecial)
         {
-            _specialEffect = f_specialEffect.GetValue<UiDollSpecialEffect>(_core);
-            _specialEffect?.rectTransform.SetParent(null, false);
+            _specialEffect_hold = f_specialEffect.GetValue<UiDollSpecialEffect>(_core);
+            _specialEffect_hold?.rectTransform.SetParent(null, false);
         }
     }
 
     internal void UnloadGirl()
     {
-        if (_specialEffect != null)
+        if (_specialEffect_hold != null)
         {
-            UnityEngine.GameObject.Destroy(_specialEffect);
-            _specialEffect = null;
+            UnityEngine.GameObject.Destroy(_specialEffect_hold);
+            _specialEffect_hold = null;
         }
     }
 
     public void ChangeOutfit(ref int outfitIndex)
     {
-        if (_core.girlDefinition == null) { return; }
+        if (_core.girlDefinition == null) return;
 
         var playerFileGirl = Game.Persistence.playerFile.GetPlayerFileGirl(_core.girlDefinition);
         var index = outfitIndex == -1
@@ -170,25 +146,25 @@ public class ExpandedUiDoll
             outfit = _core.girlDefinition.outfits[index];
         }
 
-        var expansion = outfit.Expansion();
+        var expansion = outfit.GetExpansion();
 
         if (!Game.Persistence.playerData.uncensored && expansion.IsNSFW)
         {
             ModInterface.Log.Message("Hiding NSFW outfit for censored mode");
             index = _core.girlDefinition.defaultOutfitIndex;
             outfit = _core.girlDefinition.outfits[index];
-            expansion = outfit.Expansion();
+            expansion = outfit.GetExpansion();
         }
 
-        if (expansion.HideSpecial && _specialEffect == null)
+        if (expansion.HideSpecial && _specialEffect_hold == null)
         {
-            _specialEffect = f_specialEffect.GetValue<UiDollSpecialEffect>(_core);
-            _specialEffect?.rectTransform.SetParent(null, false);
+            _specialEffect_hold = f_specialEffect.GetValue<UiDollSpecialEffect>(_core);
+            _specialEffect_hold?.rectTransform.SetParent(null, false);
         }
-        else if (!expansion.HideSpecial && _specialEffect != null)
+        else if (!expansion.HideSpecial && _specialEffect_hold != null)
         {
-            _specialEffect.rectTransform.SetParent(Game.Session.gameCanvas.dollSpecialEffectContainer, false);
-            _specialEffect = null;
+            _specialEffect_hold.rectTransform.SetParent(Game.Session.gameCanvas.dollSpecialEffectContainer, false);
+            _specialEffect_hold = null;
         }
 
         outfitIndex = index;
@@ -199,12 +175,12 @@ public class ExpandedUiDoll
     /// </summary>
     public void PostChangeOutfit()
     {
-        RefreshSpecialParts(_core.girlDefinition.Expansion().HairstyleLookup[_core.currentHairstyleIndex]);
+        RefreshSpecialParts(_core.girlDefinition.GetExpansion().HairstyleLookup[_core.currentHairstyleIndex]);
     }
 
     public bool ChangeHairstyle(int hairstyleIndex)
     {
-        if (_core.girlDefinition == null) { return true; }
+        if (_core.girlDefinition == null) return true;
 
         var playerFileGirl = Game.Persistence.playerFile.GetPlayerFileGirl(_core.girlDefinition);
 
@@ -227,7 +203,7 @@ public class ExpandedUiDoll
             hairstyle = _core.girlDefinition.hairstyles[hairstyleIndex];
         }
 
-        var expansion = hairstyle.Expansion();
+        var expansion = hairstyle.GetExpansion();
 
         if (!Game.Persistence.playerData.uncensored && expansion.IsNSFW)
         {
@@ -235,7 +211,7 @@ public class ExpandedUiDoll
             hairstyle = _core.girlDefinition.hairstyles[hairstyleIndex];
         }
 
-        f_currentHairstyleIndex.SetValue(_core, hairstyleIndex);
+        _currentHairstyleIndex = hairstyleIndex;
 
         // load hair
         m_LoadPart.Invoke(_core, [_core.partBackhair, hairstyle.partIndexBackhair, -1f]);
@@ -256,7 +232,7 @@ public class ExpandedUiDoll
             _core.partSpecials = newParts.ToArray();
         }
 
-        var hairId = _core.girlDefinition.Expansion().HairstyleLookup[_core.currentHairstyleIndex];
+        var hairId = _core.girlDefinition.GetExpansion().HairstyleLookup[_core.currentHairstyleIndex];
 
         RefreshSpecialParts(hairId);
 
@@ -278,7 +254,7 @@ public class ExpandedUiDoll
         {
             // make sure special part is allowed
             // empty or null allows all, otherwise whitelist
-            var specialPartExpansion = part.Expansion();
+            var specialPartExpansion = part.GetExpansion();
             if (specialPartExpansion.RequiredHairstyles != null
                 && specialPartExpansion.RequiredHairstyles.Any()
                 && !specialPartExpansion.RequiredHairstyles.Contains(hairId))
@@ -302,22 +278,20 @@ public class ExpandedUiDoll
         }
     }
 
-    internal void OnDestroy()
+    private void OnDestroy()
     {
-        if (_specialEffect != null)
+        if (_specialEffect_hold != null)
         {
-            UnityEngine.GameObject.Destroy(_specialEffect);
-            _specialEffect = null;
+            UnityEngine.GameObject.Destroy(_specialEffect_hold);
+            _specialEffect_hold = null;
         }
-
-        _expansions.Remove(_core);
     }
 
     internal void ReadDialogTrigger(DialogTriggerDefinition dialogTriggerDef, DialogLineFormat format, ref int lineIndex)
     {
         var girlId = _core.girlDefinition.ModId();
 
-        if (!dialogTriggerDef.Expansion().TryGetLineSet(dialogTriggerDef, girlId, out var lineSet))
+        if (!dialogTriggerDef.GetExpansion().TryGetLineSet(dialogTriggerDef, girlId, out var lineSet))
         {
             throw new Exception("Failed to find dt line set");
         }
@@ -327,8 +301,8 @@ public class ExpandedUiDoll
         if (lineIndex <= -1
             && dialogTriggerDef.forceType == DialogTriggerForceType.DATE_LOCATION)
         {
-            var girlExp = ExpandedGirlDefinition.Get(girlId);
-            var dtExp = dialogTriggerDef.Expansion();
+            var girlExp = _core.girlDefinition.GetExpansion();
+            var dtExp = dialogTriggerDef.GetExpansion();
             var locId = Game.Session.Location.currentLocation.ModId();
             lineIndex = girlExp.DateGreetingLocIdToDtIndex[locId];
             ModInterface.Log.Message($"Using index {lineIndex} for date greeting at location {locId} - {Game.Session.Location.currentLocation.locationName}");

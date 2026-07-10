@@ -189,7 +189,7 @@ public class HpGirlExtractor
             body.PartBody = bodyPartMod;
         }
 
-        // HP1 has no head layer — head piece goes into the teeth slot
+        // HP1 has no head layer so head piece goes into the teeth slot
         if (girlDef.TryGetValue("headPiece", out OrderedDictionary headPiece)
             && _parts.TryMakePartDataMod(GirlPartType.OUTFIT, headPiece, spriteLookup, spriteTextureInfo, out var headPartMod, out var headSprite)
             && !(headSprite._rect.Value.width == 64 && headSprite._rect.Value.height == 64)) // skip empty 64x64 placeholders
@@ -383,7 +383,7 @@ public class HpGirlExtractor
                 }
                 case 1:
                 case 2:
-                case 3: // footwear — potentially usable for shoe items in future
+                case 3: // footwear
                     break;
                 case 4: // phoneme
                 {

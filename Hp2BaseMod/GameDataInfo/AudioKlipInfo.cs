@@ -28,11 +28,11 @@ namespace Hp2BaseMod.GameDataInfo
         /// <param name="assetProvider">Asset provider containing the assets referenced by the definition.</param>
         public AudioKlipInfo(AudioKlip def, AssetProvider assetProvider)
         {
-            if (def == null) { throw new ArgumentNullException(nameof(def)); }
-            if (assetProvider == null) { throw new ArgumentNullException(nameof(assetProvider)); }
+            if (def == null) throw new ArgumentNullException(nameof(def));
+            if (assetProvider == null) throw new ArgumentNullException(nameof(assetProvider));
 
             Volume = def.volume;
-            if (def.clip != null) { AudioClipInfo = new AudioClipInfo(def.clip, assetProvider); }
+            if (def.clip != null) AudioClipInfo = new AudioClipInfo(def.clip, assetProvider);
         }
 
         /// <inheritdoc/>

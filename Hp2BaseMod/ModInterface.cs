@@ -316,92 +316,92 @@ public static class ModInterface
 
     public static void AddDataMod(IGameDataMod<AbilityDefinition> mod)
     {
-        if (mod == null) { return; }
+        if (mod == null) return;
         _abilityDataMods.Add(mod);
         _data.TryRegisterDataId(GameDataType.Ability, mod.Id);
     }
 
     public static void AddDataMod(IGameDataMod<AilmentDefinition> mod)
     {
-        if (mod == null) { return; }
+        if (mod == null) return;
         _ailmentDataMods.Add(mod);
         _data.TryRegisterDataId(GameDataType.Ailment, mod.Id);
     }
 
     public static void AddDataMod(IGameDataMod<CodeDefinition> mod)
     {
-        if (mod == null) { return; }
+        if (mod == null) return;
         _codeDataMods.Add(mod);
         _data.TryRegisterDataId(GameDataType.Code, mod.Id);
     }
 
     public static void AddDataMod(IGameDataMod<CutsceneDefinition> mod)
     {
-        if (mod == null) { return; }
+        if (mod == null) return;
         _cutsceneDataMods.Add(mod);
         _data.TryRegisterDataId(GameDataType.Cutscene, mod.Id);
     }
 
     public static void AddDataMod(IGameDataMod<DialogTriggerDefinition> mod)
     {
-        if (mod == null) { return; }
+        if (mod == null) return;
         _dialogTriggerDataMods.Add(mod);
         _data.TryRegisterDataId(GameDataType.DialogTrigger, mod.Id);
     }
 
     public static void AddDataMod(IGameDataMod<DlcDefinition> mod)
     {
-        if (mod == null) { return; }
+        if (mod == null) return;
         _dlcDataMods.Add(mod);
         _data.TryRegisterDataId(GameDataType.Dlc, mod.Id);
     }
 
     public static void AddDataMod(IGameDataMod<EnergyDefinition> mod)
     {
-        if (mod == null) { return; }
+        if (mod == null) return;
         _energyDataMods.Add(mod);
         _data.TryRegisterDataId(GameDataType.Energy, mod.Id);
     }
 
     public static void AddDataMod(IGirlDataMod mod)
     {
-        if (mod == null) { return; }
+        if (mod == null) return;
         _girlDataMods.Add(mod);
         _data.TryRegisterDataId(GameDataType.Girl, mod.Id);
     }
     public static void AddDataMod(IGirlPairDataMod mod)
     {
-        if (mod == null) { return; }
+        if (mod == null) return;
         _girlPairDataMods.Add(mod);
         _data.TryRegisterDataId(GameDataType.GirlPair, mod.Id);
     }
     public static void AddDataMod(IGameDataMod<ItemDefinition> mod)
     {
-        if (mod == null) { return; }
+        if (mod == null) return;
         _itemDataMods.Add(mod);
         _data.TryRegisterDataId(GameDataType.Item, mod.Id);
     }
     public static void AddDataMod(IGameDataMod<LocationDefinition> mod)
     {
-        if (mod == null) { return; }
+        if (mod == null) return;
         _locationDataMods.Add(mod);
         _data.TryRegisterDataId(GameDataType.Location, mod.Id);
     }
     public static void AddDataMod(IGameDataMod<PhotoDefinition> mod)
     {
-        if (mod == null) { return; }
+        if (mod == null) return;
         _photoDataMods.Add(mod);
         _data.TryRegisterDataId(GameDataType.Photo, mod.Id);
     }
     public static void AddDataMod(IFavQuestionDataMod mod)
     {
-        if (mod == null) { return; }
+        if (mod == null) return;
         _questionDataMods.Add(mod);
         _data.TryRegisterDataId(GameDataType.Question, mod.Id);
     }
     public static void AddDataMod(IGameDataMod<TokenDefinition> mod)
     {
-        if (mod == null) { return; }
+        if (mod == null) return;
         _tokenDataMods.Add(mod);
         _data.TryRegisterDataId(GameDataType.Token, mod.Id);
     }
@@ -460,7 +460,9 @@ public static class ModInterface
             earnedPhotos = earnedPhotos.Append(Game.Session.Hub.kyuPhotoDefs[Mathf.Clamp(kyuHole, 0, Game.Session.Hub.kyuPhotoDefs.Length - 1)]);
         }
 
-        var args = new RequestUnlockedPhotosEventArgs() { UnlockedPhotos = earnedPhotos.ToList() };
+        var args = new RequestUnlockedPhotosEventArgs() { 
+            UnlockedPhotos = earnedPhotos.ToList() 
+        };
         _events.NotifyRequestUnlockedPhotos(args);
 
         return args.UnlockedPhotos.Distinct().OrderBy(x => x.id);

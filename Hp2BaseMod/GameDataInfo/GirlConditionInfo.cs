@@ -30,7 +30,7 @@ namespace Hp2BaseMod.GameDataInfo
         /// <param name="def">The definition.</param>
         public GirlConditionInfo(GirlCondition def)
         {
-            if (def == null) { return; }
+            if (def == null) return;
 
             Type = def.type;
             OtherGirl = def.otherGirl;

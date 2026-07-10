@@ -24,7 +24,7 @@ public static class CutsceneStepSpecialPostRewardsPatch
     [HarmonyPrefix]
     private static void Update(CutsceneStepSpecialPostRewards __instance)
     {
-        if (f_stylesUnlocked.GetValue<bool>(__instance)) { return; }
+        if (f_stylesUnlocked.GetValue<bool>(__instance)) return;
 
         //see if enough time has elapsed
         var rewardtimestamp = (float)f_rewardtimestamp.GetValue(__instance);
@@ -32,10 +32,7 @@ public static class CutsceneStepSpecialPostRewardsPatch
 
         var delta = Game.Manager.Time.Lifetime(__instance.pauseDefinition) - rewardtimestamp;
 
-        if (delta < rewardDelay)
-        {
-            return;
-        }
+        if (delta < rewardDelay) return;
 
         ModInterface.Log.Message("Handling style unlocks");
 

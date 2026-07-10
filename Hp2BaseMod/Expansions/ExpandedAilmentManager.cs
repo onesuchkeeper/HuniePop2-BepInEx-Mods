@@ -1,6 +1,5 @@
-using System.Collections.Generic;
-using System.Reflection;
 using HarmonyLib;
+using Hp2BaseMod.Extension;
 
 namespace Hp2BaseMod;
 
@@ -23,48 +22,19 @@ internal static class AilmentManagerPatch
         => ExpandedAilmentManager.Get(__instance).TriggerAilment(triggerType, ailment, girlStatus, unfocused);
 }
 
-/// <summary>
-/// Companion class for <see cref="AilmentManager"/> that injects <see cref="IScriptedAilment"/> calls
-/// into the ailment enable/disable/trigger pipeline.
-///
-/// Scripted behaviour is additive — postfixes run after the original data-driven logic and
-/// never replace it.
-/// </summary>
-public class ExpandedAilmentManager
+[Expansion(typeof(AilmentManager), 
+    Fields = new[]{"_move", "_match", "_puzzleStatus", "_moveModifier", "_matchModifier", "_giftModifier"})]
+public partial class ExpandedAilmentManager
 {
-    private static readonly Dictionary<AilmentManager, ExpandedAilmentManager> _expansions
-        = new Dictionary<AilmentManager, ExpandedAilmentManager>();
-
-    public static ExpandedAilmentManager Get(AilmentManager core)
-    {
-        if (!_expansions.TryGetValue(core, out var expansion))
-        {
-            expansion = new ExpandedAilmentManager(core);
-            _expansions[core] = expansion;
-        }
-
-        return expansion;
-    }
-
-    private static readonly FieldInfo f_puzzleStatus  = AccessTools.Field(typeof(AilmentManager), "_puzzleStatus");
-    private static readonly FieldInfo f_moveModifier  = AccessTools.Field(typeof(AilmentManager), "_moveModifier");
-    private static readonly FieldInfo f_matchModifier = AccessTools.Field(typeof(AilmentManager), "_matchModifier");
-    private static readonly FieldInfo f_giftModifier  = AccessTools.Field(typeof(AilmentManager), "_giftModifier");
-
-    private readonly AilmentManager _core;
-
-    private ExpandedAilmentManager(AilmentManager core)
-    {
-        _core = core;
-    }
+    public PuzzleSet Move => f_move.GetValue<PuzzleSet>(_core);
+    public MoveModifier MoveModifier => f_moveModifier.GetValue<MoveModifier>(_core);
+    public PuzzleMatch Match => f_match.GetValue<PuzzleMatch>(_core);
+    public MatchModifier MatchModifier => f_matchModifier.GetValue<MatchModifier>(_core);
 
     public void OnAilmentEnable(Ailment ailment, bool fromTrigger)
     {
-        var scripted = ailment.Expansion().ScriptedAilment;
-        if (scripted == null)
-        {
-            return;
-        }
+        var scripted = ailment.GetExpansion().ScriptedAilment;
+        if (scripted == null) return;
 
         // Mirror the original guard: only apply when enableTriggerIndex < 0 or called from a trigger.
         if (ailment.definition.enableTriggerIndex >= 0 && !fromTrigger)
@@ -78,11 +48,8 @@ public class ExpandedAilmentManager
 
     public void OnAilmentDisable(Ailment ailment, bool fromTrigger)
     {
-        var scripted = ailment.Expansion().ScriptedAilment;
-        if (scripted == null)
-        {
-            return;
-        }
+        var scripted = ailment.GetExpansion().ScriptedAilment;
+        if (scripted == null) return;
 
         if (ailment.definition.enableTriggerIndex >= 0 && !fromTrigger)
         {
@@ -95,28 +62,23 @@ public class ExpandedAilmentManager
 
     public void TriggerAilment(AilmentTriggerType triggerType, Ailment ailment, PuzzleStatusGirl girlStatus, bool unfocused)
     {
-        var scripted = ailment.Expansion().ScriptedAilment;
-        if (scripted == null || !ailment.isEnabled)
-        {
-            return;
-        }
+        ExpandedUiPuzzleGrid.Get().OnTrigger(triggerType);
 
-        var moveModifier  = f_moveModifier.GetValue(_core)  as MoveModifier;
-        var matchModifier = f_matchModifier.GetValue(_core) as MatchModifier;
-        var giftModifier  = f_giftModifier.GetValue(_core)  as GiftModifier;
+        var scripted = ailment.GetExpansion().ScriptedAilment;
+        if (scripted == null || !ailment.isEnabled) return;
 
         bool success = scripted.OnTrigger(
             triggerType,
             ailment,
             girlStatus,
             unfocused,
-            moveModifier,
-            matchModifier,
-            giftModifier);
+            f_moveModifier.GetValue<MoveModifier>(_core),
+            f_matchModifier.GetValue<MatchModifier>(_core),
+            f_giftModifier.GetValue<GiftModifier>(_core));
 
         if (success && girlStatus.girlDefinition.baggageItemDefs.Contains(ailment.definition.itemDefinition))
         {
-            UiDoll doll = Game.Session.gameCanvas.GetDoll(girlStatus.altGirl);
+            var doll = Game.Session.gameCanvas.GetDoll(girlStatus.altGirl);
             if (!doll.soulGirlDefinition.specialCharacter)
             {
                 int baggageIndex = girlStatus.girlDefinition.baggageItemDefs.IndexOf(ailment.definition.itemDefinition);

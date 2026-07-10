@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using DG.Tweening;
@@ -41,52 +40,32 @@ namespace Hp2BaseModTweaks.CellphoneApps
             => ExpandedUiWindowPhotos.Get(__instance).OnCloseButtonPressed();
     }
 
-    internal class ExpandedUiWindowPhotos
+    [Expansion(typeof(UiWindowPhotos), 
+        Fields = new[]{"_photoViewMode", "_singlePhoto", "_nextPhotos", "_earnedPhotos", "_bigPhotoDefinition"})]
+    public partial class ExpandedUiWindowPhotos
     {
-        private readonly static Dictionary<UiWindowPhotos, ExpandedUiWindowPhotos> _expansions
-            = new Dictionary<UiWindowPhotos, ExpandedUiWindowPhotos>();
-
-        public static ExpandedUiWindowPhotos Get(UiWindowPhotos uiWindowPhotos)
-        {
-            if (!_expansions.TryGetValue(uiWindowPhotos, out var expansion))
-            {
-                expansion = new ExpandedUiWindowPhotos(uiWindowPhotos);
-                _expansions[uiWindowPhotos] = expansion;
-            }
-
-            return expansion;
-        }
-
-        private static readonly FieldInfo f_photoDefinition = AccessTools.Field(typeof(UiPhotoSlot), "_photoDefinition");
-        private static readonly FieldInfo f_photoViewMode = AccessTools.Field(typeof(UiWindowPhotos), "_photoViewMode");
-        private static readonly FieldInfo f_singlePhoto = AccessTools.Field(typeof(UiWindowPhotos), "_singlePhoto");
-        private static readonly FieldInfo f_nextPhotos = AccessTools.Field(typeof(UiWindowPhotos), "_nextPhotos");
-        private static readonly FieldInfo f_earnedPhotos = AccessTools.Field(typeof(UiWindowPhotos), "_earnedPhotos");
-        private static readonly FieldInfo f_bigPhotoDefinition = AccessTools.Field(typeof(UiWindowPhotos), "_bigPhotoDefinition");
-        private static readonly int _photosPerPage = 29;
+        private const int PHOTOS_PER_PAGE = 29;
         private static Sprite _emptyPhotoSlot;
+        private static readonly FieldInfo f_photoDefinition = AccessTools.Field(typeof(UiPhotoSlot), "_photoDefinition");
 
         private int _pageIndex;
         private int _pageMax;
 
-        private UiWindowPhotos _photosWindow;
         private Hp2ButtonWrapper _previousPage;
         private Hp2ButtonWrapper _nextPage;
         private Image _bg_image;
 
-        public ExpandedUiWindowPhotos(UiWindowPhotos photosWindow)
+        private void OnInit()
         {
-            _photosWindow = photosWindow ?? throw new ArgumentNullException(nameof(photosWindow));
-
-            _photosWindow.bigPhotoImage.useSpriteMesh = true;
-            _photosWindow.bigPhotoImage.preserveAspect = true;
+            _core.bigPhotoImage.useSpriteMesh = true;
+            _core.bigPhotoImage.preserveAspect = true;
 
             var bg_go = new GameObject();
-            bg_go.layer = _photosWindow.bigPhotoImage.gameObject.layer;
+            bg_go.layer = _core.bigPhotoImage.gameObject.layer;
             _bg_image = bg_go.AddComponent<Image>();
             _bg_image.rectTransform.sizeDelta = new Vector2(2000, 1160);
-            _bg_image.transform.SetParent(_photosWindow.bigPhotoImage.transform.parent);
-            _bg_image.transform.localPosition = _photosWindow.bigPhotoImage.transform.localPosition;
+            _bg_image.transform.SetParent(_core.bigPhotoImage.transform.parent);
+            _bg_image.transform.localPosition = _core.bigPhotoImage.transform.localPosition;
             _bg_image.transform.SetAsFirstSibling();
             _bg_image.useSpriteMesh = true;
             _bg_image.material = GameObject.Instantiate<Material>(UiPrefabs.BgBlur);
@@ -100,17 +79,17 @@ namespace Hp2BaseModTweaks.CellphoneApps
 
             var earnedPhotosList = earnedPhotos.ToList();
 
-            f_earnedPhotos.SetValue(_photosWindow, earnedPhotosList);
+            f_earnedPhotos.SetValue(_core, earnedPhotosList);
 
             _pageMax = earnedPhotosList.Count > 1
-                ? (earnedPhotosList.Count - 1) / _photosPerPage
+                ? (earnedPhotosList.Count - 1) / PHOTOS_PER_PAGE
                 : 0;
 
             _emptyPhotoSlot = ModInterface.Assets.GetInternalAsset<Sprite>(Common.Ui_PhotoAlbumSlot);
 
             if (_pageMax > 0)
             {
-                var albumContainer = _photosWindow.transform.Find("AlbumContainer");
+                var albumContainer = _core.transform.Find("AlbumContainer");
 
                 var cellphoneButtonPressedKlip = new AudioKlip()
                 {
@@ -148,7 +127,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
 
         public void Init()
         {
-            if (f_singlePhoto.GetValue<bool>(_photosWindow))
+            if (f_singlePhoto.GetValue<bool>(_core))
             {
                 _bg_image.rectTransform.localScale = Vector2.one * 2;
             }
@@ -160,7 +139,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
 
         public void Show()
         {
-            if ((bool)f_singlePhoto.GetValue(_photosWindow))
+            if ((bool)f_singlePhoto.GetValue(_core))
             {
                 _previousPage?.ButtonBehavior.Disable();
                 _previousPage?.CanvasRenderer.SetAlpha(0f);
@@ -178,19 +157,16 @@ namespace Hp2BaseModTweaks.CellphoneApps
 
         public void Refresh()
         {
-            var photoViewMode = f_photoViewMode.GetValue<int>(_photosWindow);
+            var photoViewMode = f_photoViewMode.GetValue<int>(_core);
 
-            if (f_singlePhoto.GetValue<bool>(_photosWindow))
-            {
-                return;
-            }
+            if (f_singlePhoto.GetValue<bool>(_core)) return;
 
             //photos
-            var photoIndex = _pageIndex * _photosPerPage;
-            var earnedPhotos = f_earnedPhotos.GetValue<List<PhotoDefinition>>(_photosWindow);
+            var photoIndex = _pageIndex * PHOTOS_PER_PAGE;
+            var earnedPhotos = f_earnedPhotos.GetValue<List<PhotoDefinition>>(_core);
             var photoEnumerator = earnedPhotos.Skip(photoIndex).GetEnumerator();
 
-            foreach (var slot in _photosWindow.photoSlots.Take(_photosPerPage))
+            foreach (var slot in _core.photoSlots.Take(PHOTOS_PER_PAGE))
             {
                 if (photoEnumerator.MoveNext())
                 {
@@ -206,7 +182,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
                 }
             }
 
-            foreach (var slot in _photosWindow.photoSlots.Skip(_photosPerPage))
+            foreach (var slot in _core.photoSlots.Skip(PHOTOS_PER_PAGE))
             {
                 slot.buttonBehavior.Disable();
                 slot.thumbnailImage.sprite = _emptyPhotoSlot;
@@ -241,7 +217,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
 
         internal void RefreshBigPhoto()
         {
-            var photoDef = f_bigPhotoDefinition.GetValue<PhotoDefinition>(_photosWindow);
+            var photoDef = f_bigPhotoDefinition.GetValue<PhotoDefinition>(_core);
             if (photoDef == null)
             {
                 return;
@@ -250,7 +226,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
             var sprite = GetBigPhotoSprite(photoDef, out var photoViewMode) ?? UiPrefabs.CensoredBig;
             UpdateViewModeButtons(photoViewMode, photoDef);
 
-            _photosWindow.bigPhotoImage.sprite = sprite;
+            _core.bigPhotoImage.sprite = sprite;
             _bg_image.sprite = sprite;
 
             if (_bg_image.sprite != null
@@ -265,7 +241,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
 
         private Sprite GetBigPhotoSprite(PhotoDefinition photoDef, out int usedPhotoViewMode)
         {
-            usedPhotoViewMode = f_photoViewMode.GetValue<int>(_photosWindow);
+            usedPhotoViewMode = f_photoViewMode.GetValue<int>(_core);
             var sprite = photoDef.GetBigPhotoImage(usedPhotoViewMode);
 
             while (sprite == null && usedPhotoViewMode != 0)
@@ -279,7 +255,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
 
         private void UpdateViewModeButtons()
         {
-            var photoDef = f_bigPhotoDefinition.GetValue<PhotoDefinition>(_photosWindow);
+            var photoDef = f_bigPhotoDefinition.GetValue<PhotoDefinition>(_core);
 
             if (photoDef == null)
             {
@@ -298,7 +274,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
             }
 
             var index = 0;
-            foreach (var button in _photosWindow.viewModeButtons)
+            foreach (var button in _core.viewModeButtons)
             {
                 if (index == photoViewMode || photoDef.GetBigPhotoImage(index) == null)
                 {
@@ -315,8 +291,8 @@ namespace Hp2BaseModTweaks.CellphoneApps
 
         internal void OnCloseButtonPressed()
         {
-            if (f_singlePhoto.GetValue<bool>(_photosWindow)
-                && f_nextPhotos.GetValue<List<PhotoDefinition>>(_photosWindow).Count <= 0)
+            if (f_singlePhoto.GetValue<bool>(_core)
+                && f_nextPhotos.GetValue<List<PhotoDefinition>>(_core).Count <= 0)
             {
                 var mat = _bg_image.material;
                 DOTween.To(

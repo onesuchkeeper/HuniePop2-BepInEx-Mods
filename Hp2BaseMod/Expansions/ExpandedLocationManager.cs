@@ -1,7 +1,5 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using HarmonyLib;
 using Hp2BaseMod.Extension;
@@ -47,36 +45,32 @@ internal static class LocationManagerPatch
         => ExpandedLocationManager.Get(__instance).OnDestroy();
 }
 
-public class ExpandedLocationManager
+[HarmonyPatch(typeof(UiPuzzleGrid))]
+internal static class UiPuzzleGridCellphonePatch
 {
-    private static Dictionary<LocationManager, ExpandedLocationManager> _expansions
-     = new Dictionary<LocationManager, ExpandedLocationManager>();
+    [HarmonyPatch(nameof(UiPuzzleGrid.RefreshGirlDolls))]
+    [HarmonyPostfix]
+    public static void RefreshGirlDolls(UiPuzzleGrid __instance)
+        => ExpandedLocationManager.RefreshGirlDolls();
+}
 
-    public static ExpandedLocationManager Get(LocationManager core)
-    {
-        if (!_expansions.TryGetValue(core, out var expansion))
-        {
-            expansion = new ExpandedLocationManager(core);
-            _expansions[core] = expansion;
-        }
-
-        return expansion;
-    }
-
-    private static readonly FieldInfo f_isLocked = AccessTools.Field(typeof(LocationManager), "_isLocked");
-    private static readonly FieldInfo f_arrivalCutscene = AccessTools.Field(typeof(LocationManager), "_arrivalCutscene");
-    private static readonly FieldInfo f_currentGirlPair = AccessTools.Field(typeof(LocationManager), "_currentGirlPair");
-    private static readonly FieldInfo f_currentSidesFlipped = AccessTools.Field(typeof(LocationManager), "_currentSidesFlipped");
-    private static readonly FieldInfo f_currentLocation = AccessTools.Field(typeof(LocationManager), "_currentLocation");
-
+[Expansion(typeof(LocationManager), 
+    Fields = new[]{"_isLocked", "_arrivalCutscene", "_currentGirlPair", "_currentSidesFlipped", "_currentLocation"})]
+public partial class ExpandedLocationManager
+{
     private CutsceneDefinition _baseCutsceneMeeting;
     private UiWindow _actionBubblesWindow;
-    private LocationManager _core;
-    private ExpandedLocationManager(LocationManager core)
+
+    /// <summary>
+    /// The default anchored position of the puzzle grid, captured on first arrival
+    /// before any CellphoneOnLeft repositioning is applied.
+    /// </summary>
+    private Vector2? _defaultPuzzleGridPosition;
+
+    private void OnInit()
     {
-        _core = core;
         _actionBubblesWindow = _core.actionBubblesWindow;
-        _baseCutsceneMeeting = _core.cutsceneMeeting;
+        _baseCutsceneMeeting = _core.cutsceneMeeting; 
     }
 
     /// <summary>
@@ -93,7 +87,7 @@ public class ExpandedLocationManager
     {
         // set here so the AtLocationType is working with the correct location
         // if it changes it'll overwrite later on
-        f_currentLocation.SetValue(_core, locationDef);
+        _currentLocation = locationDef;
 
         ModInterface.State.CellphoneOnLeft = _core.AtLocationType(LocationType.HUB);
 
@@ -130,26 +124,73 @@ public class ExpandedLocationManager
     }
 
     /// <summary>
-    /// Updates the position of the cellphone based on <see cref="ModInterface.State.CellphoneOnLeft">
+    /// Updates the position of the cellphone and puzzle grid based on
+    /// <see cref="ModInterface.State.CellphoneOnLeft"/>.
+    /// When the cellphone moves to the left the header shifts, and the puzzle
+    /// grid must shift right by the same delta to stay on screen.
     /// </summary>
     public void PostArrive()
     {
+        var header = Game.Session.gameCanvas.header;
+        var cellphone = Game.Session.gameCanvas.cellphone;
+        var puzzleGrid = Game.Session.Puzzle.puzzleGrid;
+
+        // Capture the default grid position the first time we see the grid,
+        // before any CellphoneOnLeft offset is applied.
+        if (puzzleGrid != null && _defaultPuzzleGridPosition == null)
+        {
+            _defaultPuzzleGridPosition = puzzleGrid.GetComponent<RectTransform>().anchoredPosition;
+        }
+
         if (ModInterface.State.CellphoneOnLeft)
         {
-            Game.Session.gameCanvas.header.rectTransform.anchoredPosition = new Vector2(Game.Session.gameCanvas.header.xValues.y,
-                Game.Session.gameCanvas.header.rectTransform.anchoredPosition.y);
+            header.rectTransform.anchoredPosition = new Vector2(
+                header.xValues.y,
+                header.rectTransform.anchoredPosition.y);
 
-            Game.Session.gameCanvas.cellphone.rectTransform.anchoredPosition = new Vector2(Game.Session.gameCanvas.cellphone.xValues.y,
-                Game.Session.gameCanvas.cellphone.rectTransform.anchoredPosition.y);
+            cellphone.rectTransform.anchoredPosition = new Vector2(
+                cellphone.xValues.y,
+                cellphone.rectTransform.anchoredPosition.y);
+
+            if (puzzleGrid != null && _defaultPuzzleGridPosition.HasValue)
+            {
+                var delta = header.xValues.y - header.xValues.x;
+                puzzleGrid.GetComponent<RectTransform>().anchoredPosition = new Vector2(
+                    _defaultPuzzleGridPosition.Value.x + delta,
+                    _defaultPuzzleGridPosition.Value.y);
+            }
         }
         else
         {
-            Game.Session.gameCanvas.header.rectTransform.anchoredPosition = new Vector2(Game.Session.gameCanvas.header.xValues.x,
-                Game.Session.gameCanvas.header.rectTransform.anchoredPosition.y);
+            header.rectTransform.anchoredPosition = new Vector2(
+                header.xValues.x,
+                header.rectTransform.anchoredPosition.y);
 
-            Game.Session.gameCanvas.cellphone.rectTransform.anchoredPosition = new Vector2(Game.Session.gameCanvas.cellphone.xValues.x,
-                Game.Session.gameCanvas.cellphone.rectTransform.anchoredPosition.y);
+            cellphone.rectTransform.anchoredPosition = new Vector2(
+                cellphone.xValues.x,
+                cellphone.rectTransform.anchoredPosition.y);
+
+            if (puzzleGrid != null && _defaultPuzzleGridPosition.HasValue)
+            {
+                puzzleGrid.GetComponent<RectTransform>().anchoredPosition =
+                    _defaultPuzzleGridPosition.Value;
+            }
         }
+    }
+
+    /// <summary>
+    /// Called from <see cref="UiPuzzleGridCellphonePatch.RefreshGirlDolls"/> postfix.
+    /// When <see cref="ModInterface.State.CellphoneOnLeft"/> is active the left doll
+    /// is hidden. Its focus button is disabled and any hover state is cleared after
+    /// every RefreshGirlDolls call, RefreshGirlDolls may re-enable it internally,
+    /// and without the explicit OnPointerExit the tooltip can persist.
+    /// </summary>
+    public static void RefreshGirlDolls()
+    {
+        if (!ModInterface.State.CellphoneOnLeft) return;
+        var focusButton = Game.Session.gameCanvas.dollLeft.focusButton;
+        focusButton.Disable();
+        focusButton.OnPointerExit(null);
     }
 
     /// <summary>
@@ -167,7 +208,7 @@ public class ExpandedLocationManager
         ModInterface.Events.NotifyPreLocationSettled(locationSettledArgs);
         _core.actionBubblesWindow = locationSettledArgs.actionBubblesWindow ?? _actionBubblesWindow;
 
-        f_isLocked.SetValue(_core, false);
+        _isLocked = false;
         Game.Session.Logic.ProcessBundleList(_core.currentLocation.departBundleList, false);
         var arrivalCutscene = f_arrivalCutscene.GetValue<CutsceneDefinition>(_core);
         switch (locationSettledArgs.locationType)
@@ -199,7 +240,7 @@ public class ExpandedLocationManager
                 Game.Session.Hub.StartHub();
                 break;
         }
-        f_arrivalCutscene.SetValue(_core, null);
+        _arrivalCutscene = null;
 
         return false;
     }
@@ -236,7 +277,7 @@ public class ExpandedLocationManager
     private void ApplyHubStyle(LocationDefinition location)
     {
         var hubDef = Game.Session.Hub.hubGirlDefinition;
-        var expansion = hubDef.Expansion();
+        var expansion = hubDef.GetExpansion();
 
         int outfitIndex = GetRandomValidIndex(hubDef.outfits);
         var outfit = hubDef.outfits[outfitIndex];
@@ -295,9 +336,9 @@ public class ExpandedLocationManager
         GirlDefinition leftDef,
         GirlDefinition rightDef)
     {
-        var locationExp = location.Expansion();
+        var locationExp = location.GetExpansion();
 
-        // UNKNOWN relationship → meeting styles
+        // UNKNOWN relationship use meeting styles
         if (playerPair.relationshipType == GirlPairRelationshipType.UNKNOWN)
         {
             return GetPairMeetingStyles(pair);
@@ -351,7 +392,7 @@ public class ExpandedLocationManager
         GirlDefinition rightDef)
     {
         var pairId = ModInterface.Data.GetDataId(GameDataType.GirlPair, pair.id);
-        var pairStyle = ExpandedGirlPairDefinition.Get(pairId).PairStyle;
+        var pairStyle = pair.GetExpansion().PairStyle;
 
         if (pairStyle == null) return (null, null);
 
@@ -390,7 +431,7 @@ public class ExpandedLocationManager
     private (GirlStyleInfo, GirlStyleInfo) GetPairMeetingStyles(GirlPairDefinition pair)
     {
         var pairId = ModInterface.Data.GetDataId(GameDataType.GirlPair, pair.id);
-        var pairStyle = ExpandedGirlPairDefinition.Get(pairId).PairStyle;
+        var pairStyle = pair.GetExpansion().PairStyle;
 
         if (pairStyle == null) return (null, null);
 
@@ -420,7 +461,7 @@ public class ExpandedLocationManager
     /// </summary>
     private GirlStyleInfo BuildStyleFromFile(PlayerFileGirl file)
     {
-        var exp = ExpandedGirlDefinition.Get(file.girlDefinition.id);
+        var exp = file.girlDefinition.GetExpansion();
 
         return new GirlStyleInfo(
             exp.OutfitLookup.GetId(file.outfitIndex),
@@ -549,11 +590,11 @@ public class ExpandedLocationManager
         RelativeId locationId,
         string sideLabel)
     {
-        // If stylesOnDates is disabled → use location-based style
+        // If stylesOnDates is disabled use location-based style
         if (!playerFile.stylesOnDates)
         {
             var girlId = ModInterface.Data.GetDataId(GameDataType.Girl, girlDef.id);
-            var expansion = ExpandedGirlDefinition.Get(girlId);
+            var expansion = girlDef.GetExpansion();
 
             if (expansion.GetCurrentBody()
                 .LocationIdToOutfitId
@@ -563,13 +604,13 @@ public class ExpandedLocationManager
                 return style;
             }
 
-            // No mapping found → fall through (returns null)
+            // No mapping found fall through (returns null)
             ModInterface.Log.Message($"No location style found for {sideLabel} girl");
             return null;
         }
 
-        // Otherwise → use player file style
-        var exp = ExpandedGirlDefinition.Get(playerFile.girlDefinition.id);
+        // Otherwise use player file style
+        var exp = playerFile.girlDefinition.GetExpansion();
 
         var fileStyle = new GirlStyleInfo(
             exp.OutfitLookup.GetId(playerFile.outfitIndex),

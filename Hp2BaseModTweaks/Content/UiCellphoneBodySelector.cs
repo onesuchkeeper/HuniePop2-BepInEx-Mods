@@ -114,7 +114,7 @@ public class UiCellphoneBodySelector : MonoBehaviour
     {
         if (girlDef != null)
         {
-            _girlExpansion = girlDef.Expansion();
+            _girlExpansion = girlDef.GetExpansion();
 
             if (_girlExpansion.Bodies.Count > 1)
             {
@@ -138,7 +138,7 @@ public class UiCellphoneBodySelector : MonoBehaviour
 
     private void Refresh()
     {
-        if (!_started) { return; }
+        if (!_started) return;
         _rectTransform.sizeDelta = SIZE;
 
         if (_bodies == null)

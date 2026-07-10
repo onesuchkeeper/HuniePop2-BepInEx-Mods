@@ -26,11 +26,19 @@ namespace Hp2BaseMod.GameDataInfo
         /// <param name="assetProvider">Asset provider containing the assets referenced by the definition.</param>
         public LogicBundleInfo(LogicBundle def, AssetProvider assetProvider)
         {
-            if (def == null) { throw new ArgumentNullException(nameof(def)); }
-            if (assetProvider == null) { throw new ArgumentNullException(nameof(assetProvider)); }
+            if (def == null) throw new ArgumentNullException(nameof(def));
 
-            if (def.conditions != null) { Conditions = def.conditions.Select(x => (IGameDefinitionInfo<LogicCondition>)new LogicConditionInfo(x)).ToList(); }
-            if (def.actions != null) { Actions = def.actions.Select(x => (IGameDefinitionInfo<LogicAction>)new LogicActionInfo(x, assetProvider)).ToList(); }
+            if (assetProvider == null) throw new ArgumentNullException(nameof(assetProvider));
+
+            if (def.conditions != null) 
+            { 
+                Conditions = def.conditions.Select(x => (IGameDefinitionInfo<LogicCondition>)new LogicConditionInfo(x)).ToList(); 
+            }
+
+            if (def.actions != null) 
+            { 
+                Actions = def.actions.Select(x => (IGameDefinitionInfo<LogicAction>)new LogicActionInfo(x, assetProvider)).ToList(); 
+            }
         }
 
         /// <inheritdoc/>

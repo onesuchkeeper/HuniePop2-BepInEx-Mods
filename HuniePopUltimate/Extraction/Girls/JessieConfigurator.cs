@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Hp2BaseMod;
@@ -140,6 +139,7 @@ public class JessieConfigurator : IGirlConfigurator
         }
 
         cleanedDialogTriggerId = dialogTriggerId;
-        return dialogTriggerId != Hp2BaseMod.DialogTriggers.UniqueAccept;
+        return dialogTriggerId != Hp2BaseMod.DialogTriggers.UniqueAccept 
+            && dialogTriggerId != Hp2BaseMod.DialogTriggers.ShoesAccept;
     }
 }

@@ -30,7 +30,7 @@ namespace Hp2BaseMod.GameDataInfo
         /// <param name="def">The definition.</param>
         public GiftConditionInfo(GiftCondition giftCondition)
         {
-            if (giftCondition == null) { throw new ArgumentNullException(nameof(giftCondition)); }
+            if (giftCondition == null) throw new ArgumentNullException(nameof(giftCondition));
 
             Type = giftCondition.type;
             ItemDefinitionID = new RelativeId(giftCondition.itemDefinition);

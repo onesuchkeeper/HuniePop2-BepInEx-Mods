@@ -338,14 +338,14 @@ public class LocationTransitionFakeOut
             return;
         }
 
-        m_OnLocationSettled.Invoke(Game.Session.Location, []);
+        m_OnLocationSettled.Invoke(Game.Session.Location);
     }
 
     private void OnCutsceneComplete()
     {
         Game.Session.Cutscenes.CutsceneCompleteEvent -= OnCutsceneComplete;
         ModInterface.Log.Message("Settling Via Fakeout");
-        m_OnLocationSettled.Invoke(Game.Session.Location, []);
+        m_OnLocationSettled.Invoke(Game.Session.Location);
     }
 
     private LocationDefinition _fakeLoc;

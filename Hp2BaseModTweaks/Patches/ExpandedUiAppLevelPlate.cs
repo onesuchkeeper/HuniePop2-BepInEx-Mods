@@ -1,6 +1,6 @@
-using System.Collections.Generic;
 using System.Reflection;
 using HarmonyLib;
+using Hp2BaseMod;
 using Hp2BaseMod.Extension;
 using Hp2BaseMod.GameDataInfo.Interface;
 using UnityEngine.UI;
@@ -10,11 +10,6 @@ namespace Hp2BaseModTweaks;
 [HarmonyPatch(typeof(UiAppLevelPlate))]
 internal static class UiAppLevelPlatePatch
 {
-    [HarmonyPatch("Start")]
-    [HarmonyPostfix]
-    public static void Start(UiAppLevelPlate __instance)
-        => ExpandedUiAppLevelPlate.Get(__instance).Start();
-
     [HarmonyPatch("Populate", [])]
     [HarmonyPostfix]
     public static void Populate(UiAppLevelPlate __instance)
@@ -33,7 +28,7 @@ internal static class UiAppLevelPlatePatch
     [HarmonyPatch("OnDestroy")]
     [HarmonyPrefix]
     public static void OnDestroy(UiAppLevelPlate __instance)
-        => ExpandedUiAppLevelPlate.Get(__instance).OnDestroy();
+        => ExpandedUiAppLevelPlate.Destroy(__instance);
 
     [HarmonyPatch("OnButtonEnter")]
     [HarmonyPostfix]
@@ -41,48 +36,17 @@ internal static class UiAppLevelPlatePatch
         => ExpandedUiAppLevelPlate.Get(__instance).OnButtonEnter();
 }
 
-internal class ExpandedUiAppLevelPlate
+[Expansion(typeof(UiAppLevelPlate), 
+    Fields = new[]{"_tooltip"})]
+public partial class ExpandedUiAppLevelPlate
 {
-    private static Dictionary<UiAppLevelPlate, ExpandedUiAppLevelPlate> _expansions
-        = new Dictionary<UiAppLevelPlate, ExpandedUiAppLevelPlate>();
-
-    public static ExpandedUiAppLevelPlate Get(UiAppLevelPlate core)
-    {
-        if (!_expansions.TryGetValue(core, out var expansion))
-        {
-            expansion = new ExpandedUiAppLevelPlate(core);
-            _expansions[core] = expansion;
-        }
-
-        return expansion;
-    }
-
-    private static readonly FieldInfo f_tooltip = AccessTools.Field(typeof(UiAppLevelPlate), "_tooltip");
-    private static readonly MethodInfo m_resize = AccessTools.Method(typeof(UiTooltipItem), "Resize");
+    private static readonly MethodInfo m_Resize = AccessTools.Method(typeof(UiTooltipItem), "Resize");
 
     public IExpInfo ExpDisplay;
-    protected UiAppLevelPlate _core;
-    private ExpandedUiAppLevelPlate(UiAppLevelPlate core)
-    {
-        _core = core;
-    }
-
-    public void Start()
-    {
-
-    }
-
-    internal void OnDestroy()
-    {
-        _expansions.Remove(_core);
-    }
 
     public void Populate()
     {
-        if (ExpDisplay == null)
-        {
-            return;
-        }
+        if (ExpDisplay == null) return;
 
         _core.iconImage.sprite = ExpDisplay.IconImage;
         _core.nameLabel.text = ExpDisplay.PlateTitle;
@@ -103,10 +67,7 @@ internal class ExpandedUiAppLevelPlate
 
     public bool ShowFavArrow()
     {
-        if (ExpDisplay == null)
-        {
-            return true;
-        }
+        if (ExpDisplay == null) return true;
 
         return false;
         //todo
@@ -114,15 +75,12 @@ internal class ExpandedUiAppLevelPlate
 
     public void OnButtonEnter()
     {
-        if (ExpDisplay == null)
-        {
-            return;
-        }
+        if (ExpDisplay == null) return;
 
         var tooltip = f_tooltip.GetValue<UiTooltipItem>(_core);
 
         tooltip.descriptionLabel.text = ExpDisplay.PlateDesc;
         tooltip.nameLabel.text = ExpDisplay.ExpTitle;
-        m_resize.Invoke(tooltip, null);
+        m_Resize.Invoke(tooltip, null);
     }
 }

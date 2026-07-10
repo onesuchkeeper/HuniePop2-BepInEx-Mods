@@ -291,3 +291,6 @@ __pycache__/
 /Unity
 /ExpandedWardrobe/Textures
 doc/BaggageBrainstorm.md
+/Workspace_Chunks
+/Utility/GPROM
+config.yaml

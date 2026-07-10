@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Reflection;
 using HarmonyLib;
 using Hp2BaseMod;
@@ -15,32 +13,19 @@ namespace Hp2BaseModTweaks.CellphoneApps
         [HarmonyPatch("Start")]
         [HarmonyPostfix]
         public static void PostStart(UiCellphoneAppFinder __instance)
-            => ExpandedUiCellphoneFinderApp.Get(__instance).OnStart();
+            => ExpandedUiCellphoneAppFinder.Get(__instance).OnStart();
 
         [HarmonyPatch("OnDestroy")]
         [HarmonyPrefix]
         public static void OnDestroy(UiCellphoneAppFinder __instance)
-            => ExpandedUiCellphoneFinderApp.Get(__instance).OnDestroy();
+            => ExpandedUiCellphoneAppFinder.Destroy(__instance);
     }
 
-    internal class ExpandedUiCellphoneFinderApp
+    [Expansion(typeof(UiCellphoneAppFinder))]
+    public partial class ExpandedUiCellphoneAppFinder
     {
-        private readonly static Dictionary<UiCellphoneAppFinder, ExpandedUiCellphoneFinderApp> _expansions
-                    = new Dictionary<UiCellphoneAppFinder, ExpandedUiCellphoneFinderApp>();
-
-        public static ExpandedUiCellphoneFinderApp Get(UiCellphoneAppFinder uiCellphoneAppFinder)
-        {
-            if (!_expansions.TryGetValue(uiCellphoneAppFinder, out var expansion))
-            {
-                expansion = new ExpandedUiCellphoneFinderApp(uiCellphoneAppFinder);
-                _expansions[uiCellphoneAppFinder] = expansion;
-            }
-
-            return expansion;
-        }
-
-        private static readonly int _finderLocationsPerPage = 8;
-        private static readonly FieldInfo f_playerFileFinderSlotAccess = AccessTools.Field(typeof(UiAppFinderSlot), "_playerFileFinderSlot");
+        private static readonly int FINDER_LOCATIONS_PER_PAGE = 8;
+  
         private Hp2ButtonWrapper _previousPage;
         private Hp2ButtonWrapper _nextPage;
 
@@ -48,19 +33,12 @@ namespace Hp2BaseModTweaks.CellphoneApps
         private int _pageMax;
         private LocationDefinition[] _simLocations;
 
-        private readonly UiCellphoneAppFinder _finderApp;
-
-        public ExpandedUiCellphoneFinderApp(UiCellphoneAppFinder finderApp)
-        {
-            _finderApp = finderApp ?? throw new ArgumentNullException(nameof(finderApp));
-        }
-
         public void OnStart()
         {
             _simLocations = Game.Data.Locations.GetAll().Where(x => x.locationType == LocationType.SIM).ToArray();
 
             _pageMax = _simLocations.Length > 1
-                ? (_simLocations.Length - 1) / _finderLocationsPerPage
+                ? (_simLocations.Length - 1) / FINDER_LOCATIONS_PER_PAGE
                 : 0;
 
             if (_pageMax != 0)
@@ -76,7 +54,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
                     ModInterface.Assets.GetInternalAsset<Sprite>(Common.Ui_AppSettingArrowLeftOver),
                     cellphoneButtonPressedKlip);
 
-                _previousPage.GameObject.transform.SetParent(_finderApp.transform, false);
+                _previousPage.GameObject.transform.SetParent(_core.transform, false);
                 _previousPage.RectTransform.anchoredPosition = new Vector2(30, -30);
                 _previousPage.ButtonBehavior.ButtonPressedEvent += (e) =>
                 {
@@ -89,7 +67,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
                     ModInterface.Assets.GetInternalAsset<Sprite>(Common.Ui_AppSettingArrowRightOver),
                     cellphoneButtonPressedKlip);
 
-                _nextPage.GameObject.transform.SetParent(_finderApp.transform, false);
+                _nextPage.GameObject.transform.SetParent(_core.transform, false);
                 _nextPage.RectTransform.anchoredPosition = new Vector2(1024, -30);
                 _nextPage.ButtonBehavior.ButtonPressedEvent += (e) =>
                 {
@@ -101,19 +79,18 @@ namespace Hp2BaseModTweaks.CellphoneApps
             Refresh();
         }
 
-        public void OnDestroy()
+        private void OnDestroy()
         {
             _previousPage?.Destroy();
             _nextPage?.Destroy();
-            _expansions.Remove(_finderApp);
         }
 
         public void Refresh()
         {
             //location slots
-            var locationIndex = _currentPage * _finderLocationsPerPage;
+            var locationIndex = _currentPage * FINDER_LOCATIONS_PER_PAGE;
 
-            foreach (var slot in _finderApp.finderSlots.Take(_finderLocationsPerPage))
+            foreach (var slot in _core.finderSlots.Take(FINDER_LOCATIONS_PER_PAGE))
             {
                 if (locationIndex < _simLocations.Length)
                 {
@@ -162,7 +139,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
                 }
             }
 
-            foreach (var slot in _finderApp.finderSlots.Skip(_finderLocationsPerPage))
+            foreach (var slot in _core.finderSlots.Skip(FINDER_LOCATIONS_PER_PAGE))
             {
                 slot.canvasGroup.alpha = 0f;
                 slot.canvasGroup.blocksRaycasts = false;

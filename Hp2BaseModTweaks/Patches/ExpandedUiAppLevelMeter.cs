@@ -17,7 +17,7 @@ internal static class UiAppLevelMeterPatch
     [HarmonyPatch("OnDestroy")]
     [HarmonyPrefix]
     public static void OnDestroy(UiAppLevelMeter __instance)
-        => ExpandedUiAppLevelMeter.Get(__instance).OnDestroy();
+        => ExpandedUiAppLevelMeter.Destroy(__instance);
 
     [HarmonyPatch(nameof(UiAppLevelMeter.Populate))]
     [HarmonyPostfix]
@@ -27,62 +27,36 @@ internal static class UiAppLevelMeterPatch
     [HarmonyPatch("OnTooltipPreShow")]
     [HarmonyPostfix]
     public static void OnTooltipPreShow(UiAppLevelMeter __instance)
-        => ExpandedUiAppLevelMeter.Get(__instance).OnTooltipPreShow();
+        => ExpandedUiAppLevelMeter.Get(__instance).OnTooltipPreShow_Postfix();
 }
 
-internal class ExpandedUiAppLevelMeter
+[Expansion(typeof(UiAppLevelMeter), 
+    Methods = new[]{"OnTooltipPreShow"})]
+public partial class ExpandedUiAppLevelMeter
 {
-    private static Dictionary<UiAppLevelMeter, ExpandedUiAppLevelMeter> _expansions
-        = new Dictionary<UiAppLevelMeter, ExpandedUiAppLevelMeter>();
-
-    public static ExpandedUiAppLevelMeter Get(UiAppLevelMeter core)
-    {
-        if (!_expansions.TryGetValue(core, out var expansion))
-        {
-            expansion = new ExpandedUiAppLevelMeter(core);
-            _expansions[core] = expansion;
-        }
-
-        return expansion;
-    }
-    private static readonly MethodInfo m_onTooltipPreShow = AccessTools.Method(typeof(UiAppLevelMeter), "OnTooltipPreShow");
     public IExpInfo ExpDisplay;
-    protected UiAppLevelMeter _core;
-    private ExpandedUiAppLevelMeter(UiAppLevelMeter core)
-    {
-        _core = core;
-    }
 
     public void Start()
     {
-        ExpandedItemSlotBehavior.Get(_core.smoothieSlot.itemSlot).PreShowEvent += OnTooltipPreShowEvent;
+        ExpandedItemSlotBehavior.Get(_core.smoothieSlot.itemSlot).PreShowEvent += OnTooltipPreShow;
     }
 
-    public void OnDestroy()
+    private void OnDestroy()
     {
-        ExpandedItemSlotBehavior.Get(_core.smoothieSlot.itemSlot).PreShowEvent -= OnTooltipPreShowEvent;
-        _expansions.Remove(_core);
+        ExpandedItemSlotBehavior.Get(_core.smoothieSlot.itemSlot).PreShowEvent -= OnTooltipPreShow;
     }
 
     public void Populate()
     {
-        if (ExpDisplay == null)
-        {
-            return;
-        }
+        if (ExpDisplay == null) return;
 
         _core.meterFront.fillAmount = ExpDisplay.Percentage;
     }
 
-    public void OnTooltipPreShow()
+    public void OnTooltipPreShow_Postfix()
     {
-        if (ExpDisplay == null)
-        {
-            return;
-        }
+        if (ExpDisplay == null) return;
 
         _core.smoothieSlot.itemSlot.tooltip.categoryLabel.text = ExpDisplay.ExpDesc;
     }
-
-    private void OnTooltipPreShowEvent() => m_onTooltipPreShow.Invoke(_core, null);
 }

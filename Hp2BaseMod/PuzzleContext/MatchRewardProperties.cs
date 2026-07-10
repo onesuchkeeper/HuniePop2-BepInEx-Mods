@@ -56,10 +56,10 @@ public class MatchRewardProperties
     /// Arbitrary named properties for inter-ailment communication.
     /// Use a RelativeId scoped to your mod as the key to avoid conflicts.
     ///
-    /// Example — setting a property:
+    /// Example - setting a property:
     ///   context.Properties.AdditionalProperties[new RelativeId(myPluginId, 0)] = true;
     ///
-    /// Example — reading a property set by another ailment:
+    /// Example - reading a property set by another ailment:
     ///   if (context.Properties.AdditionalProperties.TryGetValue(knownId, out var val)
     ///       &amp;&amp; val is bool b &amp;&amp; b) { ... }
     /// </summary>

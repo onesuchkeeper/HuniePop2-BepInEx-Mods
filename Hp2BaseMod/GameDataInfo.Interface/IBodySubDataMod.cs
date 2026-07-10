@@ -14,7 +14,7 @@ namespace Hp2BaseMod.GameDataInfo.Interface
         void SetData(T def,
             GameDefinitionProvider gameData,
             AssetProvider assetProvider,
-            RelativeId girlId,
+            GirlDefinition girlDef,
             GirlBodySubDefinition bodyDef);
 
         /// <summary>

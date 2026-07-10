@@ -41,7 +41,7 @@ public class ExpandedUiDoll
 
     public void PurifyDialogText(ref string __result)
     {
-        if (string.IsNullOrWhiteSpace(__result)) { return; }
+        if (string.IsNullOrWhiteSpace(__result)) return;
 
         var cleaned = new StringBuilder();
         var write = true;

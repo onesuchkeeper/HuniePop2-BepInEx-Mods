@@ -1,23 +1,28 @@
 using System.Collections.Generic;
 using Hp2BaseMod;
 
-namespace HuniePopUltimate;
+namespace MyMod;
 
 /// <summary>
-/// When a sexuality token is matched while this girl is focused, focus switching
-/// is suppressed until a non-sexuality match is made (any resource type other than
-/// sexuality affection) or the girl becomes exhausted or upset.
+// When a sexuality token is matched while this girl is focused, focus switching
+// is suppressed until a non-sexuality match is made (any resource type other than
+// sexuality affection) or the girl becomes exhausted or upset.
 /// </summary>
 public class SexualityFocusLockAilment : IScriptedAilment
 {
+    // Tracks whether this ailment instance is currently holding a suppression count.
+    // We only ever hold at most one count at a time.
+    private bool _isSuppressing;
+
     public void OnEnable(Ailment ailment, PuzzleStatusGirl girl, PuzzleStatusGirl otherGirl)
     {
-        ExpandedUiPuzzleGrid.Get().SuppressFocusSwitch = false;
+        // Ensure we start clean.
+        _isSuppressing = false;
     }
 
     public void OnDisable(Ailment ailment, PuzzleStatusGirl girl, PuzzleStatusGirl otherGirl)
     {
-        ExpandedUiPuzzleGrid.Get().SuppressFocusSwitch = false;
+        ClearSuppression();
     }
 
     public bool OnTrigger(
@@ -29,24 +34,13 @@ public class SexualityFocusLockAilment : IScriptedAilment
         MatchModifier matchModifier,
         GiftModifier giftModifier)
     {
-        if (triggerType != AilmentTriggerType.ON_RESOURCE_CHANGED)
-        {
-            return false;
-        }
-
+        if (triggerType != AilmentTriggerType.ON_RESOURCE_CHANGED) return false;
         // Re-enable focus switching if the girl is now exhausted or upset.
-        if (girl.exhausted)
-        {
-            ExpandedUiPuzzleGrid.Get().SuppressFocusSwitch = false;
-        }
-
+        if (girl.exhausted) ClearSuppression();
         return false;
     }
 
-    public void OnPreMatchReward(
-        Ailment ailment,
-        PuzzleStatusGirl girl,
-        PuzzleRewardContext context) { }
+    public void OnPreMatchReward(Ailment ailment, PuzzleStatusGirl girl, PuzzleRewardContext context) { }
 
     public void OnPostMatchReward(
         Ailment ailment,
@@ -57,26 +51,40 @@ public class SexualityFocusLockAilment : IScriptedAilment
         // Only react to matches received by this girl while she is focused.
         if (context.AltGirl != girl.altGirl) return;
 
-        var grid = ExpandedUiPuzzleGrid.Get();
-        if (grid == null) ModInterface.Log.Warning($"Failed to get {nameof(ExpandedUiPuzzleGrid)}");
+        var grid = GetGrid();
+        if (grid == null) return;
 
         bool isSexuality = context.Match.tokenDefinition.resourceType == PuzzleResourceType.AFFECTION
             && context.Match.tokenDefinition.affectionType == PuzzleAffectionType.SEXUALITY;
 
-        if (isSexuality)
+        if (isSexuality) 
         {
-            // Sexuality match while focused, lock focus switching.
-            grid.SuppressFocusSwitch = true;
-        }
-        else
+            SetSuppression(grid);
+        } else 
         {
-            // Any other token type, release the lock.
-            grid.SuppressFocusSwitch = false;
+            ClearSuppression();
         }
     }
 
-    public void OnPostSetReward(
-        Ailment ailment,
-        PuzzleStatusGirl girl,
-        PuzzleConsumeContext context) { }
+    public void OnPostSetReward(Ailment ailment, PuzzleStatusGirl girl, PuzzleConsumeContext context) { }
+
+    private void SetSuppression(ExpandedUiPuzzleGrid grid)
+    {
+        if (_isSuppressing) return;
+        _isSuppressing = true;
+        grid.SuppressFocusSwitch();
+    }
+
+    private void ClearSuppression()
+    {
+        if (!_isSuppressing) return;
+        _isSuppressing = false;
+        GetGrid()?.UnsuppressFocusSwitch();
+    }
+
+    private static ExpandedUiPuzzleGrid GetGrid()
+    {
+        var grid = Game.Session.Puzzle?.puzzleGrid;
+        return grid != null ? ExpandedUiPuzzleGrid.Get(grid) : null;
+    }
 }

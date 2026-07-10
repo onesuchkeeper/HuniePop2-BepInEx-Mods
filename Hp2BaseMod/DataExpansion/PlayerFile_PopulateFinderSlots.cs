@@ -109,7 +109,7 @@ public static class PlayerFile_PopulateFinderSlots
         {
             foreach (var pairFile in args.SexPool)
             {
-                if (args.LocationPool.Count == 0) { return false; }
+                if (args.LocationPool.Count == 0) return false;
 
                 if ((pairFile.girlPairDefinition.girlDefinitionOne.specialCharacter || girlPool.Contains(pairFile.girlPairDefinition.girlDefinitionOne))
                     && (pairFile.girlPairDefinition.girlDefinitionTwo.specialCharacter || girlPool.Contains(pairFile.girlPairDefinition.girlDefinitionTwo)))
@@ -130,7 +130,7 @@ public static class PlayerFile_PopulateFinderSlots
 
         foreach (var pairFile in args.IntroPool.OrEmptyIfNull().ConcatNN(args.MeetingPool).Distinct())
         {
-            if (args.LocationPool.Count == 0) { return false; }
+            if (args.LocationPool.Count == 0) return false;
 
             if ((pairFile.girlPairDefinition.girlDefinitionOne.specialCharacter || girlPool.Contains(pairFile.girlPairDefinition.girlDefinitionOne))
                 && (pairFile.girlPairDefinition.girlDefinitionTwo.specialCharacter || girlPool.Contains(pairFile.girlPairDefinition.girlDefinitionTwo))
@@ -153,7 +153,7 @@ public static class PlayerFile_PopulateFinderSlots
             .ConcatNN(args.LoversPool)
             .ConcatNN(args.AttractedPool))
         {
-            if (args.LocationPool.Count == 0) { return false; }
+            if (args.LocationPool.Count == 0) return false;
 
             if ((pairFile.girlPairDefinition.girlDefinitionOne.specialCharacter || girlPool.Contains(pairFile.girlPairDefinition.girlDefinitionOne))
                 && (pairFile.girlPairDefinition.girlDefinitionTwo.specialCharacter || girlPool.Contains(pairFile.girlPairDefinition.girlDefinitionTwo)))

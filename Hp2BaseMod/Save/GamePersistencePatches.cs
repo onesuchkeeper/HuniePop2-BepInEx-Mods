@@ -165,7 +165,7 @@ namespace Hp2BaseMod.Save
             if (!ModInterface.Data.TryGetDataId(GameDataType.Girl, saveGirl.girlId, out var girlId)) return false;
 
             var def = Game.Data.Girls.Get(saveGirl.girlId);
-            var expansion = def.Expansion();
+            var expansion = def.GetExpansion();
             var modSaveGirl = modSaveFile.Girls.GetOrNew(girlId);
 
             if (!expansion.Bodies.TryGetValue(modSaveGirl.BodyId, out var body))

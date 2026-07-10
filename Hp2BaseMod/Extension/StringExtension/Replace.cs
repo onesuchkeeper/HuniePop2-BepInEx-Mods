@@ -11,9 +11,8 @@ public static partial class StringExtension
     /// </summary>
     public static string Replace(this string source, params IEnumerable<(string pattern, string value)> replaceGroups)
     {
-        if (source == null) { return null; }
-
-        if (string.IsNullOrWhiteSpace(source)) { return source; }
+        if (source == null) return null;
+        if (string.IsNullOrWhiteSpace(source)) return source;
 
         var matchValuePairs = replaceGroups.SelectMany(group =>
             Regex.Matches(source, group.pattern)

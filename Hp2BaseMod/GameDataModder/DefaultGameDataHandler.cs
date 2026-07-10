@@ -69,14 +69,14 @@ internal static class DefaultGameDataHandler
             using (ModInterface.Log.MakeIndent("girls"))
             {
                 var herQuestionsDt = dialogTriggerDataDict[DialogTriggers.HerQuestion.LocalId];
-                var herQuestionsDtExp = herQuestionsDt.Expansion();
+                var herQuestionsDtExp = herQuestionsDt.GetExpansion();
                 var herQuestionsGoodRespDt = dialogTriggerDataDict[DialogTriggers.HerQuestionGoodResponse.LocalId];
-                var herQuestionsGoodRespDtExp = herQuestionsGoodRespDt.Expansion();
+                var herQuestionsGoodRespDtExp = herQuestionsGoodRespDt.GetExpansion();
                 var herQuestionsBadRespDt = dialogTriggerDataDict[DialogTriggers.HerQuestionBadResponse.LocalId];
-                var herQuestionsBadRespDtExp = herQuestionsBadRespDt.Expansion();
+                var herQuestionsBadRespDtExp = herQuestionsBadRespDt.GetExpansion();
 
                 var dateGreetingDt = dialogTriggerDataDict[DialogTriggers.DateGreeting.LocalId];
-                var dateGreetingDtExp = dateGreetingDt.Expansion();
+                var dateGreetingDtExp = dateGreetingDt.GetExpansion();
 
                 ExpandedGirlDefinition.DialogTriggerIndexes.MapRelativeIdRange(girlDataDict.Count, 1);
 
@@ -92,7 +92,7 @@ internal static class DefaultGameDataHandler
                         }
 
                         var id = new RelativeId(-1, girl.id);
-                        var expansion = ExpandedGirlDefinition.Get(id);
+                        var expansion = girl.GetExpansion();
 
                         var body = new GirlBodySubDefinition(girl)
                         {
@@ -127,7 +127,7 @@ internal static class DefaultGameDataHandler
                         foreach (var hairstyle in girl.hairstyles)
                         {
                             var hairstyleId = expansion.HairstyleLookup[i];
-                            var hairstyleExpansion = hairstyle.Expansion();
+                            var hairstyleExpansion = hairstyle.GetExpansion();
                             defaultStyleExpansion(hairstyleExpansion, i++);
 
                             if (!hairstyle.hideSpecials)
@@ -137,7 +137,7 @@ internal static class DefaultGameDataHandler
                         }
 
                         i = 0;
-                        girl.outfits.ForEach(x => defaultStyleExpansion(x.Expansion(), i++));
+                        girl.outfits.ForEach(x => defaultStyleExpansion(x.GetExpansion(), i++));
 
                         if (id == Girls.Kyu)
                         {
@@ -160,7 +160,7 @@ internal static class DefaultGameDataHandler
 
                         foreach (var part in girl.specialParts)
                         {
-                            part.Expansion().RequiredHairstyles = hairShowingSpecials.ToList();
+                            part.GetExpansion().RequiredHairstyles = hairShowingSpecials.ToList();
                         }
 
                         for (i = 0; i < girl.favAnswers.Count; i++)
@@ -183,14 +183,14 @@ internal static class DefaultGameDataHandler
 
             using (ModInterface.Log.MakeIndent("pairs"))
             {
-                foreach (var def in girlPairDataDict.Values) def.Expansion().PairStyle = new PairStyleInfo(def);
+                foreach (var def in girlPairDataDict.Values) def.GetExpansion().PairStyle = new PairStyleInfo(def);
             }
 
             using (ModInterface.Log.MakeIndent("locations"))
             {
                 foreach (var def in locationDataDict.Values)
                 {
-                    var expansion = def.Expansion();
+                    var expansion = def.GetExpansion();
 
                     if (def.locationType == LocationType.DATE)
                     {
@@ -218,7 +218,7 @@ internal static class DefaultGameDataHandler
 
                 foreach (var id_def in questionDataDict)
                 {
-                    var expansion = id_def.Value.Expansion();
+                    var expansion = id_def.Value.GetExpansion();
                     expansion.AnswerLookup.MapRelativeIdRange(id_def.Value.questionAnswers.Count);
                 }
             }

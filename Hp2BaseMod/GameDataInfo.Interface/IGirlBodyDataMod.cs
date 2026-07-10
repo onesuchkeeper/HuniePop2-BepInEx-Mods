@@ -21,7 +21,7 @@ public interface IGirlBodyDataMod
     void SetData(GirlBodySubDefinition def,
         GameDefinitionProvider gameData,
         AssetProvider assetProvider,
-        RelativeId girlId);
+        GirlDefinition girlDef);
 
     /// <summary>
     /// Allows the mod an opportunity to request internal assets from the assetProvider 

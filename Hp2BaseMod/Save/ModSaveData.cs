@@ -41,7 +41,7 @@ namespace Hp2BaseMod.Save
             UnlockedCodes = null;
             AdditionalFiles = null;
 
-            if (saveData == null) { return; }
+            if (saveData == null) return;
 
             //codes
             if (saveData.unlockedCodes != null)
@@ -82,7 +82,7 @@ namespace Hp2BaseMod.Save
         /// <inheritdoc/>
         public void SetData(SaveData saveData)
         {
-            if (saveData == null) { throw new ArgumentNullException(nameof(saveData)); }
+            if (saveData == null) throw new ArgumentNullException(nameof(saveData));
 
             if (UnlockedCodes != null)
             {

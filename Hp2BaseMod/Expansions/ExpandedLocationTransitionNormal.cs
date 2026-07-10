@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Reflection;
 using DG.Tweening;
 using HarmonyLib;
 using Hp2BaseMod.Extension;
@@ -17,56 +15,28 @@ internal static class LocationTransitionNormalPatch
     [HarmonyPatch("DepartStep")]
     [HarmonyPrefix]
     public static bool DepartStep(LocationTransitionNormal __instance)
-        => ExpandedLocationTransitionNormal.Get(__instance).DepartStep();
+        => ExpandedLocationTransitionNormal.Get(__instance).DepartStep_new();
 }
 
-internal class ExpandedLocationTransitionNormal
+[Expansion(typeof(LocationTransitionNormal), 
+    Fields = new[]{"_stepIndex","_gameSaved","_arriveWithGirls","_initialArrive","_sequence"},
+    Methods = new[]{"DepartStep","ArrivalComplete","OnArriveAnimationsComplete","OnDepartAnimationsComplete"})]
+public partial class ExpandedLocationTransitionNormal
 {
-    private static Dictionary<LocationTransitionNormal, ExpandedLocationTransitionNormal> _extendedTransitions
-        = new Dictionary<LocationTransitionNormal, ExpandedLocationTransitionNormal>();
-
-    public static ExpandedLocationTransitionNormal Get(LocationTransitionNormal locationTransitionNormal)
-    {
-        if (!_extendedTransitions.TryGetValue(locationTransitionNormal, out var extended))
-        {
-            extended = new ExpandedLocationTransitionNormal(locationTransitionNormal);
-            _extendedTransitions[locationTransitionNormal] = extended;
-        }
-
-        return extended;
-    }
-
-    private static readonly FieldInfo f_stepIndex = AccessTools.Field(typeof(LocationTransitionNormal), "_stepIndex");
-    private static readonly FieldInfo f_gameSaved = AccessTools.Field(typeof(LocationTransitionNormal), "_gameSaved");
-    private static readonly FieldInfo f_arriveWithGirls = AccessTools.Field(typeof(LocationTransitionNormal), "_arriveWithGirls");
-    private static readonly FieldInfo f_initialArrive = AccessTools.Field(typeof(LocationTransitionNormal), "_initialArrive");
-    private static readonly FieldInfo f_sequence = AccessTools.Field(typeof(LocationTransitionNormal), "_sequence");
-    private static readonly MethodInfo m_departStep = AccessTools.Method(typeof(LocationTransitionNormal), "DepartStep");
-    private static readonly MethodInfo m_arrivalComplete = AccessTools.Method(typeof(LocationTransitionNormal), "ArrivalComplete");
-    private static readonly MethodInfo m_onArriveAnimationsComplete = AccessTools.Method(typeof(LocationTransitionNormal), "OnArriveAnimationsComplete");
-    private static readonly MethodInfo m_onDepartAnimationsComplete = AccessTools.Method(typeof(LocationTransitionNormal), "OnDepartAnimationsComplete");
-
-    private readonly LocationTransitionNormal _core;
-    public ExpandedLocationTransitionNormal(LocationTransitionNormal core)
-    {
-        _core = core;
-    }
-
     public bool ArriveStep()
     {
         // override arrive step 1 to allow additions to the sequence before it plays
-        var stepIndex = f_stepIndex.GetValue<int>(_core);
-        stepIndex++;
-        f_stepIndex.SetValue(_core, stepIndex);
+        var nextStepIndex = f_stepIndex.GetValue<int>(_core) + 1;
+        _stepIndex = nextStepIndex;
 
-        if (stepIndex != 0)
+        if (nextStepIndex != 0)
         {
-            if (stepIndex != 1)
+            if (nextStepIndex != 1)
             {
                 return false;
             }
 
-            m_arrivalComplete.Invoke(_core, null);
+            m_ArrivalComplete.Invoke(_core, null);
             return false;
         }
         else
@@ -85,7 +55,7 @@ internal class ExpandedLocationTransitionNormal
             ModInterface.Events.NotifyLocationArriveSequence(args);
 
             sequence = args.Sequence ?? DOTween.Sequence();
-            f_sequence.SetValue(_core, sequence);
+            _sequence = sequence;
 
             if (f_gameSaved.GetValue<bool>(_core))
             {
@@ -142,10 +112,7 @@ internal class ExpandedLocationTransitionNormal
         }
     }
 
-    private void OnArriveAnimationsComplete()
-        => m_onArriveAnimationsComplete.Invoke(_core, null);
-
-    public bool DepartStep()
+    public bool DepartStep_new()
     {
         // override depart step 1 at sim locations to notify random doll selection
         var stepIndex = f_stepIndex.GetValue<int>(_core);
@@ -159,8 +126,7 @@ internal class ExpandedLocationTransitionNormal
                         return true;
                     }
 
-                    stepIndex++;
-                    f_stepIndex.SetValue(_core, stepIndex);
+                    _stepIndex = stepIndex + 1;
 
                     if (Game.Manager.Windows.IsWindowActive(null, true, true))
                     {
@@ -169,7 +135,7 @@ internal class ExpandedLocationTransitionNormal
                     }
                     else
                     {
-                        m_departStep.Invoke(_core, null);
+                        m_DepartStep.Invoke(_core, null);
                     }
 
                     var args = new RandomDollSelectedArgs();
@@ -194,13 +160,12 @@ internal class ExpandedLocationTransitionNormal
                         return false;
                     }
 
-                    m_departStep.Invoke(_core, null);
+                    m_DepartStep.Invoke(_core, null);
                     return false;
                 }
             case 2:
                 {
-                    stepIndex++;
-                    f_stepIndex.SetValue(_core, stepIndex);
+                    _stepIndex = stepIndex + 1;
 
                     Game.Session.Location.isTraveling = true;
                     Game.Session.gameCanvas.dollMiddle.notificationBox.Hide(false);
@@ -231,7 +196,7 @@ internal class ExpandedLocationTransitionNormal
                     ModInterface.Events.NotifyLocationDepartSequence(args);
 
                     sequence = args.Sequence ?? DOTween.Sequence();
-                    f_sequence.SetValue(_core, sequence);
+                    _sequence = sequence;
 
                     sequence.Insert(0f, Game.Session.gameCanvas.dollLeft.slideLayer.DOAnchorPos(Game.Session.gameCanvas.dollLeft.GetPositionByType(DollPositionType.HIDDEN), 1f, false).SetEase(Ease.InOutCubic));
                     sequence.Insert(0f, Game.Session.gameCanvas.dollRight.slideLayer.DOAnchorPos(Game.Session.gameCanvas.dollRight.GetPositionByType(DollPositionType.HIDDEN), 1f, false).SetEase(Ease.InOutCubic));
@@ -261,26 +226,23 @@ internal class ExpandedLocationTransitionNormal
                         return false;
                     }
                     sequence.Complete(false);
-                    this.DepartStep();
+                    this.DepartStep_new();
                     return false;
                 }
         }
         return true;
     }
 
-    private void OnDepartAnimationsComplete()
-        => m_onDepartAnimationsComplete.Invoke(_core, null);
-
     private void OnWindowHidden()
     {
         Game.Manager.Windows.WindowHiddenEvent -= OnWindowHidden;
-        m_departStep.Invoke(_core, null);
+        m_DepartStep.Invoke(_core, null);
     }
 
     private void OnValedictionDialogRead(UiDoll doll)
     {
         ModInterface.Log.Warning("Valediction Dialog Read");
         doll.DialogBoxHiddenEvent -= OnValedictionDialogRead;
-        m_departStep.Invoke(_core, null);
+        m_DepartStep.Invoke(_core, null);
     }
 }

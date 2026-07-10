@@ -25,7 +25,7 @@ public static class PreSexCutscene
                 // change outfit
                 new FunctionalCutsceneStepInfo((complete) => {
                     var doll = Game.Session.gameCanvas.dollRight;
-                    doll.ChangeOutfit(doll.girlDefinition.Expansion().GetOutfitIndex(Hp2BaseMod.Styles.Sexy));
+                    doll.ChangeOutfit(doll.girlDefinition.GetExpansion().GetOutfitIndex(Hp2BaseMod.Styles.Sexy));
 
                     complete.Invoke();
                 }),

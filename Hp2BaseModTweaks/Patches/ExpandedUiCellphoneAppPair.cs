@@ -16,36 +16,14 @@ internal static class UiCellphoneAppPairPatch
         => ExpandedUiCellphoneAppPair.Get(__instance).Start();
 }
 
-internal class ExpandedUiCellphoneAppPair
+[Expansion(typeof(UiCellphoneAppPair))]
+public partial class ExpandedUiCellphoneAppPair
 {
-    private static Dictionary<UiCellphoneAppPair, ExpandedUiCellphoneAppPair> _expansions
-        = new Dictionary<UiCellphoneAppPair, ExpandedUiCellphoneAppPair>();
-
-    public static ExpandedUiCellphoneAppPair Get(UiCellphoneAppPair core)
-    {
-        if (!_expansions.TryGetValue(core, out var expansion))
-        {
-            expansion = new ExpandedUiCellphoneAppPair(core);
-            _expansions[core] = expansion;
-        }
-
-        return expansion;
-    }
-
-    private static readonly Vector3 _meterVertOffset = new Vector3(0, 96, 0);
-
-    protected UiCellphoneAppPair _core;
-    private ExpandedUiCellphoneAppPair(UiCellphoneAppPair core)
-    {
-        _core = core;
-    }
+    private static readonly Vector3 METER_VERT_OFFSET = new Vector3(0, 96, 0);
 
     public void Start()
     {
-        if (!ModInterface.ExpDisplays.Any())
-        {
-            return;
-        }
+        if (!ModInterface.ExpDisplays.Any()) return;
 
         var scroll_GO = new GameObject();
         var scroll_Rect = scroll_GO.AddComponent<RectTransform>();
@@ -95,13 +73,13 @@ internal class ExpandedUiCellphoneAppPair
         foreach (var meter in _core.levelMeters.Take(4))
         {
             meter.transform.SetParent(padding_Rect, true);
-            meter.transform.localPosition += _meterVertOffset;
+            meter.transform.localPosition += METER_VERT_OFFSET;
 
             meter.levelPlate.transform.SetParent(padding_Rect, true);
-            meter.levelPlate.transform.localPosition += _meterVertOffset;
+            meter.levelPlate.transform.localPosition += METER_VERT_OFFSET;
 
             meter.smoothieSlot.transform.SetParent(padding_Rect, true);
-            meter.smoothieSlot.transform.localPosition += _meterVertOffset;
+            meter.smoothieSlot.transform.localPosition += METER_VERT_OFFSET;
         }
 
         var meters = new List<UiAppLevelMeter>();

@@ -80,6 +80,12 @@ public partial class Plugin : Hp2BaseModPlugin
         new Harmony(MyPluginInfo.PLUGIN_GUID).PatchAll();
     }
 
+    [InteropMethod]
+    private void Test()
+    {
+        
+    }
+
     private void On_PreLoadPlayerFile(PlayerFile file)
     {
         using (ModInterface.Log.MakeIndent("Activating Cheats"))
@@ -98,7 +104,7 @@ public partial class Plugin : Hp2BaseModPlugin
                 ModInterface.Log.Message(nameof(UnlockAllStyles));
                 foreach (var fileGirl in file.girls)
                 {
-                    var expansion = fileGirl.girlDefinition.Expansion();
+                    var expansion = fileGirl.girlDefinition.GetExpansion();
 
                     foreach (var body in expansion.Bodies.Values)
                     {
@@ -120,7 +126,7 @@ public partial class Plugin : Hp2BaseModPlugin
                 ModInterface.Log.Message(nameof(LearnAllFavorites));
                 foreach (var fileGirl in file.girls)
                 {
-                    var expansion = fileGirl.girlDefinition.Expansion();
+                    var expansion = fileGirl.girlDefinition.GetExpansion();
 
                     foreach (var question in expansion.FavQuestionIdToAnswerId.Keys.Select(ModInterface.GameData.GetQuestion))
                     {

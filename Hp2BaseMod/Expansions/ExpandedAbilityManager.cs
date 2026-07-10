@@ -1,8 +1,23 @@
 using System.Collections.Generic;
-using System.Reflection;
 using HarmonyLib;
 
 namespace Hp2BaseMod;
+
+/**
+Base Class Mechanics:
+ * The base AbilityManager serves as a purely data-driven execution processor for puzzle actions.
+ * - Lifecycles: Binds itself globally to `Game.Session.Ability` during `Awake`.
+ * - State References: Directly manipulates `UiPuzzleGrid` (to consume, destroy, power, or spawn row/column/type-filtered `UiPuzzleSlot` tokens) 
+ *   and `PuzzleStatus` (to modify character resource pools and apply status ailments via `PuzzleStatusGirl`).
+ * - Execution Pipeline: Reads sequentially through a static list of `AbilityStepSubDefinition` objects defined on an `AbilityDefinition`. 
+ *   It calculates target integers dynamically (e.g., via math constants, random ranges, character-trait metrics, or specific board token counts) 
+ *   and operates directly on targeted token subsets using internal conditional matching filters (`TokenCondition`).
+ * 
+Expansion:
+ * This file expands the base data-driven processor by introducing a code-driven, procedural script layer (`IScriptedAbility`) 
+ * into the pipeline. The IScriptedAbility is allowed to act before and after regular processing of the ability and may skip the
+ * base data-driven pipeline altogether.
+ */
 
 [HarmonyPatch(typeof(AbilityManager))]
 internal static class AbilityManagerPatch
@@ -29,36 +44,9 @@ internal static class AbilityManagerPatch
         => ExpandedAbilityManager.Get(__instance).PerformAbility_Postfix(abilityDef, altGirl, ref __result, __state);
 }
 
-/// <summary>
-/// Companion class for <see cref="AbilityManager"/> that injects <see cref="IScriptedAbility"/> calls
-/// into the PerformAbility pipeline.
-/// </summary>
-public class ExpandedAbilityManager
+[Expansion(typeof(AbilityManager))]
+public partial class ExpandedAbilityManager
 {
-    private static readonly Dictionary<AbilityManager, ExpandedAbilityManager> _expansions
-        = new Dictionary<AbilityManager, ExpandedAbilityManager>();
-
-    public static ExpandedAbilityManager Get(AbilityManager core)
-    {
-        if (!_expansions.TryGetValue(core, out var expansion))
-        {
-            expansion = new ExpandedAbilityManager(core);
-            _expansions[core] = expansion;
-        }
-
-        return expansion;
-    }
-
-    // PerformAbility constructs Ability internally, so we need to replicate that
-    // construction here to attach the scripted behaviour before any hooks fire.
-    private static readonly FieldInfo f_abilityQueue = AccessTools.Field(typeof(AbilityManager), "_abilityQueue");
-
-    private readonly AbilityManager _core;
-    private ExpandedAbilityManager(AbilityManager core)
-    {
-        _core = core;
-    }
-
     /// <summary>
     /// Returns false (skip original) if ReplacePerform is provided or PrePerform aborts.
     /// Returns true (run original) for purely data-driven abilities or when PrePerform passes.
@@ -72,7 +60,7 @@ public class ExpandedAbilityManager
     {
         __state = (null, null);
 
-        var factory = abilityDef.Expansion().ScriptedAbilityFactory;
+        var factory = abilityDef.GetExpansion().ScriptedAbilityFactory;
         if (factory == null) return true;
 
         // Mirror Ability construction from the original PerformAbility so the factory
@@ -84,7 +72,6 @@ public class ExpandedAbilityManager
         }
 
         var scripted = factory(ability);
-        ability.Expansion().ScriptedAbility = scripted;
 
         __state = (scripted, ability);
 
@@ -111,9 +98,6 @@ public class ExpandedAbilityManager
     public void PerformAbility_Postfix(AbilityDefinition abilityDef, bool altGirl, ref bool __result, (IScriptedAbility Scripted, Ability Ability) __state)
     {
         if (__state.Scripted == null) return;
-
-        // When the original pipeline ran (no ReplacePerform), _activeAbility is the instance
-        // we constructed in the prefix. PostPerform uses it for any per-instance state.
         __result = __state.Scripted.PostPerform(__state.Ability, altGirl, __result);
     }
 }

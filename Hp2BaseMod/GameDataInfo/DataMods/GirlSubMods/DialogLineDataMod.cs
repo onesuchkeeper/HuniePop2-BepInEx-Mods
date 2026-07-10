@@ -41,7 +41,7 @@ namespace Hp2BaseMod.GameDataInfo
             GameDefinitionProvider gameData,
             AssetProvider assetProvider)
         {
-            if (def == null) { return; }
+            if (def == null) return;
 
             ValidatedSet.SetValue(ref def.dialogText, DialogText, InsertStyle);
             ValidatedSet.SetValue(ref def.yuri, Yuri);

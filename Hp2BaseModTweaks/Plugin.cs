@@ -339,7 +339,7 @@ public partial class Plugin : Hp2BaseModPlugin
             .Where(x => x != null && x.partIndexEyesGlow == -1)
             .ForEach(x => x.partIndexEyesGlow = x.partIndexEyes);
 
-        var kyu = ModInterface.GameData.GetGirl(Girls.Kyu).Expansion();
+        var kyu = ModInterface.GameData.GetGirl(Girls.Kyu).GetExpansion();
     }
 
     private void On_PostCodeSubmitted(CodeDefinition codeDefinition)

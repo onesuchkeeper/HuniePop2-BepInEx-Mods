@@ -11,7 +11,7 @@ namespace Hp2BaseMod.Save
 
         public void Strip(SaveFileStoreProduct save)
         {
-            if (save == null) { return; }
+            if (save == null) return;
 
             ItemCost = save.itemCost;
 
@@ -25,7 +25,7 @@ namespace Hp2BaseMod.Save
 
         public void SetData(SaveFileStoreProduct save)
         {
-            if (save == null) { return; }
+            if (save == null) return;
 
             ValidatedSet.SetFromRelativeId(ref save.itemId, GameDataType.Item, ItemId);
         }

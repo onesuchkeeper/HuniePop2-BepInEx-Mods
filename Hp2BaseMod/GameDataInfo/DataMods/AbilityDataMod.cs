@@ -55,7 +55,7 @@ namespace Hp2BaseMod.GameDataInfo
             SelectableTarget = def.selectableTarget;
             TargetMinimumCount = def.targetMinimumCount;
 
-            if (def.targetConditionSet != null) { TargetConditionSetInfo = new TokenConditionSetInfo(def.targetConditionSet); }
+            if (def.targetConditionSet != null) TargetConditionSetInfo = new TokenConditionSetInfo(def.targetConditionSet);
             Steps = def.steps?.Select(x => (IGameDefinitionInfo<AbilityStepSubDefinition>)new AbilityStepInfo(x, assetProvider)).ToList();
         }
 
@@ -70,7 +70,7 @@ namespace Hp2BaseMod.GameDataInfo
             ValidatedSet.SetListValue(ref def.steps, Steps, InsertStyle, gameDataProvider, assetProvider);
 
             // Always write the factory null clears scripted behaviour, non-null sets it.
-            ValidatedSet.SetValue(ref def.Expansion().ScriptedAbilityFactory, ScriptedAbilityFactory, InsertStyle);
+            ValidatedSet.SetValue(ref def.GetExpansion().ScriptedAbilityFactory, ScriptedAbilityFactory, InsertStyle);
         }
 
         /// <inheritdoc/>

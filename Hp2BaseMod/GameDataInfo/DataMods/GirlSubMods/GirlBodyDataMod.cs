@@ -66,10 +66,10 @@ namespace Hp2BaseMod.GameDataInfo
         public void SetData(GirlBodySubDefinition def,
                             GameDefinitionProvider gameData,
                             AssetProvider assetProvider,
-                            RelativeId girlId)
+                            GirlDefinition girlDef)
         {
-            if (def == null) { return; }
-            var expansion = ExpandedGirlDefinition.Get(girlId);
+            if (def == null) return;
+            var expansion = girlDef.GetExpansion();
 
             ValidatedSet.SetValue(ref def.Scale, Scale);
             ValidatedSet.SetValue(ref def.BodyName, bodyName, InsertStyle);

@@ -52,7 +52,7 @@ namespace Hp2BaseMod.GameDataInfo
         /// <param name="def">The definition.</param>
         public AilmentStepInfo(AilmentStepSubDefinition def)
         {
-            if (def == null) { throw new ArgumentNullException(nameof(def)); }
+            if (def == null) throw new ArgumentNullException(nameof(def));
 
             StepType = def.stepType;
             StringValue = def.stringValue;
@@ -65,12 +65,12 @@ namespace Hp2BaseMod.GameDataInfo
 
             AbilityDefinitionID = new RelativeId(def.abilityDefinition);
 
-            if (def.matchModifier != null) { MatchModifierInfo = new MatchModifierInfo(def.matchModifier); }
+            if (def.matchModifier != null) MatchModifierInfo = new MatchModifierInfo(def.matchModifier);
 
-            if (def.matchConditions != null) { MatchConditionInfos = def.matchConditions.Select(x => (IGameDefinitionInfo<MatchCondition>)new MatchConditionInfo(x)).ToList(); }
-            if (def.giftConditions != null) { GiftConditionInfos = def.giftConditions.Select(x => (IGameDefinitionInfo<GiftCondition>)new GiftConditionInfo(x)).ToList(); }
-            if (def.girlConditions != null) { GirlConditionInfos = def.girlConditions.Select(x => (IGameDefinitionInfo<GirlCondition>)new GirlConditionInfo(x)).ToList(); }
-            if (def.moveConditions != null) { MoveConditionInfos = def.moveConditions.Select(x => (IGameDefinitionInfo<MoveCondition>)new MoveConditionInfo(x)).ToList(); }
+            if (def.matchConditions != null) MatchConditionInfos = def.matchConditions.Select(x => (IGameDefinitionInfo<MatchCondition>)new MatchConditionInfo(x)).ToList();
+            if (def.giftConditions != null) GiftConditionInfos = def.giftConditions.Select(x => (IGameDefinitionInfo<GiftCondition>)new GiftConditionInfo(x)).ToList();
+            if (def.girlConditions != null) GirlConditionInfos = def.girlConditions.Select(x => (IGameDefinitionInfo<GirlCondition>)new GirlConditionInfo(x)).ToList();
+            if (def.moveConditions != null) MoveConditionInfos = def.moveConditions.Select(x => (IGameDefinitionInfo<MoveCondition>)new MoveConditionInfo(x)).ToList();
         }
 
         /// <inheritdoc/>

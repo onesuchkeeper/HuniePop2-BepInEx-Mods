@@ -113,7 +113,7 @@ namespace Hp2BaseMod.GameDataInfo
         /// <inheritdoc/>
         public void SetData(GirlDefinition def, GameDefinitionProvider gameDataProvider, AssetProvider assetProvider)
         {
-            var girlExp = ExpandedGirlDefinition.Get(Id);
+            var girlExp = def.GetExpansion();
 
             ValidatedSet.SetValue(ref def.girlAge, GirlAge);
             ValidatedSet.SetValue(ref def.specialCharacter, SpecialCharacter);
@@ -138,9 +138,9 @@ namespace Hp2BaseMod.GameDataInfo
                 var herQuestionGoodResponseDt = gameDataProvider.GetDialogTrigger(DialogTriggers.HerQuestionGoodResponse);
                 var herQuestionBadResponseDt = gameDataProvider.GetDialogTrigger(DialogTriggers.HerQuestionBadResponse);
 
-                var herQuestionDtSet = herQuestionDt.Expansion().GetLineSetOrNew(herQuestionDt, Id);
-                var herQuestionGoodResponseDtSet = herQuestionGoodResponseDt.Expansion().GetLineSetOrNew(herQuestionGoodResponseDt, Id);
-                var herQuestionBadResponseDtSet = herQuestionBadResponseDt.Expansion().GetLineSetOrNew(herQuestionBadResponseDt, Id);
+                var herQuestionDtSet = herQuestionDt.GetExpansion().GetLineSetOrNew(herQuestionDt, Id);
+                var herQuestionGoodResponseDtSet = herQuestionGoodResponseDt.GetExpansion().GetLineSetOrNew(herQuestionGoodResponseDt, Id);
+                var herQuestionBadResponseDtSet = herQuestionBadResponseDt.GetExpansion().GetLineSetOrNew(herQuestionBadResponseDt, Id);
 
                 foreach (var id_questionMod in HerQuestions)
                 {
@@ -243,7 +243,7 @@ namespace Hp2BaseMod.GameDataInfo
                 foreach (var dtId_mod in LinesByDialogTriggerId)
                 {
                     var dt = gameDataProvider.GetDialogTrigger(dtId_mod.Key);
-                    var dtExp = dt.Expansion();
+                    var dtExp = dt.GetExpansion();
 
                     foreach (var mod in dtId_mod.Value)
                     {
@@ -256,10 +256,6 @@ namespace Hp2BaseMod.GameDataInfo
 
         /// <inheritdoc/>
         public IEnumerable<IGirlBodyDataMod> GetBodyMods() => bodies;
-
-        // /// <inheritdoc/>
-        // public IEnumerable<(RelativeId, IEnumerable<IDialogLineDataMod>)> GetLinesByDialogTriggerId()
-        //     => LinesByDialogTriggerId?.Select(x => (x.Item1, x.Item2.Select(x => x)));
 
         /// <inheritdoc/>
         public void RequestInternals(AssetProvider assetProvider)

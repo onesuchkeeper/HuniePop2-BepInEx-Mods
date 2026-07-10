@@ -11,7 +11,7 @@ namespace Hp2BaseMod.Save
 
         public void Strip(SaveFileInventorySlot save)
         {
-            if (save == null) { return; }
+            if (save == null) return;
 
             ItemId = ModInterface.Data.GetDataId(GameDataType.Item, save.itemId);
 
@@ -23,7 +23,7 @@ namespace Hp2BaseMod.Save
 
         public void SetData(SaveFileInventorySlot save)
         {
-            if (save == null) { return; }
+            if (save == null) return;
 
             ValidatedSet.SetFromRelativeId(ref save.itemId, GameDataType.Item, ItemId);
         }

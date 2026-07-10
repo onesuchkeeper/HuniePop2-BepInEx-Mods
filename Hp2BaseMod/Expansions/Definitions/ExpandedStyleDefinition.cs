@@ -5,10 +5,10 @@ namespace Hp2BaseMod;
 
 public static class GirlStyleSubDefinition_Ext
 {
-    public static ExpandedStyleDefinition Expansion(this GirlHairstyleSubDefinition def)
+    public static ExpandedStyleDefinition GetExpansion(this GirlHairstyleSubDefinition def)
         => ExpandedStyleDefinition.Get(def);
 
-    public static ExpandedStyleDefinition Expansion(this GirlOutfitSubDefinition def)
+    public static ExpandedStyleDefinition GetExpansion(this GirlOutfitSubDefinition def)
         => ExpandedStyleDefinition.Get(def);
 }
 

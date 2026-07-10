@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Reflection;
 using HarmonyLib;
 
 namespace Hp2BaseMod;
@@ -15,43 +13,19 @@ internal static class UiPuzzleStaminaHintPatch
     [HarmonyPatch("OnDestroy")]
     [HarmonyPostfix]
     public static void OnDestroy(UiPuzzleStaminaHint __instance)
-        => ExpandedUiPuzzleStaminaHint.Get(__instance).OnDestroy();
+        => ExpandedUiPuzzleStaminaHint.Destroy(__instance);
 }
 
-internal class ExpandedUiPuzzleStaminaHint
+[Expansion(typeof(UiPuzzleStaminaHint), Methods = new[]{"OnShouldCheck"})]
+public partial class ExpandedUiPuzzleStaminaHint
 {
-    private static Dictionary<UiPuzzleStaminaHint, ExpandedUiPuzzleStaminaHint> _expansions
-         = new Dictionary<UiPuzzleStaminaHint, ExpandedUiPuzzleStaminaHint>();
-
-    public static ExpandedUiPuzzleStaminaHint Get(UiPuzzleStaminaHint uiPuzzleStaminaHint)
-    {
-        if (!_expansions.TryGetValue(uiPuzzleStaminaHint, out var expansion))
-        {
-            expansion = new ExpandedUiPuzzleStaminaHint(uiPuzzleStaminaHint);
-            _expansions[uiPuzzleStaminaHint] = expansion;
-        }
-
-        return expansion;
-    }
-
-    private static readonly MethodInfo m_onShouldCheck = AccessTools.Method(typeof(UiPuzzleStaminaHint), "OnShouldCheck");
-
-    private readonly UiPuzzleStaminaHint _uiPuzzleStaminaHint;
-    private ExpandedUiPuzzleStaminaHint(UiPuzzleStaminaHint uiPuzzleStaminaHint)
-    {
-        _uiPuzzleStaminaHint = uiPuzzleStaminaHint;
-    }
-
     public void Start()
     {
         ExpandedUiPuzzleGrid.Get().MoveCompleteEvent += OnShouldCheck;
     }
 
-    public void OnDestroy()
+    private void OnDestroy()
     {
-        _expansions.Remove(_uiPuzzleStaminaHint);
         ExpandedUiPuzzleGrid.Get().MoveCompleteEvent -= OnShouldCheck;
     }
-
-    public void OnShouldCheck() => m_onShouldCheck.Invoke(_uiPuzzleStaminaHint, null);
 }

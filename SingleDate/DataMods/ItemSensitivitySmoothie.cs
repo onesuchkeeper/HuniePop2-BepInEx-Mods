@@ -1,4 +1,3 @@
-using System.IO;
 using Hp2BaseMod;
 using Hp2BaseMod.GameDataInfo;
 using Hp2BaseMod.Utility;
