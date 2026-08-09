@@ -220,30 +220,35 @@ namespace Hp2BaseMod.Utility
                     {
                         saveFileIds.Add(runtimeId);
                     }
+                    else
+                    {
+                        ModInterface.Log.Warning($"Id {relativeId} not present in the runtime, skipping");
+                    }
                 }
 
                 saveFileIds = saveFileIds.Distinct().ToList();
             }
         }
 
-        public static void SetFromRelativeId(ref int id, GameDataType gameDataType, RelativeId? relativeId)
+        public static bool TrySetFromRelativeId(ref int id, GameDataType gameDataType, RelativeId? relativeId)
         {
             if (relativeId != null)
             {
-                SetFromRelativeId(ref id, gameDataType, relativeId.Value);
+                return TrySetFromRelativeId(ref id, gameDataType, relativeId.Value);
             }
+
+            return false;
         }
 
-        public static void SetFromRelativeId(ref int id, GameDataType gameDataType, RelativeId relativeId)
+        public static bool TrySetFromRelativeId(ref int id, GameDataType gameDataType, RelativeId relativeId)
         {
             if (ModInterface.Data.TryGetRuntimeDataId(gameDataType, relativeId, out var runtimeId))
             {
                 id = runtimeId;
+                return true;
             }
-            else
-            {
-                ModInterface.Log.Warning($"Failed to find runtime for {Enum.GetName(typeof(GameDataType), gameDataType)} {relativeId}");
-            }
+            ModInterface.Log.Warning($"Failed to find runtime for {Enum.GetName(typeof(GameDataType), gameDataType)} {relativeId}");
+            return false;
         }
     }
 }

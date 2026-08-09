@@ -76,7 +76,7 @@ namespace Hp2BaseMod;
 ///   </item>
 /// </list>
 /// To apply these expansions, an <see cref="AbilityDataMod"/> must be registered via 
-/// <see cref="ModInterface.AddDataMod(IGameDataMod)"/>.
+/// <see cref="ModInterface.DataMod.AddDataMod(IGameDataMod)"/>.
 /// </para>
 /// </remarks>
 

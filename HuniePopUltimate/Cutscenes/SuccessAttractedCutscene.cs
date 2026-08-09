@@ -17,13 +17,13 @@ public static class SuccessAttractedCutscene
                 CutsceneStepUtility.MakeSpecialStepInfo("CutsceneStepPostRewards", CutsceneStepProceedType.AUTOMATIC),
                 CutsceneStepUtility.MakeBannerTextHideInfo( CutsceneStepProceedType.AUTOMATIC),
                 CutsceneStepUtility.MakeSubCutsceneGirlPairInfo(GirlPairRelationshipType.ATTRACTED, CutsceneStepProceedType.AUTOMATIC),
-                CutsceneStepUtility.MakeSetMoodInfo(GirlExpressionType.HORNY, false, CutsceneStepDollTargetType.RANDOM, CutsceneStepProceedType.AUTOMATIC),
+                CutsceneStepUtility.MakeSetMoodInfo(GirlExpressionType.HORNY, false).TargetOrientation(DollOrientationType.RIGHT),
                 CutsceneStepUtility.MakeBannerTextInfo("BannerTextBonusRound", 0, CutsceneStepProceedType.AUTOMATIC),
                 CutsceneStepUtility.MakeTogglePhoneInfo(false, CutsceneStepProceedType.AUTOMATIC),
             },
             CleanUpType = (CutsceneCleanUpType)(-1)
         };
 
-        ModInterface.AddDataMod(mod);
+        ModInterface.DataMod.AddDataMod(mod);
     }
 }

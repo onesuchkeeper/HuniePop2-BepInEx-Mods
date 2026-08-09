@@ -17,7 +17,8 @@ namespace Hp2BaseMod.GameDataInfo
         //public ItemShoesType? shoesType;
         //public ItemUniqueType? uniqueType;
 
-        public ItemType? ItemType;
+        public RelativeId? ItemGiftHandlerId;
+        public RelativeId? ItemStoreHandlerId;
 
         public ItemDateGiftType? DateGiftType;
 
@@ -45,7 +46,7 @@ namespace Hp2BaseMod.GameDataInfo
 
         public RelativeId? EnergyDefinitionID;
 
-        public PuzzleAffectionType? AffectionType;
+        public RelativeId? AffectionId;
 
         public ItemGiveConditionType? GiveConditionType;
 
@@ -83,13 +84,75 @@ namespace Hp2BaseMod.GameDataInfo
         /// </summary>
         /// <param name="def">The definition.</param>
         /// <param name="assetProvider">Asset provider containing the asset referenced by the definition.</param>
+#pragma warning disable HP001 // Deprecated member usage        
         internal ItemDataMod(ItemDefinition def, AssetProvider assetProvider)
             : base(new RelativeId(def), InsertStyle.replace, 0)
         {
             ItemName = def.itemName;
-            ItemType = def.itemType;
+
+            switch (def.itemType)
+            {
+                case ItemType.DATE_GIFT:
+                    ItemStoreHandlerId = Hp2BaseMod.ItemTypes.DateGift;
+                    ItemGiftHandlerId = Hp2BaseMod.ItemGiftHandlerId.DateGift;
+                    break;
+                case ItemType.FOOD:
+                    ItemStoreHandlerId = Hp2BaseMod.ItemTypes.Food;
+                    ItemGiftHandlerId = def.noStaminaCost 
+                        ? Hp2BaseMod.ItemGiftHandlerId.StaminaFood
+                        : Hp2BaseMod.ItemGiftHandlerId.Food;
+                    break;
+                case ItemType.SMOOTHIE:
+                    ItemStoreHandlerId = Hp2BaseMod.ItemTypes.Smoothie;
+                    switch (def.affectionType)
+                    {
+                        case PuzzleAffectionType.TALENT:
+                            ItemGiftHandlerId = Hp2BaseMod.ItemGiftHandlerId.SmoothieTalent;
+                            break;
+                        case PuzzleAffectionType.FLIRTATION:
+                            ItemGiftHandlerId = Hp2BaseMod.ItemGiftHandlerId.SmoothieFlirtation;
+                            break;
+                        case PuzzleAffectionType.ROMANCE:
+                            ItemGiftHandlerId = Hp2BaseMod.ItemGiftHandlerId.SmoothieRomance;
+                            break;
+                        case PuzzleAffectionType.SEXUALITY:
+                            ItemGiftHandlerId = Hp2BaseMod.ItemGiftHandlerId.SmoothieSexuality;
+                            break;
+                    }
+                    break;
+                case ItemType.UNIQUE_GIFT:
+                    ItemStoreHandlerId = Hp2BaseMod.ItemTypes.Unique;
+                    ItemGiftHandlerId = Hp2BaseMod.ItemGiftHandlerId.Uniques;
+                    break;
+                case ItemType.SHOES:
+                    ItemStoreHandlerId = Hp2BaseMod.ItemTypes.Shoe;
+                    ItemGiftHandlerId = Hp2BaseMod.ItemGiftHandlerId.Shoes;
+                    break;
+                case ItemType.BAGGAGE:
+                case ItemType.FRUIT:
+                case ItemType.MISC:
+                    ItemGiftHandlerId = Hp2BaseMod.ItemGiftHandlerId.Misc;
+                    break;
+            }
+
             ItemDescription = def.itemDescription;
-            AffectionType = def.affectionType;
+
+            switch (def.affectionType)
+            {
+                case PuzzleAffectionType.TALENT:
+                    AffectionId = PuzzleAffectionId.Talent;
+                    break;
+                case PuzzleAffectionType.ROMANCE:
+                    AffectionId = PuzzleAffectionId.Romance;
+                    break;
+                case PuzzleAffectionType.SEXUALITY:
+                    AffectionId = PuzzleAffectionId.Sexuality;
+                    break;
+                case PuzzleAffectionType.FLIRTATION:
+                    AffectionId = PuzzleAffectionId.Flirtation;
+                    break;
+            }
+
             TooltipColorIndex = def.tooltipColorIndex;
             GiveConditionType = def.giveConditionType;
             DifficultyExclusive = def.difficultyExclusive;
@@ -107,26 +170,26 @@ namespace Hp2BaseMod.GameDataInfo
             // category description will now be prioritized, so I'm setting it in the defaults to emphasize
             switch (def.itemType)
             {
-                case global::ItemType.FRUIT:
-                case global::ItemType.SMOOTHIE:
+                case ItemType.FRUIT:
+                case ItemType.SMOOTHIE:
                     CategoryDescription = StringUtils.Titleize(def.affectionType.ToString());
                     break;
-                case global::ItemType.FOOD:
+                case ItemType.FOOD:
                     CategoryDescription = StringUtils.Titleize(def.foodType.ToString());
                     break;
-                case global::ItemType.SHOES:
+                case ItemType.SHOES:
                     CategoryDescription = StringUtils.Titleize(def.shoesType.ToString());
                     break;
-                case global::ItemType.UNIQUE_GIFT:
+                case ItemType.UNIQUE_GIFT:
                     CategoryDescription = StringUtils.Titleize(def.uniqueType.ToString());
                     break;
-                case global::ItemType.DATE_GIFT:
+                case ItemType.DATE_GIFT:
                     CategoryDescription = StringUtils.Titleize(def.dateGiftType.ToString());
                     break;
-                case global::ItemType.BAGGAGE:
+                case ItemType.BAGGAGE:
                     CategoryDescription = StringUtils.Titleize(def.baggageGirl.ToString());
                     break;
-                case global::ItemType.MISC:
+                case ItemType.MISC:
                     CategoryDescription = def.categoryDescription;
                     break;
             }
@@ -142,13 +205,18 @@ namespace Hp2BaseMod.GameDataInfo
                 ItemSpriteInfo = new SpriteInfoInternal(def.itemSprite, assetProvider); 
             }
         }
+#pragma warning restore HP001 // Deprecated member usage
 
         /// <inheritdoc/>
         public void SetData(ItemDefinition def, GameDefinitionProvider gameDataProvider, AssetProvider assetProvider)
         {
+            var expansion = def.GetExpansion();
+
             ValidatedSet.SetValue(ref def.notifierHeaderIndex, NotifierHeaderIndex);
-            ValidatedSet.SetValue(ref def.itemType, ItemType);
-            ValidatedSet.SetValue(ref def.affectionType, AffectionType);
+
+            if (ItemGiftHandlerId.HasValue) expansion.GiftHandler = gameDataProvider.GetItemGiftHandler(ItemGiftHandlerId);
+            if (ItemStoreHandlerId.HasValue) expansion.StoreHandler = gameDataProvider.GetItemStoreHandler(ItemStoreHandlerId);
+            if (AffectionId.HasValue) expansion.Affection = gameDataProvider.GetAffection(AffectionId);
             ValidatedSet.SetValue(ref def.tooltipColorIndex, TooltipColorIndex);
             ValidatedSet.SetValue(ref def.giveConditionType, GiveConditionType);
             ValidatedSet.SetValue(ref def.difficultyExclusive, DifficultyExclusive);

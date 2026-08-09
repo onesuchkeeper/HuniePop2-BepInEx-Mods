@@ -59,10 +59,11 @@ internal static class ExpansionAnalyzer
                 {
                     ValidateExpansionNaming(diagnostics, semanticModel, classSyntax, cancellationToken);
                 }
-                else
-                {
-                    AnalyzeMemberRuleAttributes(rules, diagnostics, semanticModel, memberSyntax, cancellationToken);
-                }
+
+                // Deprecates/Overwrites/Repurposes can now be placed on the Expansion class
+                // itself (no replacement member required) as well as on individual members, so
+                // both class declarations and ordinary members are scanned here.
+                AnalyzeMemberRuleAttributes(rules, diagnostics, semanticModel, memberSyntax, cancellationToken);
             }
         }
 
@@ -116,6 +117,12 @@ internal static class ExpansionAnalyzer
             return;
         }
 
+        // When the attribute sits directly on the Expansion class (memberSymbol is the class
+        // itself), that class *is* the containing type - unlike a member attribute, where
+        // memberSymbol.ContainingType is the class that declares the member.
+        var isClassLevelAttribute = memberSymbol is INamedTypeSymbol;
+        var containingType = isClassLevelAttribute ? (INamedTypeSymbol)memberSymbol : memberSymbol.ContainingType;
+
         foreach (var attribute in memberSymbol.GetAttributes())
         {
             if (attribute.AttributeClass == null)
@@ -144,7 +151,6 @@ internal static class ExpansionAnalyzer
                 ? attribute.ConstructorArguments[1].Value as string
                 : null;
 
-            var containingType = memberSymbol.ContainingType;
             var baseType = containingType == null ? null : ExpansionAttributeReader.GetExpansionBaseType(containingType);
 
             if (baseType == null)
@@ -160,7 +166,10 @@ internal static class ExpansionAnalyzer
                 continue;
             }
 
-            var rule = BuildMemberRule(kind, containingType.Name, memberSymbol.Name, note);
+            // A class-level attribute has no specific replacement member to point at - only
+            // the note (if any) and the Expansion type name itself.
+            var replacementMemberName = isClassLevelAttribute ? null : memberSymbol.Name;
+            var rule = BuildMemberRule(kind, containingType.Name, replacementMemberName, note);
 
             if (!rules.TryGetValue(baseType.Name, out var memberRules))
             {
@@ -192,13 +201,13 @@ internal static class ExpansionAnalyzer
                 return new MemberRule(
                     diagnosticId: DiagnosticStrings.ID_OVERWRITTEN_METHOD,
                     severity: DiagnosticSeverity.Info,
-                    messageFormat: DiagnosticStrings.MESSAGE_PREFIX_OVERWRITTEN + BuildNoteSuffix(note));
+                    messageFormat: DiagnosticStrings.MESSAGE_PREFIX_OVERWRITTEN + BuildNoteOrReferenceSuffix(expandedTypeName, replacementMemberName, note));
 
             case MemberRuleKind.Repurposes:
                 return new MemberRule(
                     diagnosticId: DiagnosticStrings.ID_REPURPOSED_FIELD,
                     severity: DiagnosticSeverity.Info,
-                    messageFormat: DiagnosticStrings.MESSAGE_REPURPOSED_FIELD + BuildNoteSuffix(note));
+                    messageFormat: DiagnosticStrings.MESSAGE_REPURPOSED_FIELD + BuildNoteOrReferenceSuffix(expandedTypeName, replacementMemberName, note));
 
             default:
                 throw new System.ArgumentOutOfRangeException(nameof(kind));
@@ -212,12 +221,23 @@ internal static class ExpansionAnalyzer
             return note;
         }
 
-        return $"Use {expandedTypeName}.{replacementMemberName} instead.";
+        return replacementMemberName == null
+            ? $"See {expandedTypeName} for details."
+            : $"Use {expandedTypeName}.{replacementMemberName} instead.";
     }
 
-    private static string BuildNoteSuffix(string note)
+    // Overwrites/Repurposes never named a replacement member the way Deprecates does, so a
+    // member-level attribute with no note keeps its original bare message. A class-level
+    // attribute with no note has nothing else pointing the reader anywhere, so it falls back to
+    // naming the Expansion type - same fallback Deprecates uses in BuildReplacementSentence.
+    private static string BuildNoteOrReferenceSuffix(string expandedTypeName, string replacementMemberName, string note)
     {
-        return string.IsNullOrEmpty(note) ? string.Empty : " " + note;
+        if (!string.IsNullOrEmpty(note))
+        {
+            return " " + note;
+        }
+
+        return replacementMemberName == null ? $" See {expandedTypeName} for details." : string.Empty;
     }
 
     private static DiagnosticDescriptor CreateDescriptor(string id, string title, string messageFormat, DiagnosticSeverity severity)

@@ -13,7 +13,7 @@ public static class FavSeason
 
     internal static void AddDataMods()
     {
-        ModInterface.AddDataMod(new FavQuestionDataMod(Questions.FavSeason, Hp2BaseMod.Utility.InsertStyle.append)
+        ModInterface.DataMod.AddDataMod(new FavQuestionDataMod(Questions.FavSeason, Hp2BaseMod.Utility.InsertStyle.append)
         {
             QuestionName = "Season",
             QuestionText = "What is your favorite [[highlight]season]?",

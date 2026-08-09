@@ -13,13 +13,7 @@ namespace Hp2BaseMod.GameDataInfo
     {
         public string TokenName;
 
-        public string ResourceName;
-
-        public string ResourceSign;
-
-        public PuzzleResourceType? ResourceType;
-
-        public PuzzleAffectionType? AffectionType;
+        public RelativeId? PuzzleResourceID;
 
         public RelativeId? EnergyDefinitionID;
 
@@ -65,10 +59,45 @@ namespace Hp2BaseMod.GameDataInfo
             : base(new RelativeId(def), InsertStyle.replace, 0)
         {
             TokenName = def.tokenName;
-            ResourceName = def.resourceName;
-            ResourceSign = def.resourceSign;
-            ResourceType = def.resourceType;
-            AffectionType = def.affectionType;
+
+#pragma warning disable HP001 // Deprecated member usage
+            switch (def.resourceType)
+            {
+                case PuzzleResourceType.AFFECTION:
+                    switch (def.affectionType)
+                    {
+                        case PuzzleAffectionType.TALENT:
+                            PuzzleResourceID = PuzzleResourceId.AffectionTalent;
+                            break;
+                        case PuzzleAffectionType.FLIRTATION:
+                            PuzzleResourceID = PuzzleResourceId.AffectionFlirtation;
+                            break;
+                        case PuzzleAffectionType.ROMANCE:
+                            PuzzleResourceID = PuzzleResourceId.AffectionRomance;
+                            break;
+                        case PuzzleAffectionType.SEXUALITY:
+                            PuzzleResourceID = PuzzleResourceId.AffectionSexuality;
+                            break;
+                    }
+                    break;
+                case PuzzleResourceType.BROKEN:
+                    PuzzleResourceID = PuzzleResourceId.Broken;
+                    break;
+                case PuzzleResourceType.MOVES:
+                    PuzzleResourceID = PuzzleResourceId.Moves;
+                    break;
+                case PuzzleResourceType.PASSION:
+                    PuzzleResourceID = PuzzleResourceId.Passion;
+                    break;
+                case PuzzleResourceType.SENTIMENT:
+                    PuzzleResourceID = PuzzleResourceId.Sentiment;
+                    break;
+                case PuzzleResourceType.STAMINA:
+                    PuzzleResourceID = PuzzleResourceId.Stamina;
+                    break;
+            }
+#pragma warning restore HP001 // Deprecated member usage
+
             Weight = def.weight;
             DifficultyWeightOffset = def.difficultyWeightOffset;
             BonusWeight = def.bonusWeight;
@@ -87,8 +116,9 @@ namespace Hp2BaseMod.GameDataInfo
         /// <inheritdoc/>
         public void SetData(TokenDefinition def, GameDefinitionProvider gameDataProvider, AssetProvider assetProvider)
         {
-            ValidatedSet.SetValue(ref def.resourceType, ResourceType);
-            ValidatedSet.SetValue(ref def.affectionType, AffectionType);
+            var exp = def.GetExpansion();
+            if (PuzzleResourceID.HasValue) exp.PuzzleResource = gameDataProvider.GetPuzzleResource(PuzzleResourceID.Value);
+
             ValidatedSet.SetValue(ref def.weight, Weight);
             ValidatedSet.SetValue(ref def.bonusWeight, BonusWeight);
             ValidatedSet.SetValue(ref def.negative, Negative);
@@ -96,8 +126,6 @@ namespace Hp2BaseMod.GameDataInfo
             ValidatedSet.SetValue(ref def.energyDefinition, gameDataProvider.GetEnergy(EnergyDefinitionID), InsertStyle);
 
             ValidatedSet.SetValue(ref def.tokenName, TokenName, InsertStyle);
-            ValidatedSet.SetValue(ref def.resourceName, ResourceName, InsertStyle);
-            ValidatedSet.SetValue(ref def.resourceSign, ResourceSign, InsertStyle);
             ValidatedSet.SetValue(ref def.difficultyWeightOffset, DifficultyWeightOffset, InsertStyle);
 
             ValidatedSet.SetValue(ref def.tokenSprite, TokenSpriteInfo, InsertStyle, gameDataProvider, assetProvider);

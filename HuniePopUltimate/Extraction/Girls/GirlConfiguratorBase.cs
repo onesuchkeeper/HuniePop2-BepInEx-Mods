@@ -79,7 +79,7 @@ public abstract class GirlConfiguratorBase : IGirlConfigurator
             ShoesItemDefIDs = new()
         };
 
-        ModInterface.AddDataMod(_mod);
+        ModInterface.DataMod.AddDataMod(_mod);
         _addGirlSexPhotos = addGirlSexPhotos;
         _setCharmSprite = setCharmSprite;
     }
@@ -190,18 +190,19 @@ public abstract class GirlConfiguratorBase : IGirlConfigurator
         string itemDescription,
         int index)
     {
-        ModInterface.AddDataMod(new ItemDataMod(itemId, InsertStyle.append)
+        ModInterface.DataMod.AddDataMod(new ItemDataMod(itemId, InsertStyle.append)
         {
             ItemName = itemName,
             CategoryDescription = ShoeCategoryDescription,
             ItemDescription = itemDescription,
-            ItemType = ItemType.SHOES,
+            ItemStoreHandlerId = Hp2BaseMod.ItemTypes.Shoe,
+            ItemGiftHandlerId = Hp2BaseMod.ItemGiftHandlerId.Shoes,
             EnergyDefinitionID = ItemEnergyId,
             GirlDefinitionID = GirlId,
             ItemSpriteInfo = new SpriteInfoSprite(assetBundle.LoadAsset<Sprite>($"{GirlAssetFileName}_shoes_{index}")),
             StoreCost = 4,
             StoreSectionPreference = true,
-            AffectionType = _mod.FavoriteAffectionType
+            AffectionId = _mod.FavoriteAffectionId
         });
 
         _mod.ShoesItemDefIDs.Add(itemId);
@@ -210,21 +211,22 @@ public abstract class GirlConfiguratorBase : IGirlConfigurator
     private void ConfigureUniqueMod(
         ItemDataMod mod)
     {
-        mod.ItemType = ItemType.UNIQUE_GIFT;
+        mod.ItemStoreHandlerId = Hp2BaseMod.ItemTypes.Unique;
+        mod.ItemGiftHandlerId = Hp2BaseMod.ItemGiftHandlerId.Uniques;
         mod.EnergyDefinitionID = ItemEnergyId;
         mod.GirlDefinitionID = GirlId;
         mod.StoreCost = 4;
         mod.ItemDescription = mod.ItemDescription.Replace(" Earn an additional +50% [[Hunie]hunie] while talking with her.", "") + " +1 [[passion]@Passion] EXP.";
         mod.CategoryDescription = UniqueCategoryDescription;
         mod.StoreSectionPreference = true;
-        mod.AffectionType = _mod.FavoriteAffectionType;
+        mod.AffectionId = _mod.FavoriteAffectionId;
 
         _mod.UniqueItemDefIDs.Add(mod.Id);
     }
 
     private void ConfigureBaggageItemMod(ItemDataMod mod, string name, string description)
     {
-        mod.ItemType = ItemType.BAGGAGE;
+        mod.ItemGiftHandlerId = Hp2BaseMod.ItemGiftHandlerId.Misc;
         mod.EnergyDefinitionID = ItemEnergyId;
         mod.GirlDefinitionID = GirlId;
         mod.CutsceneDefinitionID = mod.Id;//Just using the same Id for all 3 for now
@@ -236,7 +238,7 @@ public abstract class GirlConfiguratorBase : IGirlConfigurator
     }
 
     /// <inheritdoc/>
-    public abstract bool IsPhotoIndexNsfw(int photoIndex);
+    public abstract bool IsTextPhotoIndexNsfw(int photoIndex);
 
     /// <summary>
     /// Some girls drink during the day and have no drink rejection line.

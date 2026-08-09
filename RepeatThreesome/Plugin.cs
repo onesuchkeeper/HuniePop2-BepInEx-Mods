@@ -61,7 +61,7 @@ internal class Plugin : Hp2BaseModPlugin
 
         Constants.Init(ModId);
 
-        ModInterface.AddDataMod(new CodeDataMod(Constants.LocalCodeId, InsertStyle.replace)
+        ModInterface.DataMod.AddDataMod(new CodeDataMod(Constants.LocalCodeId, InsertStyle.replace)
         {
             CodeHash = MD5Utility.Encrypt("OH THE PLACES YOU'LL GO"),
             CodeType = CodeType.TOGGLE,
@@ -69,7 +69,7 @@ internal class Plugin : Hp2BaseModPlugin
             OffMessage = "Lovers' threesome location requirement on."
         });
 
-        ModInterface.AddDataMod(new CodeDataMod(Constants.NudeCodeId, InsertStyle.replace)
+        ModInterface.DataMod.AddDataMod(new CodeDataMod(Constants.NudeCodeId, InsertStyle.replace)
         {
             CodeHash = MD5Utility.Encrypt("BEWBS"),
             CodeType = CodeType.TOGGLE,
@@ -158,7 +158,7 @@ internal class Plugin : Hp2BaseModPlugin
             {
                 ModInterface.Log.Message($"Adding nude outfit for polly {girlId}");
 
-                ModInterface.AddDataMod(new GirlDataMod(girlId, InsertStyle.append)
+                ModInterface.DataMod.AddDataMod(new GirlDataMod(girlId, InsertStyle.append)
                 {
                     bodies = new(){
                         new GirlBodyDataMod(new RelativeId(-1,0), InsertStyle.append){
@@ -175,7 +175,7 @@ internal class Plugin : Hp2BaseModPlugin
             {
                 ModInterface.Log.Message($"Adding nude outfit for girl {girlId}");
 
-                ModInterface.AddDataMod(new GirlDataMod(girlId, InsertStyle.append)
+                ModInterface.DataMod.AddDataMod(new GirlDataMod(girlId, InsertStyle.append)
                 {
                     bodies = new(){
                         new GirlBodyDataMod(new RelativeId(-1,0), InsertStyle.append){

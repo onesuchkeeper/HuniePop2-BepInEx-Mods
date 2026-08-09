@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections;
 using System.Linq;
 using System.Reflection;
 using HarmonyLib;
@@ -17,8 +15,8 @@ namespace Hp2BaseModTweaks.CellphoneApps
     {
         [HarmonyPatch("Start")]
         [HarmonyPrefix]
-        public static void PreStart(UiCellphoneAppWardrobe __instance)
-            => ExpandedUiCellphoneAppWardrobe.Get(__instance).PreStart();
+        public static void Start(UiCellphoneAppWardrobe __instance)
+            => ExpandedUiCellphoneAppWardrobe.Get(__instance).Start_Prefix();
 
         [HarmonyPatch("OnDestroy")]
         [HarmonyPrefix]
@@ -31,9 +29,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
             => ExpandedUiCellphoneAppWardrobe.Get(__instance).Refresh();
     }
 
-    [Expansion(typeof(UiCellphoneAppWardrobe), 
-        Fields = new[]{"_selectedFileIconSlot", "_wardrobeDoll"},
-        Methods = new[]{"OnListItemSelected"})]
+    [Expansion(typeof(UiCellphoneAppWardrobe))]
     public partial class ExpandedUiCellphoneAppWardrobe
     {
         private const int GIRLS_PER_PAGE = 12;
@@ -57,7 +53,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
         private TweaksSaveGirl _girlSave;
         private int _initialWardrobeGirlId;
 
-        public void PreStart()
+        internal void Start_Prefix()
         {
             // If the initial girl is modded it is not handled properly, so default
             // and repopulate afterwards
@@ -75,10 +71,10 @@ namespace Hp2BaseModTweaks.CellphoneApps
                 slot.girlDefinition = girlFile.girlDefinition;
             }
 
-            _core.StartCoroutine(Start());
+            _core.StartCoroutine(StartRoutine());
         }
 
-        private IEnumerator Start()
+        private IEnumerator StartRoutine()
         {
             yield return new WaitForEndOfFrame();
             Canvas.ForceUpdateCanvases();
@@ -294,7 +290,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
             _expansions.Remove(_core);
         }
 
-        public void Refresh()
+        internal void Refresh()
         {
             // check valid data
             if (!_started) return;

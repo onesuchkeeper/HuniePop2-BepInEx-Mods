@@ -20,7 +20,7 @@ public static class Occupation
 
     internal static void AddDataMods()
     {
-        ModInterface.AddDataMod(new FavQuestionDataMod(Questions.Occupation, Hp2BaseMod.Utility.InsertStyle.append)
+        ModInterface.DataMod.AddDataMod(new FavQuestionDataMod(Questions.Occupation, Hp2BaseMod.Utility.InsertStyle.append)
         {
             QuestionName = "Occupation",
             QuestionText = "What do you [[highlight]do for work]?",

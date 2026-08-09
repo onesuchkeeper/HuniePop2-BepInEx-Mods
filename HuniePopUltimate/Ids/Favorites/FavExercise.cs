@@ -9,7 +9,7 @@ public static class FavExercise
 
     internal static void AddDataMods()
     {
-        ModInterface.AddDataMod(new FavQuestionDataMod(Hp2BaseMod.Favorites.Exercise, Hp2BaseMod.Utility.InsertStyle.append)
+        ModInterface.DataMod.AddDataMod(new FavQuestionDataMod(Hp2BaseMod.Favorites.Exercise, Hp2BaseMod.Utility.InsertStyle.append)
         {
             QuestionAnswers = new() {
                 {Hunting, "Hunting"},

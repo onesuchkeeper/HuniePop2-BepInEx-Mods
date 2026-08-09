@@ -21,7 +21,7 @@ public static class FavHobby
 
     internal static void AddDataMods()
     {
-        ModInterface.AddDataMod(new FavQuestionDataMod(Questions.Hobby, Hp2BaseMod.Utility.InsertStyle.append)
+        ModInterface.DataMod.AddDataMod(new FavQuestionDataMod(Questions.Hobby, Hp2BaseMod.Utility.InsertStyle.append)
         {
             QuestionName = "Hobby",
             QuestionText = "What is [[highlight]your hobby]?",

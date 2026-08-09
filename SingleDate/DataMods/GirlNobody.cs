@@ -24,7 +24,7 @@ internal static class GirlNobody
 
         var neutralExpressionId = new RelativeId(-1, (int)GirlExpressionType.NEUTRAL);
 
-        ModInterface.AddDataMod(new GirlDataMod(Girls.Nobody, InsertStyle.replace)
+        ModInterface.DataMod.AddDataMod(new GirlDataMod(Girls.Nobody, InsertStyle.replace)
         {
             GirlName = "Nobody",
             SpecialCharacter = true,

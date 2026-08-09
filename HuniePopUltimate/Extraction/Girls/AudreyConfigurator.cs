@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using Hp2BaseMod;
+using Hp2BaseMod.Extension;
 using Hp2BaseMod.GameDataInfo;
 using Hp2BaseMod.Utility;
 using UnityEngine;
@@ -88,8 +90,8 @@ public class AudreyConfigurator : GirlConfiguratorBase
     private static readonly (RelativeId, int, string name, string description)[] _baggageItemIds =
     [
         (Items.Audrey.Baggage1, 9220, "Mega Bitch", "Whenever a [[sentiment]@Sentiment] token is matched, the other girl's [[passion]@Passion] is lowered."),// Blotter Tabs
-        //(Items.Audrey.Baggage2, 9221),// Happy Pills
-        //(Items.Audrey.Baggage3, 9130),// Glow Sticks
+        (Items.Audrey.Baggage2, 9130, "Materialistic", "Audrey earns 50% [[passion]@Passion] until given a date gift."),// Happy Pills
+        (Items.Audrey.Baggage3, 9220, "Addict", "After matching a POWER token, the next match on Audrey will make her upset if it doesn't have include a POWER token.")// Glow Sticks
     ];
 
     protected override IEnumerable<(RelativeId to, RelativeId from)> LocationGreetingMap
@@ -163,46 +165,125 @@ public class AudreyConfigurator : GirlConfiguratorBase
         base.ConfigureGirl(hpBody, assetBundle, sprites, audio, items);
 
         AddSexPhotos([(Photos.Audrey10th, RelativeId.Default)]);
-        
-        ((GirlSpecialPartDataMod)hpBody.specialParts[1]).RequiredHairstyles = new List<RelativeId>()
+
+        Mod.TalkHandler = new AudreyTalkHandler();
+
+        var hairThingy = (GirlSpecialPartDataMod)hpBody.specialParts[1];
+        hairThingy.RequiredHairstyles = new List<RelativeId>()
         {
             Hp2BaseMod.Styles.Activity
         };
 
-        AddMommyIssuesBaggage();
-    }
+        hairThingy.RequiredOutfits = new List<RelativeId>()
+        {
+            Hp2BaseMod.Styles.Activity,
+        };
 
-    public override bool IsPhotoIndexNsfw(int photoIndex) => false;
+        hpBody.DefaultHairstyleId = Hp2BaseMod.Styles.Activity;
+        hpBody.DefaultOutfitId = Hp2BaseMod.Styles.Activity;
 
-    private void AddMommyIssuesBaggage()
-    {
-        var ailment = new AilmentDataMod(Items.Audrey.Baggage1, InsertStyle.append)
+        var testAudioInfo = new AudioClipInfo() { 
+            IsExternal = true, 
+            Path = Path.Combine(Plugin.ROOT_DIR, "audio","AudreyTest.wav")
+        };
+
+        ModInterface.DataMod.AddDataMod(new AilmentDataMod(Items.Audrey.Baggage1, InsertStyle.append)
         {
             ItemDefinitionID = Items.Audrey.Baggage1,
-            ScriptedAilmentFactory = (Ailment) => new RomancePoisonAilment(),
-        };
-        ModInterface.AddDataMod(ailment);
-
-        var cutscene = new CutsceneDataMod(Items.Audrey.Baggage1, InsertStyle.append)
+            ScriptedAilmentFactory = (Ailment) => new MegaBitchAilment(),
+        });
+        ModInterface.DataMod.AddDataMod(new AilmentDataMod(Items.Audrey.Baggage2, InsertStyle.append)
         {
-            Steps = new()
+            ItemDefinitionID = Items.Audrey.Baggage2,
+            ScriptedAilmentFactory = (Ailment) => new MaterialisticAilment(),
+        });
+        ModInterface.DataMod.AddDataMod(new AilmentDataMod(Items.Audrey.Baggage3, InsertStyle.append)
+        {
+            ItemDefinitionID = Items.Audrey.Baggage3,
+            ScriptedAilmentFactory = (Ailment) => new DummyAilment(),//new AddictAilment(),
+        });
+
+        var addictLines = Mod.LinesByDialogTriggerId.GetOrNew(Hp2BaseMod.DialogTriggers.Baggage3);
+
+        addictLines.Add(new DialogLineDataMod(Cutscenes.NextDialogLineId)
+        {
+            Yuri = false,
+            DialogText = "Fuck yeah!",
+            AudioClipInfo = testAudioInfo
+        });
+
+        addictLines.Add(new DialogLineDataMod(Cutscenes.NextDialogLineId)
+        {
+            Yuri = false,
+            DialogText = "Give it!",
+            AudioClipInfo = testAudioInfo
+        });
+
+        addictLines.Add(new DialogLineDataMod(Cutscenes.NextDialogLineId)
+        {
+            Yuri = false,
+            DialogText = "Woo!",
+            AudioClipInfo = testAudioInfo
+        });
+
+        AudreyBaggageCutscenes.AddDataMods();
+
+        //TEST
+        var mistSprite = new SpriteInfoSprite(assetBundle.LoadAsset<Sprite>("particle_token_energy_mist_space"));
+        var tokenSprite = new SpriteInfoSprite(assetBundle.LoadAsset<Sprite>("particle_token_energy_space"));
+        var spaceEnergyId = new RelativeId(Plugin.ModId, 0);
+        var spaceTokenId = new RelativeId(Plugin.ModId, 0);
+        var spaceResourceId = new RelativeId(Plugin.ModId, 0);
+        var spaceAffectionId = new RelativeId(Plugin.ModId, 0);
+        ModInterface.DataMod.AddDataMod(new EnergyDataMod(spaceEnergyId, InsertStyle.append)
+        {
+            TextMaterialName = "stm_talent",
+            TextColorInfo = new ColorInfo(188/255f,188/255f,215/255f,1f),
+            OutlineColorInfo = new ColorInfo(64/255f,64/255f,115/255f,1f), 
+            ShadowColorInfo = new ColorInfo(64/255f,64/255f,115/255f,1f),
+            SurgeColorInfo = new ColorInfo(140/255f,140/255f,190/255f,1f),
+            SurgeExpression = GirlExpressionType.EXCITED,
+            SurgeEyesClosed = false,
+            NegSurgeExpression = GirlExpressionType.CONFUSED,
+            BossSurgeExpression = GirlExpressionType.ANNOYED,
+            BossSurgeEyesClosed = false,
+
+            SurgeSprites = new List<Hp2BaseMod.GameDataInfo.Interface.IGameDefinitionInfo<Sprite>>()
             {
-                CutsceneStepUtility.MakeDialogTriggerInfo(Hp2BaseMod.DialogTriggers.BrokenRecovered, CutsceneStepProceedType.AUTOMATIC, CutsceneStepDollTargetType.RANDOM),
-                new FunctionalCutsceneStepInfo(completed =>
-                {
-                    ModInterface.Log.Message("TEST IM HERE IT WORKED");
-                    completed.Invoke();
-                }),
-                CutsceneStepUtility.MakeGameActionInfo(new LogicActionInfo()
-                {
-                    Type = LogicActionType.SET_FLAG,
-                    StringValue = Flags.NOTIFICATION_ITEM_ID,
-                    IntValue = ModInterface.Data.GetRuntimeDataId(GameDataType.Item, Items.Audrey.Baggage1)
-                }, CutsceneStepProceedType.AUTOMATIC),
-                CutsceneStepUtility.MakeWaitInfo(0.25f),
+                tokenSprite
             },
-            CleanUpType = (CutsceneCleanUpType)(-1)
-        };
-        ModInterface.AddDataMod(cutscene);
+
+            BurstSprites = new List<Hp2BaseMod.GameDataInfo.Interface.IGameDefinitionInfo<Sprite>>()
+            {
+                new SpriteInfoSprite(assetBundle.LoadAsset<Sprite>("particle_token_energy_burst_space"))
+            },
+            
+            TrailSprites = new List<Hp2BaseMod.GameDataInfo.Interface.IGameDefinitionInfo<Sprite>>()
+            {
+                tokenSprite, 
+                mistSprite
+            },
+
+            SplashSprites = new List<Hp2BaseMod.GameDataInfo.Interface.IGameDefinitionInfo<Sprite>>()
+            {
+                tokenSprite, 
+                mistSprite
+            },
+        });
+
+        //ModInterface.DataMod.AddData(spaceResourceId, new PuzzleResourceAffection("Space", "", spaceResourceId, spaceAffectionId));
+
+        ModInterface.DataMod.AddDataMod(new TokenDataMod(new RelativeId(-1,1), InsertStyle.append)
+        {
+            TokenName = "Inhuman",
+            //PuzzleResourceID = spaceResourceId,
+            TokenSpriteInfo = new SpriteInfoSprite(assetBundle.LoadAsset<Sprite>("token_space-1")),
+            OverSpriteInfo = new SpriteInfoSprite(assetBundle.LoadAsset<Sprite>("token_space-1_over")),
+            AltTokenSpriteInfo = new SpriteInfoSprite(assetBundle.LoadAsset<Sprite>("token_space-3")),
+            AltOverSpriteInfo = new SpriteInfoSprite(assetBundle.LoadAsset<Sprite>("token_space-3_over")),
+            EnergyDefinitionID = spaceEnergyId
+        });
     }
+
+    public override bool IsTextPhotoIndexNsfw(int photoIndex) => false;
 }

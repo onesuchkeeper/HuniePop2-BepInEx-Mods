@@ -88,6 +88,10 @@ internal partial class Plugin : Hp2BaseModPlugin
         State.On_Plugin_Awake();
 
         GirlNobody.AddDataMods();
+        ModInterface.DataMod.AddDataMod(new AilmentDataMod(Ailments.SingleDateAilment, InsertStyle.append)
+        {
+            ScriptedAilmentFactory = (ailment) => new SingleDateAilment()
+        });
         ItemSensitivitySmoothie.AddDataMods(_assetBundle);
 
         SingleDateMeetingCutscene.AddDataMods();
@@ -120,7 +124,7 @@ internal partial class Plugin : Hp2BaseModPlugin
 
         UiPrefabs.InitExternals(_assetBundle);
 
-        ModInterface.AddExp(new SensitivityExp());
+        ModInterface.DataMod.AddExp(new SensitivityExp());
 
         ModInterface.Events.PreDataMods += On_PreDataMods;
 
@@ -245,7 +249,7 @@ internal partial class Plugin : Hp2BaseModPlugin
                 Styles = defaultPairStyle
             };
 
-            ModInterface.AddDataMod(mod);
+            ModInterface.DataMod.AddDataMod(mod);
         }
     }
 
@@ -273,7 +277,7 @@ internal partial class Plugin : Hp2BaseModPlugin
             //ThumbnailWet = thumbInfo,
         };
 
-        ModInterface.AddDataMod(photoMod);
+        ModInterface.DataMod.AddDataMod(photoMod);
 
         if (hasAlts)
         {

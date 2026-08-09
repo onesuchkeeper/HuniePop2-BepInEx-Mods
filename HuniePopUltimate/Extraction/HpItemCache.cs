@@ -44,7 +44,7 @@ public class HpItemCache
                 
                 var mod = ExtractItem(def, id, itemIconSpriteLookup, textureInfoRaw);
                 _itemMods[id] = mod;
-                ModInterface.AddDataMod(mod);
+                ModInterface.DataMod.AddDataMod(mod);
             }
         } 
     }

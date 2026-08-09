@@ -10,4 +10,10 @@ public partial class ExpandedGirlSpecialPartSubDefinition
     /// no required hairstyles
     /// </summary>
     public List<RelativeId> RequiredHairstyles;
+
+    /// <summary>
+    /// Outfits required to show the special part, or empty if
+    /// no required outfits
+    /// </summary>
+    public List<RelativeId> RequiredOutfits;
 }

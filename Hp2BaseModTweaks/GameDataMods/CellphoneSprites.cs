@@ -65,7 +65,7 @@ public static class CellphoneSprites
                 ])));
         }
 
-        ModInterface.AddDataMod(mod);
+        ModInterface.DataMod.AddDataMod(mod);
     }
 
     private static Vector2 KeepRatioInBounds(Vector2 size, Vector2 bounds)

@@ -15,12 +15,12 @@ namespace HuniePopUltimate;
 
 public class HpGirlExtractor
 {
-    private static readonly Dictionary<UnityAssetPath, PuzzleAffectionType> AFFECTION_TYPES = new()
+    private static readonly Dictionary<UnityAssetPath, RelativeId> AFFECTION_TYPES = new()
     {
-        {new UnityAssetPath() { FileId = 0, PathId = 9371 }, PuzzleAffectionType.TALENT},
-        {new UnityAssetPath() { FileId = 0, PathId = 9370 }, PuzzleAffectionType.SEXUALITY},
-        {new UnityAssetPath() { FileId = 0, PathId = 9368 }, PuzzleAffectionType.ROMANCE},
-        {new UnityAssetPath() { FileId = 0, PathId = 9366 }, PuzzleAffectionType.FLIRTATION},
+        {new UnityAssetPath() { FileId = 0, PathId = 9371 }, PuzzleAffectionId.Talent},
+        {new UnityAssetPath() { FileId = 0, PathId = 9370 }, PuzzleAffectionId.Sexuality},
+        {new UnityAssetPath() { FileId = 0, PathId = 9368 }, PuzzleAffectionId.Romance},
+        {new UnityAssetPath() { FileId = 0, PathId = 9366 }, PuzzleAffectionId.Flirtation},
     };
 
     private readonly Extractor _extractor;
@@ -104,14 +104,14 @@ public class HpGirlExtractor
             && UnityAssetPath.TryExtract(mostDesiredTrait, out var favAffectionPath)
             && AFFECTION_TYPES.TryGetValue(favAffectionPath, out var favAffection))
         {
-            girlConfig.Mod.FavoriteAffectionType = favAffection;
+            girlConfig.Mod.FavoriteAffectionId = favAffection;
         }
 
         if (girlDef.TryGetValue("leastDesiredTrait", out OrderedDictionary leastDesiredTrait)
             && UnityAssetPath.TryExtract(leastDesiredTrait, out var leastFavAffectionPath)
             && AFFECTION_TYPES.TryGetValue(leastFavAffectionPath, out var leastFavAffection))
         {
-            girlConfig.Mod.LeastFavoriteAffectionType = leastFavAffection;
+            girlConfig.Mod.LeastFavoriteAffectionId = leastFavAffection;
         }
 
         girlConfig.Mod.FavoriteDialogLines = new();
@@ -702,7 +702,7 @@ public class HpGirlExtractor
             foreach (var name in fullSpriteName.OfType<string>())
             {
                 nameIndex++;
-                var isNsfw = girlConfig.IsPhotoIndexNsfw(j);
+                var isNsfw = girlConfig.IsTextPhotoIndexNsfw(j);
 
                 if (string.IsNullOrEmpty(name)
                     || !photoLookup.TryGetValue(name, out var photoDef)
@@ -745,7 +745,7 @@ public class HpGirlExtractor
                 }
             }
 
-            ModInterface.AddDataMod(photoMod);
+            ModInterface.DataMod.AddDataMod(photoMod);
         }
 
         int datePhotoIndex = 0;
@@ -801,7 +801,7 @@ public class HpGirlExtractor
             if (dialogStep != null
                 && dialogStep.TryGetValue("sceneLine", out OrderedDictionary sceneLine)
                 && sceneLine.TryGetValue("dialogLine", out OrderedDictionary dialogLine)
-                && _dialog.TryExtractDialogLine(dialogLine, file, _dialog.NextDialogLineId(), out var dialogLineMod))
+                && _dialog.TryExtractDialogLine(dialogLine, file, Cutscenes.NextDialogLineId, out var dialogLineMod))
             {
                 question.DialogLine = dialogLineMod;
             }
@@ -865,7 +865,7 @@ public class HpGirlExtractor
         if (type == 0
             && step.TryGetValue("sceneLine", out OrderedDictionary answerSceneLine)
             && answerSceneLine.TryGetValue("dialogLine", out OrderedDictionary answerDialogLine)
-            && _dialog.TryExtractDialogLine(answerDialogLine, file, _dialog.NextDialogLineId(), out answer.Response))
+            && _dialog.TryExtractDialogLine(answerDialogLine, file, Cutscenes.NextDialogLineId, out answer.Response))
         {
             return true;
         }
@@ -948,7 +948,7 @@ public class HpGirlExtractor
                             && type == 0
                             && conditionalBranchStep.TryGetValue("sceneLine", out OrderedDictionary sceneLine)
                             && sceneLine.TryGetValue("dialogLine", out OrderedDictionary dialogLine)
-                            && _dialog.TryExtractDialogLine(dialogLine, file, _dialog.NextDialogLineId(), out var dialogLineMod))
+                            && _dialog.TryExtractDialogLine(dialogLine, file, Cutscenes.NextDialogLineId, out var dialogLineMod))
                         {
                             yield return dialogLineMod;
                         }

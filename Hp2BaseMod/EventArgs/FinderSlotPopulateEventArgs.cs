@@ -61,4 +61,19 @@ public class FinderSlotPopulateEventArgs : EventArgs
         LoversPool.RemoveAll(PairHasGirl);
         AttractedPool.RemoveAll(PairHasGirl);
     }
+
+    /// <summary>
+    /// Removes all pairs with the given id from the pools
+    /// </summary>
+    public void RemovePairFromAllPools(RelativeId pairId)
+    {
+        var runtimeId = ModInterface.Data.GetRuntimeDataId(GameDataType.GirlPair, pairId);
+
+        SexPool.RemoveAll(x => x.girlPairDefinition.id == runtimeId);
+        IntroPool.RemoveAll(x => x.girlPairDefinition.id == runtimeId);
+        MeetingPool.RemoveAll(x => x.girlPairDefinition.id == runtimeId);
+        CompatiblePool.RemoveAll(x => x.girlPairDefinition.id == runtimeId);
+        LoversPool.RemoveAll(x => x.girlPairDefinition.id == runtimeId);
+        AttractedPool.RemoveAll(x => x.girlPairDefinition.id == runtimeId);
+    }
 }

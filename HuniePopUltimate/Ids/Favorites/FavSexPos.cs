@@ -9,7 +9,7 @@ public static class FavSexPos
 
     internal static void AddDataMods()
     {
-        ModInterface.AddDataMod(new FavQuestionDataMod(Hp2BaseMod.Favorites.SexPos, Hp2BaseMod.Utility.InsertStyle.append)
+        ModInterface.DataMod.AddDataMod(new FavQuestionDataMod(Hp2BaseMod.Favorites.SexPos, Hp2BaseMod.Utility.InsertStyle.append)
         {
             QuestionAnswers = new() {
                 {Grinding, "Grinding"},

@@ -1,5 +1,5 @@
+using System.Linq;
 using HarmonyLib;
-using Hp2BaseMod.Extension;
 
 namespace Hp2BaseMod;
 /*
@@ -14,21 +14,35 @@ internal static class PuzzleStatusPatch
     [HarmonyPrefix]
     private static void Clear(PuzzleStatus __instance) 
         => ExpandedPuzzleStatus.Get(__instance).Clear();
+
+    [HarmonyPatch(nameof(PuzzleStatus.EnableAilments))]
+    [HarmonyPrefix]
+    private static bool EnableAilments(PuzzleStatus __instance) 
+        => ExpandedPuzzleStatus.Get(__instance).EnableAilments_Prefix();
 }
 
-[Expansion(typeof(PuzzleStatus), Fields = new[]{"_gameOver"})]
+[Expansion(typeof(PuzzleStatus))]
 public partial class ExpandedPuzzleStatus
 {
-    public bool GameOver
-    {
-        get => _gameOver;
-        set => _gameOver = value;
-    }
-
-    public void Clear()
+    internal void Clear()
     {
         _core.girlStatusLeft?.DestroyExpansion();
         _core.girlStatusRight?.DestroyExpansion();
+    }
+
+    internal bool EnableAilments_Prefix()
+    {
+        foreach (var ailment in _girlStatusLeft.ailments.Concat(_girlStatusRight.ailments))
+        {
+            Game.Session.Ailment.GetExpansion().Enable(ailment, _girlStatusLeft);
+        }
+
+        foreach (var ailment in _girlStatusRight.ailments.Concat(_girlStatusRight.ailments))
+        {
+            Game.Session.Ailment.GetExpansion().Enable(ailment, _girlStatusRight);
+        }
+
+        return false;
     }
 
     private void OnDestroy()

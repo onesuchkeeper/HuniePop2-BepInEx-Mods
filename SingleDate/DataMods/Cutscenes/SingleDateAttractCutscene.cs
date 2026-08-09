@@ -15,13 +15,13 @@ public static class SingleDateAttractCutscene
 
     internal static void AddDataMods()
     {
-        ModInterface.AddDataMod(new CutsceneDataMod(CutsceneIds.Attract, InsertStyle.replace)
+        ModInterface.DataMod.AddDataMod(new CutsceneDataMod(CutsceneIds.Attract, InsertStyle.replace)
         {
             CleanUpType = CutsceneCleanUpType.NONE,
             Steps = new List<IGameDefinitionInfo<CutsceneStepSubDefinition>>()
             {
                 // big move dialogue
-                CutsceneStepUtility.MakeDialogTriggerInfo(Hp2BaseMod.DialogTriggers.BigMove, CutsceneStepProceedType.AUTOMATIC, CutsceneStepDollTargetType.RANDOM),
+                CutsceneStepUtility.MakeDialogTriggerInfo(Hp2BaseMod.DialogTriggers.BigMove).TargetOrientation(DollOrientationType.RIGHT),
                 CutsceneStepUtility.MakeWaitInfo(0.5f),
                 new ShowDatePhotoCutsceneStep.Info()
             }

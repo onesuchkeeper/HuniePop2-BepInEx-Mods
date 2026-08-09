@@ -9,7 +9,7 @@ public static class FavOnlineActivity
 
     internal static void AddDataMods()
     {
-        ModInterface.AddDataMod(new FavQuestionDataMod(Hp2BaseMod.Favorites.OnlineActivity, Hp2BaseMod.Utility.InsertStyle.append)
+        ModInterface.DataMod.AddDataMod(new FavQuestionDataMod(Hp2BaseMod.Favorites.OnlineActivity, Hp2BaseMod.Utility.InsertStyle.append)
         {
             QuestionAnswers = new() {
                 {Newgrounds, "NewGrounds"},

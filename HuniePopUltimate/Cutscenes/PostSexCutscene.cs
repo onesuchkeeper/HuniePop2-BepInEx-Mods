@@ -24,7 +24,7 @@ public static class PostSexCutscene
                 }),
 
                 CutsceneStepUtility.MakeBannerTextHideInfo(CutsceneStepProceedType.INSTANT),
-                CutsceneStepUtility.MakeRandomDollMoveInfo( DollPositionType.HIDDEN, CutsceneStepProceedType.INSTANT ),
+                CutsceneStepUtility.MakeDollMoveInfo(DollPositionType.HIDDEN, 1f, CutsceneStepProceedType.INSTANT).TargetOrientation(DollOrientationType.RIGHT),
                 CutsceneStepUtility.MakeToggleHeaderInfo(true, CutsceneStepProceedType.INSTANT),
                 CutsceneStepUtility.MakeHidePuzzleGridInfo(CutsceneStepProceedType.AUTOMATIC),
 
@@ -41,17 +41,17 @@ public static class PostSexCutscene
                 }),
 
                 CutsceneStepUtility.MakeToggleHeaderInfo(true, CutsceneStepProceedType.INSTANT),
-                CutsceneStepUtility.MakeRandomDollMoveInfo(DollPositionType.INNER, CutsceneStepProceedType.AUTOMATIC),
+                CutsceneStepUtility.MakeDollMoveInfo(DollPositionType.INNER).TargetOrientation(DollOrientationType.RIGHT),
 
                 CutsceneStepUtility.MakeWaitInfo(0.25f),
 
-                CutsceneStepUtility.MakeDialogTriggerInfo(DialogTriggers.PostSex, CutsceneStepProceedType.AUTOMATIC, CutsceneStepDollTargetType.RANDOM),
+                CutsceneStepUtility.MakeDialogTriggerInfo(DialogTriggers.PostSex, CutsceneStepProceedType.AUTOMATIC).TargetOrientation(DollOrientationType.RIGHT),
 
                 CutsceneStepUtility.MakeWaitInfo(0.25f),
             },
             CleanUpType = (CutsceneCleanUpType)(-1)
         };
 
-        ModInterface.AddDataMod(mod);
+        ModInterface.DataMod.AddDataMod(mod);
     }
 }

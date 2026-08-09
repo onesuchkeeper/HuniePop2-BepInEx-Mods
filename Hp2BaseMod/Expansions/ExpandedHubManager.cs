@@ -12,21 +12,19 @@ internal static class HubManager_HubStep
     [HarmonyPatch("HubStep")]
     [HarmonyPrefix]
     public static bool Prefix(HubManager __instance)
-        => ExpandedHubManager.Get(__instance).HubStep();
+        => ExpandedHubManager.Get(__instance).HubStep_Prefix();
 }
 
 /// <summary>
 /// Allows for additional non-stop date locations
 /// by overriding the HubStep where the are handled
 /// </summary>
-[Expansion(typeof(HubManager), 
-    Fields = new[]{"_hubStepType", "_hubStepIndex", "_hubBailed", "_hubSequence"},
-    Methods = new[] {"OnDialogSelected", "ChangeStepType"})]
+[Expansion(typeof(HubManager))]
 public partial class ExpandedHubManager
 {
     private LocationDefinition[] _nonStopLocs;
 
-    public bool HubStep()
+    internal bool HubStep_Prefix()
     {
         //replace nonstop step 1 and 4 to expand nonstop location options
 

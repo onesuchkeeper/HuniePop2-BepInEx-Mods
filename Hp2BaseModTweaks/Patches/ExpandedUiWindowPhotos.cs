@@ -32,7 +32,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
         [HarmonyPatch("RefreshBigPhoto")]
         [HarmonyPostfix]
         public static void RefreshBigPhoto(UiWindowPhotos __instance)
-            => ExpandedUiWindowPhotos.Get(__instance).RefreshBigPhoto();
+            => ExpandedUiWindowPhotos.Get(__instance).RefreshBigPhoto_Postfix();
 
         [HarmonyPatch("OnCloseButtonPressed")]
         [HarmonyPostfix]
@@ -40,8 +40,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
             => ExpandedUiWindowPhotos.Get(__instance).OnCloseButtonPressed();
     }
 
-    [Expansion(typeof(UiWindowPhotos), 
-        Fields = new[]{"_photoViewMode", "_singlePhoto", "_nextPhotos", "_earnedPhotos", "_bigPhotoDefinition"})]
+    [Expansion(typeof(UiWindowPhotos))]
     public partial class ExpandedUiWindowPhotos
     {
         private const int PHOTOS_PER_PAGE = 29;
@@ -125,7 +124,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
             }
         }
 
-        public void Init()
+        internal void Init()
         {
             if (f_singlePhoto.GetValue<bool>(_core))
             {
@@ -137,7 +136,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
             }
         }
 
-        public void Show()
+        internal void Show()
         {
             if ((bool)f_singlePhoto.GetValue(_core))
             {
@@ -155,7 +154,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
             }
         }
 
-        public void Refresh()
+        internal void Refresh()
         {
             var photoViewMode = f_photoViewMode.GetValue<int>(_core);
 
@@ -215,7 +214,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
             UpdateViewModeButtons();
         }
 
-        internal void RefreshBigPhoto()
+        internal void RefreshBigPhoto_Postfix()
         {
             var photoDef = f_bigPhotoDefinition.GetValue<PhotoDefinition>(_core);
             if (photoDef == null)

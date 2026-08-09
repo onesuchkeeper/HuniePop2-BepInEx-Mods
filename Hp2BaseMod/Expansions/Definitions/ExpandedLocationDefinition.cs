@@ -91,7 +91,7 @@ namespace Hp2BaseMod;
 ///   </item>
 /// </list>
 /// To apply these expansions, a <see cref="LocationDataMod"/> must be registered via 
-/// <see cref="ModInterface.AddDataMod(IGameDataMod)"/>.
+/// <see cref="ModInterface.DataMod.AddDataMod(IGameDataMod)"/>.
 /// </para>
 /// </remarks>
 [Expansion(typeof(LocationDefinition), HasModId = true)]
@@ -106,6 +106,11 @@ public partial class ExpandedLocationDefinition
     /// Times when this location can be used
     /// </summary>
     public List<ClockDaytimeType> DateTimes;
+
+    /// <summary>
+    /// If this location allows no pair to be present
+    /// </summary>
+    public bool AllowNoPair;
 
     /// <summary>
     /// If this location can be used for non-stop dates

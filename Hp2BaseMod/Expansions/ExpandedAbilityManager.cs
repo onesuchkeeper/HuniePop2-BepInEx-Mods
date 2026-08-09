@@ -51,7 +51,7 @@ public partial class ExpandedAbilityManager
     /// Returns false (skip original) if ReplacePerform is provided or PrePerform aborts.
     /// Returns true (run original) for purely data-driven abilities or when PrePerform passes.
     /// </summary>
-    public bool PerformAbility_Prefix(
+    internal bool PerformAbility_Prefix(
         AbilityDefinition abilityDef,
         bool altGirl,
         Dictionary<string, int> insertValues,
@@ -95,7 +95,7 @@ public partial class ExpandedAbilityManager
     /// <summary>
     /// Runs PostPerform using the scripted ability set during the prefix, if any.
     /// </summary>
-    public void PerformAbility_Postfix(AbilityDefinition abilityDef, bool altGirl, ref bool __result, (IScriptedAbility Scripted, Ability Ability) __state)
+    internal void PerformAbility_Postfix(AbilityDefinition abilityDef, bool altGirl, ref bool __result, (IScriptedAbility Scripted, Ability Ability) __state)
     {
         if (__state.Scripted == null) return;
         __result = __state.Scripted.PostPerform(__state.Ability, altGirl, __result);

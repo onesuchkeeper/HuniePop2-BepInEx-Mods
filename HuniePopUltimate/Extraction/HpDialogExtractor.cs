@@ -19,8 +19,6 @@ public class HpDialogExtractor
     private readonly HpAudioCache _audio;
     private readonly Dictionary<int, IGirlConfigurator> _configs;
 
-    public int DialogLineCount { get; private set; } = 0;
-
     public HpDialogExtractor(HpAudioCache audio, Dictionary<int, IGirlConfigurator> configs)
     {
         _audio = audio;
@@ -149,6 +147,7 @@ public class HpDialogExtractor
                 if (lineSets.Length > 0)
                 {
                     ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.StaminaInsufficient, lineSets[0], file);
+                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.StaminaExhausted, lineSets[0], file);
                 }
                 break;
             case "KyuSpecial":
@@ -170,7 +169,7 @@ public class HpDialogExtractor
             case "SexualSounds":
                 if (lineSets.Length > 4)
                 {
-                    // 0-3 - sex moans
+                    // 0-3 - sex moans, 4 - climax
                     ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.SexMoans1, lineSets[0], file);
                     ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.SexMoans2, lineSets[1], file);
                     ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.SexMoans3, lineSets[2], file);
@@ -185,6 +184,8 @@ public class HpDialogExtractor
                     ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.Valediction, lineSets[0], file);
                     ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.Valediction, lineSets[1], file);
                     ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.Valediction, lineSets[2], file);
+                    //in hp2 valediction is one pool, leaving out night lines from hp1 since they don't make sense
+                    //at other times of the day
                 }
                 break;
             case "QueryDuplicate":
@@ -246,7 +247,7 @@ public class HpDialogExtractor
     }
 
     private void ExtractDialogLineSet(RelativeId dtId, OrderedDictionary lineSetDef, SerializedFile file)
-        => ExtractDialogLineSet(dtId, lineSetDef, file, () => new RelativeId(Plugin.ModId, DialogLineCount++));
+        => ExtractDialogLineSet(dtId, lineSetDef, file, () => Cutscenes.NextDialogLineId);
 
     private void ExtractDialogLineSet(RelativeId dtId, OrderedDictionary lineSetDef, SerializedFile file, Func<RelativeId> getId)
     {
@@ -385,8 +386,6 @@ public class HpDialogExtractor
 
         return expression;
     }
-
-    public RelativeId NextDialogLineId() => new RelativeId(Plugin.ModId, DialogLineCount++);
 
     private static string CleanText(string input) => input.Replace('·', '▸');
 }

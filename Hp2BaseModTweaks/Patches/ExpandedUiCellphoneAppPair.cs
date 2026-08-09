@@ -13,7 +13,7 @@ internal static class UiCellphoneAppPairPatch
     [HarmonyPatch("Start")]
     [HarmonyPrefix]
     public static void Start(UiCellphoneAppPair __instance)
-        => ExpandedUiCellphoneAppPair.Get(__instance).Start();
+        => ExpandedUiCellphoneAppPair.Get(__instance).Start_Prefix();
 }
 
 [Expansion(typeof(UiCellphoneAppPair))]
@@ -21,9 +21,9 @@ public partial class ExpandedUiCellphoneAppPair
 {
     private static readonly Vector3 METER_VERT_OFFSET = new Vector3(0, 96, 0);
 
-    public void Start()
+    internal void Start_Prefix()
     {
-        if (!ModInterface.ExpDisplays.Any()) return;
+        if (!ModInterface.GameData.ExpDisplays.Any()) return;
 
         var scroll_GO = new GameObject();
         var scroll_Rect = scroll_GO.AddComponent<RectTransform>();
@@ -38,7 +38,7 @@ public partial class ExpandedUiCellphoneAppPair
         var padding_Rect = padding_GO.AddComponent<RectTransform>();
         padding_Rect.pivot = new Vector2(0.5f, 1f);
         padding_Rect.position = scroll_Rect.position;
-        padding_Rect.sizeDelta = new Vector2(1056, ((2 + ((ModInterface.ExpDisplays.Count + 1) / 2)) * 96f) + 4);
+        padding_Rect.sizeDelta = new Vector2(1056, ((2 + ((ModInterface.GameData.ExpDisplays.Count + 1) / 2)) * 96f) + 4);
 
         scroll_scroll.scrollSensitivity = 18;
         scroll_scroll.horizontal = false;
@@ -83,7 +83,7 @@ public partial class ExpandedUiCellphoneAppPair
         }
 
         var meters = new List<UiAppLevelMeter>();
-        foreach (var expDisplay in ModInterface.ExpDisplays)
+        foreach (var expDisplay in ModInterface.GameData.ExpDisplays)
         {
             var isLeft = meters.Count % 2 == 0;
 

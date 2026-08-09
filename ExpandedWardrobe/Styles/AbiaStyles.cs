@@ -18,8 +18,7 @@ internal static partial class Styles
         AddOutfit(assets, modOutfits, "jwoww", "Jwoww", "abia", _abiaBodyX + 22, _abiaBodyY - 269, false, false, false, true);
 
         //Mammaries
-
-        ModInterface.AddDataMod(new GirlDataMod(Girls.Abia, InsertStyle.append)
+        ModInterface.DataMod.AddDataMod(new GirlDataMod(Girls.Abia, InsertStyle.append)
         {
             bodies = new List<IGirlBodyDataMod>()
             {

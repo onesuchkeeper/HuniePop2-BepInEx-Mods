@@ -1,5 +1,4 @@
 ﻿using System.Linq;
-using System.Reflection;
 using HarmonyLib;
 using Hp2BaseMod;
 using Hp2BaseMod.Ui;
@@ -33,7 +32,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
         private int _pageMax;
         private LocationDefinition[] _simLocations;
 
-        public void OnStart()
+        internal void OnStart()
         {
             _simLocations = Game.Data.Locations.GetAll().Where(x => x.locationType == LocationType.SIM).ToArray();
 

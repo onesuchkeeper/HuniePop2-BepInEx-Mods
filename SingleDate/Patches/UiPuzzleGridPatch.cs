@@ -11,6 +11,6 @@ internal static class SingleDateStartPuzzlePatch
     public static void Prefix(UiPuzzleGrid __instance)
     {
         if (!State.IsSingleDate) return;
-        ExpandedUiPuzzleGrid.Get().AddModifier(new SingleDateGridModifier());
+        Game.Session.Ailment.GetExpansion().AddGlobal(Ailments.SingleDateAilment);
     }
 }

@@ -6,5 +6,4 @@ internal class TweaksSaveGirl
     public bool RandomizeStyles;
     public bool UnpairRandomStyles;
     public bool AllowNsfwRandomStyles;
-    public bool HideWings;
 }

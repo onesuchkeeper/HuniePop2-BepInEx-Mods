@@ -39,15 +39,15 @@ public class LolaConfigurator : IGirlConfigurator
     public LolaConfigurator()
     {
         _mod = new GirlDataMod(Hp2BaseMod.Girls.Lola, InsertStyle.append);
-        ModInterface.AddDataMod(_mod);
+        ModInterface.DataMod.AddDataMod(_mod);
     }
 
     public void ConfigureGirl(GirlBodyDataMod hpBody, AssetBundle assetBundle, HpSpriteCache sprites, HpAudioCache audio, HpItemCache items)
     {
         if (!Plugin.PConfig.UseHp1LolaStats.Value)
         {
-            _mod.FavoriteAffectionType = null;
-            _mod.LeastFavoriteAffectionType = null;
+            _mod.FavoriteAffectionId = null;
+            _mod.LeastFavoriteAffectionId = null;
         }
 
         if (!Plugin.PConfig.UseHp1LolaLines.Value)
@@ -109,7 +109,7 @@ public class LolaConfigurator : IGirlConfigurator
         };
     }
 
-    public bool IsPhotoIndexNsfw(int photoIndex) => photoIndex == 3;
+    public bool IsTextPhotoIndexNsfw(int photoIndex) => photoIndex == 3;
 
     public bool CleanDialogTrigger(RelativeId dialogTriggerId, out RelativeId cleanedDialogTriggerId)
     {
@@ -121,6 +121,7 @@ public class LolaConfigurator : IGirlConfigurator
 
         cleanedDialogTriggerId = dialogTriggerId;
         return dialogTriggerId != Hp2BaseMod.DialogTriggers.UniqueAccept 
+            && dialogTriggerId != Hp2BaseMod.DialogTriggers.StaminaExhausted
             && dialogTriggerId != Hp2BaseMod.DialogTriggers.ShoesAccept;
     }
 }

@@ -6,7 +6,7 @@ using Hp2BaseMod.Extension;
 namespace Hp2BaseModTweaks;
 
 [HarmonyPatch(typeof(UiAppFavAnswer))]
-public static class UiAppFavAnswerPatch
+internal static class UiAppFavAnswerPatch
 {
     private static readonly FieldInfo f_favQuestionDefinition = AccessTools.Field(typeof(UiAppFavAnswer), "_favQuestionDefinition");
 

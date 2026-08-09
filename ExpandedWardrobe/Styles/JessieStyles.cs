@@ -27,7 +27,7 @@ internal static partial class Styles
 
         //Knockers
 
-        ModInterface.AddDataMod(new GirlDataMod(Girls.Jessie, InsertStyle.append)
+        ModInterface.DataMod.AddDataMod(new GirlDataMod(Girls.Jessie, InsertStyle.append)
         {
             bodies = new List<IGirlBodyDataMod>()
             {

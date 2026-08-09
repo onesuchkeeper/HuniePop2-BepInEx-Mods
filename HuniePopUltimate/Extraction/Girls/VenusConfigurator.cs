@@ -152,5 +152,5 @@ public class VenusConfigurator : GirlConfiguratorBase
     {
     }
 
-    public override bool IsPhotoIndexNsfw(int photoIndex) => photoIndex == 2;
+    public override bool IsTextPhotoIndexNsfw(int photoIndex) => photoIndex == 2;
 }

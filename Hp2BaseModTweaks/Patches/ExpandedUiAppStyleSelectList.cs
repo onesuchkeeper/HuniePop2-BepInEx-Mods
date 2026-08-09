@@ -16,7 +16,7 @@ namespace Hp2BaseModTweaks
         [HarmonyPatch("Awake")]
         [HarmonyPostfix]
         public static void Awake(UiAppStyleSelectList __instance)
-            => ExpandedUiAppStyleSelectList.Get(__instance).Awake();
+            => ExpandedUiAppStyleSelectList.Get(__instance).Awake_Postfix();
 
         [HarmonyPatch("OnDestroy")]
         [HarmonyPrefix]
@@ -31,12 +31,10 @@ namespace Hp2BaseModTweaks
         [HarmonyPatch("OnBuyButtonPressed")]
         [HarmonyPrefix]
         public static bool OnBuyButtonPressed(UiAppStyleSelectList __instance, ButtonBehavior buttonBehavior)
-            => ExpandedUiAppStyleSelectList.Get(__instance).OnBuyButtonPressed(buttonBehavior);
+            => ExpandedUiAppStyleSelectList.Get(__instance).OnBuyButtonPressed_Prefix(buttonBehavior);
     }
 
-    [Expansion(typeof(UiAppStyleSelectList), 
-        Fields = new[]{"_origBgSize", "_playerFileGirl", "_purchaseListItem", "_selectedListItem"},
-        Methods = new[]{"OnListItemSelected", "Refresh"})]
+    [Expansion(typeof(UiAppStyleSelectList))]
     public partial class ExpandedUiAppStyleSelectList
     {
         private static readonly Vector3 ITEM_SPACING = new Vector3(0, -33.3333f, 0);
@@ -54,7 +52,7 @@ namespace Hp2BaseModTweaks
 
         private LayoutElement _layoutElement;
 
-        public void Awake()
+        internal void Awake_Postfix()
         {
             if (_initialized) return;
 
@@ -129,7 +127,7 @@ namespace Hp2BaseModTweaks
         /// Original cannot handle gaps in collections made nesisary by the indexing of parts
         /// </summary>
         /// <returns></returns>
-        public bool Refresh_Prefix()
+        internal bool Refresh_Prefix()
         {
             if (!_initialized
                 || !f_playerFileGirl.TryGetValue<PlayerFileGirl>(_core, out var playerFileGirl)
@@ -365,7 +363,7 @@ namespace Hp2BaseModTweaks
 
         private void On_ListItemSelected(UiAppSelectListItem listItem) => m_OnListItemSelected.Invoke(_core, [listItem]);
 
-        internal bool OnBuyButtonPressed(ButtonBehavior buttonBehavior)
+        internal bool OnBuyButtonPressed_Prefix(ButtonBehavior buttonBehavior)
         {
             //the original maps the index of the buy slot to a table of prices, which will not work for any type of expansion or
             //re-arranging of slots, so we have to overwrite it

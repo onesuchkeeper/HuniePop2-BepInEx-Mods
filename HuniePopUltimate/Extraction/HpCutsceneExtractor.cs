@@ -72,6 +72,26 @@ public class HpCutsceneExtractor
             }
         }
 
+        //The boolValue controls if the text box stays on screen, we need to
+        //keep them on screen for dialog options so that the player can still see it
+        var lastStep = cutsceneMod.Steps.OfType<CutsceneStepInfo>().FirstOrDefault();
+        if (lastStep != null)
+        {
+            foreach (var step in cutsceneMod.Steps.Skip(1).OfType<CutsceneStepInfo>())
+            {
+                if (step.StepType == CutsceneStepType.DIALOG_OPTIONS
+                    && lastStep.StepType == CutsceneStepType.DIALOG_LINE)
+                {
+                    lastStep.BoolValue = true;
+                }
+                lastStep = step;
+            }
+        }
+
+        // We also need the last dialog line to close
+        var lastLine = cutsceneMod.Steps.OfType<CutsceneStepInfo>().LastOrDefault(x => x.StepType == CutsceneStepType.DIALOG_LINE);
+        if (lastLine != null) lastLine.BoolValue = false;
+
         return true;
     }
 
@@ -97,11 +117,11 @@ public class HpCutsceneExtractor
                 if (dialogSceneStep.TryGetValue("sceneLine", out OrderedDictionary sceneLineDef)
                     && sceneLineDef.TryGetValue("altGirl", out bool altGirl)
                     && sceneLineDef.TryGetValue("dialogLine", out OrderedDictionary dialogLine)
-                    && _dialog.TryExtractDialogLine(dialogLine, file, _dialog.NextDialogLineId(), out var lineMod))
+                    && _dialog.TryExtractDialogLine(dialogLine, file, Cutscenes.NextDialogLineId, out var lineMod))
                 {
-                    var stepMod = CutsceneStepUtility.MakeDialogLineInfo(lineMod, false, CutsceneStepProceedType.AUTOMATIC, CutsceneStepDollTargetType.ORIENTATION_TYPE);
-                    stepMod.TargetDollOrientation = altGirl ? DollOrientationType.LEFT : DollOrientationType.RIGHT;
-                    stepMods = [stepMod];
+                    stepMods = [
+                        CutsceneStepUtility.MakeDialogLineInfo(lineMod)
+                            .TargetOrientation(altGirl ? DollOrientationType.LEFT : DollOrientationType.RIGHT)];
                     return true;
                 }
                 else
@@ -167,9 +187,8 @@ public class HpCutsceneExtractor
                     if (altGirlPath != altGirlId)
                     {
                         altGirlId = altGirlPath;
-                        stepList.Add(CutsceneStepUtility.MakeDollMoveInfo(DollPositionType.HIDDEN, DollOrientationType.LEFT, initialShow ? CutsceneStepProceedType.INSTANT : CutsceneStepProceedType.AUTOMATIC));
-                        var loadStep = CutsceneStepUtility.MakeLoadGirlInfo(Girls.FromUnityPath(altGirlId), CutsceneStepDollTargetType.ORIENTATION_TYPE, CutsceneStepProceedType.AUTOMATIC);
-                        loadStep.TargetDollOrientation = DollOrientationType.LEFT;
+                        stepList.Add(CutsceneStepUtility.MakeDollMoveInfo(DollPositionType.HIDDEN, 1f, initialShow ? CutsceneStepProceedType.INSTANT : CutsceneStepProceedType.AUTOMATIC).TargetOrientation(DollOrientationType.LEFT));
+                        var loadStep = CutsceneStepUtility.MakeLoadGirlInfo(Girls.FromUnityPath(altGirlId)).TargetOrientation(DollOrientationType.LEFT);
                         stepList.Add(loadStep);
 
                         if (!string.IsNullOrWhiteSpace(showGirlStyles) && styleEnum.MoveNext())
@@ -180,8 +199,7 @@ public class HpCutsceneExtractor
                     }
                     else if (!string.IsNullOrWhiteSpace(showGirlStyles))
                     {
-                        var loadStep = CutsceneStepUtility.MakeLoadGirlInfo(Girls.FromUnityPath(altGirlId), CutsceneStepDollTargetType.ORIENTATION_TYPE, CutsceneStepProceedType.AUTOMATIC);
-                        loadStep.TargetDollOrientation = DollOrientationType.LEFT;
+                        var loadStep = CutsceneStepUtility.MakeLoadGirlInfo(Girls.FromUnityPath(altGirlId)).TargetOrientation(DollOrientationType.LEFT);
                         stepList.Add(loadStep);
 
                         if (styleEnum.MoveNext())
@@ -191,7 +209,7 @@ public class HpCutsceneExtractor
                         }
                     }
 
-                    stepList.Add(CutsceneStepUtility.MakeDollMoveInfo(DollPositionType.INNER, DollOrientationType.LEFT, CutsceneStepProceedType.AUTOMATIC));
+                    stepList.Add(CutsceneStepUtility.MakeDollMoveInfo(DollPositionType.INNER).TargetOrientation(DollOrientationType.LEFT));
                     stepMods = stepList.ToArray();
                     return true;
                 }
@@ -203,7 +221,10 @@ public class HpCutsceneExtractor
             }
             case 4: // hide alt girl
             {
-                stepMods = [CutsceneStepUtility.MakeDollMoveInfo(DollPositionType.HIDDEN, DollOrientationType.LEFT, CutsceneStepProceedType.AUTOMATIC)];
+                stepMods = [
+                    CutsceneStepUtility.MakeDollMoveInfo(DollPositionType.HIDDEN)
+                        .TargetOrientation(DollOrientationType.LEFT)
+                ];
                 return true;
             }
             case 5: // show girl
@@ -215,8 +236,7 @@ public class HpCutsceneExtractor
 
                     if (!string.IsNullOrWhiteSpace(showGirlStyles))
                     {
-                        var loadStep = CutsceneStepUtility.MakeLoadGirlInfo(girlId, CutsceneStepDollTargetType.ORIENTATION_TYPE, CutsceneStepProceedType.AUTOMATIC);
-                        loadStep.TargetDollOrientation = DollOrientationType.RIGHT;
+                        var loadStep = CutsceneStepUtility.MakeLoadGirlInfo(girlId).TargetOrientation(DollOrientationType.RIGHT);
                         stepList.Add(loadStep);
 
                         if (styleEnum.MoveNext())
@@ -227,7 +247,7 @@ public class HpCutsceneExtractor
                     }
 
                     var initialShow = altGirlId == UnityAssetPath.NullPath;
-                    stepList.Add(CutsceneStepUtility.MakeDollMoveInfo(DollPositionType.INNER, DollOrientationType.RIGHT, initialShow ? CutsceneStepProceedType.INSTANT : CutsceneStepProceedType.INSTANT));
+                    stepList.Add(CutsceneStepUtility.MakeDollMoveInfo(DollPositionType.INNER, 1f, initialShow ? CutsceneStepProceedType.INSTANT : CutsceneStepProceedType.INSTANT).TargetOrientation(DollOrientationType.RIGHT));
                     stepMods = stepList.ToArray();
                     return true;
                 }
@@ -239,7 +259,7 @@ public class HpCutsceneExtractor
             }
             case 6: // hide girl
             {
-                stepMods = [CutsceneStepUtility.MakeDollMoveInfo(DollPositionType.HIDDEN, DollOrientationType.RIGHT, CutsceneStepProceedType.AUTOMATIC)];
+                stepMods = [CutsceneStepUtility.MakeDollMoveInfo(DollPositionType.HIDDEN).TargetOrientation( DollOrientationType.RIGHT)];
                 return true;
             }
             case 7:  ModInterface.Log.Warning("\"insert scene\" dialog step unimplemented"); break;
@@ -267,10 +287,7 @@ public class HpCutsceneExtractor
                         $"{Girls.IdToName(metGirlId)} has been added to the HunieBee!",
                         CutsceneStepNotificationType.MESSAGE,
                         2f,
-                        CutsceneStepDollTargetType.ORIENTATION_TYPE,
-                        CutsceneStepProceedType.INSTANT);
-                    showNotif.TargetDollOrientation = DollOrientationType.MIDDLE;
-
+                        CutsceneStepProceedType.INSTANT).TargetOrientation(DollOrientationType.MIDDLE);
                     stepMods = [
                         CutsceneStepUtility.MakeGameActionInfo(
                             new LogicActionInfo()

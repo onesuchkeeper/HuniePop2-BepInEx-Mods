@@ -35,8 +35,7 @@ public class AudioClipInfoVorbis : IGameDefinitionInfo<UnityEngine.AudioClip>
 
     public AudioClipInfoVorbis(AssetStudio.ResourceReader resourceReader, double startSeconds = 0.0, double durationSeconds = -1.0)
     {
-        if (resourceReader == null)
-            throw new ArgumentNullException(nameof(resourceReader));
+        if (resourceReader == null) throw new ArgumentNullException(nameof(resourceReader));
 
         _resourceReader = resourceReader;
         _debugName = $"Clip_{_allInstances.Count}";
@@ -52,6 +51,7 @@ public class AudioClipInfoVorbis : IGameDefinitionInfo<UnityEngine.AudioClip>
         }
 
         _startPos = (long)(startSeconds * _sampleRate);
+
         long endPos;
         if (durationSeconds > 0.0)
         {
@@ -64,12 +64,9 @@ public class AudioClipInfoVorbis : IGameDefinitionInfo<UnityEngine.AudioClip>
             _durationSamples = endPos - _startPos;
         }
 
-        if (_startPos < 0)
-            _startPos = 0;
-        if (endPos > _totalSamples)
-            endPos = _totalSamples;
-        if (_durationSamples > endPos - _startPos)
-            _durationSamples = endPos - _startPos;
+        if (_startPos < 0) _startPos = 0;
+        if (endPos > _totalSamples) endPos = _totalSamples;
+        if (_durationSamples > endPos - _startPos) _durationSamples = endPos - _startPos;
 
         _lastAccessTime = -999f;
         _readCallsSinceLastCleanup = 0;
@@ -94,8 +91,7 @@ public class AudioClipInfoVorbis : IGameDefinitionInfo<UnityEngine.AudioClip>
 
     private void LoadPCMCache()
     {
-        if (_pcmCache != null)
-            return;
+        if (_pcmCache != null) return;
 
         try
         {
@@ -121,16 +117,14 @@ public class AudioClipInfoVorbis : IGameDefinitionInfo<UnityEngine.AudioClip>
                 while (remainingToRead > 0)
                 {
                     int samplesRead = reader.ReadSamples(_pcmCache, totalRead, remainingToRead);
-                    if (samplesRead == 0)
-                        break; // End of stream
+                    if (samplesRead == 0) break; // End of stream
 
                     totalRead += samplesRead;
                     remainingToRead -= samplesRead;
 
                     // Safety check: don't read beyond our duration
                     long currentFilePosition = reader.SamplePosition;
-                    if (currentFilePosition >= _startPos + _durationSamples)
-                        break;
+                    if (currentFilePosition >= _startPos + _durationSamples) break;
                 }
 
                 // If we didn't read the full amount, clear the remainder
@@ -140,8 +134,9 @@ public class AudioClipInfoVorbis : IGameDefinitionInfo<UnityEngine.AudioClip>
                 }
             }
         }
-        catch (Exception ex)
+        catch (Exception e)
         {
+            ModInterface.Log.Error(e.ToString());
             _pcmCache = null;
         }
     }
@@ -237,10 +232,9 @@ public class AudioClipInfoVorbis : IGameDefinitionInfo<UnityEngine.AudioClip>
 
         foreach (var instance in _allInstances)
         {
-            if (instance._pcmCache == null)
-                continue; // Already unloaded
+            if (instance._pcmCache == null) continue; // Already unloaded
 
-            float idleTime = _lastCleanupTime - instance._lastAccessTime;
+            var idleTime = _lastCleanupTime - instance._lastAccessTime;
 
             // If has recent read activity, it's active
             if (instance._readCallsSinceLastCleanup > 0)

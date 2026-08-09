@@ -6,7 +6,7 @@ using Hp2BaseMod.Extension;
 namespace HuniePopUltimate;
 
 [HarmonyPatch(typeof(LocationManager))]
-public static class LocationManagerPatch
+internal static class LocationManagerPatch
 {
     private static readonly LocationTransitionFakeOut _fakeTransition = new();
 

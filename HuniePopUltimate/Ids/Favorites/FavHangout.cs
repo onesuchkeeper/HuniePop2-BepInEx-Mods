@@ -21,7 +21,7 @@ public static class FavHangout
 
     internal static void AddDataMods()
     {
-        ModInterface.AddDataMod(new FavQuestionDataMod(Questions.FavHangout, Hp2BaseMod.Utility.InsertStyle.append)
+        ModInterface.DataMod.AddDataMod(new FavQuestionDataMod(Questions.FavHangout, Hp2BaseMod.Utility.InsertStyle.append)
         {
             QuestionName = "Hangout",
             QuestionText = "What is your favorite [[highlight]place to hang out]?",

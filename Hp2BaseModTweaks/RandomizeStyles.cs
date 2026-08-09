@@ -12,28 +12,31 @@ public static class RandomizeStyles
     {
         var girlSave = Plugin.Save.GetCurrentFile().GetGirl(ModInterface.Data.GetDataId(GameDataType.Girl, args.Def.id));
 
-        if (girlSave.RandomizeStyles)
-        {
-            var playerFileGirl = Game.Persistence.playerFile.GetPlayerFileGirl(args.Def);
+        if (!girlSave.RandomizeStyles) return;
 
-            if (args.Loc.locationType != LocationType.DATE
-                || (playerFileGirl != null && playerFileGirl.stylesOnDates))
-            {
-                ModInterface.Log.Message($"Randomizing Style for {args.Def.girlName}");
-                args.ApplyChance = 1;
-                RandomizeStyle(args.Def.GetExpansion(),
-                    playerFileGirl,
-                    girlSave.UnpairRandomStyles,
-                    girlSave.AllowNsfwRandomStyles && (!Game.Persistence.playerData.censoredMode),
-                    out args.Style);
-            }
+        //if this is an initial meeting the cutscene could have to do with the characters are wearing, so don't
+        //randomize it
+        if (args.IsCutsceneStyle) return;
+
+        var playerFileGirl = Game.Persistence.playerFile.GetPlayerFileGirl(args.Def);
+
+        if (args.Loc.locationType == LocationType.DATE
+            && (playerFileGirl == null || !playerFileGirl.stylesOnDates))
+        {
+            return;
         }
+
+        ModInterface.Log.Message($"Randomizing Style for {args.Def.girlName}");
+        args.ApplyChance = 1;
+        RandomizeStyle(args.Def.GetExpansion(),
+            playerFileGirl,
+            girlSave.UnpairRandomStyles,
+            girlSave.AllowNsfwRandomStyles && (!Game.Persistence.playerData.censoredMode),
+            out args.Style);
     }
 
     private static void RandomizeStyle(ExpandedGirlDefinition girlExpansion, PlayerFileGirl playerFileGirl, bool unpaired, bool nsfw, out GirlStyleInfo style)
     {
-        ModInterface.Log.Message("Randomizing Styles");
-
         IEnumerable<RelativeId> hairstyles;
         IEnumerable<RelativeId> outfits;
 

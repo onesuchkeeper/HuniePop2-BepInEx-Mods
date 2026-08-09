@@ -22,6 +22,8 @@ namespace Hp2BaseMod.GameDataInfo
 
         #region Girl Info
 
+        public IGirlTalkHandler TalkHandler;
+
         public string GirlName;
 
         public string GirlNickName;
@@ -32,9 +34,9 @@ namespace Hp2BaseMod.GameDataInfo
 
         public bool? BossCharacter;
 
-        public PuzzleAffectionType? FavoriteAffectionType;
+        public RelativeId? FavoriteAffectionId;
 
-        public PuzzleAffectionType? LeastFavoriteAffectionType;
+        public RelativeId? LeastFavoriteAffectionId;
 
         public ItemShoesType? ShoesType;
 
@@ -115,11 +117,12 @@ namespace Hp2BaseMod.GameDataInfo
         {
             var girlExp = def.GetExpansion();
 
+            ValidatedSet.SetValue(ref girlExp.TalkHandler, TalkHandler, InsertStyle);
             ValidatedSet.SetValue(ref def.girlAge, GirlAge);
             ValidatedSet.SetValue(ref def.specialCharacter, SpecialCharacter);
             ValidatedSet.SetValue(ref def.bossCharacter, BossCharacter);
-            ValidatedSet.SetValue(ref def.favoriteAffectionType, FavoriteAffectionType);
-            ValidatedSet.SetValue(ref def.leastFavoriteAffectionType, LeastFavoriteAffectionType);
+            if (FavoriteAffectionId.HasValue) girlExp.FavAffection = gameDataProvider.GetAffection(FavoriteAffectionId.Value);
+            if (LeastFavoriteAffectionId.HasValue) girlExp.LeastFavAffection = gameDataProvider.GetAffection(LeastFavoriteAffectionId.Value);
             ValidatedSet.SetValue(ref def.voiceVolume, VoiceVolume);
             ValidatedSet.SetValue(ref def.sexVoiceVolume, SexVoiceVolume);
             ValidatedSet.SetValue(ref def.shoesType, ShoesType);

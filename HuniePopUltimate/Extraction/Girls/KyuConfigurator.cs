@@ -162,5 +162,5 @@ public class KyuConfigurator : GirlConfiguratorBase
         hpBody.SpecialEffect = SpecialParts.KyuWingId;
     }
 
-    public override bool IsPhotoIndexNsfw(int photoIndex) => photoIndex.InInclusiveRange(1,3);
+    public override bool IsTextPhotoIndexNsfw(int photoIndex) => photoIndex.InInclusiveRange(1,3);
 }

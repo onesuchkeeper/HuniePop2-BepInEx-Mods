@@ -5,6 +5,6 @@ namespace Hp2BaseMod;
 
 public class StoreProductsPopulateArgs
 {
-    public Dictionary<RelativeId, Category<ItemDefinition>> ItemCategories => _itemCategories;
-    private Dictionary<RelativeId, Category<ItemDefinition>> _itemCategories = new();
+    public Dictionary<RelativeId, Category<ExpandedItemDefinition>> ItemCategories => _itemCategories;
+    private Dictionary<RelativeId, Category<ExpandedItemDefinition>> _itemCategories = new();
 }

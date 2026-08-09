@@ -1,7 +1,7 @@
 using AssetStudio;
 using Hp2BaseMod;
 
-public class Logger : ILogger
+public class Logger : AssetStudio.ILogger
 {
     public bool ShowDebug { get; set; }
     public bool ShowVerbose { get; set; }

@@ -150,5 +150,5 @@ public class NikkiConfigurator : GirlConfiguratorBase
     {
     }
 
-    public override bool IsPhotoIndexNsfw(int photoIndex) => photoIndex == 3;
+    public override bool IsTextPhotoIndexNsfw(int photoIndex) => photoIndex == 3;
 }

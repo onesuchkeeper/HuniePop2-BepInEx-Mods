@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 using HarmonyLib;
+using Hp2BaseMod;
 using Hp2BaseMod.Extension;
 
 /// <summary>
@@ -9,7 +10,7 @@ using Hp2BaseMod.Extension;
 /// Game.Session.Talk.favQuestionDefinitions list
 /// </summary>
 [HarmonyPatch(typeof(PlayerFileGirl))]
-public static class PlayerFileGirl_FavAnswers
+internal static class PlayerFileGirl_FavAnswers
 {
     private static readonly FieldInfo f_learnedFavs = AccessTools.Field(typeof(PlayerFileGirl), "_learnedFavs");
 
@@ -35,5 +36,12 @@ public static class PlayerFileGirl_FavAnswers
         var learnedFavs = f_learnedFavs.GetValue<List<int>>(__instance);
         __result = !learnedFavs.Contains(questionDef.id);
         return false;
+    }
+
+    [HarmonyPatch(nameof(PlayerFileGirl.LearnBaggage))]
+    [HarmonyPrefix]
+    public static void LearnBaggage(PlayerFileGirl __instance, ItemDefinition baggageDef, ref bool __result)
+    {
+        ModInterface.Log.Message($"Learning Baggage {baggageDef.id} - {baggageDef.itemName}");
     }
 }

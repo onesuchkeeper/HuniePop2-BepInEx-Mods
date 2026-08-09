@@ -8,7 +8,7 @@ internal static class UiPuzzleAilmentSlotPatch
     [HarmonyPatch("Start")]
     [HarmonyPostfix]
     public static void Start(UiPuzzleAilmentSlot __instance)
-        => ExpandedUiPuzzleAilmentSlot.Get(__instance).Start();
+        => ExpandedUiPuzzleAilmentSlot.Get(__instance).Start_Postfix();
 
     [HarmonyPatch("OnDestroy")]
     [HarmonyPostfix]
@@ -19,11 +19,10 @@ internal static class UiPuzzleAilmentSlotPatch
 /// <summary>
 /// Handles <see cref="ExpandedItemSlotBehavior.PreShowEvent"/>.
 /// </summary>
-[Expansion(typeof(UiPuzzleAilmentSlot), 
-    Methods = new[]{"OnTooltipPreShow"})]
+[Expansion(typeof(UiPuzzleAilmentSlot))]
 public partial class ExpandedUiPuzzleAilmentSlot
 {
-    public void Start()
+    internal void Start_Postfix()
     {
         ExpandedItemSlotBehavior.Get(_core.itemSlot).PreShowEvent += OnTooltipPreShow;
     }

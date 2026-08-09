@@ -160,7 +160,7 @@ public class KyannaConfigurator : GirlConfiguratorBase
     {
     }
 
-    public override bool IsPhotoIndexNsfw(int photoIndex) => photoIndex == 2;
+    public override bool IsTextPhotoIndexNsfw(int photoIndex) => photoIndex == 2;
 
     public override bool CleanDialogTrigger(RelativeId dialogTriggerId, out RelativeId cleanedDialogTriggerId)
     {

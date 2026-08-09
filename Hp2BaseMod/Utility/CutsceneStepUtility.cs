@@ -7,9 +7,19 @@ using UnityEngine;
 
 namespace Hp2BaseMod.Utility;
 
+/// <summary>
+/// Factories for every CutsceneStepSubDefinition/CutsceneStepInfo variant.
+///
+/// Most factories default ProceedType to AUTOMATIC (by far the common case) and, for steps that carry
+/// a doll target, default it to FOCUSED. Use the fluent extensions in CutsceneStepFluentExtensions.cs
+/// (.Proceed(...), .TargetFocused(), .TargetRandom(), .TargetGirl(...), .TargetOrientation(...)) to
+/// override either when the default doesn't fit, e.g.:
+///
+///   CutsceneStepUtility.MakeDollMoveInfo(DollPositionType.LEFT).TargetGirl(someGirlId)
+/// </summary>
 public static class CutsceneStepUtility
 {
-    public static CutsceneStepSubDefinition MakeNothing(CutsceneStepProceedType proceedType)
+    public static CutsceneStepSubDefinition MakeNothing(CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepSubDefinition()
         {
@@ -18,7 +28,7 @@ public static class CutsceneStepUtility
         };
     }
 
-    public static CutsceneStepInfo MakeNothingInfo(CutsceneStepProceedType proceedType)
+    public static CutsceneStepInfo MakeNothingInfo(CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepInfo()
         {
@@ -47,7 +57,7 @@ public static class CutsceneStepUtility
         };
     }
 
-    public static CutsceneStepSubDefinition MakeBranch(IEnumerable<CutsceneBranchSubDefinition> branches, CutsceneStepProceedType proceedType)
+    public static CutsceneStepSubDefinition MakeBranch(IEnumerable<CutsceneBranchSubDefinition> branches, CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepSubDefinition()
         {
@@ -57,7 +67,7 @@ public static class CutsceneStepUtility
         };
     }
 
-    public static CutsceneStepInfo MakeBranchInfo(IEnumerable<IGameDefinitionInfo<CutsceneBranchSubDefinition>> branches, CutsceneStepProceedType proceedType)
+    public static CutsceneStepInfo MakeBranchInfo(IEnumerable<IGameDefinitionInfo<CutsceneBranchSubDefinition>> branches, CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepInfo()
         {
@@ -67,7 +77,7 @@ public static class CutsceneStepUtility
         };
     }
 
-    public static CutsceneStepSubDefinition MakeGameAction(LogicAction logicAction, CutsceneStepProceedType proceedType)
+    public static CutsceneStepSubDefinition MakeGameAction(LogicAction logicAction, CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepSubDefinition()
         {
@@ -77,7 +87,7 @@ public static class CutsceneStepUtility
         };
     }
 
-    public static CutsceneStepInfo MakeGameActionInfo(LogicActionInfo logicAction, CutsceneStepProceedType proceedType)
+    public static CutsceneStepInfo MakeGameActionInfo(LogicActionInfo logicAction, CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepInfo()
         {
@@ -87,7 +97,7 @@ public static class CutsceneStepUtility
         };
     }
 
-    public static CutsceneStepSubDefinition MakeSpecialStep(CutsceneStepSpecial cutsceneStepSpecial, CutsceneStepProceedType proceedType)
+    public static CutsceneStepSubDefinition MakeSpecialStep(CutsceneStepSpecial cutsceneStepSpecial, CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepSubDefinition()
         {
@@ -97,7 +107,7 @@ public static class CutsceneStepUtility
         };
     }
 
-    public static CutsceneStepInfo MakeSpecialStepInfo(string cutsceneStepSpecialName, CutsceneStepProceedType proceedType)
+    public static CutsceneStepInfo MakeSpecialStepInfo(string cutsceneStepSpecialName, CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepInfo()
         {
@@ -107,7 +117,8 @@ public static class CutsceneStepUtility
         };
     }
 
-    public static CutsceneStepSubDefinition MakeChangeExpression(GirlExpressionType girlExpressionType, float breathSpeed, CutsceneStepDollTargetType dollTargetType, CutsceneStepProceedType proceedType)
+    /// <summary>Change the doll's expression. Target defaults to FOCUSED; chain .TargetX() to override.</summary>
+    public static CutsceneStepSubDefinition MakeChangeExpression(GirlExpressionType girlExpressionType, float breathSpeed, CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepSubDefinition()
         {
@@ -115,12 +126,13 @@ public static class CutsceneStepUtility
             floatValue = breathSpeed,
             expressionType = girlExpressionType,
             setMood = false,
-            dollTargetType = dollTargetType,
+            dollTargetType = CutsceneStepDollTargetType.FOCUSED,
             proceedType = proceedType
         };
     }
 
-    public static CutsceneStepInfo MakeChangeExpressionInfo(GirlExpressionType girlExpressionType, float breathSpeed, CutsceneStepDollTargetType dollTargetType, CutsceneStepProceedType proceedType)
+    /// <summary>Change the doll's expression. Target defaults to FOCUSED; chain .TargetX() to override.</summary>
+    public static CutsceneStepInfo MakeChangeExpressionInfo(GirlExpressionType girlExpressionType, float breathSpeed, CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepInfo()
         {
@@ -128,12 +140,13 @@ public static class CutsceneStepUtility
             FloatValue = breathSpeed,
             ExpressionType = girlExpressionType,
             SetMood = false,
-            DollTargetType = dollTargetType,
+            DollTargetType = CutsceneStepDollTargetType.FOCUSED,
             ProceedType = proceedType
         };
     }
 
-    public static CutsceneStepSubDefinition MakeSetMood(GirlExpressionType girlExpressionType, bool eyesClosed, CutsceneStepDollTargetType dollTargetType, CutsceneStepProceedType proceedType)
+    /// <summary>Set the doll's mood. Target defaults to FOCUSED; chain .TargetX() to override.</summary>
+    public static CutsceneStepSubDefinition MakeSetMood(GirlExpressionType girlExpressionType, bool eyesClosed, CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepSubDefinition()
         {
@@ -142,11 +155,12 @@ public static class CutsceneStepUtility
             expressionType = girlExpressionType,
             setMood = true,
             proceedType = proceedType,
-            dollTargetType = dollTargetType
+            dollTargetType = CutsceneStepDollTargetType.FOCUSED
         };
     }
 
-    public static CutsceneStepInfo MakeSetMoodInfo(GirlExpressionType girlExpressionType, bool eyesClosed, CutsceneStepDollTargetType dollTargetType, CutsceneStepProceedType proceedType)
+    /// <summary>Set the doll's mood. Target defaults to FOCUSED; chain .TargetX() to override.</summary>
+    public static CutsceneStepInfo MakeSetMoodInfo(GirlExpressionType girlExpressionType, bool eyesClosed, CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepInfo()
         {
@@ -155,11 +169,12 @@ public static class CutsceneStepUtility
             ExpressionType = girlExpressionType,
             SetMood = true,
             ProceedType = proceedType,
-            DollTargetType = dollTargetType
+            DollTargetType = CutsceneStepDollTargetType.FOCUSED
         };
     }
 
-    public static CutsceneStepSubDefinition MakeDialogLine(DialogLine dialogLine, bool isDialogBoxLocked, CutsceneStepProceedType proceedType, CutsceneStepDollTargetType dollTargetType)
+    /// <summary>Show a dialog line. Target defaults to FOCUSED; chain .TargetX() to override.</summary>
+    public static CutsceneStepSubDefinition MakeDialogLine(DialogLine dialogLine, bool isDialogBoxLocked, CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepSubDefinition()
         {
@@ -167,11 +182,15 @@ public static class CutsceneStepUtility
             boolValue = isDialogBoxLocked,
             proceedType = proceedType,
             dialogLine = dialogLine,
-            dollTargetType = dollTargetType
+            dollTargetType = CutsceneStepDollTargetType.FOCUSED
         };
     }
 
-    public static CutsceneStepInfo MakeDialogLineInfo(IDialogLineDataMod dialogLine, bool isDialogBoxLocked, CutsceneStepProceedType proceedType, CutsceneStepDollTargetType dollTargetType)
+    /// <summary>
+    /// Show a dialog line. Target defaults to FOCUSED; chain .TargetGirl(...), .TargetOrientation(...),
+    /// or .TargetRandom() to override (this replaces the old per-target-type overloads).
+    /// </summary>
+    public static CutsceneStepInfo MakeDialogLineInfo(IDialogLineDataMod dialogLine, bool isDialogBoxLocked = false, CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepInfo()
         {
@@ -179,33 +198,37 @@ public static class CutsceneStepUtility
             BoolValue = isDialogBoxLocked,
             ProceedType = proceedType,
             DialogLine = dialogLine,
-            DollTargetType = dollTargetType
+            DollTargetType = CutsceneStepDollTargetType.FOCUSED
         };
     }
 
-    public static CutsceneStepSubDefinition MakeDialogTrigger(DialogTriggerDefinition dialogTriggerDefinition, CutsceneStepProceedType proceedType, CutsceneStepDollTargetType dollTargetType)
+    /// <summary>Trigger dialog. Target defaults to FOCUSED; chain .TargetX() to override.</summary>
+    public static CutsceneStepSubDefinition MakeDialogTrigger(DialogTriggerDefinition dialogTriggerDefinition, CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepSubDefinition()
         {
             stepType = CutsceneStepType.DIALOG_TRIGGER,
             dialogTriggerDefinition = dialogTriggerDefinition,
             proceedType = proceedType,
-            dollTargetType = dollTargetType
+            dollTargetType = CutsceneStepDollTargetType.FOCUSED
         };
     }
 
-    public static CutsceneStepInfo MakeDialogTriggerInfo(RelativeId dialogTriggerDefinitionId, CutsceneStepProceedType proceedType, CutsceneStepDollTargetType dollTargetType)
+    /// <summary>Trigger dialog. Target defaults to FOCUSED; chain .TargetX() to override.</summary>
+    public static CutsceneStepInfo MakeDialogTriggerInfo(RelativeId dialogTriggerDefinitionId, CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepInfo()
         {
             StepType = CutsceneStepType.DIALOG_TRIGGER,
             DialogTriggerDefinitionId = dialogTriggerDefinitionId,
             ProceedType = proceedType,
-            DollTargetType = dollTargetType
+            DollTargetType = CutsceneStepDollTargetType.FOCUSED
         };
     }
 
-    public static CutsceneStepSubDefinition MakeDoubleTrigger(bool usePuzzleFocus, DialogTriggerDefinition dialogTrigger, bool toHidden, CutsceneStepProceedType proceedType)
+    // MakeDoubleTrigger doesn't expose a doll target concept in the base game data, so it isn't part
+    // of the fluent-target group; only ProceedType gets the default treatment here.
+    public static CutsceneStepSubDefinition MakeDoubleTrigger(bool usePuzzleFocus, DialogTriggerDefinition dialogTrigger, bool toHidden, CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepSubDefinition()
         {
@@ -217,7 +240,7 @@ public static class CutsceneStepUtility
         };
     }
 
-    public static CutsceneStepInfo MakeDoubleTriggerInfo(bool usePuzzleFocus, RelativeId dialogTriggerId, bool toHidden, CutsceneStepProceedType proceedType)
+    public static CutsceneStepInfo MakeDoubleTriggerInfo(bool usePuzzleFocus, RelativeId dialogTriggerId, bool toHidden, CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepInfo()
         {
@@ -229,7 +252,7 @@ public static class CutsceneStepUtility
         };
     }
 
-    public static CutsceneStepSubDefinition MakeDialogOptions(IEnumerable<CutsceneDialogOptionSubDefinition> options, bool shuffle, CutsceneStepProceedType proceedType)
+    public static CutsceneStepSubDefinition MakeDialogOptions(IEnumerable<CutsceneDialogOptionSubDefinition> options, bool shuffle, CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepSubDefinition()
         {
@@ -240,7 +263,7 @@ public static class CutsceneStepUtility
         };
     }
 
-    public static CutsceneStepInfo MakeDialogOptionsInfo(IEnumerable<IGameDefinitionInfo<CutsceneDialogOptionSubDefinition>> options, bool shuffle, CutsceneStepProceedType proceedType)
+    public static CutsceneStepInfo MakeDialogOptionsInfo(IEnumerable<IGameDefinitionInfo<CutsceneDialogOptionSubDefinition>> options, bool shuffle, CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepInfo()
         {
@@ -251,31 +274,12 @@ public static class CutsceneStepUtility
         };
     }
 
-    public static CutsceneStepSubDefinition MakeRandomDollMove(DollPositionType positionType, CutsceneStepProceedType proceedType, float duration = 1f)
-    {
-        return new CutsceneStepSubDefinition()
-        {
-            stepType = CutsceneStepType.DOLL_MOVE,
-            dollPositionType = positionType,
-            floatValue = duration,
-            dollTargetType = CutsceneStepDollTargetType.RANDOM,
-            proceedType = proceedType
-        };
-    }
-
-    public static CutsceneStepInfo MakeRandomDollMoveInfo(DollPositionType positionType, CutsceneStepProceedType proceedType, float duration = 1f)
-    {
-        return new CutsceneStepInfo()
-        {
-            StepType = CutsceneStepType.DOLL_MOVE,
-            DollPositionType = positionType,
-            FloatValue = duration,
-            DollTargetType = CutsceneStepDollTargetType.RANDOM,
-            ProceedType = proceedType
-        };
-    }
-
-    public static CutsceneStepSubDefinition MakeFocusedDollMove(DollPositionType positionType, CutsceneStepProceedType proceedType, float duration = 1f)
+    /// <summary>
+    /// Move a doll. Target defaults to FOCUSED; chain .TargetRandom(), .TargetGirl(...), or
+    /// .TargetOrientation(...) to override (this replaces the old MakeRandomDollMove/MakeFocusedDollMove/
+    /// per-target-type overloads).
+    /// </summary>
+    public static CutsceneStepSubDefinition MakeDollMove(DollPositionType positionType, float duration = 1f, CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepSubDefinition()
         {
@@ -287,7 +291,12 @@ public static class CutsceneStepUtility
         };
     }
 
-    public static CutsceneStepInfo MakeFocusedDollMoveInfo(DollPositionType positionType, CutsceneStepProceedType proceedType, float duration = 1f)
+    /// <summary>
+    /// Move a doll. Target defaults to FOCUSED; chain .TargetRandom(), .TargetGirl(...), or
+    /// .TargetOrientation(...) to override (this replaces the old MakeRandomDollMoveInfo/
+    /// MakeFocusedDollMoveInfo/per-target-type overloads).
+    /// </summary>
+    public static CutsceneStepInfo MakeDollMoveInfo(DollPositionType positionType, float duration = 1f, CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepInfo()
         {
@@ -299,83 +308,34 @@ public static class CutsceneStepUtility
         };
     }
 
-    public static CutsceneStepSubDefinition MakeDollMove(DollPositionType positionType, GirlDefinition targetDef, CutsceneStepProceedType proceedType, float duration = 1f)
-    {
-        return new CutsceneStepSubDefinition()
-        {
-            stepType = CutsceneStepType.DOLL_MOVE,
-            dollPositionType = positionType,
-            floatValue = duration,
-            dollTargetType = CutsceneStepDollTargetType.GIRL_DEFINITION,
-            targetGirlDefinition = targetDef,
-            proceedType = proceedType
-        };
-    }
-
-    public static CutsceneStepInfo MakeDollMoveInfo(DollPositionType positionType, RelativeId targetDefId, CutsceneStepProceedType proceedType, float duration = 1f)
-    {
-        return new CutsceneStepInfo()
-        {
-            StepType = CutsceneStepType.DOLL_MOVE,
-            DollPositionType = positionType,
-            FloatValue = duration,
-            DollTargetType = CutsceneStepDollTargetType.GIRL_DEFINITION,
-            TargetGirlDefinitionId = targetDefId,
-            ProceedType = proceedType
-        };
-    }
-
-    public static CutsceneStepSubDefinition MakeDollMove(DollPositionType positionType, DollOrientationType targetOrientation, CutsceneStepProceedType proceedType, float duration = 1f)
-    {
-        return new CutsceneStepSubDefinition()
-        {
-            stepType = CutsceneStepType.DOLL_MOVE,
-            dollPositionType = positionType,
-            floatValue = duration,
-            dollTargetType = CutsceneStepDollTargetType.ORIENTATION_TYPE,
-            targetDollOrientation = targetOrientation,
-            proceedType = proceedType
-        };
-    }
-
-    public static CutsceneStepInfo MakeDollMoveInfo(DollPositionType positionType, DollOrientationType targetOrientation, CutsceneStepProceedType proceedType, float duration = 1f)
-    {
-        return new CutsceneStepInfo()
-        {
-            StepType = CutsceneStepType.DOLL_MOVE,
-            DollPositionType = positionType,
-            FloatValue = duration,
-            DollTargetType = CutsceneStepDollTargetType.ORIENTATION_TYPE,
-            TargetDollOrientation = targetOrientation,
-            ProceedType = proceedType
-        };
-    }
-
-    public static CutsceneStepSubDefinition MakeLoadGirl(GirlDefinition girlDefinition, CutsceneStepDollTargetType dollTargetType, CutsceneStepProceedType proceedType)
+    /// <summary>Load a girl into a doll slot. Slot defaults to FOCUSED; chain .TargetX() to override.</summary>
+    public static CutsceneStepSubDefinition MakeLoadGirl(GirlDefinition girlDefinition, CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepSubDefinition()
         {
             stepType = CutsceneStepType.LOAD_GIRL,
             girlDefinition = girlDefinition,
             boolValue = true,
-            dollTargetType = dollTargetType,
+            dollTargetType = CutsceneStepDollTargetType.FOCUSED,
             proceedType = proceedType
         };
     }
 
-    public static CutsceneStepInfo MakeLoadGirlInfo(RelativeId girlDefinitionId, CutsceneStepDollTargetType dollTargetType, CutsceneStepProceedType proceedType)
+    /// <summary>Load a girl into a doll slot. Slot defaults to FOCUSED; chain .TargetX() to override.</summary>
+    public static CutsceneStepInfo MakeLoadGirlInfo(RelativeId girlDefinitionId, CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepInfo()
         {
             StepType = CutsceneStepType.LOAD_GIRL,
             GirlDefinitionId = girlDefinitionId,
             BoolValue = true,
-            DollTargetType = dollTargetType,
+            DollTargetType = CutsceneStepDollTargetType.FOCUSED,
             ProceedType = proceedType
         };
     }
 
-    public static CutsceneStepSubDefinition MakeLoadGirl(GirlDefinition girlDefinition, int expression, int hairstyle, int outfit, CutsceneStepDollTargetType dollTargetType, CutsceneStepProceedType proceedType)
+    /// <summary>Load a girl with a specific look into a doll slot. Slot defaults to FOCUSED; chain .TargetX() to override.</summary>
+    public static CutsceneStepSubDefinition MakeLoadGirl(GirlDefinition girlDefinition, int expression, int hairstyle, int outfit, CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepSubDefinition()
         {
@@ -385,47 +345,50 @@ public static class CutsceneStepUtility
             expressionIndex = expression,
             hairstyleIndex = hairstyle,
             outfitIndex = outfit,
-            dollTargetType = dollTargetType,
+            dollTargetType = CutsceneStepDollTargetType.FOCUSED,
             proceedType = proceedType
         };
     }
 
-    public static CutsceneStepInfo MakeLoadGirlInfo(RelativeId girlDefinitionId, int expression, RelativeId hairstyle, RelativeId outfit, CutsceneStepDollTargetType dollTargetType, CutsceneStepProceedType proceedType)
+    /// <summary>Load a girl with a specific look into a doll slot. Slot defaults to FOCUSED; chain .TargetX() to override.</summary>
+    public static CutsceneStepInfo MakeLoadGirlInfo(RelativeId girlDefinitionId, RelativeId expression, RelativeId hairstyle, RelativeId outfit, CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepInfo()
         {
             StepType = CutsceneStepType.LOAD_GIRL,
             GirlDefinitionId = girlDefinitionId,
             BoolValue = false,
-            ExpressionIndex = expression,
+            ExpressionId = expression,
             HairstyleId = hairstyle,
             OutfitId = outfit,
-            DollTargetType = dollTargetType,
+            DollTargetType = CutsceneStepDollTargetType.FOCUSED,
             ProceedType = proceedType
         };
     }
 
-    public static CutsceneStepSubDefinition MakeUnloadGirl(CutsceneStepDollTargetType dollTargetType, CutsceneStepProceedType proceedType)
+    /// <summary>Unload a girl from a doll slot. Slot defaults to FOCUSED; chain .TargetX() to override.</summary>
+    public static CutsceneStepSubDefinition MakeUnloadGirl(CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepSubDefinition()
         {
             stepType = CutsceneStepType.LOAD_GIRL,
-            dollTargetType = dollTargetType,
+            dollTargetType = CutsceneStepDollTargetType.FOCUSED,
             proceedType = proceedType
         };
     }
 
-    public static CutsceneStepInfo MakeUnloadGirlInfo(CutsceneStepDollTargetType dollTargetType, CutsceneStepProceedType proceedType)
+    /// <summary>Unload a girl from a doll slot. Slot defaults to FOCUSED; chain .TargetX() to override.</summary>
+    public static CutsceneStepInfo MakeUnloadGirlInfo(CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepInfo()
         {
             StepType = CutsceneStepType.LOAD_GIRL,
-            DollTargetType = dollTargetType,
+            DollTargetType = CutsceneStepDollTargetType.FOCUSED,
             ProceedType = proceedType
         };
     }
 
-    public static CutsceneStepSubDefinition MakeTogglePhone(bool leftPosition_centerPosition, CutsceneStepProceedType proceedType)
+    public static CutsceneStepSubDefinition MakeTogglePhone(bool leftPosition_centerPosition, CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepSubDefinition()
         {
@@ -436,7 +399,7 @@ public static class CutsceneStepUtility
         };
     }
 
-    public static CutsceneStepInfo MakeTogglePhoneInfo(bool leftPosition_centerPosition, CutsceneStepProceedType proceedType)
+    public static CutsceneStepInfo MakeTogglePhoneInfo(bool leftPosition_centerPosition, CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepInfo()
         {
@@ -447,7 +410,7 @@ public static class CutsceneStepUtility
         };
     }
 
-    public static CutsceneStepSubDefinition MakeToggleHeader(bool leftPosition_centerPosition, CutsceneStepProceedType proceedType)
+    public static CutsceneStepSubDefinition MakeToggleHeader(bool leftPosition_centerPosition, CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepSubDefinition()
         {
@@ -458,7 +421,7 @@ public static class CutsceneStepUtility
         };
     }
 
-    public static CutsceneStepInfo MakeToggleHeaderInfo(bool leftPosition_centerPosition, CutsceneStepProceedType proceedType)
+    public static CutsceneStepInfo MakeToggleHeaderInfo(bool leftPosition_centerPosition, CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepInfo()
         {
@@ -469,7 +432,7 @@ public static class CutsceneStepUtility
         };
     }
 
-    public static CutsceneStepSubDefinition MakeTogglePhoneAndHeader(bool leftPosition_centerPosition, CutsceneStepProceedType proceedType)
+    public static CutsceneStepSubDefinition MakeTogglePhoneAndHeader(bool leftPosition_centerPosition, CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepSubDefinition()
         {
@@ -480,7 +443,7 @@ public static class CutsceneStepUtility
         };
     }
 
-    public static CutsceneStepInfo MakeTogglePhoneAndHeaderInfo(bool leftPosition_centerPosition, CutsceneStepProceedType proceedType)
+    public static CutsceneStepInfo MakeTogglePhoneAndHeaderInfo(bool leftPosition_centerPosition, CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepInfo()
         {
@@ -491,7 +454,7 @@ public static class CutsceneStepUtility
         };
     }
 
-    public static CutsceneStepSubDefinition MakeRewind(int steps, CutsceneStepProceedType proceedType)
+    public static CutsceneStepSubDefinition MakeRewind(int steps, CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepSubDefinition()
         {
@@ -501,7 +464,7 @@ public static class CutsceneStepUtility
         };
     }
 
-    public static CutsceneStepInfo MakeRewindInfo(int steps, CutsceneStepProceedType proceedType)
+    public static CutsceneStepInfo MakeRewindInfo(int steps, CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepInfo()
         {
@@ -511,7 +474,7 @@ public static class CutsceneStepUtility
         };
     }
 
-    public static CutsceneStepSubDefinition MakeShowPuzzleGrid(CutsceneStepProceedType proceedType)
+    public static CutsceneStepSubDefinition MakeShowPuzzleGrid(CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepSubDefinition()
         {
@@ -521,7 +484,7 @@ public static class CutsceneStepUtility
         };
     }
 
-    public static CutsceneStepInfo MakeShowPuzzleGridInfo(CutsceneStepProceedType proceedType)
+    public static CutsceneStepInfo MakeShowPuzzleGridInfo(CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepInfo()
         {
@@ -531,7 +494,7 @@ public static class CutsceneStepUtility
         };
     }
 
-    public static CutsceneStepSubDefinition MakeHidePuzzleGrid(CutsceneStepProceedType proceedType)
+    public static CutsceneStepSubDefinition MakeHidePuzzleGrid(CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepSubDefinition()
         {
@@ -541,7 +504,7 @@ public static class CutsceneStepUtility
         };
     }
 
-    public static CutsceneStepInfo MakeHidePuzzleGridInfo(CutsceneStepProceedType proceedType)
+    public static CutsceneStepInfo MakeHidePuzzleGridInfo(CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepInfo()
         {
@@ -551,7 +514,7 @@ public static class CutsceneStepUtility
         };
     }
 
-    public static CutsceneStepSubDefinition MakePuzzleRefocus(bool expressFailure, CutsceneStepProceedType proceedType)
+    public static CutsceneStepSubDefinition MakePuzzleRefocus(bool expressFailure, CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepSubDefinition()
         {
@@ -561,7 +524,7 @@ public static class CutsceneStepUtility
         };
     }
 
-    public static CutsceneStepInfo MakePuzzleRefocusInfo(bool expressFailure, CutsceneStepProceedType proceedType)
+    public static CutsceneStepInfo MakePuzzleRefocusInfo(bool expressFailure, CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepInfo()
         {
@@ -571,29 +534,31 @@ public static class CutsceneStepUtility
         };
     }
 
-    public static CutsceneStepSubDefinition MakeSetExhaustion(bool exhausted, CutsceneStepDollTargetType dollTargetType, CutsceneStepProceedType proceedType)
+    /// <summary>Set doll exhaustion. Target defaults to FOCUSED; chain .TargetX() to override.</summary>
+    public static CutsceneStepSubDefinition MakeSetExhaustion(bool exhausted, CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepSubDefinition()
         {
             stepType = CutsceneStepType.SET_EXHAUSTION,
             boolValue = exhausted,
-            dollTargetType = dollTargetType,
+            dollTargetType = CutsceneStepDollTargetType.FOCUSED,
             proceedType = proceedType
         };
     }
 
-    public static CutsceneStepInfo MakeSetExhaustionInfo(bool exhausted, CutsceneStepDollTargetType dollTargetType, CutsceneStepProceedType proceedType)
+    /// <summary>Set doll exhaustion. Target defaults to FOCUSED; chain .TargetX() to override.</summary>
+    public static CutsceneStepInfo MakeSetExhaustionInfo(bool exhausted, CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepInfo()
         {
             StepType = CutsceneStepType.SET_EXHAUSTION,
             BoolValue = exhausted,
-            DollTargetType = dollTargetType,
+            DollTargetType = CutsceneStepDollTargetType.FOCUSED,
             ProceedType = proceedType
         };
     }
 
-    public static CutsceneStepSubDefinition MakeSubCutsceneStraight(CutsceneDefinition cutsceneDefinition, CutsceneStepProceedType proceedType)
+    public static CutsceneStepSubDefinition MakeSubCutsceneStraight(CutsceneDefinition cutsceneDefinition, CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepSubDefinition()
         {
@@ -604,7 +569,7 @@ public static class CutsceneStepUtility
         };
     }
 
-    public static CutsceneStepInfo MakeSubCutsceneStraight(RelativeId cutsceneDefinitionId, CutsceneStepProceedType proceedType)
+    public static CutsceneStepInfo MakeSubCutsceneStraight(RelativeId cutsceneDefinitionId, CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepInfo()
         {
@@ -615,7 +580,7 @@ public static class CutsceneStepUtility
         };
     }
 
-    public static CutsceneStepSubDefinition MakeSubCutsceneGirlPair(GirlPairRelationshipType relationshipType, CutsceneStepProceedType proceedType)
+    public static CutsceneStepSubDefinition MakeSubCutsceneGirlPair(GirlPairRelationshipType relationshipType, CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepSubDefinition()
         {
@@ -626,7 +591,7 @@ public static class CutsceneStepUtility
         };
     }
 
-    public static CutsceneStepInfo MakeSubCutsceneGirlPairInfo(GirlPairRelationshipType relationshipType, CutsceneStepProceedType proceedType)
+    public static CutsceneStepInfo MakeSubCutsceneGirlPairInfo(GirlPairRelationshipType relationshipType, CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepInfo()
         {
@@ -637,7 +602,7 @@ public static class CutsceneStepUtility
         };
     }
 
-    public static CutsceneStepSubDefinition MakeSubCutsceneGirlPairRound(CutsceneStepProceedType proceedType)
+    public static CutsceneStepSubDefinition MakeSubCutsceneGirlPairRound(CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepSubDefinition()
         {
@@ -647,7 +612,7 @@ public static class CutsceneStepUtility
         };
     }
 
-    public static CutsceneStepInfo MakeSubCutsceneGirlPairRoundInfo(CutsceneStepProceedType proceedType)
+    public static CutsceneStepInfo MakeSubCutsceneGirlPairRoundInfo(CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepInfo()
         {
@@ -657,7 +622,7 @@ public static class CutsceneStepUtility
         };
     }
 
-    public static CutsceneStepSubDefinition MakeSubCutsceneInner(CutsceneStepProceedType proceedType)
+    public static CutsceneStepSubDefinition MakeSubCutsceneInner(CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepSubDefinition()
         {
@@ -667,7 +632,7 @@ public static class CutsceneStepUtility
         };
     }
 
-    public static CutsceneStepInfo MakeSubCutsceneInnerInfo(CutsceneStepProceedType proceedType)
+    public static CutsceneStepInfo MakeSubCutsceneInnerInfo(CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepInfo()
         {
@@ -677,7 +642,7 @@ public static class CutsceneStepUtility
         };
     }
 
-    public static CutsceneStepSubDefinition MakeShowWindow(bool queue, UiWindow windowPrefab, CutsceneStepProceedType proceedType)
+    public static CutsceneStepSubDefinition MakeShowWindow(bool queue, UiWindow windowPrefab, CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepSubDefinition()
         {
@@ -688,7 +653,7 @@ public static class CutsceneStepUtility
         };
     }
 
-    public static CutsceneStepInfo MakeShowWindowInfo(bool queue, string windowPrefabName, CutsceneStepProceedType proceedType)
+    public static CutsceneStepInfo MakeShowWindowInfo(bool queue, string windowPrefabName, CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepInfo()
         {
@@ -699,7 +664,7 @@ public static class CutsceneStepUtility
         };
     }
 
-    public static CutsceneStepSubDefinition MakeHideWindow(CutsceneStepProceedType proceedType)
+    public static CutsceneStepSubDefinition MakeHideWindow(CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepSubDefinition()
         {
@@ -709,7 +674,7 @@ public static class CutsceneStepUtility
         };
     }
 
-    public static CutsceneStepInfo MakeHideWindowInfo(CutsceneStepProceedType proceedType)
+    public static CutsceneStepInfo MakeHideWindowInfo(CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepInfo()
         {
@@ -719,7 +684,7 @@ public static class CutsceneStepUtility
         };
     }
 
-    public static CutsceneStepSubDefinition MakeUseCellphone(IEnumerable<int> freezeButtonIndexes, CutsceneStepProceedType proceedType)
+    public static CutsceneStepSubDefinition MakeUseCellphone(IEnumerable<int> freezeButtonIndexes, CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepSubDefinition()
         {
@@ -731,7 +696,7 @@ public static class CutsceneStepUtility
         };
     }
 
-    public static CutsceneStepInfo MakeUseCellphoneInfo(IEnumerable<int> freezeButtonIndexes, CutsceneStepProceedType proceedType)
+    public static CutsceneStepInfo MakeUseCellphoneInfo(IEnumerable<int> freezeButtonIndexes, CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepInfo()
         {
@@ -743,7 +708,7 @@ public static class CutsceneStepUtility
         };
     }
 
-    public static CutsceneStepSubDefinition MakeShakeScreen(float duration, int strength, bool fadeOut, CutsceneStepProceedType proceedType)
+    public static CutsceneStepSubDefinition MakeShakeScreen(float duration, int strength, bool fadeOut, CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepSubDefinition()
         {
@@ -755,7 +720,7 @@ public static class CutsceneStepUtility
         };
     }
 
-    public static CutsceneStepInfo MakeShakeScreenInfo(float duration, int strength, bool fadeOut, CutsceneStepProceedType proceedType)
+    public static CutsceneStepInfo MakeShakeScreenInfo(float duration, int strength, bool fadeOut, CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepInfo()
         {
@@ -767,7 +732,7 @@ public static class CutsceneStepUtility
         };
     }
 
-    public static CutsceneStepSubDefinition MakeResetDolls(CutsceneStepProceedType proceedType)
+    public static CutsceneStepSubDefinition MakeResetDolls(CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepSubDefinition()
         {
@@ -776,7 +741,7 @@ public static class CutsceneStepUtility
         };
     }
 
-    public static CutsceneStepInfo MakeResetDollsInfo(CutsceneStepProceedType proceedType)
+    public static CutsceneStepInfo MakeResetDollsInfo(CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepInfo()
         {
@@ -785,7 +750,7 @@ public static class CutsceneStepUtility
         };
     }
 
-    public static CutsceneStepSubDefinition MakeToggleOverlay(bool off_on, float duration, CutsceneStepProceedType proceedType)
+    public static CutsceneStepSubDefinition MakeToggleOverlay(bool off_on, float duration, CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepSubDefinition()
         {
@@ -796,7 +761,7 @@ public static class CutsceneStepUtility
         };
     }
 
-    public static CutsceneStepInfo MakeToggleOverlayInfo(bool off_on, float duration, CutsceneStepProceedType proceedType)
+    public static CutsceneStepInfo MakeToggleOverlayInfo(bool off_on, float duration, CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepInfo()
         {
@@ -807,7 +772,7 @@ public static class CutsceneStepUtility
         };
     }
 
-    public static CutsceneStepSubDefinition MakeSoundEffect(bool sound_voice, AudioKlip audioKlip, CutsceneStepProceedType proceedType)
+    public static CutsceneStepSubDefinition MakeSoundEffect(bool sound_voice, AudioKlip audioKlip, CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepSubDefinition()
         {
@@ -818,7 +783,7 @@ public static class CutsceneStepUtility
         };
     }
 
-    public static CutsceneStepInfo MakeSoundEffectInfo(bool sound_voice, AudioKlipInfo audioKlip, CutsceneStepProceedType proceedType)
+    public static CutsceneStepInfo MakeSoundEffectInfo(bool sound_voice, AudioKlipInfo audioKlip, CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepInfo()
         {
@@ -829,27 +794,29 @@ public static class CutsceneStepUtility
         };
     }
 
-    public static CutsceneStepSubDefinition MakeClearMood(CutsceneStepDollTargetType dollTargetType, CutsceneStepProceedType proceedType)
+    /// <summary>Clear doll mood. Target defaults to FOCUSED; chain .TargetX() to override.</summary>
+    public static CutsceneStepSubDefinition MakeClearMood(CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepSubDefinition()
         {
             stepType = CutsceneStepType.CLEAR_MOOD,
-            dollTargetType = dollTargetType,
+            dollTargetType = CutsceneStepDollTargetType.FOCUSED,
             proceedType = proceedType
         };
     }
 
-    public static CutsceneStepInfo MakeClearMoodInfo(CutsceneStepDollTargetType dollTargetType, CutsceneStepProceedType proceedType)
+    /// <summary>Clear doll mood. Target defaults to FOCUSED; chain .TargetX() to override.</summary>
+    public static CutsceneStepInfo MakeClearMoodInfo(CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepInfo()
         {
             StepType = CutsceneStepType.CLEAR_MOOD,
-            DollTargetType = dollTargetType,
+            DollTargetType = CutsceneStepDollTargetType.FOCUSED,
             ProceedType = proceedType
         };
     }
 
-    public static CutsceneStepSubDefinition MakeParticleEmitter(EmitterBehavior emitter, int effectContainer, Vector2 position, CutsceneStepProceedType proceedType)
+    public static CutsceneStepSubDefinition MakeParticleEmitter(EmitterBehavior emitter, int effectContainer, Vector2 position, CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepSubDefinition()
         {
@@ -861,7 +828,7 @@ public static class CutsceneStepUtility
         };
     }
 
-    public static CutsceneStepInfo MakeParticleEmitterInfo(string emitterName, int effectContainer, IGameDefinitionInfo<Vector2> position, CutsceneStepProceedType proceedType)
+    public static CutsceneStepInfo MakeParticleEmitterInfo(string emitterName, int effectContainer, IGameDefinitionInfo<Vector2> position, CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepInfo()
         {
@@ -873,7 +840,8 @@ public static class CutsceneStepUtility
         };
     }
 
-    public static CutsceneStepSubDefinition MakeShowNotification(string text, CutsceneStepNotificationType type, float duration, CutsceneStepDollTargetType dollTargetType, CutsceneStepProceedType proceedType)
+    /// <summary>Show a notification. Target defaults to FOCUSED; chain .TargetX() to override.</summary>
+    public static CutsceneStepSubDefinition MakeShowNotification(string text, CutsceneStepNotificationType type, float duration, CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepSubDefinition()
         {
@@ -881,12 +849,13 @@ public static class CutsceneStepUtility
             stringValue = text,
             notificationType = type,
             floatValue = duration,
-            dollTargetType = dollTargetType,
+            dollTargetType = CutsceneStepDollTargetType.FOCUSED,
             proceedType = proceedType
         };
     }
 
-    public static CutsceneStepInfo MakeShowNotificationInfo(string text, CutsceneStepNotificationType type, float duration, CutsceneStepDollTargetType dollTargetType, CutsceneStepProceedType proceedType)
+    /// <summary>Show a notification. Target defaults to FOCUSED; chain .TargetX() to override.</summary>
+    public static CutsceneStepInfo MakeShowNotificationInfo(string text, CutsceneStepNotificationType type, float duration, CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepInfo()
         {
@@ -894,12 +863,12 @@ public static class CutsceneStepUtility
             StringValue = text,
             NotificationType = type,
             FloatValue = duration,
-            DollTargetType = dollTargetType,
+            DollTargetType = CutsceneStepDollTargetType.FOCUSED,
             ProceedType = proceedType
         };
     }
 
-    public static CutsceneStepSubDefinition MakeBannerTextHide(CutsceneStepProceedType proceedType)
+    public static CutsceneStepSubDefinition MakeBannerTextHide(CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepSubDefinition()
         {
@@ -909,7 +878,7 @@ public static class CutsceneStepUtility
         };
     }
 
-    public static CutsceneStepInfo MakeBannerTextHideInfo(CutsceneStepProceedType proceedType)
+    public static CutsceneStepInfo MakeBannerTextHideInfo(CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepInfo()
         {
@@ -919,7 +888,7 @@ public static class CutsceneStepUtility
         };
     }
 
-    public static CutsceneStepSubDefinition MakeBannerText(BannerTextBehavior bannerTextBehavior, int effectsContainerIndex, CutsceneStepProceedType proceedType)
+    public static CutsceneStepSubDefinition MakeBannerText(BannerTextBehavior bannerTextBehavior, int effectsContainerIndex, CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepSubDefinition()
         {
@@ -931,7 +900,7 @@ public static class CutsceneStepUtility
         };
     }
 
-    public static CutsceneStepInfo MakeBannerTextInfo(string bannerTextBehaviorName, int effectsContainerIndex, CutsceneStepProceedType proceedType)
+    public static CutsceneStepInfo MakeBannerTextInfo(string bannerTextBehaviorName, int effectsContainerIndex, CutsceneStepProceedType proceedType = CutsceneStepProceedType.AUTOMATIC)
     {
         return new CutsceneStepInfo()
         {

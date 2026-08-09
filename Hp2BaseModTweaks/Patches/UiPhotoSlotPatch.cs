@@ -6,7 +6,7 @@ using Hp2BaseModTweaks;
 using UnityEngine;
 
 [HarmonyPatch(typeof(UiPhotoSlot))]
-public static class UiPhotoSlotPatch
+internal static class UiPhotoSlotPatch
 {
     private static readonly FieldInfo f_photoDefinition = AccessTools.Field(typeof(UiPhotoSlot), "_photoDefinition");
 

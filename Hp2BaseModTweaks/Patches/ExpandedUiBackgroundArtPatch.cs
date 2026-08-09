@@ -4,21 +4,21 @@ using UnityEngine;
 using UnityEngine.UI;
 
 [HarmonyPatch(typeof(UiBackgroundArt))]
-public static class UiBackgroundArtPatch
+internal static class UiBackgroundArtPatch
 {
     [HarmonyPatch("Start")]
     [HarmonyPostfix]
     public static void Start(UiBackgroundArt __instance)
-        => ExpandedUiBackgroundArt.Get(__instance).Start();
+        => ExpandedUiBackgroundArt.Get(__instance).Start_Postfix();
 
     [HarmonyPatch(nameof(UiBackgroundArt.Refresh))]
     [HarmonyPostfix]
     public static void Refresh(UiBackgroundArt __instance)
-    => ExpandedUiBackgroundArt.Get(__instance).Refresh();
+    => ExpandedUiBackgroundArt.Get(__instance).Refresh_Postfix();
 }
 
 [HarmonyPatch(typeof(UiBackgroundBlur))]
-public static class UiBackgroundBlurPatch
+internal static class UiBackgroundBlurPatch
 {
     [HarmonyPatch("Start")]
     [HarmonyPostfix]
@@ -35,7 +35,7 @@ public partial class ExpandedUiBackgroundArt
 {
     private Vector2 _bgRectSizeDelta;
 
-    public void Start()
+    internal void Start_Postfix()
     {
         _core.image.type = Image.Type.Simple;
         _core.image.useSpriteMesh = true;
@@ -43,7 +43,7 @@ public partial class ExpandedUiBackgroundArt
         _bgRectSizeDelta = _core.image.rectTransform.sizeDelta;
     }
 
-    internal void Refresh()
+    internal void Refresh_Postfix()
     {
         var image = _core.image;
         var sprite = image.sprite;

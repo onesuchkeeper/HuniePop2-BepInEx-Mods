@@ -3,7 +3,6 @@ using DG.Tweening;
 using HarmonyLib;
 using Hp2BaseMod.Extension;
 using Hp2BaseMod.ModGameData.Interface;
-using Hp2BaseMod.Utility;
 using UnityEngine;
 
 namespace Hp2BaseMod;
@@ -17,15 +16,10 @@ internal static class CutsceneManagerPatch
         => ExpandedCutsceneManager.Get(__instance).NextStep_Prefix(resetSequence);
 }
 
-[Expansion(typeof(CutsceneManager), 
-    Fields = new[]{"_currentStep", "_branchStepIndices", "_branches", "_audioLink", 
-        "_stepSequence", "_specialStep", "_bannerText", "_innerCutsceneDefinition",
-        "_emitterBehavior", "_targetDoll", "_checkStepProceed", "_isWaiting", "_waitDuration",
-        "_waitTimestamp", "_isOnStandby", "_standbyProceed"},
-    Methods = new[]{"NextStep"})]
+[Expansion(typeof(CutsceneManager))]
 public partial class ExpandedCutsceneManager
 {
-    public bool NextStep_Prefix(bool resetSequence)
+    internal bool NextStep_Prefix(bool resetSequence)
     {
         var branchStepIndices = f_branchStepIndices.GetValue<List<int>>(_core);
         var branches = f_branches.GetValue<List<List<CutsceneStepSubDefinition>>>(_core);
@@ -479,25 +473,25 @@ public partial class ExpandedCutsceneManager
                         NextStep(true);
                         break;
                     case CutsceneStepType.SPECIAL_STEP:
-                        f_specialStep.GetValue<CutsceneStepSpecial>(_cutsceneManager).StepCompleteEvent += OnSpecialStepComplete;
+                        f_specialStep.GetValue<CutsceneStepSpecial>(_cutsceneManager).StepCompleteEvent += OnSpecialStepComplete_Hook;
                         break;
                     case CutsceneStepType.DIALOG_LINE:
                     case CutsceneStepType.DIALOG_TRIGGER:
                         if (!currentStep.proceedBool)
                         {
-                            uiDoll.DialogLineCompleteEvent += OnDialogLineComplete;
+                            uiDoll.DialogLineCompleteEvent += OnDialogLineComplete_Hook;
                         }
                         else
                         {
-                            uiDoll.DialogBoxHiddenEvent += OnDialogBoxHidden;
+                            uiDoll.DialogBoxHiddenEvent += OnDialogBoxHidden_Hook;
                         }
 
                         break;
                     case CutsceneStepType.DOUBLE_TRIGGER:
-                        Game.Session.Dialog.DialogQueueEmptyEvent += OnDialogQueueEmpty;
+                        Game.Session.Dialog.DialogQueueEmptyEvent += OnDialogQueueEmpty_Hook;
                         break;
                     case CutsceneStepType.DIALOG_OPTIONS:
-                        Game.Session.Dialog.DialogOptionSelectedEvent += OnDialogOptionSelected;
+                        Game.Session.Dialog.DialogOptionSelectedEvent += OnDialogOptionSelected_Hook;
                         break;
                     case CutsceneStepType.DOLL_MOVE:
                     case CutsceneStepType.TOGGLE_PHONE:
@@ -505,7 +499,7 @@ public partial class ExpandedCutsceneManager
                     case CutsceneStepType.BANNER_TEXT:
                     case CutsceneStepType.PLAY_ANIMATION:
                     case CutsceneStepType.TOGGLE_OVERLAY:
-                        stepSequence.OnComplete(new TweenCallback(OnStepSequenceComplete));
+                        stepSequence.OnComplete(new TweenCallback(OnStepSequenceComplete_Hook));
                         break;
                     case CutsceneStepType.PUZZLE_REFOCUS:
                     case CutsceneStepType.SOUND_EFFECT:
@@ -518,27 +512,27 @@ public partial class ExpandedCutsceneManager
                         {
                             if (!currentStep.proceedBool)
                             {
-                                Game.Manager.Windows.WindowHiddenEvent += OnWindowHidden;
+                                Game.Manager.Windows.WindowHiddenEvent += OnWindowHidden_Hook;
                             }
                             else
                             {
-                                Game.Manager.Windows.WindowQueueCompleteEvent += OnWindowQueueComplete;
+                                Game.Manager.Windows.WindowQueueCompleteEvent += OnWindowQueueComplete_Hook;
                             }
                         }
                         else
                         {
                             if (windowShown)
                             {
-                                Game.Manager.Windows.WindowShownEvent += OnWindowShown;
+                                Game.Manager.Windows.WindowShownEvent += OnWindowShown_Hook;
                             }
                             else
                             {
-                                Game.Manager.Windows.WindowHiddenEvent += OnWindowHidden;
+                                Game.Manager.Windows.WindowHiddenEvent += OnWindowHidden_Hook;
                             }
                         }
                         break;
                     case CutsceneStepType.USE_CELLPHONE:
-                        Game.Session.gameCanvas.cellphone.ClosedEvent += OnCellphoneClosed;
+                        Game.Session.gameCanvas.cellphone.ClosedEvent += OnCellphoneClosed_Hook;
                         break;
                 }
                 break;
@@ -605,55 +599,55 @@ public partial class ExpandedCutsceneManager
         return uiDoll == null;
     }
 
-    private void OnSpecialStepComplete(CutsceneStepSpecial specialStep)
+    private void OnSpecialStepComplete_Hook(CutsceneStepSpecial specialStep)
     {
-        specialStep.StepCompleteEvent -= OnSpecialStepComplete;
+        specialStep.StepCompleteEvent -= OnSpecialStepComplete_Hook;
         NextStep(true);
     }
 
-    private void OnDialogLineComplete(UiDoll doll)
+    private void OnDialogLineComplete_Hook(UiDoll doll)
     {
-        doll.DialogLineCompleteEvent -= OnDialogLineComplete;
+        doll.DialogLineCompleteEvent -= OnDialogLineComplete_Hook;
         NextStep(true);
     }
 
-    private void OnDialogBoxHidden(UiDoll doll)
+    private void OnDialogBoxHidden_Hook(UiDoll doll)
     {
-        doll.DialogBoxHiddenEvent -= OnDialogBoxHidden;
+        doll.DialogBoxHiddenEvent -= OnDialogBoxHidden_Hook;
         NextStep(true);
     }
 
-    private void OnDialogQueueEmpty()
+    private void OnDialogQueueEmpty_Hook()
     {
-        Game.Session.Dialog.DialogQueueEmptyEvent -= OnDialogQueueEmpty;
+        Game.Session.Dialog.DialogQueueEmptyEvent -= OnDialogQueueEmpty_Hook;
         NextStep(true);
     }
 
-    private void OnCellphoneClosed()
+    private void OnCellphoneClosed_Hook()
     {
-        Game.Session.gameCanvas.cellphone.ClosedEvent -= OnCellphoneClosed;
+        Game.Session.gameCanvas.cellphone.ClosedEvent -= OnCellphoneClosed_Hook;
         NextStep(true);
     }
 
-    private void OnWindowShown()
+    private void OnWindowShown_Hook()
     {
-        Game.Manager.Windows.WindowShownEvent -= OnWindowShown;
+        Game.Manager.Windows.WindowShownEvent -= OnWindowShown_Hook;
         NextStep(true);
     }
 
-    private void OnWindowHidden()
+    private void OnWindowHidden_Hook()
     {
-        Game.Manager.Windows.WindowHiddenEvent -= OnWindowHidden;
+        Game.Manager.Windows.WindowHiddenEvent -= OnWindowHidden_Hook;
         NextStep(true);
     }
 
-    private void OnWindowQueueComplete()
+    private void OnWindowQueueComplete_Hook()
     {
-        Game.Manager.Windows.WindowQueueCompleteEvent -= OnWindowQueueComplete;
+        Game.Manager.Windows.WindowQueueCompleteEvent -= OnWindowQueueComplete_Hook;
         NextStep(true);
     }
 
-    private void OnStepSequenceComplete()
+    private void OnStepSequenceComplete_Hook()
     {
         //no unsub because it's used in a tween callback instead of an event
         var currentStep = f_currentStep.GetValue<CutsceneStepSubDefinition>(Game.Session.Cutscenes);
@@ -684,13 +678,13 @@ public partial class ExpandedCutsceneManager
         NextStep(true);
     }
 
-    private void OnDialogOptionSelected()
+    private void OnDialogOptionSelected_Hook()
     {
         var currentStep = f_currentStep.GetValue<CutsceneStepSubDefinition>(Game.Session.Cutscenes);
         var branches = f_branches.GetValue<List<List<CutsceneStepSubDefinition>>>(Game.Session.Cutscenes);
         var branchStepIndices = f_branchStepIndices.GetValue<List<int>>(Game.Session.Cutscenes);
 
-        Game.Session.Dialog.DialogOptionSelectedEvent -= OnDialogOptionSelected;
+        Game.Session.Dialog.DialogOptionSelectedEvent -= OnDialogOptionSelected_Hook;
         CutsceneStepType stepType = currentStep.stepType;
         if (stepType == CutsceneStepType.DIALOG_OPTIONS)
         {

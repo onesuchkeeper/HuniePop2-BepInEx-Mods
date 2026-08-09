@@ -58,7 +58,7 @@ namespace Hp2BaseMod.GameDataInfo
 
         public RelativeId? GirlDefinitionId;
 
-        public int? ExpressionIndex;
+        public RelativeId? ExpressionId;
 
         public RelativeId? HairstyleId;
 
@@ -116,11 +116,15 @@ namespace Hp2BaseMod.GameDataInfo
             ValidatedSet.SetValue(ref def.expressionType, ExpressionType);
             ValidatedSet.SetValue(ref def.setMood, SetMood);
             ValidatedSet.SetValue(ref def.dollPositionType, DollPositionType);
-            ValidatedSet.SetValue(ref def.expressionIndex, ExpressionIndex);
 
             if (GirlDefinitionId.HasValue)
             {
-                var girlExpansion = ModInterface.GameData.GetGirl(GirlDefinitionId).GetExpansion();
+                var girlExpansion = gameDataProvider.GetGirl(GirlDefinitionId).GetExpansion();
+
+                if (ExpressionId.HasValue)
+                {
+                    ValidatedSet.SetValue(ref def.expressionIndex, girlExpansion.ExpressionLookup[ExpressionId.Value]);
+                }
 
                 if (HairstyleId.HasValue)
                 {

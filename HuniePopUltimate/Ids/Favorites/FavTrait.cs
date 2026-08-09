@@ -9,7 +9,7 @@ public static class FavTrait
 
     internal static void AddDataMods()
     {
-        ModInterface.AddDataMod(new FavQuestionDataMod(Hp2BaseMod.Favorites.Trait, Hp2BaseMod.Utility.InsertStyle.append)
+        ModInterface.DataMod.AddDataMod(new FavQuestionDataMod(Hp2BaseMod.Favorites.Trait, Hp2BaseMod.Utility.InsertStyle.append)
         {
             QuestionAnswers = new() {
                 {Reliable, "Reliable"},

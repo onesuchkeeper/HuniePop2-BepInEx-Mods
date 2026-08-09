@@ -10,7 +10,7 @@ namespace Hp2BaseModTweaks;
 /// This just makes it 24 pixels wider
 /// </summary>
 [HarmonyPatch(typeof(UiTooltipItem))]
-public static class UiTooltipItemPatch
+internal static class UiTooltipItemPatch
 {
     private static float _northDescriptionWidth;
     private static readonly float _tooltipWidthAdd = 24;

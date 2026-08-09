@@ -61,7 +61,7 @@ public partial class Plugin : Hp2BaseModPlugin
         _instance = this;
         base.Awake();
 
-        if (ModInterface.TryGetInterModValue("OSK.BepInEx.Hp2BaseModTweaks", "AddModCredit",
+        if (ModInterface.TryGetInterModValue(TWEAKS_GUID, "AddModCredit",
             out Action<Sprite, IEnumerable<(Sprite creditButtonPath, Sprite creditButtonOverPath, string redirectLink)>> m_addModConfig))
         {
             m_addModConfig(TextureUtility.SpriteFromPng(Path.Combine(IMAGES_DIR, "CreditsLogo.png"), true), [

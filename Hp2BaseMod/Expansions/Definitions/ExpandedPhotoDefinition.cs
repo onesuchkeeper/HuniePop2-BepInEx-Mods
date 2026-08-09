@@ -81,7 +81,7 @@ namespace Hp2BaseMod;
 ///   </item>
 /// </list>
 /// To apply these expansions, a <see cref="PhotoDataMod"/> must be registered via 
-/// <see cref="ModInterface.AddDataMod(IGameDataMod)"/>.
+/// <see cref="ModInterface.DataMod.AddDataMod(IGameDataMod)"/>.
 /// </para>
 /// </remarks>
 [Expansion(typeof(PhotoDefinition), HasModId = true)]

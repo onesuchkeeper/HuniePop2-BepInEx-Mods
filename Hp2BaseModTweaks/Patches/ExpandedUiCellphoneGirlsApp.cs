@@ -38,12 +38,12 @@ namespace Hp2BaseModTweaks.CellphoneApps
         private int _pageMax;
         private PlayerFileGirl[] _playerFileGirls;
 
-        public void PreStart()
+        internal void PreStart()
         {
             _defaultSlotContainerPos = _core.girlSlotsContainer.anchoredPosition;
         }
 
-        public void PostStart()
+        internal void PostStart()
         {
             _playerFileGirls = Game.Persistence.playerFile.girls
                 .Where(x => x.playerMet && !x.girlDefinition.specialCharacter)

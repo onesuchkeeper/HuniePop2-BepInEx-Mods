@@ -12,7 +12,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
         [HarmonyPatch("Start")]
         [HarmonyPostfix]
         public static void Start(UiCellphoneAppPairs __instance)
-            => ExpandedUiCellphoneAppPairs.Get(__instance).Start();
+            => ExpandedUiCellphoneAppPairs.Get(__instance).Start_Postfix();
 
         [HarmonyPatch("OnDestroy")]
         [HarmonyPrefix]
@@ -79,12 +79,12 @@ namespace Hp2BaseModTweaks.CellphoneApps
             Refresh();
         }
 
-        public void Start()
+        internal void Start_Postfix()
         {
             Refresh();
         }
 
-        public void OnDestroy()
+        private void OnDestroy()
         {
             _previousPage?.Destroy();
             _nextPage?.Destroy();

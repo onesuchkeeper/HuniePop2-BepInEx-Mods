@@ -20,7 +20,7 @@ internal static partial class Styles
 
         //Shoulder Boulders
 
-        ModInterface.AddDataMod(new GirlDataMod(Girls.Moxie, InsertStyle.append)
+        ModInterface.DataMod.AddDataMod(new GirlDataMod(Girls.Moxie, InsertStyle.append)
         {
             bodies = new List<IGirlBodyDataMod>()
             {

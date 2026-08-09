@@ -1,20 +1,4 @@
-using HarmonyLib;
-
 namespace Hp2BaseMod;
-
-/*
-    An Ailment is a context instance for an AilmentDefinition that lives for the duration
-    of a puzzle. It is owned by a PuzzleStatusGirl.
-*/
-
-[HarmonyPatch(typeof(Ailment))]
-internal static class AilmentPatch
-{
-    [HarmonyPatch(nameof(Ailment.Enable))]
-    [HarmonyPrefix]
-    public static bool Enable(Ailment __instance) 
-        => ExpandedAilment.Get(__instance).Enable();
-}
 
 /// <summary>
 /// Holds additional runtime state for an <see cref="Ailment"/> instance.
@@ -22,39 +6,56 @@ internal static class AilmentPatch
 /// when the definition has one set.
 /// </summary>
 [Expansion(typeof(Ailment))]
+[Deprecates(nameof(Ailment.Enable), $"Use {nameof(ExpandedAilmentManager.Enable)} instead")]
+[Deprecates(nameof(Ailment.Disable), $"Use {nameof(ExpandedAilmentManager.Disable)} instead")]
 public partial class ExpandedAilment
 {
     /// <summary>
     /// The scripted behaviour attached to this ailment instance.
     /// Null if this is a purely data-driven ailment.
     /// </summary>
-    public IScriptedAilment ScriptedAilment;
+    private IScriptedAilment _scriptedAilment;
 
-    public bool Enable()
+    private void OnInit()
     {
-        var grid = Game.Session.Puzzle?.puzzleGrid;
-        if (grid == null) return true;
+        var scriptedFactory = _core.definition.GetExpansion().ScriptedAilmentFactory;
+        if (scriptedFactory == null) return;
+        _scriptedAilment = scriptedFactory(_core);
+    }
 
-        var expanded = ExpandedUiPuzzleGrid.Get(grid);
-        var status = Game.Session.Puzzle.puzzleStatus;
-        if (status == null || status.isEmpty) return true;
-
-        // Find which girl owns this ailment.
-        PuzzleStatusGirl girl = null;
-        PuzzleStatusGirl otherGirl = null;
-        if (status.girlStatusLeft.ailments.Contains(_core)) 
+    internal void Enable(ExpandedAilmentManager ailmentManager, object owner = null)
+    {
+        if (_isEnabled) return;
+        _isEnabled = true;
+        _disableCount = 0;
+        foreach(var trigger in _triggers)
         {
-            girl = status.girlStatusLeft;
-            otherGirl = status.girlStatusRight;
-        } 
-        else if (status.girlStatusRight.ailments.Contains(_core)) 
-        {
-            girl = status.girlStatusRight;
-            otherGirl = status.girlStatusLeft;
+            if (!trigger.subDefinition.defaultDisabled)
+            {
+                trigger.Enable();
+            }
         }
 
-        if (girl == null) return true;
+        _core.Enable();
+        _scriptedAilment?.Enable(ailmentManager, owner);
+    }
 
-        return expanded.CanEnableAilment(_core, girl, otherGirl);
+    internal void Disable()
+    {
+        if (!_isEnabled) return;
+        _isEnabled = false;
+
+        if (!_definition.persistentFlags)
+        {
+            _flags.Clear();
+        }
+
+        foreach (var trigger in _triggers)
+        {
+            trigger.Disable();
+        }
+
+        _core.Disable();
+        _scriptedAilment?.Disable();
     }
 }

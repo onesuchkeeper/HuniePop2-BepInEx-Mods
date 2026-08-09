@@ -3,7 +3,7 @@ using HarmonyLib;
 using UnityEngine;
 
 [HarmonyPatch(typeof(UiAppFinderSlot))]
-public static class UiAppFinderSlotPatch
+internal static class UiAppFinderSlotPatch
 {
     [HarmonyPatch(nameof(UiAppFinderSlot.Populate))]
     [HarmonyPostfix]

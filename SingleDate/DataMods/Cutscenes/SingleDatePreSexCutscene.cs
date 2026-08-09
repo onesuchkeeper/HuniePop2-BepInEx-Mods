@@ -9,13 +9,13 @@ public static class SingleDatePreSexCutscene
 {
     internal static void AddDataMods()
     {
-        ModInterface.AddDataMod(new CutsceneDataMod(CutsceneIds.PreSex, InsertStyle.replace)
+        ModInterface.DataMod.AddDataMod(new CutsceneDataMod(CutsceneIds.PreSex, InsertStyle.replace)
         {
             CleanUpType = CutsceneCleanUpType.NONE,
             Steps = new List<IGameDefinitionInfo<CutsceneStepSubDefinition>>()
             {
                 //moan
-                CutsceneStepUtility.MakeDialogTriggerInfo(Hp2BaseMod.DialogTriggers.SexMoans1, CutsceneStepProceedType.AUTOMATIC, CutsceneStepDollTargetType.RANDOM),
+                CutsceneStepUtility.MakeDialogTriggerInfo(Hp2BaseMod.DialogTriggers.SexMoans1).TargetOrientation(DollOrientationType.RIGHT),
             }
         });
     }

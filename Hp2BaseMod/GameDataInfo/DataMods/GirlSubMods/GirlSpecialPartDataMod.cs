@@ -27,6 +27,11 @@ namespace Hp2BaseMod.GameDataInfo
         /// </summary>
         public List<RelativeId> RequiredHairstyles;
 
+        /// <summary>
+        /// Outfits required to be present for part to be shown. If empty will show for all styles
+        /// </summary>
+        public List<RelativeId> RequiredOutfits;
+
         public GirlSpecialPartDataMod(RelativeId id, InsertStyle insertStyle, int loadPriority = 0)
             : base(id, insertStyle, loadPriority)
         {
@@ -58,6 +63,7 @@ namespace Hp2BaseMod.GameDataInfo
             var expansion = def.GetExpansion();
 
             ValidatedSet.SetValue(ref expansion.RequiredHairstyles, RequiredHairstyles, InsertStyle);
+            ValidatedSet.SetValue(ref expansion.RequiredOutfits, RequiredOutfits, InsertStyle);
 
             ValidatedSet.SetValue(ref def.sortingPartType, SortingPartType);
             ValidatedSet.SetValue(ref def.animType, AnimType);

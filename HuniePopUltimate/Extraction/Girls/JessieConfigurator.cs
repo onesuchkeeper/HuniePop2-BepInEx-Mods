@@ -40,15 +40,26 @@ public class JessieConfigurator : IGirlConfigurator
     public JessieConfigurator()
     {
         _mod = new GirlDataMod(Hp2BaseMod.Girls.Jessie, InsertStyle.append);
-        ModInterface.AddDataMod(_mod);
+        ModInterface.DataMod.AddDataMod(_mod);
     }
 
     public  void ConfigureGirl(GirlBodyDataMod hpBody, AssetBundle assetBundle, HpSpriteCache sprites, HpAudioCache audio, HpItemCache items)
     {
+        var cowboyHat = (GirlSpecialPartDataMod)hpBody.specialParts[0];
+        cowboyHat.RequiredHairstyles = new List<RelativeId>()
+        {
+            Hp2BaseMod.Styles.Relaxing
+        };
+
+        cowboyHat.RequiredOutfits = new List<RelativeId>()
+        {
+            Hp2BaseMod.Styles.Relaxing,
+        };
+
         if (!Plugin.PConfig.UseHp1JessieStats.Value)
         {
-            _mod.FavoriteAffectionType = null;
-            _mod.LeastFavoriteAffectionType = null;
+            _mod.FavoriteAffectionId = null;
+            _mod.LeastFavoriteAffectionId = null;
         }
 
         if (!Plugin.PConfig.UseHp1JessieLines.Value)
@@ -68,10 +79,6 @@ public class JessieConfigurator : IGirlConfigurator
             {Questions.FavColour, FavColour.Orange},
             {Questions.FavSeason, FavSeason.Winter},
             {Questions.FavHangout, FavHangout.Bar},
-        };
-
-        ((GirlSpecialPartDataMod)hpBody.specialParts[0]).RequiredHairstyles = new List<RelativeId>(){
-            Hp2BaseMod.Styles.Relaxing
         };
 
         //the celebrity front hair has a different anchor point
@@ -128,7 +135,7 @@ public class JessieConfigurator : IGirlConfigurator
         rejectSmoothie.AddRange(rejectFood);
     }
 
-    public  bool IsPhotoIndexNsfw(int photoIndex) => photoIndex.InInclusiveRange(2,3);
+    public  bool IsTextPhotoIndexNsfw(int photoIndex) => photoIndex.InInclusiveRange(2,3);
 
     public bool CleanDialogTrigger(RelativeId dialogTriggerId, out RelativeId cleanedDialogTriggerId)
     {
@@ -140,6 +147,7 @@ public class JessieConfigurator : IGirlConfigurator
 
         cleanedDialogTriggerId = dialogTriggerId;
         return dialogTriggerId != Hp2BaseMod.DialogTriggers.UniqueAccept 
+            && dialogTriggerId != Hp2BaseMod.DialogTriggers.StaminaExhausted
             && dialogTriggerId != Hp2BaseMod.DialogTriggers.ShoesAccept;
     }
 }

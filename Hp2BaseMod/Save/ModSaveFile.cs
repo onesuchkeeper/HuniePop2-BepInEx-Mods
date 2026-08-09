@@ -167,32 +167,56 @@ public class ModSaveFile
 
     public void SetData(SaveFile saveFile)
     {
-        var i = 0;
-
         var wardrobeFlag = saveFile.flags.FirstOrDefault(x => x.flagName == Flags.WARDROBE_GIRL_ID);
-        if (wardrobeFlag != null)
+
+        if (WardrobeGirlId.HasValue &&
+            ModInterface.Data.TryGetRuntimeDataId(GameDataType.Girl, WardrobeGirlId, out var runtimeId))
         {
-            ValidatedSet.SetFromRelativeId(ref wardrobeFlag.flagValue, GameDataType.GirlPair, WardrobeGirlId);
+            if (wardrobeFlag == null)
+            {
+                wardrobeFlag = new SaveFileFlag(Flags.WARDROBE_GIRL_ID);
+                saveFile.flags.Add(wardrobeFlag);
+            }
+
+            wardrobeFlag.flagValue = runtimeId;
         }
 
-        ValidatedSet.SetFromRelativeId(ref saveFile.fileIconGirlId, GameDataType.Girl, FileIconGirlId);
-        ValidatedSet.SetFromRelativeId(ref saveFile.locationId, GameDataType.Location, LocationId);
-        ValidatedSet.SetFromRelativeId(ref saveFile.girlPairId, GameDataType.GirlPair, GirlPairId);
+        ValidatedSet.TrySetFromRelativeId(ref saveFile.fileIconGirlId, GameDataType.Girl, FileIconGirlId);
+        ValidatedSet.TrySetFromRelativeId(ref saveFile.locationId, GameDataType.Location, LocationId);
+        ValidatedSet.TrySetFromRelativeId(ref saveFile.girlPairId, GameDataType.GirlPair, GirlPairId);
+
+        if (!ModInterface.Data.TryGetDataId(GameDataType.GirlPair, saveFile.girlPairId, out var _))
+        {
+            ModInterface.Log.Warning($"Pair with runtime {saveFile.girlPairId} not present, defaulting to no pair");
+            saveFile.girlPairId = -1;
+        }
+
+        if (!ModInterface.Data.TryGetDataId(GameDataType.Location, saveFile.locationId, out var _))
+        {
+            ModInterface.Log.Warning($"Location with runtime {saveFile.girlPairId} not present, defaulting to hub and no pair");
+            saveFile.girlPairId = -1;
+            saveFile.locationId = HOTEL_ROOM_LOC_ID;
+        }
+
+        if (saveFile.girlPairId == -1)
+        {
+            var location = ModInterface.GameData.GetLocation(ModInterface.Data.GetDataId(GameDataType.Location, saveFile.locationId));
+
+            if (!location.GetExpansion().AllowNoPair)
+            {
+                ModInterface.Log.Warning("No pair at a location that does not allow it, defaulting to the hub");
+                saveFile.locationId = HOTEL_ROOM_LOC_ID;
+            }
+        }
 
         ValidatedSet.SetModIds(ref saveFile.metGirlPairs, MetGirlPairs, GameDataType.GirlPair);
         ValidatedSet.SetModIds(ref saveFile.completedGirlPairs, CompletedGirlPairs, GameDataType.GirlPair);
-
-        if (WardrobeGirlId.HasValue
-            && ModInterface.Data.TryGetRuntimeDataId(GameDataType.Girl, WardrobeGirlId, out var wardrobeGirlRuntimeId))
-        {
-            saveFile.flags.Add(new SaveFileFlag(Flags.WARDROBE_GIRL_ID) { flagValue = wardrobeGirlRuntimeId });
-        }
 
         SaveUtility.HandleModSaves(GameDataType.Girl, Girls, saveFile.girls, saveFile.girls.Select(x => x.girlId));
         SaveUtility.HandleModSaves(GameDataType.GirlPair, GirlPairs, saveFile.girlPairs, saveFile.girlPairs.Select(x => x.girlPairId));
         SaveUtility.HandleModSaves(GameDataType.Location, FinderSlots, saveFile.finderSlots, saveFile.finderSlots.Select(x => x.locationId));
 
-        i = 0;
+        var i = 0;
         var invSlotEnum = InventorySlots.GetEnumerator();
         var invSaveEnum = saveFile.inventorySlots.GetEnumerator();
         while (invSaveEnum.MoveNext() && invSlotEnum.MoveNext())//important that save is checked first so inv slot doesn't move forward

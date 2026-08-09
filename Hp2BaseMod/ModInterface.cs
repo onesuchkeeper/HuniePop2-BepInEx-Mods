@@ -19,60 +19,11 @@ public static class ModInterface
 {
     private static string _modSavePath = Path.Combine(Application.persistentDataPath, @"ModSaveData.json");
 
-    #region GameDataMods
-
-    internal static IEnumerable<IGameDataMod<AbilityDefinition>> AbilityDataMods => _abilityDataMods;
-    private static List<IGameDataMod<AbilityDefinition>> _abilityDataMods = new List<IGameDataMod<AbilityDefinition>>();
-
-    internal static IEnumerable<IGameDataMod<AilmentDefinition>> AilmentDataMods => _ailmentDataMods;
-    private static List<IGameDataMod<AilmentDefinition>> _ailmentDataMods = new List<IGameDataMod<AilmentDefinition>>();
-
-    internal static IEnumerable<IGameDataMod<CodeDefinition>> CodeDataMods => _codeDataMods;
-    private static List<IGameDataMod<CodeDefinition>> _codeDataMods = new List<IGameDataMod<CodeDefinition>>();
-
-    internal static IEnumerable<IGameDataMod<CutsceneDefinition>> CutsceneDataMods => _cutsceneDataMods;
-    private static List<IGameDataMod<CutsceneDefinition>> _cutsceneDataMods = new List<IGameDataMod<CutsceneDefinition>>();
-
-    internal static IEnumerable<IGameDataMod<DialogTriggerDefinition>> DialogTriggerDataMods => _dialogTriggerDataMods;
-    private static List<IGameDataMod<DialogTriggerDefinition>> _dialogTriggerDataMods = new List<IGameDataMod<DialogTriggerDefinition>>();
-
-    internal static IEnumerable<IGameDataMod<DlcDefinition>> DlcDataMods => _dlcDataMods;
-    private static List<IGameDataMod<DlcDefinition>> _dlcDataMods = new List<IGameDataMod<DlcDefinition>>();
-
-    internal static IEnumerable<IGameDataMod<EnergyDefinition>> EnergyDataMods => _energyDataMods;
-    private static List<IGameDataMod<EnergyDefinition>> _energyDataMods = new List<IGameDataMod<EnergyDefinition>>();
-
-    internal static IEnumerable<IGirlDataMod> GirlDataMods => _girlDataMods;
-    private static List<IGirlDataMod> _girlDataMods = new List<IGirlDataMod>();
-
-    internal static IEnumerable<IGirlPairDataMod> GirlPairDataMods => _girlPairDataMods;
-    private static List<IGirlPairDataMod> _girlPairDataMods = new List<IGirlPairDataMod>();
-
-    internal static IEnumerable<IGameDataMod<ItemDefinition>> ItemDataMods => _itemDataMods;
-    private static List<IGameDataMod<ItemDefinition>> _itemDataMods = new List<IGameDataMod<ItemDefinition>>();
-
-    internal static IEnumerable<IGameDataMod<LocationDefinition>> LocationDataMods => _locationDataMods;
-    private static List<IGameDataMod<LocationDefinition>> _locationDataMods = new();
-
-    internal static IEnumerable<IGameDataMod<PhotoDefinition>> PhotoDataMods => _photoDataMods;
-    private static List<IGameDataMod<PhotoDefinition>> _photoDataMods = new List<IGameDataMod<PhotoDefinition>>();
-
-    internal static IEnumerable<IFavQuestionDataMod> QuestionDataMods => _questionDataMods;
-    private static List<IFavQuestionDataMod> _questionDataMods = new();
-
-    internal static IEnumerable<IGameDataMod<TokenDefinition>> TokenDataMods => _tokenDataMods;
-    private static List<IGameDataMod<TokenDefinition>> _tokenDataMods = new List<IGameDataMod<TokenDefinition>>();
-
-    #endregion
-
     /// <summary>
     /// Commands registered to the mod interface
     /// </summary>
     public static IReadOnlyDictionary<string, ICommand> Commands => _commands;
     private static Dictionary<string, ICommand> _commands = new Dictionary<string, ICommand>();
-
-    public static IReadOnlyList<IExpInfo> ExpDisplays => _expDisplays;
-    private static List<IExpInfo> _expDisplays = new List<IExpInfo>();
 
     private static Dictionary<int, Dictionary<string, object>> _interModValues = new Dictionary<int, Dictionary<string, object>>();
 
@@ -113,6 +64,9 @@ public static class ModInterface
     public static GameDefinitionProvider GameData => _gameData;
     private static GameDefinitionProvider _gameData;
 
+    public static DataModRegistry DataMod => _dataMod;
+    private static DataModRegistry _dataMod;
+
     internal static ModSaveData Save => _modSaveData;
     private static ModSaveData _modSaveData;
 
@@ -123,6 +77,8 @@ public static class ModInterface
 
     internal static void Init()
     {
+        _dataMod = new DataModRegistry();
+
         _jsonSettings = new JsonSerializerSettings
         {
             NullValueHandling = NullValueHandling.Ignore
@@ -159,6 +115,15 @@ public static class ModInterface
         }
     }
 
+    internal static void ApplyDataMods()
+    {
+        if (_dataMod.TryApplyDataMods(out var gameDefinitionProvider))
+        {
+            _gameData = gameDefinitionProvider;
+            ModInterface.Events.NotifyPostDataMods();
+        }
+    }
+
     /// <summary>
     /// Strips modded data from the saveData and saves it separately
     /// </summary>
@@ -171,21 +136,6 @@ public static class ModInterface
     }
 
     internal static void InjectSave(SaveData saveData) => _modSaveData.SetData(saveData);
-
-    private static bool _dataModsApplied = false;
-    internal static void ApplyDataMods()
-    {
-        if (!_dataModsApplied)
-        {
-            _dataModsApplied = true;
-
-            _events.NotifyPreDataMods();
-            _gameData = new GameDefinitionProvider(Game.Data);
-            GameDataModder.Mod(Game.Data);
-            _events.NotifyPostDataMods();
-            GC.Collect();
-        }
-    }
 
     /// <summary>
     /// Gets the internal id for the provided sourceGUID. 
@@ -307,103 +257,6 @@ public static class ModInterface
         }
 
         _commands[command.Name.ToUpper()] = command;
-    }
-
-    public static void AddExp(IExpInfo expDisplay)
-    {
-        _expDisplays.Add(expDisplay);
-    }
-
-    public static void AddDataMod(IGameDataMod<AbilityDefinition> mod)
-    {
-        if (mod == null) return;
-        _abilityDataMods.Add(mod);
-        _data.TryRegisterDataId(GameDataType.Ability, mod.Id);
-    }
-
-    public static void AddDataMod(IGameDataMod<AilmentDefinition> mod)
-    {
-        if (mod == null) return;
-        _ailmentDataMods.Add(mod);
-        _data.TryRegisterDataId(GameDataType.Ailment, mod.Id);
-    }
-
-    public static void AddDataMod(IGameDataMod<CodeDefinition> mod)
-    {
-        if (mod == null) return;
-        _codeDataMods.Add(mod);
-        _data.TryRegisterDataId(GameDataType.Code, mod.Id);
-    }
-
-    public static void AddDataMod(IGameDataMod<CutsceneDefinition> mod)
-    {
-        if (mod == null) return;
-        _cutsceneDataMods.Add(mod);
-        _data.TryRegisterDataId(GameDataType.Cutscene, mod.Id);
-    }
-
-    public static void AddDataMod(IGameDataMod<DialogTriggerDefinition> mod)
-    {
-        if (mod == null) return;
-        _dialogTriggerDataMods.Add(mod);
-        _data.TryRegisterDataId(GameDataType.DialogTrigger, mod.Id);
-    }
-
-    public static void AddDataMod(IGameDataMod<DlcDefinition> mod)
-    {
-        if (mod == null) return;
-        _dlcDataMods.Add(mod);
-        _data.TryRegisterDataId(GameDataType.Dlc, mod.Id);
-    }
-
-    public static void AddDataMod(IGameDataMod<EnergyDefinition> mod)
-    {
-        if (mod == null) return;
-        _energyDataMods.Add(mod);
-        _data.TryRegisterDataId(GameDataType.Energy, mod.Id);
-    }
-
-    public static void AddDataMod(IGirlDataMod mod)
-    {
-        if (mod == null) return;
-        _girlDataMods.Add(mod);
-        _data.TryRegisterDataId(GameDataType.Girl, mod.Id);
-    }
-    public static void AddDataMod(IGirlPairDataMod mod)
-    {
-        if (mod == null) return;
-        _girlPairDataMods.Add(mod);
-        _data.TryRegisterDataId(GameDataType.GirlPair, mod.Id);
-    }
-    public static void AddDataMod(IGameDataMod<ItemDefinition> mod)
-    {
-        if (mod == null) return;
-        _itemDataMods.Add(mod);
-        _data.TryRegisterDataId(GameDataType.Item, mod.Id);
-    }
-    public static void AddDataMod(IGameDataMod<LocationDefinition> mod)
-    {
-        if (mod == null) return;
-        _locationDataMods.Add(mod);
-        _data.TryRegisterDataId(GameDataType.Location, mod.Id);
-    }
-    public static void AddDataMod(IGameDataMod<PhotoDefinition> mod)
-    {
-        if (mod == null) return;
-        _photoDataMods.Add(mod);
-        _data.TryRegisterDataId(GameDataType.Photo, mod.Id);
-    }
-    public static void AddDataMod(IFavQuestionDataMod mod)
-    {
-        if (mod == null) return;
-        _questionDataMods.Add(mod);
-        _data.TryRegisterDataId(GameDataType.Question, mod.Id);
-    }
-    public static void AddDataMod(IGameDataMod<TokenDefinition> mod)
-    {
-        if (mod == null) return;
-        _tokenDataMods.Add(mod);
-        _data.TryRegisterDataId(GameDataType.Token, mod.Id);
     }
 
     /// <summary>

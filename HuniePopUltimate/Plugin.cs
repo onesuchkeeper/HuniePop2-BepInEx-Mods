@@ -207,7 +207,7 @@ public partial class Plugin : Hp2BaseModPlugin
 
     private void RegisterDialogTriggers()
     {
-        ModInterface.AddDataMod(
+        ModInterface.DataMod.AddDataMod(
             new DialogTriggerDataMod(
                 DialogTriggers.PreBedroom,
                 InsertStyle.append)
@@ -215,7 +215,7 @@ public partial class Plugin : Hp2BaseModPlugin
                 ForceType = DialogTriggerForceType.NONE,
             });
 
-        ModInterface.AddDataMod(
+        ModInterface.DataMod.AddDataMod(
             new DialogTriggerDataMod(
                 DialogTriggers.PreSex,
                 InsertStyle.append)
@@ -223,7 +223,7 @@ public partial class Plugin : Hp2BaseModPlugin
                 ForceType = DialogTriggerForceType.NONE,
             });
 
-        ModInterface.AddDataMod(
+        ModInterface.DataMod.AddDataMod(
             new DialogTriggerDataMod(
                 DialogTriggers.PostSex,
                 InsertStyle.append)

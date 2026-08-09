@@ -9,12 +9,12 @@ public static class SingleDateMeetingCutscene
 {
     internal static void AddDataMods()
     {
-        ModInterface.AddDataMod(new CutsceneDataMod(CutsceneIds.Meeting, InsertStyle.replace)
+        ModInterface.DataMod.AddDataMod(new CutsceneDataMod(CutsceneIds.Meeting, InsertStyle.replace)
         {
             CleanUpType = CutsceneCleanUpType.NONE,
             Steps = new List<IGameDefinitionInfo<CutsceneStepSubDefinition>>()
             {
-                CutsceneStepUtility.MakeDialogTriggerInfo(Hp2BaseMod.DialogTriggers.GreetingAfternoon, CutsceneStepProceedType.AUTOMATIC, CutsceneStepDollTargetType.RANDOM),
+                CutsceneStepUtility.MakeDialogTriggerInfo(Hp2BaseMod.DialogTriggers.GreetingAfternoon).TargetOrientation(DollOrientationType.RIGHT),
             }
         });
     }

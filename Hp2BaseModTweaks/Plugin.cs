@@ -69,16 +69,15 @@ public partial class Plugin : Hp2BaseModPlugin
         UiPrefabs.Init();
         ToggleCodeMods.AddMods(ModId);
 
-        ModInterface.AddDataMod(new ItemDataMod(new RelativeId(ModId, 0), Hp2BaseMod.Utility.InsertStyle.replace)
+        ModInterface.DataMod.AddDataMod(new ItemDataMod(new RelativeId(ModId, 0), Hp2BaseMod.Utility.InsertStyle.replace)
         {
             ItemName = "More Girls In The Wardrobe!",
             ItemDescription = "Kyu and the Nymphojinn are now in the wardrobe! Each time the Nymphojinn are defeated, each will have a style unlocked!",
             CategoryDescription = "Otherworldly Attire",
-            ItemType = ItemType.MISC,
             ItemSpriteInfo = new SpriteInfoInternal("item_shell_auger")
         });
 
-        ModInterface.AddDataMod(new PostGameCutsceneMod());
+        ModInterface.DataMod.AddDataMod(new PostGameCutsceneMod());
         ModInterface.AddCommand(new SetIconCommand());
 
         ModInterface.Events.RequestStyleChange += RandomizeStyles.On_RequestStyleChange;
@@ -204,7 +203,7 @@ public partial class Plugin : Hp2BaseModPlugin
 
         void MakeBackPosMod(RelativeId girlId, int x, int y)
         {
-            ModInterface.AddDataMod(new GirlDataMod(girlId, InsertStyle.replace)
+            ModInterface.DataMod.AddDataMod(new GirlDataMod(girlId, InsertStyle.replace)
             {
                 bodies = new()
                 {
@@ -262,11 +261,11 @@ public partial class Plugin : Hp2BaseModPlugin
             SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(ImagesDir, "kyu_eyesglow_horny.png"), true))
         };
 
-        ModInterface.AddDataMod(new GirlDataMod(Girls.Kyu, InsertStyle.append)
+        ModInterface.DataMod.AddDataMod(new GirlDataMod(Girls.Kyu, InsertStyle.append)
         {
             bodies = new()
             {
-                new GirlBodyDataMod(new RelativeId(-1, 0), InsertStyle.append)
+                new KyuBodyDataMod(new GirlBodyDataMod(new RelativeId(-1, 0), InsertStyle.append)
                 {
                     expressions = new List<IBodySubDataMod<GirlExpressionSubDefinition>>() {
                         new GirlExpressionDataMod(GirlExpressions.Neutral, InsertStyle.append){
@@ -308,7 +307,7 @@ public partial class Plugin : Hp2BaseModPlugin
                         Xpos = 250,
                         Ypos = 804,
                     }
-                },
+                }),
             },
             CellphoneMiniHead = new SpriteInfoInternal("ui_title_icon_kyu")
         });

@@ -14,9 +14,9 @@ public static class PreSexCutscene
         {
             Steps = new()
             {
-                CutsceneStepUtility.MakeDialogTriggerInfo(DialogTriggers.PreBedroom, CutsceneStepProceedType.AUTOMATIC, CutsceneStepDollTargetType.RANDOM),
+                CutsceneStepUtility.MakeDialogTriggerInfo(DialogTriggers.PreBedroom, CutsceneStepProceedType.AUTOMATIC).TargetOrientation(DollOrientationType.RIGHT),
 
-                CutsceneStepUtility.MakeRandomDollMoveInfo(DollPositionType.HIDDEN, CutsceneStepProceedType.INSTANT),
+                CutsceneStepUtility.MakeDollMoveInfo(DollPositionType.HIDDEN, 1f, CutsceneStepProceedType.INSTANT).TargetOrientation(DollOrientationType.RIGHT),
                 CutsceneStepUtility.MakeToggleHeaderInfo(true, CutsceneStepProceedType.INSTANT),
                 CutsceneStepUtility.MakeHidePuzzleGridInfo(CutsceneStepProceedType.AUTOMATIC),
 
@@ -30,11 +30,11 @@ public static class PreSexCutscene
                     complete.Invoke();
                 }),
 
-                CutsceneStepUtility.MakeRandomDollMoveInfo(DollPositionType.INNER, CutsceneStepProceedType.AUTOMATIC),
+                CutsceneStepUtility.MakeDollMoveInfo(DollPositionType.INNER).TargetOrientation(DollOrientationType.RIGHT),
 
                 CutsceneStepUtility.MakeWaitInfo(0.5f),
 
-                CutsceneStepUtility.MakeDialogTriggerInfo(DialogTriggers.PreSex, CutsceneStepProceedType.AUTOMATIC, CutsceneStepDollTargetType.RANDOM),
+                CutsceneStepUtility.MakeDialogTriggerInfo(DialogTriggers.PreSex).TargetOrientation(DollOrientationType.RIGHT),
 
                 CutsceneStepUtility.MakeToggleHeaderInfo(true, CutsceneStepProceedType.INSTANT),
                 CutsceneStepUtility.MakeShowPuzzleGridInfo(CutsceneStepProceedType.AUTOMATIC),
@@ -42,6 +42,6 @@ public static class PreSexCutscene
             CleanUpType = (CutsceneCleanUpType)(-1)
         };
 
-        ModInterface.AddDataMod(mod);
+        ModInterface.DataMod.AddDataMod(mod);
     }
 }

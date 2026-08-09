@@ -18,7 +18,7 @@ internal static class LocationManagerPatch
         ref GirlPairDefinition girlPairDef,
         ref bool sidesFlipped,
         ref bool initialArrive)
-        => ExpandedLocationManager.Get(__instance).PreArrive(
+        => ExpandedLocationManager.Get(__instance).Arrive_Prefix(
             ref locationDef,
             ref girlPairDef,
             ref sidesFlipped,
@@ -27,12 +27,12 @@ internal static class LocationManagerPatch
     [HarmonyPatch(nameof(LocationManager.Arrive))]
     [HarmonyPostfix]
     private static void PostArrive(LocationManager __instance)
-        => ExpandedLocationManager.Get(__instance).PostArrive();
+        => ExpandedLocationManager.Get(__instance).Arrive_Postfix();
 
     [HarmonyPatch("OnLocationSettled")]
     [HarmonyPrefix]
     private static bool OnLocationSettled(LocationManager __instance)
-        => ExpandedLocationManager.Get(__instance).PreLocationSettled();
+        => ExpandedLocationManager.Get(__instance).LocationSettled_Prefix();
 
     [HarmonyPatch(nameof(LocationManager.ResetDolls))]
     [HarmonyPostfix]
@@ -42,7 +42,7 @@ internal static class LocationManagerPatch
     [HarmonyPatch("OnDestroy")]
     [HarmonyPostfix]
     private static void OnDestroy(LocationManager __instance)
-        => ExpandedLocationManager.Get(__instance).OnDestroy();
+        => ExpandedLocationManager.Destroy(__instance);
 }
 
 [HarmonyPatch(typeof(UiPuzzleGrid))]
@@ -54,8 +54,7 @@ internal static class UiPuzzleGridCellphonePatch
         => ExpandedLocationManager.RefreshGirlDolls();
 }
 
-[Expansion(typeof(LocationManager), 
-    Fields = new[]{"_isLocked", "_arrivalCutscene", "_currentGirlPair", "_currentSidesFlipped", "_currentLocation"})]
+[Expansion(typeof(LocationManager))]
 public partial class ExpandedLocationManager
 {
     private CutsceneDefinition _baseCutsceneMeeting;
@@ -80,7 +79,7 @@ public partial class ExpandedLocationManager
     /// <param name="girlPairDef">The pair at the location</param>
     /// <param name="sidesFlipped">If the pairs have their sides flipped</param>
     /// <param name="initialArrive">If this is the session's first arrival</param>
-    public void PreArrive(ref LocationDefinition locationDef,
+    internal void Arrive_Prefix(ref LocationDefinition locationDef,
         ref GirlPairDefinition girlPairDef,
         ref bool sidesFlipped,
         ref bool initialArrive)
@@ -129,7 +128,7 @@ public partial class ExpandedLocationManager
     /// When the cellphone moves to the left the header shifts, and the puzzle
     /// grid must shift right by the same delta to stay on screen.
     /// </summary>
-    public void PostArrive()
+    internal void Arrive_Postfix()
     {
         var header = Game.Session.gameCanvas.header;
         var cellphone = Game.Session.gameCanvas.cellphone;
@@ -185,7 +184,7 @@ public partial class ExpandedLocationManager
     /// every RefreshGirlDolls call, RefreshGirlDolls may re-enable it internally,
     /// and without the explicit OnPointerExit the tooltip can persist.
     /// </summary>
-    public static void RefreshGirlDolls()
+    internal static void RefreshGirlDolls()
     {
         if (!ModInterface.State.CellphoneOnLeft) return;
         var focusButton = Game.Session.gameCanvas.dollLeft.focusButton;
@@ -197,7 +196,7 @@ public partial class ExpandedLocationManager
     /// Notifies of location settling, allowing location type and ui to be overwritten.
     /// Notifies of a random doll selection, allowing selection to be overwritten.
     /// </summary>
-    public bool PreLocationSettled()
+    internal bool LocationSettled_Prefix()
     {
         var locationSettledArgs = new LocationSettledArgs()
         {
@@ -255,7 +254,7 @@ public partial class ExpandedLocationManager
     /// - Resolves styles based on relationship, location, or player file.
     /// - Allows mod hooks to override styles.
     /// </summary>
-    public void ResetDolls(bool unload)
+    internal void ResetDolls(bool unload)
     {
         // Early exit: nothing to do if unloading
         if (unload) return;
@@ -290,7 +289,10 @@ public partial class ExpandedLocationManager
                 : expansion.HairstyleLookup[GetRandomValidIndex(hubDef.hairstyles)]
         };
 
-        var args = ModInterface.Events.NotifyRequestStyleChange(hubDef, location, 0.1f, style);
+        //for the normal kyu randomization don't do nsfw outfits
+        if (outfit.GetExpansion().IsNSFW) return;
+
+        var args = ModInterface.Events.NotifyRequestStyleChange(hubDef, location, 0.1f, style, false);
 
         if (ShouldApply(args.ApplyChance))
         {
@@ -315,11 +317,11 @@ public partial class ExpandedLocationManager
         ResolveGirlDefinitions(pair, out var leftDef, out var rightDef);
 
         // Resolve base styles
-        var (leftStyle, rightStyle) = ResolveBaseStyles(pair, playerPair, location, leftDef, rightDef);
+        var (leftStyle, rightStyle, isCutsceneStyle) = ResolveBaseStyles(pair, playerPair, location, leftDef, rightDef);
 
         // Allow mod overrides
-        leftStyle = ApplyStyleOverride(leftDef, location, leftStyle);
-        rightStyle = ApplyStyleOverride(rightDef, location, rightStyle);
+        leftStyle = ApplyStyleOverride(leftDef, location, leftStyle, isCutsceneStyle);
+        rightStyle = ApplyStyleOverride(rightDef, location, rightStyle, isCutsceneStyle);
 
         // Apply to dolls
         ApplyStyleToDoll(leftStyle, Game.Session.gameCanvas.dollLeft, leftDef);
@@ -329,7 +331,7 @@ public partial class ExpandedLocationManager
     /// <summary>
     /// Determines initial styles before mod overrides.
     /// </summary>
-    private (GirlStyleInfo left, GirlStyleInfo right) ResolveBaseStyles(
+    private (GirlStyleInfo left, GirlStyleInfo right, bool isCutsceneStyle) ResolveBaseStyles(
         GirlPairDefinition pair,
         PlayerFileGirlPair playerPair,
         LocationDefinition location,
@@ -353,13 +355,13 @@ public partial class ExpandedLocationManager
         // Location default style
         if (locationExp.DefaultStyle.HasValue)
         {
-            return (new GirlStyleInfo(locationExp.DefaultStyle.Value),new GirlStyleInfo(locationExp.DefaultStyle.Value));
+            return (new GirlStyleInfo(locationExp.DefaultStyle.Value),new GirlStyleInfo(locationExp.DefaultStyle.Value), false);
         }
 
-        return (null, null);
+        return (null, null, false);
     }
 
-    private (GirlStyleInfo, GirlStyleInfo) ResolveDateStyles(
+    private (GirlStyleInfo, GirlStyleInfo, bool) ResolveDateStyles(
         GirlPairDefinition pair,
         PlayerFileGirlPair playerPair,
         LocationDefinition location,
@@ -385,7 +387,7 @@ public partial class ExpandedLocationManager
     /// <summary>
     /// Resolves pair-based styles (Meeting / Sex).
     /// </summary>
-    private (GirlStyleInfo, GirlStyleInfo) GetPairSexStyles(
+    private (GirlStyleInfo, GirlStyleInfo, bool) GetPairSexStyles(
         GirlPairDefinition pair,
         LocationDefinition location,
         GirlDefinition leftDef,
@@ -394,7 +396,7 @@ public partial class ExpandedLocationManager
         var pairId = ModInterface.Data.GetDataId(GameDataType.GirlPair, pair.id);
         var pairStyle = pair.GetExpansion().PairStyle;
 
-        if (pairStyle == null) return (null, null);
+        if (pairStyle == null) return (null, null, false);
 
         bool flipped = f_currentSidesFlipped.GetValue<bool>(_core);
 
@@ -422,37 +424,38 @@ public partial class ExpandedLocationManager
             right = locationStyles.right;
         }
 
-        return (left, right);
+        return (left, right, false);
     }
 
     /// <summary>
     /// Resolves pair-based styles (Meeting / Sex).
     /// </summary>
-    private (GirlStyleInfo, GirlStyleInfo) GetPairMeetingStyles(GirlPairDefinition pair)
+    private (GirlStyleInfo, GirlStyleInfo, bool) GetPairMeetingStyles(GirlPairDefinition pair)
     {
         var pairId = ModInterface.Data.GetDataId(GameDataType.GirlPair, pair.id);
         var pairStyle = pair.GetExpansion().PairStyle;
 
-        if (pairStyle == null) return (null, null);
+        if (pairStyle == null) return (null, null, false);
 
         bool flipped = f_currentSidesFlipped.GetValue<bool>(_core);
 
         return flipped
-            ? (pairStyle.MeetingGirlTwo, pairStyle.MeetingGirlOne)
-            : (pairStyle.MeetingGirlOne, pairStyle.MeetingGirlTwo);
+            ? (pairStyle.MeetingGirlTwo, pairStyle.MeetingGirlOne, pair.introductionPair)
+            : (pairStyle.MeetingGirlOne, pairStyle.MeetingGirlTwo, pair.introductionPair);
     }
 
     /// <summary>
     /// Resolves styles based on player file data.
     /// </summary>
-    private (GirlStyleInfo, GirlStyleInfo) ResolveFileStyles()
+    private (GirlStyleInfo, GirlStyleInfo, bool) ResolveFileStyles()
     {
         var leftFile = Game.Session.Puzzle.puzzleStatus.girlStatusLeft.playerFileGirl;
         var rightFile = Game.Session.Puzzle.puzzleStatus.girlStatusRight.playerFileGirl;
 
         return (
             BuildStyleFromFile(leftFile),
-            BuildStyleFromFile(rightFile)
+            BuildStyleFromFile(rightFile),
+            false
         );
     }
 
@@ -472,9 +475,9 @@ public partial class ExpandedLocationManager
     /// <summary>
     /// Applies mod override logic.
     /// </summary>
-    private GirlStyleInfo ApplyStyleOverride(GirlDefinition def, LocationDefinition loc, GirlStyleInfo style)
+    private GirlStyleInfo ApplyStyleOverride(GirlDefinition def, LocationDefinition loc, GirlStyleInfo style, bool isCutsceneStyle)
     {
-        var args = ModInterface.Events.NotifyRequestStyleChange(def, loc, 0, style);
+        var args = ModInterface.Events.NotifyRequestStyleChange(def, loc, 0, style, isCutsceneStyle);
 
         return ShouldApply(args.ApplyChance) ? args.Style : style;
     }
@@ -557,7 +560,7 @@ public partial class ExpandedLocationManager
     /// Resolves styles based on location mappings or player file preferences.
     /// Handles both left and right girls symmetrically.
     /// </summary>
-    private (GirlStyleInfo left, GirlStyleInfo right) ResolveLocationStyles(
+    private (GirlStyleInfo left, GirlStyleInfo right, bool) ResolveLocationStyles(
         LocationDefinition location,
         GirlDefinition leftDef,
         GirlDefinition rightDef)
@@ -578,7 +581,7 @@ public partial class ExpandedLocationManager
             locationId,
             "right");
 
-        return (left, right);
+        return (left, right, false);
     }
 
     /// <summary>
@@ -620,10 +623,5 @@ public partial class ExpandedLocationManager
         ModInterface.Log.Message($"Using file style for {sideLabel} girl: {fileStyle}");
 
         return fileStyle;
-    }
-
-    internal void OnDestroy()
-    {
-        _expansions.Remove(_core);
     }
 }

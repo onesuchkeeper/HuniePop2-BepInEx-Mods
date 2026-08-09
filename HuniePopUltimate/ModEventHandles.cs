@@ -44,12 +44,6 @@ public static class ModEventHandles
             SingleDateCharmAnimation.AddCharmAnimations(m_RegisterCharmAnimation);
         }
 
-        // float weight, 
-        // float cost,
-        // Func<Sequence, (RectTransform transform, bool dir, RelativeId girlId), bool> build,
-        // HashSet<RelativeId> allowedCharacters
-        
-
         ModInterface.Log.Message("Loading HuniePop assembly (this may take a bit)");
 
         HpExtraction hpExtraction = null;
@@ -90,14 +84,14 @@ public static class ModEventHandles
                 {
                     meetingLoc = pairData.MeetingLocation;
                     introCutsceneId = pairData.MeetingCutscene.Id;
-                    ModInterface.AddDataMod(pairData.MeetingCutscene);
+                    ModInterface.DataMod.AddDataMod(pairData.MeetingCutscene);
                 }
                 else
                 {
                     ModInterface.Log.Error($"failed to find intro for {girlId}");
                 }
 
-                ModInterface.AddDataMod(new GirlPairDataMod(pairId, InsertStyle.assignNull, 1)
+                ModInterface.DataMod.AddDataMod(new GirlPairDataMod(pairId, InsertStyle.assignNull, 1)
                 {
                     GirlDefinitionOneID = singleDateNobodyId,
                     GirlDefinitionTwoID = girlId,
@@ -155,6 +149,37 @@ public static class ModEventHandles
             AddPairMod(ClockDaytimeType.NIGHT, Hp2BaseMod.Girls.Jessie, Pairs.JessieSingleDate);
             AddPairMod(ClockDaytimeType.NIGHT, Hp2BaseMod.Girls.Kyu, Pairs.KyuSingleDate);
         }
+
+        // ModInterface.DataMod.AddDataMod(new PhotoDataMod(Photos.TiffanyAudrey, InsertStyle.append)
+        // {
+             
+        // });
+
+        TiffanyAudreyCutscenes.AddDataMods();
+
+        ModInterface.DataMod.AddDataMod(new GirlPairDataMod(Pairs.TiffanyAudrey, InsertStyle.append)
+        {
+            GirlDefinitionOneID = Girls.Tiffany,
+            GirlDefinitionTwoID = Girls.Audrey,
+            HasMeetingStyleOne = true,
+            HasMeetingStyleTwo = true,
+            MeetingLocationDefinitionID = Hp2BaseMod.Locations.Airport,
+            SexLocationDefinitionID = Hp2BaseMod.Locations.SecludedCabana,
+            Styles = new PairStyleInfo()
+            {
+                MeetingGirlOne = new GirlStyleInfo(Hp2BaseMod.Styles.Activity),
+                MeetingGirlTwo = new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing, Hp2BaseMod.Styles.Activity),
+                SexGirlOne = new GirlStyleInfo(Hp2BaseMod.Styles.Activity),
+                SexGirlTwo = new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing),
+            },
+            PhotoDefinitionID = Photos.Audrey10th, // Photos.TiffanyAudrey
+            IntroRelationshipCutsceneDefinitionID = Cutscenes.TiffanyAudrey.Compatible,
+            AttractRelationshipCutsceneDefinitionID = Cutscenes.TiffanyAudrey.Attracted,
+            PreSexRelationshipCutsceneDefinitionID = Cutscenes.TiffanyAudrey.Lovers,
+            PostSexRelationshipCutsceneDefinitionID = Cutscenes.TiffanyAudrey.PostBonusRound,
+            SexDayTime = ClockDaytimeType.EVENING,
+            IntroductionPair = true
+        });
     }
 
     /// <summary>
@@ -169,20 +194,20 @@ public static class ModEventHandles
         var celesteSave = playerFile.GetPlayerFileGirl(celesteDef);
         if (!celesteSave.playerMet)
         {
-            args.ItemCategories[ItemTypes.Unique].Pool.RemoveAll(x => Items.Celeste.IsUniqueItem(x.Value.ModId()));
-            args.ItemCategories[ItemTypes.Shoe].Pool.RemoveAll(x => Items.Celeste.IsShoeItem(x.Value.ModId()));
+            args.ItemCategories[ItemTypes.Unique].Pool.RemoveAll(x => Items.Celeste.IsUniqueItem(x.Value.Core.ModId()));
+            args.ItemCategories[ItemTypes.Shoe].Pool.RemoveAll(x => Items.Celeste.IsShoeItem(x.Value.Core.ModId()));
 
             if (UnityEngine.Random.Range(0, 5) == 0 
                 && !playerFile.IsItemInInventory(ModInterface.GameData.GetItem(Items.WeirdThing), false))
             {
-                var category = new Hp2BaseMod.Elements.Category<ItemDefinition>()
+                var category = new Hp2BaseMod.Elements.Category<ExpandedItemDefinition>()
                 {
                     Priority = -1,
                     TargetCount = 1,
                     Pool = new()
                 };
 
-                category.Pool.Add(new Hp2BaseMod.Elements.Category<ItemDefinition>.Entry(ModInterface.GameData.GetItem(Items.WeirdThing), 1));
+                category.Pool.Add(new Hp2BaseMod.Elements.Category<ExpandedItemDefinition>.Entry(ModInterface.GameData.GetItem(Items.WeirdThing).GetExpansion(), 1));
                 args.ItemCategories[new RelativeId(Plugin.ModId, 0)] = category;
             }
         }
@@ -191,46 +216,59 @@ public static class ModEventHandles
         var kyuSave = playerFile.GetPlayerFileGirl(kyuDef);
         if (!kyuSave.playerMet)
         {
-            args.ItemCategories[ItemTypes.Unique].Pool.RemoveAll(x => Items.Kyu.IsUniqueItem(x.Value.ModId()));
-            args.ItemCategories[ItemTypes.Shoe].Pool.RemoveAll(x => Items.Kyu.IsShoeItem(x.Value.ModId()));
+            args.ItemCategories[ItemTypes.Unique].Pool.RemoveAll(x => Items.Kyu.IsUniqueItem(x.Value.Core.ModId()));
+            args.ItemCategories[ItemTypes.Shoe].Pool.RemoveAll(x => Items.Kyu.IsShoeItem(x.Value.Core.ModId()));
         }
 
         var momoDef = ModInterface.GameData.GetGirl(Girls.Momo);
         var momoSave = playerFile.GetPlayerFileGirl(momoDef);
         if (!momoSave.playerMet)
         {
-            args.ItemCategories[ItemTypes.Unique].Pool.RemoveAll(x => Items.Momo.IsUniqueItem(x.Value.ModId()));
-            args.ItemCategories[ItemTypes.Shoe].Pool.RemoveAll(x => Items.Momo.IsShoeItem(x.Value.ModId()));
+            args.ItemCategories[ItemTypes.Unique].Pool.RemoveAll(x => Items.Momo.IsUniqueItem(x.Value.Core.ModId()));
+            args.ItemCategories[ItemTypes.Shoe].Pool.RemoveAll(x => Items.Momo.IsShoeItem(x.Value.Core.ModId()));
         }
 
         var venusDef = ModInterface.GameData.GetGirl(Girls.Venus);
         var venusSave = playerFile.GetPlayerFileGirl(venusDef);
         if (!venusSave.playerMet)
         {
-            args.ItemCategories[ItemTypes.Unique].Pool.RemoveAll(x => Items.Venus.IsUniqueItem(x.Value.ModId()));
-            args.ItemCategories[ItemTypes.Shoe].Pool.RemoveAll(x => Items.Venus.IsShoeItem(x.Value.ModId()));
+            args.ItemCategories[ItemTypes.Unique].Pool.RemoveAll(x => Items.Venus.IsUniqueItem(x.Value.Core.ModId()));
+            args.ItemCategories[ItemTypes.Shoe].Pool.RemoveAll(x => Items.Venus.IsShoeItem(x.Value.Core.ModId()));
         }
     }
 
     internal static void On_FinderSlotsPopulate(FinderSlotPopulateEventArgs args)
     {
-        var time = (ClockDaytimeType)(Game.Persistence.playerFile.daytimeElapsed % 4);
+        var time = (ClockDaytimeType)((Game.Persistence.playerFile.daytimeElapsed+1) % 4);
 
         switch (time)
         {
             case ClockDaytimeType.MORNING:
                 args.RemoveGirlFromAllPools(Girls.Celeste);
+                if (UnityEngine.Random.Range(0, 10) > 2) args.RemoveGirlFromAllPools(Girls.Audrey);
                 break;
             case ClockDaytimeType.AFTERNOON:
+                args.RemoveGirlFromAllPools(Girls.Celeste);
                 if (UnityEngine.Random.Range(0, 10) > 2) args.RemoveGirlFromAllPools(Girls.Momo);
                 break;
             case ClockDaytimeType.EVENING:
                 if (UnityEngine.Random.Range(0, 10) > 2) args.RemoveGirlFromAllPools(Girls.Momo);
                 break;
             case ClockDaytimeType.NIGHT:
-                args.RemoveGirlFromAllPools(Girls.Celeste);
-                if (UnityEngine.Random.Range(0, 10) > 2) args.RemoveGirlFromAllPools(Girls.Audrey);
                 break;
+        }
+
+        var tiffSingleDate = Game.Persistence.playerFile.girlPairs.FirstOrDefault(x => x.girlPairDefinition.ModId() == Girls.Tiffany);
+        var audreySingleDate = Game.Persistence.playerFile.girlPairs.FirstOrDefault(x => x.girlPairDefinition.ModId() == Girls.Audrey);
+
+        if (tiffSingleDate != null
+            && audreySingleDate != null
+            && (tiffSingleDate.relationshipType == GirlPairRelationshipType.UNKNOWN
+                || tiffSingleDate.relationshipType == GirlPairRelationshipType.COMPATIBLE
+                || audreySingleDate.relationshipType != GirlPairRelationshipType.LOVERS))
+        {
+            ModInterface.Log.Message("Removing Tiffany X Audrey from finder pools");
+            args.RemovePairFromAllPools(Pairs.TiffanyAudrey);
         }
     }
 

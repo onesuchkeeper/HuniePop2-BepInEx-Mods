@@ -1,7 +1,9 @@
+using System;
 using System.Collections;
+using Hp2BaseMod;
 using UnityEngine;
 
-public abstract class UiPatchController<T> where T : MonoBehaviour
+public abstract class UiPatchController<T> : IExpansionCore<T> where T : MonoBehaviour
 {
     private enum State
     {
@@ -14,6 +16,14 @@ public abstract class UiPatchController<T> where T : MonoBehaviour
     protected bool IsAlive => _state != State.Destroyed;
     protected bool IsApplied => _state == State.Applied;
 
+    /// <summary>
+    /// Exposes <see cref="_core"/> via <see cref="IExpansionCore{T}"/> so an [Expansion] partial
+    /// class built on top of this controller can reuse this reference instead of generating its
+    /// own duplicate "_core" field. Implemented implicitly (not explicitly) so generated code in
+    /// a derived Expansion partial can reference "Core" as an ordinary inherited member rather
+    /// than needing an interface cast.
+    /// </summary>
+    public T Core => _core;
     protected readonly T _core;
 
     private State _state = State.None;
@@ -21,7 +31,7 @@ public abstract class UiPatchController<T> where T : MonoBehaviour
 
     protected UiPatchController(T core)
     {
-        _core = core;
+        _core = core ?? throw new ArgumentNullException(nameof(core));
     }
 
     /// <summary>

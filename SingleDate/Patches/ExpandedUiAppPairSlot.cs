@@ -15,7 +15,7 @@ internal static class UiAppPairSlotPatch
     [HarmonyPatch("Start")]
     [HarmonyPostfix]
     public static void Start(UiAppPairSlot __instance)
-    => ExpandedUiAppPairSlot.Get(__instance).Start();
+    => ExpandedUiAppPairSlot.Get(__instance).Start_Postfix();
 
     [HarmonyPatch(nameof(UiAppPairSlot.Refresh))]
     [HarmonyPostfix]
@@ -33,8 +33,7 @@ internal static class UiAppPairSlotPatch
         => ExpandedUiAppPairSlot.Destroy(__instance);
 }
 
-[Expansion(typeof(UiAppPairSlot), 
-    Fields = new[]{"_playerFileGirlPair", "_tooltip"})]
+[Expansion(typeof(UiAppPairSlot))]
 public partial class ExpandedUiAppPairSlot
 {
     private static readonly FieldInfo f_transitionDef = AccessTools.Field(typeof(ButtonStateTransition), "_transitionDef");
@@ -50,7 +49,7 @@ public partial class ExpandedUiAppPairSlot
     private Transform _headWrapper;
     private bool _started;
 
-    internal void Start()
+    internal void Start_Postfix()
     {
         _overSpriteTransition = f_overTransitions.GetValue<List<ButtonStateTransition>>(_core.button)
             .FirstOrDefault(x => x.transitionDef.sprite != null);
@@ -92,7 +91,7 @@ public partial class ExpandedUiAppPairSlot
         Refresh();
     }
 
-    public void Refresh()
+    internal void Refresh()
     {
         if (!_started) return;
 
@@ -122,7 +121,7 @@ public partial class ExpandedUiAppPairSlot
         _core.profileLinked = false;
     }
 
-    public void ShowTooltip()
+    internal void ShowTooltip()
     {
         var playerFileGirlPair = f_playerFileGirlPair.GetValue<PlayerFileGirlPair>(_core);
 

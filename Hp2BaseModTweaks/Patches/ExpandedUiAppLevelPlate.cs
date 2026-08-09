@@ -36,15 +36,14 @@ internal static class UiAppLevelPlatePatch
         => ExpandedUiAppLevelPlate.Get(__instance).OnButtonEnter();
 }
 
-[Expansion(typeof(UiAppLevelPlate), 
-    Fields = new[]{"_tooltip"})]
+[Expansion(typeof(UiAppLevelPlate))]
 public partial class ExpandedUiAppLevelPlate
 {
     private static readonly MethodInfo m_Resize = AccessTools.Method(typeof(UiTooltipItem), "Resize");
 
     public IExpInfo ExpDisplay;
 
-    public void Populate()
+    internal void Populate()
     {
         if (ExpDisplay == null) return;
 
@@ -65,7 +64,7 @@ public partial class ExpandedUiAppLevelPlate
         }
     }
 
-    public bool ShowFavArrow()
+    internal bool ShowFavArrow()
     {
         if (ExpDisplay == null) return true;
 
@@ -73,7 +72,7 @@ public partial class ExpandedUiAppLevelPlate
         //todo
     }
 
-    public void OnButtonEnter()
+    internal void OnButtonEnter()
     {
         if (ExpDisplay == null) return;
 

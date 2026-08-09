@@ -182,7 +182,7 @@ public class HpExtraction : BaseExtraction
                 body.LocationIdToStyleInfo[LocationIds.TennisCourts] = new GirlStyleInfo(Hp2BaseMod.Styles.Bonus2);
             }
 
-            ModInterface.AddDataMod(new GirlDataMod(girl, Hp2BaseMod.Utility.InsertStyle.append)
+            ModInterface.DataMod.AddDataMod(new GirlDataMod(girl, Hp2BaseMod.Utility.InsertStyle.append)
             {
                 bodies = new(){
                     body
@@ -194,11 +194,10 @@ public class HpExtraction : BaseExtraction
     public void ConfigureWeirdThing(ItemDataMod mod)
     {
         mod.StoreCost = 30;
-        mod.AffectionType = PuzzleAffectionType.TALENT;
-        mod.ItemType = ItemType.MISC;
+        mod.AffectionId = PuzzleAffectionId.Talent;
         mod.CategoryDescription = "Special Item";
         mod.TooltipColorIndex = 0;
         mod.StoreSectionPreference = true;
-        ModInterface.AddDataMod(mod);
+        ModInterface.DataMod.AddDataMod(mod);
     }
 }

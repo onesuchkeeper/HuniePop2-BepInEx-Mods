@@ -82,7 +82,7 @@ namespace Hp2BaseMod;
 ///   </item>
 /// </list>
 /// These behaviors are applied by setting the <see cref="ScriptedAilmentFactory"/> within a 
-/// <see cref="AilmentDataMod"/> and registering it via <see cref="ModInterface.AddDataMod(IGameDataMod)"/>.
+/// <see cref="AilmentDataMod"/> and registering it via <see cref="ModInterface.DataMod.AddDataMod(IGameDataMod)"/>.
 /// </para>
 /// </remarks>
 [Expansion(typeof(AilmentDefinition), HasModId = true)]

@@ -38,13 +38,12 @@ internal static class PhotoRegistrar
             Path.Combine(kyuPhotoDir, "Old Bedroom2.jpg"),
             true);
 
-        ModInterface.AddDataMod(new PhotoDataMod(Photos.KyuOld, InsertStyle.replace)
-        {
-            ThumbnailCensored = new SpriteInfoSprite(
-                assetBundle.LoadAsset<Sprite>("kyu_old_thumb_censored")),
+        var thumbSteps = CreateThumbnailSteps(2400, 1800);
 
-            ThumbnailWet = new SpriteInfoSprite(
-                assetBundle.LoadAsset<Sprite>("kyu_old_thumb_wet")),
+        ModInterface.DataMod.AddDataMod(new PhotoDataMod(Photos.KyuOld, InsertStyle.replace)
+        {
+            ThumbnailCensored = CreateThumbnail("kyu_old_thumb_censored.png", censoredTexture, thumbSteps),
+            ThumbnailWet = CreateThumbnail("kyu_old_thumb_wet.png", wetTexture, thumbSteps),
 
             BigPhotoCensored = new SpriteInfoTexture(censoredTexture),
             BigPhotoWet = new SpriteInfoTexture(wetTexture),
@@ -55,7 +54,7 @@ internal static class PhotoRegistrar
 
     private static void RegisterAudrey10thPhoto(AssetBundle assetBundle)
     {
-        ModInterface.AddDataMod(new PhotoDataMod(Photos.Audrey10th, InsertStyle.replace)
+        ModInterface.DataMod.AddDataMod(new PhotoDataMod(Photos.Audrey10th, InsertStyle.replace)
         {
             BigPhotoUncensored = new SpriteInfoSprite(
                 assetBundle.LoadAsset<Sprite>("hp_10th_anniversary_audrey_dry")),
@@ -127,7 +126,7 @@ internal static class PhotoRegistrar
 
         var thumbSteps = CreateThumbnailSteps(1400, 1642);
 
-        ModInterface.AddDataMod(new PhotoDataMod(Photos.ThankYou, InsertStyle.replace)
+        ModInterface.DataMod.AddDataMod(new PhotoDataMod(Photos.ThankYou, InsertStyle.replace)
         {
             BigPhotoCensored = new SpriteInfoTexture(censoredTexture),
             ThumbnailCensored = CreateThumbnail(
@@ -169,7 +168,7 @@ internal static class PhotoRegistrar
             var id = new RelativeId(Plugin.ModId, baseId + count);
             var texture = new TextureInfoExternal(file, false);
 
-            ModInterface.AddDataMod(new PhotoDataMod(id, InsertStyle.replace)
+            ModInterface.DataMod.AddDataMod(new PhotoDataMod(id, InsertStyle.replace)
             {
                 BigPhotoCensored = new SpriteInfoTexture(texture),
                 ThumbnailCensored = CreateThumbnail(

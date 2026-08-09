@@ -4,7 +4,7 @@ using HarmonyLib;
 using Hp2BaseMod;
 
 [HarmonyPatch(typeof(UiDoll))]
-public static class UiDollPatch
+internal static class UiDollPatch
 {
     [HarmonyPatch("PurifyDialogText")]
     [HarmonyPostfix]

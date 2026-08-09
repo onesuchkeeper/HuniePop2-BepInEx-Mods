@@ -4,7 +4,7 @@ using UnityEngine;
 namespace Hp2BaseModTweaks;
 
 [HarmonyPatch(typeof(UiStatusPortrait))]
-public static class UiStatusPortraitPatch
+internal static class UiStatusPortraitPatch
 {
 
     [HarmonyPatch(nameof(UiStatusPortrait.Populate))]

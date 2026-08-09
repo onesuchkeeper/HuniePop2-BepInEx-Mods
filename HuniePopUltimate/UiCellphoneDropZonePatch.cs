@@ -4,7 +4,7 @@ using Hp2BaseMod;
 namespace HuniePopUltimate;
 
 [HarmonyPatch(typeof(UiCellphoneTrashZone))]
-public static class UiCellphoneTrashZonePatch
+internal static class UiCellphoneTrashZonePatch
 {
     private static readonly RelativeId _goldFishPlushId = new RelativeId(-1, 45);
 

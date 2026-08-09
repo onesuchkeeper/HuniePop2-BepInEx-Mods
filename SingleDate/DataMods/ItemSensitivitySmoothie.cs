@@ -24,9 +24,10 @@ internal static class ItemSensitivitySmoothie
 
         var spriteInfo = new SpriteInfoSprite(assetBundle.LoadAsset<Sprite>("item_smoothie_sensitivity"));
 
-        ModInterface.AddDataMod(new ItemDataMod(_smoothieId, InsertStyle.replace)
+        ModInterface.DataMod.AddData(ItemGiftHandlers.SensitivitySmoothie, new GiftHandler());
+
+        ModInterface.DataMod.AddDataMod(new ItemDataMod(_smoothieId, InsertStyle.replace)
         {
-            ItemType = ItemType.SMOOTHIE,
             ItemSpriteInfo = spriteInfo,
             ItemName = "Sensitivity Smoothie",
             ItemDescription = "+1 [[broken]@Sensitivity] EXP.",
@@ -35,11 +36,12 @@ internal static class ItemSensitivitySmoothie
             CategoryDescription = "Sensitivity",
             EnergyDefinitionID = new RelativeId(-1, 6),
             StoreSectionPreference = false,
+            ItemGiftHandlerId = ItemGiftHandlers.SensitivitySmoothie,
+            ItemStoreHandlerId = ItemTypes.Smoothie
         });
 
-        ModInterface.AddDataMod(new ItemDataMod(_expId, InsertStyle.replace)
+        ModInterface.DataMod.AddDataMod(new ItemDataMod(_expId, InsertStyle.replace)
         {
-            ItemType = ItemType.MISC,
             ItemSpriteInfo = spriteInfo,
             ItemName = "Sensitivity EXP",
             ItemDescription = "Earn [[broken]@Sensitivity] EXP by giving [[broken]@Sensitivity] smoothies to girls.",
@@ -47,13 +49,72 @@ internal static class ItemSensitivitySmoothie
             CategoryDescription = "+(NUM0) EXP until Level (NUM1)"
         });
 
-        ModInterface.AddDataMod(new ItemDataMod(_levelId, InsertStyle.replace)
+        ModInterface.DataMod.AddDataMod(new ItemDataMod(_levelId, InsertStyle.replace)
         {
-            ItemType = ItemType.MISC,
             ItemName = "Sensitivity Level (LEVEL)",
             ItemDescription = "[[broken]@Broken Heart] token matches will yield [[broken]-(13-(NUM0))%] Affection.",
             TooltipColorIndex = 6,
             CategoryDescription = "Affection Level • Sensitivity"
         });
+    }
+
+    private class GiftHandler : IItemGiftHandler
+    {
+        private static readonly RelativeId DT_SMOOTHIE_ACCEPT = new RelativeId(-1, 18);
+        private static readonly RelativeId DT_SMOOTHIE_FULL = new RelativeId(-1, 19);
+        private static readonly RelativeId DT_SMOOTHIE_REJECT = new RelativeId(-1, 20);
+
+        public bool CanGive(ExpandedItemDefinition item, 
+            ExpandedGirlDefinition girl, 
+            PuzzleStatusGirl statusGirl, 
+            PlayerFileGirl fileGirl, 
+            bool altGirl)
+        {
+            if (!Game.Session.Location.AtLocationType(LocationType.SIM)
+                || State.SaveFile.SensitivityExp < 24)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public string OnGiveSucceed(ExpandedItemDefinition item, 
+            UiDoll doll, 
+            ExpandedGirlDefinition girl, 
+            PuzzleStatusGirl statusGirl, 
+            PlayerFileGirl playerFileGirl, 
+            bool isAltGirl)
+        {
+            var text = $"+1 Sensitivity EXP";
+
+            var affectionLevel = State.GetSensitivityLevel();
+
+            State.SaveFile.SensitivityExp++;
+
+            var updatedAffectionLevel = State.GetSensitivityLevel();
+            if (updatedAffectionLevel != affectionLevel)
+            {
+                doll.notificationBox.Show($"Sensitivity Level {updatedAffectionLevel + 1} achieved!", 0f, false);
+            }
+
+            doll.ReadDialogTrigger(ModInterface.GameData.GetDialogTrigger(DT_SMOOTHIE_ACCEPT), DialogLineFormat.PASSIVE, -1);
+
+            Game.Persistence.playerFile.relationshipPoints++;
+            playerFileGirl.relationshipPoints++;
+
+            return text;
+        }
+
+        public void OnGiveFailed(ExpandedItemDefinition item, ExpandedGirlDefinition girl, UiDoll doll)
+        {
+            if (State.SaveFile.SensitivityExp < 24)
+            {
+                doll.ReadDialogTrigger(ModInterface.GameData.GetDialogTrigger(DT_SMOOTHIE_FULL), DialogLineFormat.PASSIVE, -1);
+                return;
+            }
+
+            doll.ReadDialogTrigger(ModInterface.GameData.GetDialogTrigger(DT_SMOOTHIE_REJECT), DialogLineFormat.PASSIVE, -1);
+        }
     }
 }

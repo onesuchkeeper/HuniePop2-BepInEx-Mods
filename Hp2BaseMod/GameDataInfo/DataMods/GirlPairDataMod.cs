@@ -1,7 +1,5 @@
 ﻿// Hp2BaseMod 2021, By OneSuchKeeper
 
-using System.Collections.Generic;
-using System.Linq;
 using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
 
@@ -12,8 +10,6 @@ namespace Hp2BaseMod.GameDataInfo
     /// </summary>
     public class GirlPairDataMod : DataMod, IGirlPairDataMod
     {
-        public List<IGameDefinitionInfo<GirlPairFavQuestionSubDefinition>> FavQuestions;
-
         public RelativeId? GirlDefinitionOneID;
 
         public RelativeId? GirlDefinitionTwoID;
@@ -69,7 +65,6 @@ namespace Hp2BaseMod.GameDataInfo
         internal GirlPairDataMod(GirlPairDefinition def)
             : base(new RelativeId(def), InsertStyle.replace, 0)
         {
-            FavQuestions = def.favQuestions?.Select(x => (IGameDefinitionInfo<GirlPairFavQuestionSubDefinition>)new GirlPairFavQuestionInfo(x)).ToList();
             GirlDefinitionOneID = new RelativeId(def.girlDefinitionOne);
             GirlDefinitionTwoID = new RelativeId(def.girlDefinitionTwo);
             HasMeetingStyleOne = def.hasMeetingStyleOne;
@@ -132,7 +127,6 @@ namespace Hp2BaseMod.GameDataInfo
             ValidatedSet.SetValue(ref def.photoDefinition, (PhotoDefinition)gameDataProvider.GetDefinition(GameDataType.Photo, PhotoDefinitionID), InsertStyle);
             ValidatedSet.SetValue(ref def.sexLocationDefinition, (LocationDefinition)gameDataProvider.GetDefinition(GameDataType.Location, SexLocationDefinitionID), InsertStyle);
 
-            ValidatedSet.SetListValue(ref def.favQuestions, FavQuestions, InsertStyle, gameDataProvider, assetProvider);
             ValidatedSet.SetListValue(ref def.relationshipCutsceneDefinitions,
                                       [ gameDataProvider.GetCutscene(IntroRelationshipCutsceneDefinitionID),
                                               gameDataProvider.GetCutscene(AttractRelationshipCutsceneDefinitionID),
@@ -155,7 +149,6 @@ namespace Hp2BaseMod.GameDataInfo
         /// <inheritdoc/>
         public void RequestInternals(AssetProvider assetProvider)
         {
-            FavQuestions?.ForEach(x => x.RequestInternals(assetProvider));
         }
     }
 }

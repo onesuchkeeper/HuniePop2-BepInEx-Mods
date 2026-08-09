@@ -42,9 +42,9 @@ namespace Hp2BaseMod
         /// Notifies when a girl's style will potentially change<br/>
         /// </summary>
         public event Action<RequestStyleChangeEventArgs> RequestStyleChange;
-        internal RequestStyleChangeEventArgs NotifyRequestStyleChange(GirlDefinition girl, LocationDefinition loc, float percentage, GirlStyleInfo style)
+        internal RequestStyleChangeEventArgs NotifyRequestStyleChange(GirlDefinition girl, LocationDefinition loc, float percentage, GirlStyleInfo style, bool isCutsceneStyle)
         {
-            var args = new RequestStyleChangeEventArgs(girl, loc, percentage, style);
+            var args = new RequestStyleChangeEventArgs(girl, loc, percentage, style, isCutsceneStyle);
             RequestStyleChange?.Invoke(args);
             return args;
         }

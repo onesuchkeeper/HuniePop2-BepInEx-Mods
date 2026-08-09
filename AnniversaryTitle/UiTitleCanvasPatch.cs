@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using DG.Tweening;
 using HarmonyLib;
 using Hp2BaseMod;
@@ -28,24 +27,9 @@ internal static class TitleCanvasPatch
         => ExpandedUiTitleCanvas.Get(__instance).OnDestroy();
 }
 
-public class ExpandedUiTitleCanvas
+[Expansion(typeof(UiTitleCanvas))]
+public partial class ExpandedUiTitleCanvas
 {
-    private static Dictionary<UiTitleCanvas, ExpandedUiTitleCanvas> _expansions
-        = new Dictionary<UiTitleCanvas, ExpandedUiTitleCanvas>();
-
-    public static ExpandedUiTitleCanvas Get(UiTitleCanvas core)
-    {
-        if (!_expansions.TryGetValue(core, out var expansion))
-        {
-            expansion = new ExpandedUiTitleCanvas(core);
-            _expansions[core] = expansion;
-        }
-
-        return expansion;
-    }
-
-    private static readonly FieldInfo f_linkMainTheme = AccessTools.Field(typeof(UiTitleCanvas), "_linkMainTheme");
-
     private Image _mid;
     private Image _foreground;
     private Image _front;
@@ -59,14 +43,7 @@ public class ExpandedUiTitleCanvas
     private Sprite _backSprite;
 
     private Sequence _animationSequence;
-
     private AudioSource _audioSource;
-
-    protected UiTitleCanvas _core;
-    private ExpandedUiTitleCanvas(UiTitleCanvas core)
-    {
-        _core = core;
-    }
 
     public void StartPre()
     {

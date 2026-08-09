@@ -176,7 +176,7 @@ public class HpLocationExtractor
                 locationMod.DefaultStyle = styleId;
             }
 
-            ModInterface.AddDataMod(locationMod);
+            ModInterface.DataMod.AddDataMod(locationMod);
         }
     }
 

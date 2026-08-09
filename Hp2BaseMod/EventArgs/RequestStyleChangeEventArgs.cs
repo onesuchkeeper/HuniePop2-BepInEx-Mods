@@ -32,11 +32,18 @@ public class RequestStyleChangeEventArgs : EventArgs
     public LocationDefinition Loc => _loc;
     private LocationDefinition _loc;
 
-    public RequestStyleChangeEventArgs(GirlDefinition def, LocationDefinition loc, float percentage, GirlStyleInfo style)
+    /// <summary>
+    /// If this style is for a cutscene
+    /// </summary>
+    public bool IsCutsceneStyle => _isCutsceneStyle;
+    private bool _isCutsceneStyle;
+
+    public RequestStyleChangeEventArgs(GirlDefinition def, LocationDefinition loc, float percentage, GirlStyleInfo style, bool isCutsceneStyle)
     {
         _def = def;
         _loc = loc;
         ApplyChance = percentage;
         Style = style;
+        _isCutsceneStyle = isCutsceneStyle;
     }
 }

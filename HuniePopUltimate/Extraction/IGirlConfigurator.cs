@@ -63,5 +63,5 @@ public interface IGirlConfigurator
     /// Checks if the text-photo at this index is nsfw and 
     /// must be censored
     /// </summary>
-    bool IsPhotoIndexNsfw(int photoIndex);
+    bool IsTextPhotoIndexNsfw(int photoIndex);
 }

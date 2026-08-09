@@ -3,7 +3,7 @@ using HarmonyLib;
 namespace SingleDate;
 
 [HarmonyPatch(typeof(PlayerFileGirlPair))]
-public static class PlayerFileGirlPairPatch
+internal static class PlayerFileGirlPairPatch
 {
     [HarmonyPatch(nameof(PlayerFileGirlPair.RelationshipLevelUp))]
     [HarmonyPrefix]
@@ -31,13 +31,6 @@ public static class PlayerFileGirlPairPatch
             {
                 Game.Persistence.playerFile.metGirlPairs.Add(__instance.girlPairDefinition);
             }
-
-            //don't add single pairs to met pairs
-            // if (__instance.relationshipType == GirlPairRelationshipType.LOVERS
-            //     && !Game.Persistence.playerFile.completedGirlPairs.Contains(__instance.girlPairDefinition))
-            // {
-            //     Game.Persistence.playerFile.completedGirlPairs.Add(__instance.girlPairDefinition);
-            // }
         }
 
         Game.Persistence.playerFile.KeyValueChanged();

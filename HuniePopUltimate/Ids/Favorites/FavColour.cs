@@ -19,7 +19,7 @@ public static class FavColour
 
     internal static void AddDataMods()
     {
-        ModInterface.AddDataMod(new FavQuestionDataMod(Questions.FavColour, Hp2BaseMod.Utility.InsertStyle.append)
+        ModInterface.DataMod.AddDataMod(new FavQuestionDataMod(Questions.FavColour, Hp2BaseMod.Utility.InsertStyle.append)
         {
             QuestionName = "Favorite Color",
             QuestionText = "What is your favorite [[highlight]color]?",

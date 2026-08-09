@@ -27,7 +27,7 @@ namespace Hp2BaseMod.Save
         {
             if (save == null) return;
 
-            ValidatedSet.SetFromRelativeId(ref save.girlPairId, GameDataType.GirlPair, GirlPairId);
+            ValidatedSet.TrySetFromRelativeId(ref save.girlPairId, GameDataType.GirlPair, GirlPairId);
         }
 
         public SaveFileFinderSlot Convert(int locationRuntimeId)
@@ -37,7 +37,7 @@ namespace Hp2BaseMod.Save
                 sidesFlipped = SidesFlipped
             };
 
-            ValidatedSet.SetFromRelativeId(ref save.girlPairId, GameDataType.GirlPair, GirlPairId);
+            ValidatedSet.TrySetFromRelativeId(ref save.girlPairId, GameDataType.GirlPair, GirlPairId);
             return save;
         }
     }

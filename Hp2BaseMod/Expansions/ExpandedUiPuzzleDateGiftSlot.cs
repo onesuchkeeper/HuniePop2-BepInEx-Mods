@@ -8,7 +8,7 @@ internal static class UiPuzzleDateGiftSlotPatch
     [HarmonyPatch("Start")]
     [HarmonyPostfix]
     public static void Start(UiPuzzleDateGiftSlot __instance)
-        => ExpandedUiPuzzleDateGiftSlot.Get(__instance).Start();
+        => ExpandedUiPuzzleDateGiftSlot.Get(__instance).Start_Postfix();
 
     [HarmonyPatch("OnDestroy")]
     [HarmonyPostfix]
@@ -19,10 +19,10 @@ internal static class UiPuzzleDateGiftSlotPatch
 /// <summary>
 /// Handles <see cref="ExpandedItemSlotBehavior.PreShowEvent"/>.
 /// </summary>
-[Expansion(typeof(UiPuzzleDateGiftSlot), Methods = new[]{"OnTooltipPreShow"})]
+[Expansion(typeof(UiPuzzleDateGiftSlot))]
 public partial class ExpandedUiPuzzleDateGiftSlot
 {
-    public void Start()
+    internal void Start_Postfix()
     {
         ExpandedItemSlotBehavior.Get(_core.itemSlot).PreShowEvent += OnTooltipPreShow;
     }

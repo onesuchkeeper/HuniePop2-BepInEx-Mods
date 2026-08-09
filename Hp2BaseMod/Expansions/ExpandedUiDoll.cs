@@ -8,7 +8,7 @@ using UnityEngine;
 namespace Hp2BaseMod;
 
 [HarmonyPatch(typeof(UiDoll))]
-class UiDoll_ChangeStyle
+internal class UiDoll_ChangeStyle
 {
     [HarmonyPatch(nameof(UiDoll.LoadGirl))]
     [HarmonyPostfix]
@@ -44,12 +44,8 @@ class UiDoll_ChangeStyle
     [HarmonyPrefix]
     public static bool ShowEnergySurge(UiDoll __instance, EnergyDefinition energyDef, float duration, bool knockback, bool negative = false, bool silent = false)
     {
-        if (__instance.girlDefinition != null)
-        {
-            return true;
-        }
-
-        return false;
+        // Safety - Skip showing surge is there is no definition
+        return __instance.girlDefinition != null;
     }
 
     [HarmonyPatch(nameof(UiDoll.ReadDialogTrigger))]
@@ -61,14 +57,12 @@ class UiDoll_ChangeStyle
 /// <summary>
 /// Handles <see cref="ExpandedStyleDefinition"/> fields.
 /// </summary>
-[Expansion(typeof(UiDoll), 
-    Fields = new[]{"_specialEffect", "_currentOutfitIndex", "_currentHairstyleIndex"},
-    Methods = new[]{"LoadPart", "GetDollPartByType"})]
+[Expansion(typeof(UiDoll))]
 public partial class ExpandedUiDoll
 {
     private UiDollSpecialEffect _specialEffect_hold;
 
-    public void LoadGirl(GirlDefinition girlDef)
+    internal void LoadGirl(GirlDefinition girlDef)
     {
         //scale to match body
         var body = girlDef.GetExpansion().GetCurrentBody();
@@ -123,7 +117,7 @@ public partial class ExpandedUiDoll
         }
     }
 
-    public void ChangeOutfit(ref int outfitIndex)
+    internal void ChangeOutfit(ref int outfitIndex)
     {
         if (_core.girlDefinition == null) return;
 
@@ -173,12 +167,14 @@ public partial class ExpandedUiDoll
     /// <summary>
     /// After changing outfit, move it to the bottom of its layer
     /// </summary>
-    public void PostChangeOutfit()
+    internal void PostChangeOutfit()
     {
-        RefreshSpecialParts(_core.girlDefinition.GetExpansion().HairstyleLookup[_core.currentHairstyleIndex]);
+        var girlExp = _core.girlDefinition.GetExpansion();
+        RefreshSpecialParts(girlExp.HairstyleLookup[_core.currentHairstyleIndex],
+            girlExp.OutfitLookup[_core.currentOutfitIndex]);
     }
 
-    public bool ChangeHairstyle(int hairstyleIndex)
+    internal bool ChangeHairstyle(int hairstyleIndex)
     {
         if (_core.girlDefinition == null) return true;
 
@@ -232,14 +228,16 @@ public partial class ExpandedUiDoll
             _core.partSpecials = newParts.ToArray();
         }
 
-        var hairId = _core.girlDefinition.GetExpansion().HairstyleLookup[_core.currentHairstyleIndex];
+        var girlExp = _core.girlDefinition.GetExpansion();
+        var hairId = girlExp.HairstyleLookup[_core.currentHairstyleIndex];
+        var outfitId = girlExp.OutfitLookup[_core.currentOutfitIndex];
 
-        RefreshSpecialParts(hairId);
+        RefreshSpecialParts(hairId, outfitId);
 
         return false;
     }
 
-    private void RefreshSpecialParts(RelativeId hairId)
+    private void RefreshSpecialParts(RelativeId hairId, RelativeId outfitId)
     {
         int i;
         for (i = 0; i < _core.partSpecials.Length; i++)
@@ -255,9 +253,10 @@ public partial class ExpandedUiDoll
             // make sure special part is allowed
             // empty or null allows all, otherwise whitelist
             var specialPartExpansion = part.GetExpansion();
-            if (specialPartExpansion.RequiredHairstyles != null
-                && specialPartExpansion.RequiredHairstyles.Any()
-                && !specialPartExpansion.RequiredHairstyles.Contains(hairId))
+            if ((specialPartExpansion.RequiredHairstyles?.Any() == true
+                    && !specialPartExpansion.RequiredHairstyles.Contains(hairId))
+                || (specialPartExpansion.RequiredOutfits?.Any() == true
+                    && !specialPartExpansion.RequiredOutfits.Contains(outfitId)))
             {
                 continue;
             }

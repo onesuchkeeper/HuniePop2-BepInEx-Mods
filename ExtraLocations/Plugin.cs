@@ -123,7 +123,7 @@ public class Plugin : BaseUnityPlugin
         {
             var waterfallImgDir = Path.Combine(ConfigDac.Value, "Misc", "Cut Locations", "Waterfall");
 
-            ModInterface.AddDataMod(new LocationDataMod(Locations.HiddenWaterfall, InsertStyle.replace)
+            ModInterface.DataMod.AddDataMod(new LocationDataMod(Locations.HiddenWaterfall, InsertStyle.replace)
             {
                 DefaultStyle = Styles.Water,
                 LocationName = "Hidden Waterfall",
@@ -165,7 +165,7 @@ public class Plugin : BaseUnityPlugin
         }
 
         //others
-        ModInterface.AddDataMod(new LocationDataMod(Locations.Volcano, InsertStyle.replace)
+        ModInterface.DataMod.AddDataMod(new LocationDataMod(Locations.Volcano, InsertStyle.replace)
         {
             DefaultStyle = Styles.Activity,
             LocationName = "Volcano",
@@ -188,7 +188,7 @@ public class Plugin : BaseUnityPlugin
             }
         });
 
-        ModInterface.AddDataMod(new LocationDataMod(Locations.HotelRoom, InsertStyle.replace)
+        ModInterface.DataMod.AddDataMod(new LocationDataMod(Locations.HotelRoom, InsertStyle.replace)
         {
             DefaultStyle = Styles.Relaxing,
             LocationName = "Hotel Room",
@@ -211,7 +211,7 @@ public class Plugin : BaseUnityPlugin
             }
         });
 
-        ModInterface.AddDataMod(new LocationDataMod(Locations.OuterSpace, InsertStyle.replace)
+        ModInterface.DataMod.AddDataMod(new LocationDataMod(Locations.OuterSpace, InsertStyle.replace)
         {
             DefaultStyle = Styles.Activity,
             LocationName = "Space",
@@ -241,7 +241,7 @@ public class Plugin : BaseUnityPlugin
             }
         });
 
-        ModInterface.AddDataMod(new LocationDataMod(Locations.AirplaneBathroom, InsertStyle.replace)
+        ModInterface.DataMod.AddDataMod(new LocationDataMod(Locations.AirplaneBathroom, InsertStyle.replace)
         {
             DefaultStyle = Styles.Activity,
             LocationName = "Airplane Bathroom",
@@ -272,7 +272,7 @@ public class Plugin : BaseUnityPlugin
         });
 
         var airplaneCabinBg = new SpriteInfoInternal("loc_bg_special_airplanecabin_0");
-        ModInterface.AddDataMod(new LocationDataMod(Locations.AirplaneCabin, InsertStyle.replace)
+        ModInterface.DataMod.AddDataMod(new LocationDataMod(Locations.AirplaneCabin, InsertStyle.replace)
         {
             DefaultStyle = Styles.Activity,
             LocationName = "Airplane Cabin",
@@ -303,7 +303,7 @@ public class Plugin : BaseUnityPlugin
         });
 
         var poolsideBg = new SpriteInfoInternal("loc_bg_special_poolside_0");
-        ModInterface.AddDataMod(new LocationDataMod(Locations.Poolside, InsertStyle.replace)
+        ModInterface.DataMod.AddDataMod(new LocationDataMod(Locations.Poolside, InsertStyle.replace)
         {
             DefaultStyle = Styles.Water,
             LocationName = "Poolside",
@@ -331,7 +331,7 @@ public class Plugin : BaseUnityPlugin
         });
 
         var apartmentBg = new SpriteInfoInternal("loc_bg_special_apartment_0");
-        ModInterface.AddDataMod(new LocationDataMod(Locations.Apartment, InsertStyle.replace)
+        ModInterface.DataMod.AddDataMod(new LocationDataMod(Locations.Apartment, InsertStyle.replace)
         {
             DefaultStyle = Styles.Romantic,
             LocationName = "Your Apartment",

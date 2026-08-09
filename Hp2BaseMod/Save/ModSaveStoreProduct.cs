@@ -27,7 +27,7 @@ namespace Hp2BaseMod.Save
         {
             if (save == null) return;
 
-            ValidatedSet.SetFromRelativeId(ref save.itemId, GameDataType.Item, ItemId);
+            ValidatedSet.TrySetFromRelativeId(ref save.itemId, GameDataType.Item, ItemId);
         }
 
         public SaveFileStoreProduct Convert(int index)
@@ -36,7 +36,7 @@ namespace Hp2BaseMod.Save
             {
                 itemCost = ItemCost
             };
-            ValidatedSet.SetFromRelativeId(ref save.itemId, GameDataType.Item, ItemId);
+            ValidatedSet.TrySetFromRelativeId(ref save.itemId, GameDataType.Item, ItemId);
             return save;
         }
     }

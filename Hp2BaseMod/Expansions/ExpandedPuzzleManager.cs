@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
-using Hp2BaseMod.Extension;
 
 namespace Hp2BaseMod;
 
@@ -12,6 +11,11 @@ internal static class PuzzleManagerPatch
     private static readonly MethodInfo m_handleCutscenes = AccessTools.Method(typeof(PuzzleManagerPatch), nameof(HandleCutscenes));
     private static readonly MethodInfo m_checkRelationship = AccessTools.Method(typeof(PuzzleManagerPatch), nameof(CheckRelationship));
 
+    [HarmonyPatch("EndPuzzle")]
+    [HarmonyPostfix]
+    private static void EndPuzzle(PuzzleManager __instance)
+        => ExpandedPuzzleManager.Get(__instance).EndPuzzle_Postfix();
+
     [HarmonyPatch("OnDestroy")]
     [HarmonyPostfix]
     private static void OnDestroy(PuzzleManager __instance) 
@@ -19,7 +23,7 @@ internal static class PuzzleManagerPatch
 
     [HarmonyPatch("OnRoundOver")]
     [HarmonyTranspiler]
-    static IEnumerable<CodeInstruction> OnRoundOver(IEnumerable<CodeInstruction> instructions)
+    private static IEnumerable<CodeInstruction> OnRoundOver(IEnumerable<CodeInstruction> instructions)
     {
         yield return new CodeInstruction(OpCodes.Ldarg_0);
         yield return new CodeInstruction(OpCodes.Call, m_checkRelationship);
@@ -113,10 +117,10 @@ internal static class PuzzleManagerPatch
         ModInterface.Log.Message(args.ToString());
 
         var puzzleStatusExp = Game.Session.Puzzle.puzzleStatus.GetExpansion();
-        puzzleStatusExp.GameOver = args.IsGameOver;
+        puzzleStatusExp._gameOver = args.IsGameOver;
 
         var puzzleGridExp = Game.Session.Puzzle.puzzleGrid.GetExpansion();
-        puzzleGridExp.RoundState = args.IsSuccess
+        puzzleGridExp._roundState = args.IsSuccess
             ? PuzzleRoundState.SUCCESS
             : PuzzleRoundState.FAILURE;
 
@@ -145,17 +149,17 @@ internal static class PuzzleManagerPatch
             {
                 if (Game.Session.Puzzle.puzzleStatus.bonusRound)
                 {
-                    managerExp.NewRoundCutscene = null;
+                    managerExp._newRoundCutscene = null;
 
-                    managerExp.RoundOverCutscene = ModInterface.GameData.GetCutscene(pairExpansion.CutsceneNormalBonusSuccessId) 
+                    managerExp._roundOverCutscene = ModInterface.GameData.GetCutscene(pairExpansion.CutsceneNormalBonusSuccessId) 
                         ?? Game.Session.Puzzle.cutsceneSuccessBonus;
                 }
                 else
                 {
-                    managerExp.RoundOverCutscene = ModInterface.GameData.GetCutscene(pairExpansion.CutsceneNormalAttractedSuccessId) 
+                    managerExp._roundOverCutscene = ModInterface.GameData.GetCutscene(pairExpansion.CutsceneNormalAttractedSuccessId) 
                         ?? Game.Session.Puzzle.cutsceneSuccessAttracted;
 
-                    managerExp.NewRoundCutscene = ModInterface.GameData.GetCutscene(pairExpansion.CutsceneNormalBonusNewRoundId) 
+                    managerExp._newRoundCutscene = ModInterface.GameData.GetCutscene(pairExpansion.CutsceneNormalBonusNewRoundId) 
                         ?? Game.Session.Puzzle.cutsceneNewroundBonus;
                 }
             }
@@ -164,14 +168,14 @@ internal static class PuzzleManagerPatch
                 switch (args.LevelUpType)
                 {
                     case PuzzleRoundOverArgs.CutsceneType.None:
-                        managerExp.RoundOverCutscene = ModInterface.GameData.GetCutscene(pairExpansion.CutsceneNormalSuccessId) ?? Game.Session.Puzzle.cutsceneSuccess;
+                        managerExp._roundOverCutscene = ModInterface.GameData.GetCutscene(pairExpansion.CutsceneNormalSuccessId) ?? Game.Session.Puzzle.cutsceneSuccess;
                         break;
                     case PuzzleRoundOverArgs.CutsceneType.AttractToLovers:
-                        managerExp.RoundOverCutscene = ModInterface.GameData.GetCutscene(pairExpansion.CutsceneNormalAttractedSuccessId) 
+                        managerExp._roundOverCutscene = ModInterface.GameData.GetCutscene(pairExpansion.CutsceneNormalAttractedSuccessId) 
                             ?? Game.Session.Puzzle.cutsceneSuccessAttracted;
                         break;
                     case PuzzleRoundOverArgs.CutsceneType.CompatToAttract:
-                        managerExp.RoundOverCutscene = ModInterface.GameData.GetCutscene(pairExpansion.CutsceneNormalCompatibleSuccessId) 
+                        managerExp._roundOverCutscene = ModInterface.GameData.GetCutscene(pairExpansion.CutsceneNormalCompatibleSuccessId) 
                             ?? Game.Session.Puzzle.cutsceneSuccessCompatible;
                         break;
                 }
@@ -179,28 +183,20 @@ internal static class PuzzleManagerPatch
         }
         else
         {
-            managerExp.RoundOverCutscene = ModInterface.GameData.GetCutscene(pairExpansion.CutsceneNormalFailureId) 
+            managerExp._roundOverCutscene = ModInterface.GameData.GetCutscene(pairExpansion.CutsceneNormalFailureId) 
                 ?? Game.Session.Puzzle.cutsceneFailure;
         }
     }
 }
 
-[Expansion(typeof(PuzzleManager), 
-    Fields = new[]{"_roundOverCutscene", "_newRoundCutscene"})]
+[Expansion(typeof(PuzzleManager))]
 public partial class ExpandedPuzzleManager
 {
-    public PuzzleRoundOverArgs Args;
+    internal PuzzleRoundOverArgs Args;
 
-    public CutsceneDefinition RoundOverCutscene
+    internal void EndPuzzle_Postfix()
     {
-        get => _roundOverCutscene;
-        set => _roundOverCutscene = value;
-    }
-
-    public CutsceneDefinition NewRoundCutscene
-    {
-        get => _newRoundCutscene;
-        set => _newRoundCutscene = value;
+        Game.Session.Ailment.GetExpansion().OnEndPuzzle();
     }
 
     private void OnDestroy()

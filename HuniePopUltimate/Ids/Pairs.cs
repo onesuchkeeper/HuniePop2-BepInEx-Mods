@@ -12,4 +12,7 @@ public static class Pairs
 
     public static RelativeId LolaSingleDate => _lolaSingleDate;
     internal static RelativeId _lolaSingleDate;
+
+    public static RelativeId TiffanyAudrey => _tiffanyAudrey;
+    internal static RelativeId _tiffanyAudrey = new RelativeId(Plugin.ModId, 100_000);
 }

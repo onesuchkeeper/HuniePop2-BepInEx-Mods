@@ -11,33 +11,18 @@ namespace Hp2BaseMod
 {
     internal static class GameDataModder
     {
-        public static void Mod(GameData gameData)
+        public static void Mod(GameData gameData, GameDefinitionProvider gameDataProvider)
         {
             ModInterface.Log.Message($"Loaded data sources: [{string.Join(", ", ModInterface.Save.SourceGUID_Id.Select(x => $"{x.Key} - {x.Value}"))}]");
 
             try
             {
                 var assetProvider = ModInterface.Assets;
-                var gameDataProvider = ModInterface.GameData;
-                var context = new GameDataContext();
+                GameDataContext context = null;
 
                 using (ModInterface.Log.MakeIndent("Gathering base GameData"))
                 {
-                    DefaultGameDataHandler.CollectDefaultData(gameData,
-                        out context.abilityDataDict,
-                        out context.ailmentDataDict,
-                        out context.codeDataDict,
-                        out context.cutsceneDataDict,
-                        out context.dialogTriggerDataDict,
-                        out context.dlcDataDict,
-                        out context.energyDataDict,
-                        out context.girlDataDict,
-                        out context.girlPairDataDict,
-                        out context.itemDataDict,
-                        out context.locationDataDict,
-                        out context.photoDataDict,
-                        out context.questionDataDict,
-                        out context.tokenDataDict);
+                    context = DefaultGameDataHandler.CollectDefaultData(gameData, gameDataProvider);
 
                     using (ModInterface.Log.MakeIndent("loading internal assets"))
                     {
@@ -64,20 +49,20 @@ namespace Hp2BaseMod
                     ModInterface.Log.Message("grabbing data mods from the mod interface");
                     ModInterface.Log.IncreaseIndent();
 
-                    context.abilityDataMods = ModInterface.AbilityDataMods;
-                    context.ailmentDataMods = ModInterface.AilmentDataMods;
-                    context.codeDataMods = ModInterface.CodeDataMods;
-                    context.cutsceneDataMods = ModInterface.CutsceneDataMods;
-                    context.dialogTriggerDataMods = ModInterface.DialogTriggerDataMods;
-                    context.dlcDataMods = ModInterface.DlcDataMods;
-                    context.energyDataMods = ModInterface.EnergyDataMods;
-                    context.girlDataMods = ModInterface.GirlDataMods;
-                    context.girlPairDataMods = ModInterface.GirlPairDataMods;
-                    context.itemDataMods = ModInterface.ItemDataMods;
-                    context.locationDataMods = ModInterface.LocationDataMods;
-                    context.photoDataMods = ModInterface.PhotoDataMods;
-                    context.questionDataMods = ModInterface.QuestionDataMods;
-                    context.tokenDataMods = ModInterface.TokenDataMods;
+                    context.abilityDataMods = ModInterface.DataMod.AbilityDataMods;
+                    context.ailmentDataMods = ModInterface.DataMod.AilmentDataMods;
+                    context.codeDataMods = ModInterface.DataMod.CodeDataMods;
+                    context.cutsceneDataMods = ModInterface.DataMod.CutsceneDataMods;
+                    context.dialogTriggerDataMods = ModInterface.DataMod.DialogTriggerDataMods;
+                    context.dlcDataMods = ModInterface.DataMod.DlcDataMods;
+                    context.energyDataMods = ModInterface.DataMod.EnergyDataMods;
+                    context.girlDataMods = ModInterface.DataMod.GirlDataMods;
+                    context.girlPairDataMods = ModInterface.DataMod.GirlPairDataMods;
+                    context.itemDataMods = ModInterface.DataMod.ItemDataMods;
+                    context.locationDataMods = ModInterface.DataMod.LocationDataMods;
+                    context.photoDataMods = ModInterface.DataMod.PhotoDataMods;
+                    context.questionDataMods = ModInterface.DataMod.QuestionDataMods;
+                    context.tokenDataMods = ModInterface.DataMod.TokenDataMods;
 
                     GirlSubDataModder.GatherSubMods(context.girlDataMods, out var GirlToBodyToMods, out var dialogLineModsByIdByDialogTriggerByGirlId);
                     ModInterface.Log.DecreaseIndent();
@@ -129,7 +114,8 @@ namespace Hp2BaseMod
                         {
                             using (ModInterface.Log.MakeIndent(girl.girlName))
                             {
-                                var girlId = ModInterface.Data.GetDataId(GameDataType.Girl, girl.id);
+                                var girlId = girl.ModId();
+                                var girlExp = girl.GetExpansion();
                                 girl.badFoodTypes ??= new();
                                 if (!girl.badFoodTypes.Any())
                                 {
@@ -143,6 +129,24 @@ namespace Hp2BaseMod
                                 girl.uniqueItemDefs ??= new();
                                 girl.shoesItemDefs ??= new();
                                 girl.baggageItemDefs ??= new();
+                                girlExp.TalkHandler ??= new GirlTalkHandler();
+
+                                //Safeguard until custom affection is fully implemented
+                                if (girlExp.FavAffection != null)
+                                {
+                                    if (girlExp.FavAffection.Id == PuzzleAffectionId.Talent) girl.favoriteAffectionType = PuzzleAffectionType.TALENT;
+                                    if (girlExp.FavAffection.Id == PuzzleAffectionId.Flirtation) girl.favoriteAffectionType = PuzzleAffectionType.FLIRTATION;
+                                    if (girlExp.FavAffection.Id == PuzzleAffectionId.Romance) girl.favoriteAffectionType = PuzzleAffectionType.ROMANCE;
+                                    if (girlExp.FavAffection.Id == PuzzleAffectionId.Sexuality) girl.favoriteAffectionType = PuzzleAffectionType.SEXUALITY;
+                                }
+
+                                if (girlExp.LeastFavAffection != null)
+                                {
+                                    if (girlExp.LeastFavAffection.Id == PuzzleAffectionId.Talent) girl.leastFavoriteAffectionType = PuzzleAffectionType.TALENT;
+                                    if (girlExp.LeastFavAffection.Id == PuzzleAffectionId.Flirtation) girl.leastFavoriteAffectionType = PuzzleAffectionType.FLIRTATION;
+                                    if (girlExp.LeastFavAffection.Id == PuzzleAffectionId.Romance) girl.leastFavoriteAffectionType = PuzzleAffectionType.ROMANCE;
+                                    if (girlExp.LeastFavAffection.Id == PuzzleAffectionId.Sexuality) girl.leastFavoriteAffectionType = PuzzleAffectionType.SEXUALITY;
+                                }
                             }
                         }
                     }
@@ -152,6 +156,26 @@ namespace Hp2BaseMod
                         foreach (var pair in Game.Data.GirlPairs.GetAll())
                         {
                             pair.favQuestions ??= new();
+                        }
+                    }
+
+                    using (ModInterface.Log.MakeIndent("items"))
+                    {
+                        foreach (var item in Game.Data.Items.GetAll())
+                        {
+                            var expansion = item.GetExpansion();
+                            expansion.GiftHandler ??= new NonGiftItemHandler();
+
+                            //Safeguard until custom affection is fully implemented
+                            if (expansion.Affection != null)
+                            {
+#pragma warning disable HP001 // Deprecated member usage
+                                if (expansion.Affection.Id == PuzzleAffectionId.Talent) item.affectionType = PuzzleAffectionType.TALENT;
+                                if (expansion.Affection.Id == PuzzleAffectionId.Flirtation) item.affectionType = PuzzleAffectionType.FLIRTATION;
+                                if (expansion.Affection.Id == PuzzleAffectionId.Romance) item.affectionType = PuzzleAffectionType.ROMANCE;
+                                if (expansion.Affection.Id == PuzzleAffectionId.Sexuality) item.affectionType = PuzzleAffectionType.SEXUALITY;
+#pragma warning restore HP001 // Deprecated member usage
+                            }
                         }
                     }
                 }

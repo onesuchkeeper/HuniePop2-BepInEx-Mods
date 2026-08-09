@@ -153,5 +153,5 @@ public class MomoConfigurator : GirlConfiguratorBase
     {
     }
 
-    public override bool IsPhotoIndexNsfw(int photoIndex) => photoIndex.InInclusiveRange(2,3);
+    public override bool IsTextPhotoIndexNsfw(int photoIndex) => photoIndex.InInclusiveRange(2,3);
 }

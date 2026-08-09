@@ -39,7 +39,7 @@ public class TextureInfoSprite : ITextureInfo
         if (_texture == null)
         {
             Sprite sprite = null;
-            _spriteData.SetData(ref sprite, ModInterface.GameData, ModInterface.Assets, InsertStyle.replace);
+            _spriteData.SetData(ref sprite, null, ModInterface.Assets, InsertStyle.replace);
 
             if (_renderSprite)
             {

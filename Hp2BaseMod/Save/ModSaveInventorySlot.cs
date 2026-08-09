@@ -25,7 +25,7 @@ namespace Hp2BaseMod.Save
         {
             if (save == null) return;
 
-            ValidatedSet.SetFromRelativeId(ref save.itemId, GameDataType.Item, ItemId);
+            ValidatedSet.TrySetFromRelativeId(ref save.itemId, GameDataType.Item, ItemId);
         }
 
         public SaveFileInventorySlot Convert(int slotIndex)
@@ -35,7 +35,7 @@ namespace Hp2BaseMod.Save
                 daytimeStamp = DayTimeStamp
             };
 
-            ValidatedSet.SetFromRelativeId(ref save.itemId, GameDataType.Item, ItemId);
+            ValidatedSet.TrySetFromRelativeId(ref save.itemId, GameDataType.Item, ItemId);
             return save;
         }
     }

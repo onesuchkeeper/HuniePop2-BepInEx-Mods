@@ -47,7 +47,7 @@ public enum SampleEncoding : int
 public static class AdpcmCodec
 {
     // IMA step table (89 entries)
-    private static readonly int[] StepTable = {
+    private static readonly int[] STEP_TABLE = {
             7,     8,     9,    10,    11,    12,    13,    14,
            16,    17,    19,    21,    23,    25,    28,    31,
            34,    37,    41,    45,    50,    55,    60,    66,
@@ -63,7 +63,7 @@ public static class AdpcmCodec
     };
 
     // IMA index adjustment table
-    private static readonly int[] IndexTable = {
+    private static readonly int[] INDEX_TABLE = {
         -1, -1, -1, -1, 2, 4, 6, 8,
         -1, -1, -1, -1, 2, 4, 6, 8
     };
@@ -113,8 +113,6 @@ public static class AdpcmCodec
         int frameStart, int frameEnd, int totalFrames,
         int blockSize, byte[] output, int outBase)
     {
-        int samplesPerBlock = SamplesPerBlock(blockSize);
-
         // Seed predictor from first sample of block
         int firstSample = frameStart < totalFrames
             ? FloatToInt16(pcm[frameStart * channels + ch])
@@ -141,7 +139,7 @@ public static class AdpcmCodec
                 ? FloatToInt16(pcm[frame * channels + ch])
                 : predictor; // pad with predictor to fill block
 
-            var step = StepTable[stepIndex];
+            var step = STEP_TABLE[stepIndex];
             var diff = sample - predictor;
             var nybble = 0;
 
@@ -169,7 +167,7 @@ public static class AdpcmCodec
             }
 
             // Update predictor
-            step = StepTable[stepIndex];
+            step = STEP_TABLE[stepIndex];
             var vpdiff = step >> 3;
             if ((nybble & 4) != 0) vpdiff += step;
             if ((nybble & 2) != 0) vpdiff += step >> 1;
@@ -185,7 +183,7 @@ public static class AdpcmCodec
             }
 
             predictor = Clamp16(predictor);
-            stepIndex = Clamp(stepIndex + IndexTable[nybble & 7], 0, 88);
+            stepIndex = Clamp(stepIndex + INDEX_TABLE[nybble & 7], 0, 88);
 
             // Pack two nybbles per byte (low nybble first)
             if (nybbleIdx % 2 == 0)
@@ -236,7 +234,7 @@ public static class AdpcmCodec
             {
                 var nybble = (half == 0) ? (b & 0x0F) : ((b >> 4) & 0x0F);
 
-                var step = StepTable[stepIndex];
+                var step = STEP_TABLE[stepIndex];
                 var vpdiff = step >> 3;
                 if ((nybble & 4) != 0) vpdiff += step;
                 if ((nybble & 2) != 0) vpdiff += step >> 1;
@@ -252,7 +250,7 @@ public static class AdpcmCodec
                 }
 
                 predictor = Clamp16(predictor);
-                stepIndex = Clamp(stepIndex + IndexTable[nybble], 0, 88);
+                stepIndex = Clamp(stepIndex + INDEX_TABLE[nybble], 0, 88);
 
                 if (outOffset + written < outPcm.Length)
                 {

@@ -1,133 +1,64 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using DG.Tweening;
 using HarmonyLib;
-using Hp2BaseMod.Extension;
 using UnityEngine;
 
 namespace Hp2BaseMod;
-
-[HarmonyPatch(typeof(UiPuzzleGrid))]
-internal static class UiPuzzleGridPatch
-{
-    [HarmonyPatch("ConsumePuzzleSet")]
-    [HarmonyPrefix]
-    public static bool ConsumePuzzleSet_Prefix(
-        UiPuzzleGrid __instance,
-        PuzzleSet puzzleSet,
-        bool andDestroy,
-        ref bool __result)
-        => ExpandedUiPuzzleGrid.Get(__instance).ConsumePuzzleSet_Prefix(puzzleSet, andDestroy, ref __result);
-
-    [HarmonyPatch("ConsumePuzzleSet")]
-    [HarmonyPostfix]
-    public static void ConsumePuzzleSet_Postfix(
-        UiPuzzleGrid __instance,
-        PuzzleSet puzzleSet,
-        bool andDestroy,
-        ref bool __result)
-        => ExpandedUiPuzzleGrid.Get(__instance).ConsumePuzzleSet_Postfix(ref __result);
-
-    [HarmonyPatch("AttemptGirlFocusSwitch")]
-    [HarmonyPrefix]
-    public static bool AttemptGirlFocusSwitch(UiPuzzleGrid __instance, ref bool __result)
-        => ExpandedUiPuzzleGrid.Get(__instance).AttemptGirlFocusSwitch(ref __result);
-
-    /// <summary>
-    /// Intercepts MOVING state mouse-up when SuppressStaminaCost is active.
-    /// Reproduces the original move processing loop without stamina deduction,
-    /// stamina sufficiency check, or unfocused stamina recovery.
-    /// Returns false (skip original) only when we handle the move ourselves.
-    /// </summary>
-    [HarmonyPatch(nameof(UiPuzzleGrid.StartPuzzle))]
-    [HarmonyPostfix]
-    public static void StartPuzzle(UiPuzzleGrid __instance)
-        => ExpandedUiPuzzleGrid.Get(__instance).StartPuzzle();
-
-    [HarmonyPatch(nameof(UiPuzzleGrid.EndPuzzle))]
-    [HarmonyPostfix]
-    public static void EndPuzzle(UiPuzzleGrid __instance)
-        => ExpandedUiPuzzleGrid.Get(__instance).EndPuzzle();
-
-    [HarmonyPatch("Update")]
-    [HarmonyPrefix]
-    public static bool Update(UiPuzzleGrid __instance)
-        => ExpandedUiPuzzleGrid.Get(__instance).Update();
-
-    [HarmonyPatch("OnSlotEnter")]
-    [HarmonyPostfix]
-    public static void OnSlotEnter(UiPuzzleGrid __instance, UiPuzzleSlot slot)
-        => ExpandedUiPuzzleGrid.Get(__instance).OnSlotEnter();
-
-    [HarmonyPatch("OnResourceChanged")]
-    [HarmonyPostfix]
-    public static void OnResourceChanged(UiPuzzleGrid __instance)
-        => ExpandedUiPuzzleGrid.Get(__instance).OnResourceChanged();
-
-    [HarmonyPatch("CheckRoundOver")]
-    [HarmonyPostfix]
-    public static void CheckRoundOver(UiPuzzleGrid __instance)
-        => ExpandedUiPuzzleGrid.Get(__instance).CheckRoundOver();
-
-    [HarmonyPatch("StartNewRound")]
-    [HarmonyPostfix]
-    public static void StartNewRound(UiPuzzleGrid __instance)
-        => ExpandedUiPuzzleGrid.Get(__instance).StartNewRound();
-}
-
-[HarmonyPatch(typeof(PuzzleSet))]
-internal static class PuzzleSetPatch
-{
-    /// <summary>
-    /// Replaces GetMatchRewards entirely. Returns false to skip the original.
-    /// All reward calculation now runs through the scripted pipeline.
-    /// </summary>
-    [HarmonyPatch("GetMatchRewards")]
-    [HarmonyPrefix]
-    public static bool GetMatchRewards_Prefix(
-        PuzzleSet __instance,
-        PuzzleMatch match,
-        bool altGirl,
-        ref Dictionary<UiPuzzleSlot, PuzzleReward> __result)
-    {
-        if (ExpandedUiPuzzleGrid.Current == null)
-        {
-            return true;
-        }
-
-        __result = ExpandedUiPuzzleGrid.Current.ExecuteGetMatchRewards(__instance, match, altGirl);
-        return false;
-    }
-}
 
 /// <summary>
 /// Companion class for <see cref="UiPuzzleGrid"/> that replaces the reward calculation
 /// pipeline with a scripted-ailment-aware version and exposes flags for ailments to
 /// control grid behaviour that was previously hardcoded.
 /// </summary>
-[Expansion(typeof(UiPuzzleGrid), 
-    Fields = new[]{"_status", "_state", "_moveMatchSet", "_moveSlotFrom", "_moveSlotTo", "_moveSlots", "_moveHasBeenMade",
-        "_warningCheck", "_resetTweener", "_isResetting", "_energyTrails", "_roundState", "_roundOver"},
-    Methods = new[]{"WarningTooltip", "ClearMoveSlots", "OnResetAnimationComplete"})]
+[Expansion(typeof(UiPuzzleGrid))]
 public partial class ExpandedUiPuzzleGrid
 {
-    public static ExpandedUiPuzzleGrid Get() => Get(Game.Session.Puzzle.puzzleGrid);
-
-    /// <summary>
-    /// The instance currently executing ConsumePuzzleSet.
-    /// Non-null only for the duration of that call.
-    /// </summary>
-    public static ExpandedUiPuzzleGrid Current { get; private set; }
-
-    public PuzzleRoundState RoundState
+    [HarmonyPatch(typeof(UiPuzzleGrid))]
+    private static class UiPuzzleGridPatch
     {
-        get => _roundState;
-        set => _roundState = value;
+        [HarmonyPatch("AttemptGirlFocusSwitch")]
+        [HarmonyPrefix]
+        private static bool AttemptGirlFocusSwitch(UiPuzzleGrid __instance, ref bool __result)
+            => ExpandedUiPuzzleGrid.Get(__instance).AttemptGirlFocusSwitch_Prefix(ref __result);
+
+        [HarmonyPatch(nameof(UiPuzzleGrid.StartPuzzle))]
+        [HarmonyPostfix]
+        private static void StartPuzzle(UiPuzzleGrid __instance)
+            => ExpandedUiPuzzleGrid.Get(__instance).StartPuzzle();
+
+        [HarmonyPatch(nameof(UiPuzzleGrid.EndPuzzle))]
+        [HarmonyPostfix]
+        private static void EndPuzzle(UiPuzzleGrid __instance)
+            => ExpandedUiPuzzleGrid.Get(__instance).EndPuzzle();
+
+        [HarmonyPatch("Update")]
+        [HarmonyPrefix]
+        private static bool Update(UiPuzzleGrid __instance)
+            => ExpandedUiPuzzleGrid.Get(__instance).Update_Prefix();
+
+        [HarmonyPatch("OnSlotEnter")]
+        [HarmonyPostfix]
+        private static void OnSlotEnter(UiPuzzleGrid __instance, UiPuzzleSlot slot)
+            => ExpandedUiPuzzleGrid.Get(__instance).OnSlotEnter();
+
+        [HarmonyPatch("CheckRoundOver")]
+        [HarmonyPrefix]
+        private static bool CheckRoundOver(UiPuzzleGrid __instance)
+            => ExpandedUiPuzzleGrid.Get(__instance).CheckRoundOver_Prefix();
+
+        [HarmonyPatch("RefreshGirlDolls")]
+        [HarmonyPostfix]
+        private static void RefreshGirlDolls(UiPuzzleGrid __instance)
+            => ExpandedUiPuzzleGrid.Get(__instance).RefreshGirlDolls();
+
+        [HarmonyPatch("ConsumePuzzleSet")]
+        [HarmonyPrefix]
+        private static bool ConsumePuzzleSet(UiPuzzleGrid __instance, PuzzleSet puzzleSet, bool andDestroy, ref bool __result)
+            => ExpandedUiPuzzleGrid.Get(__instance).ConsumePuzzleSet_Prefix(puzzleSet, andDestroy, ref __result);
     }
 
-    // Active consume context, stack-lifetime, set in ConsumePuzzleSet prefix.
-    private PuzzleConsumeContext _activeConsumeContext;
+    public static ExpandedUiPuzzleGrid Get() => Get(Game.Session.Puzzle.puzzleGrid);
 
     // Focus switch suppression counter, multiple sources can suppress independently.
     private int _suppressFocusSwitchCount;
@@ -147,12 +78,6 @@ public partial class ExpandedUiPuzzleGrid
     {
         if (_suppressFocusSwitchCount > 0) _suppressFocusSwitchCount--;
     }
-
-    /// <summary>
-    /// True when focus switching is currently suppressed by the counter or
-    /// by any active modifier.
-    /// </summary>
-    public bool IsFocusSwitchSuppressed => _suppressFocusSwitchCount > 0;
 
     /// <summary>
     /// When true:
@@ -180,180 +105,80 @@ public partial class ExpandedUiPuzzleGrid
     public bool SuppressUpsetWarning { get; set; }
 
     /// <summary>
+    /// When true, after becoming upset or exhausted girls will silently revert.
+    /// </summary>
+    public bool AutoRevertExhaustion { get; set; }
+
+    /// <summary>
     /// Fired at the end of every move resolution, regardless of validity or outcome.
     /// Mirrors UiPuzzleGrid.MoveCompleteEvent but accessible to scripted ailments
     /// and other library consumers without patching.
     /// </summary>
     public event Action MoveCompleteEvent;
 
-    // Modifiers registered before StartPuzzle and applied/removed automatically.
-    private readonly List<IPuzzleGridModifier> _pendingModifiers
-        = new List<IPuzzleGridModifier>();
-    private readonly List<IPuzzleGridModifier> _activeModifiers
-        = new List<IPuzzleGridModifier>();
-
-    /// <summary>
-    /// Registers a modifier to be applied when the next puzzle starts.
-    /// If called after StartPuzzle has already run, the modifier is applied immediately.
-    /// Safe to call multiple times with the same instance, duplicates are ignored.
-    /// </summary>
-    public void AddModifier(IPuzzleGridModifier modifier)
+    internal void StartPuzzle()
     {
-        if (_activeModifiers.Contains(modifier) || _pendingModifiers.Contains(modifier))
-        {
-            return;
-        }
-
-        // If the puzzle is already running, apply immediately.
-        var status = f_status.GetValue(_core) as PuzzleStatus;
-        if (status != null && !status.isEmpty && Game.Session.Puzzle.isPuzzleActive)
-        {
-            _activeModifiers.Add(modifier);
-            modifier.OnApply(_core, this, status);
-        }
-        else
-        {
-            _pendingModifiers.Add(modifier);
-        }
+        _core.MoveCompleteEvent += RaiseMoveCompleteEvent;
     }
 
-    /// <summary>
-    /// Removes a modifier. If the puzzle is active, OnRemove is called immediately.
-    /// If the modifier is still pending (puzzle not yet started), it is simply discarded.
-    /// </summary>
-    public void RemoveModifier(IPuzzleGridModifier modifier)
-    {
-        if (_pendingModifiers.Remove(modifier))
-        {
-            return;
-        }
+    private void RaiseMoveCompleteEvent() => MoveCompleteEvent?.Invoke();
 
-        if (_activeModifiers.Remove(modifier))
-        {
-            var status = f_status.GetValue(_core) as PuzzleStatus;
-            modifier.OnRemove(_core, this, status);
-        }
+    internal void EndPuzzle()
+    {
+        _core.MoveCompleteEvent -= RaiseMoveCompleteEvent;
     }
 
-    public void StartPuzzle()
+    private bool AttemptGirlFocusSwitch_Prefix(ref bool __result)
     {
-        var status = f_status.GetValue(_core) as PuzzleStatus;
-
-        // Apply all pending modifiers in registration order.
-        for (int i = 0; i < _pendingModifiers.Count; i++)
-        {
-            _activeModifiers.Add(_pendingModifiers[i]);
-            _pendingModifiers[i].OnApply(_core, this, status);
-        }
-        _pendingModifiers.Clear();
+        __result = Game.Session.Ailment.GetExpansion().OnPreFocusSwitch();
+        return __result;
     }
 
-    public void EndPuzzle()
+    private bool CheckRoundOver_Prefix()
     {
-        var status = f_status.GetValue(_core) as PuzzleStatus;
+        var args = new AilmentTriggerArgs.CheckRoundOver(this, null);
+        var status = _status;
 
-        // Remove all active modifiers in reverse order.
-        for (int i = _activeModifiers.Count - 1; i >= 0; i--)
-        {
-            _activeModifiers[i].OnRemove(_core, this, status);
-        }
-        _activeModifiers.Clear();
-    }
-
-    public bool AttemptGirlFocusSwitch(ref bool __result)
-    {
-        if (IsFocusSwitchSuppressed) 
-        {
-            __result = false;
-            return false;
-        }
-
-        var status = f_status.GetValue(_core) as PuzzleStatus;
-
-        for (int i = 0; i < _activeModifiers.Count; i++) 
-        {
-            if (!_activeModifiers[i].OnAttemptFocusSwitch(status)) 
-            {
-                __result = false;
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    public bool CanEnableAilment(Ailment ailment, PuzzleStatusGirl girl, PuzzleStatusGirl otherGirl)
-    {
-        for (int i = 0; i < _activeModifiers.Count; i++) 
-        {
-            if (!_activeModifiers[i].CanEnableAilment(ailment, girl, otherGirl))
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    /// <summary>
-    /// Called from the AilmentManager.TriggerAilment postfix.
-    /// Retrieves the current move/match context from AilmentManager private fields
-    /// so modifiers receive the same data ailments do.
-    /// </summary>
-    internal void OnTrigger(AilmentTriggerType triggerType)
-    {
-        if (_activeModifiers.Count == 0) return;
-
-        var status = f_status.GetValue<PuzzleStatus>(_core);
+        if (!Game.Session.Puzzle.dateForfeited && status.affection == status.affectionGoal)
+		{
+			args.RoundState = PuzzleRoundState.SUCCESS;
+			args.RoundOver = true;
+		}
+		else if (Game.Session.Puzzle.dateForfeited 
+            || (
+                !status.bonusRound && (status.movesRemaining == 0 
+                || (status.girlStatusLeft.exhausted && status.girlStatusRight.exhausted))
+                )
+            )
+		{
+			if (!Game.Session.Puzzle.puzzleStatus.IsTutorial(false))
+			{
+				args.RoundState = PuzzleRoundState.FAILURE;
+				args.RoundOver = true;
+			}
+            args.ReviveGirls = true;
+            args.CheckChanges = true;
+		}
 
         var ailmentManager = Game.Session.Ailment.GetExpansion();
+        ailmentManager.OnCheckRoundOver(args);
 
-        var move = ailmentManager.Move;
-        var moveModifier = ailmentManager.MoveModifier;
-        var match = ailmentManager.Match;
-        var matchModifier = ailmentManager.MatchModifier;
+        _roundState = args.RoundState;
+        _roundOver = args.RoundOver;
+        if (args.ReviveGirls) status.ReviveGirls();
+        if (args.CheckChanges) status.CheckChanges();
 
-        for (int i = 0; i < _activeModifiers.Count; i++) 
-        {
-            _activeModifiers[i].OnTrigger(triggerType, move, moveModifier, match, matchModifier, status);
-        }
+        return false;
     }
 
-    public void StartNewRound()
+    private void RefreshGirlDolls()
     {
-        if (_activeModifiers.Count == 0) return;
-
-        var status = f_status.GetValue(_core) as PuzzleStatus;
-
-        for (int i = 0; i < _activeModifiers.Count; i++) 
+        if (AutoRevertExhaustion)
         {
-            _activeModifiers[i].OnRoundStart(status);
+            _dollLeft.SetExhaustion(false, false, true);
+            _dollRight.SetExhaustion(false, false, true);
+            _status.ReviveGirls();
         }
-    }
-
-    public void CheckRoundOver()
-    {
-        if (_activeModifiers.Count == 0) return;
-
-        var status = f_status.GetValue(_core) as PuzzleStatus;
-        var statusExp = status.GetExpansion();
-        var roundState = (PuzzleRoundState)f_roundState.GetValue(_core);
-        bool roundOver = (bool)f_roundOver.GetValue(_core);
-
-        // Only dispatch when the round actually ended this frame.
-        if (!roundOver) return;
-
-        bool isSuccess = roundState == PuzzleRoundState.SUCCESS;
-        bool isGameOver = status.gameOver;
-        var context = new PuzzleRoundContext(isSuccess, isGameOver, status.bonusRound, status.statusType);
-
-        for (int i = 0; i < _activeModifiers.Count; i++) 
-        {
-            _activeModifiers[i].OnRoundEnd(context, status);
-        }
-
-        _roundState = context.IsSuccess ? PuzzleRoundState.SUCCESS : PuzzleRoundState.FAILURE;
-        statusExp.GameOver = context.IsGameOver;
     }
 
     /// <summary>
@@ -362,7 +187,7 @@ public partial class ExpandedUiPuzzleGrid
     /// stamina sufficiency check, or unfocused stamina recovery.
     /// Returns false to skip the original Update only when we handle the move.
     /// </summary>
-    public bool Update()
+    private bool Update_Prefix()
     {
         if (!SuppressStaminaCost) return true;
 
@@ -490,7 +315,7 @@ public partial class ExpandedUiPuzzleGrid
         return false;
     }
 
-    public void OnSlotEnter()
+    private void OnSlotEnter()
     {
         if (!SuppressStaminaWarning && !SuppressExhaustionWarning && !SuppressUpsetWarning)
         {
@@ -523,404 +348,98 @@ public partial class ExpandedUiPuzzleGrid
         }
     }
 
-    public void OnResourceChanged()
-    {
-        var status = f_status.GetValue(_core) as PuzzleStatus;
+    private bool ConsumePuzzleSet_Prefix(PuzzleSet puzzleSet, bool andDestroy, ref bool __result)
+	{
+		Game.Session.Ailment.Trigger(AilmentTriggerType.PRE_CONSUME, null);
+		_matchComboCount++;//reset to 0 when changing to inactive state
 
-        for (int i = 0; i < _activeModifiers.Count; i++) 
-        {
-            _activeModifiers[i].OnResourceChanged(status);
-        }
-    }
-
-    /// <summary>
-    /// Silently reverts exhaustion and upset on a girl, setting her stamina to max.
-    /// Call from <see cref="IUiPuzzleGridModifier.OnResourceChanged"/> when your
-    /// modifier needs to prevent exhaustion from persisting - e.g. when stamina costs
-    /// are suppressed and baggage triggers have already fired but the state should not stick.
-    /// </summary>
-    public void RevertExhaustion(PuzzleStatusGirl girl)
-    {
-        if (!girl.exhausted && !girl.upset) return;
-        
-        var girlStatusExp = girl.GetExpansion();
-        girlStatusExp.Stamina = 6;
-        girlStatusExp.Exhausted = false;
-        girlStatusExp.Upset = false;
-    }
-
-    public bool ConsumePuzzleSet_Prefix(PuzzleSet puzzleSet, bool andDestroy, ref bool __result)
-    {
-        _activeConsumeContext = new PuzzleConsumeContext(puzzleSet, andDestroy);
-        Current = this;
-        return true;
-    }
-
-    public void ConsumePuzzleSet_Postfix(ref bool __result)
-    {
-        if (_activeConsumeContext == null)
-        {
-            Current = null;
-            return;
-        }
-
-        var context = _activeConsumeContext;
-        var status = f_status.GetValue(_core) as PuzzleStatus;
-
-        DispatchToAllAilments(status, (scripted, ailment, girl) =>
-            scripted.OnPostSetReward(ailment, girl, context));
-
-        if (!context.CancelConsume)
-        {
-            var trails = f_energyTrails.GetValue(_core) as List<EnergyTrailBehavior>;
-
-            for (int i = 0; i < context.AdditionalRewards.Count; i++)
+		var slotRewards = puzzleSet.GetExpansion().GetRewards();
+		var hasPositiveReward = false;
+		var hasNegativeReward = false;
+        var statusExp = _status.GetExpansion();
+		foreach (var slot_reward in slotRewards)
+		{
+            foreach (var reward in slot_reward.Value.Rewards)
             {
-                var (slot, reward) = context.AdditionalRewards[i];
-                status.AddPuzzleReward(reward);
+                reward.Apply(this, statusExp);
+                var energyTrailBehavior = UnityEngine.Object.Instantiate(_core.energyTrailPrefab);
+                _energyTrails.Add(energyTrailBehavior);
+                energyTrailBehavior.CompleteEvent += OnEnergyTrailComplete;
+                energyTrailBehavior.Init(
+                    reward.ZeroedValue
+                        ? EnergyTrailFormat.START 
+                        : EnergyTrailFormat.FULL, 
+                    reward, slot_reward.Key);
 
-                var trail = UnityEngine.Object.Instantiate(_core.energyTrailPrefab);
-                trails?.Add(trail);
-                trail.Init(
-                    reward.zeroedValue ? EnergyTrailFormat.START : EnergyTrailFormat.FULL,
-                    reward,
-                    slot);
-            }
-
-            status.CheckChanges();
-        }
-
-        _activeConsumeContext = null;
-        Current = null;
-    }
-
-    public Dictionary<UiPuzzleSlot, PuzzleReward> ExecuteGetMatchRewards(
-        PuzzleSet puzzleSet,
-        PuzzleMatch match,
-        bool altGirl)
-    {
-        ModInterface.Log.Message();
-        var status = f_status.GetValue(_core) as PuzzleStatus;
-
-        // Stage 0: Setup
-        var matchModifier = Game.Session.Ailment.Trigger(match);
-
-        if (matchModifier.tokenDefinition != null)
-        {
-            match.tokenDefinition = matchModifier.tokenDefinition;
-        }
-
-        if (matchModifier.absorb)
-        {
-            altGirl = matchModifier.absorbAltGirl;
-        }
-
-        var statusGirl = status.GetStatusGirl(altGirl);
-        Game.Persistence.playerFile.GetPlayerFileGirl(statusGirl.girlDefinition);
-
-        var orderedSlots = match.slots
-            .OrderBy(slot => slot.row + slot.col)
-            .ThenBy(_ => UnityEngine.Random.Range(0f, 1f))
-            .ToList();
-
-        var sortedSlots = new List<UiPuzzleSlot>();
-
-        while (orderedSlots.Count > 0)
-        {
-            var centerIndex = (orderedSlots.Count - 1) * 0.5f;
-
-            var selectedIndex = Mathf.Clamp(
-                MathUtils.RandomBool()
-                    ? Mathf.FloorToInt(centerIndex)
-                    : Mathf.CeilToInt(centerIndex),
-                0,
-                orderedSlots.Count - 1);
-
-            sortedSlots.Add(orderedSlots[selectedIndex]);
-            orderedSlots.RemoveAt(selectedIndex);
-        }
-
-        // Stage 1: Annotation
-        var context = new PuzzleRewardContext(match, altGirl, matchModifier, sortedSlots);
-
-        bool isAffection = match.tokenDefinition.resourceType == PuzzleResourceType.AFFECTION;
-        bool isBoss = statusGirl.girlDefinition.bossCharacter;
-
-        context.Properties.FlatMatch = match.flatMatch;
-        context.Properties.IsBossCharacter = isBoss;
-        context.Properties.SkipMostFavFactor = matchModifier.skipMostFavFactor;
-        context.Properties.SkipLeastFavFactor = matchModifier.skipLeastFavFactor;
-
-        if (isAffection && !isBoss)
-        {
-            context.Properties.IsMostFav = !matchModifier.skipMostFavFactor
-                && match.tokenDefinition.affectionType == statusGirl.girlDefinition.GetMostFavAffectionType();
-
-            context.Properties.IsLeastFav = !matchModifier.skipLeastFavFactor
-                && match.tokenDefinition.affectionType == statusGirl.girlDefinition.GetLeastFavAffectionType();
-        }
-
-        DispatchToAllAilments(status, (scripted, ailment, girl) =>
-            scripted.OnPreMatchReward(ailment, girl, context));
-
-        // Stage 2: Formula
-        int totalRewardAmount = sortedSlots.Count;
-
-        if (!status.bonusRound)
-        {
-            switch (match.tokenDefinition.resourceType)
-            {
-                case PuzzleResourceType.AFFECTION:
+                if (reward.Negative)
                 {
-                    if (!context.Properties.FlatMatch)
-                    {
-                        totalRewardAmount *= Mathf.Max(sortedSlots.Count - 2, 1);
-                    }
+                    hasNegativeReward = true;
+                }
+                else
+                {
+                    hasPositiveReward = true;
+                } 
+            }
+            
+		}
 
-                    // Both IsMostFav and IsLeastFav true use normal (2x) multiplier.
-                    bool effectiveMostFav = context.Properties.IsMostFav
-                        && !context.Properties.IsLeastFav
-                        && !context.Properties.IsBossCharacter
-                        && !context.Properties.SkipMostFavFactor;
+		var onlyPositiveRewards = hasPositiveReward && !hasNegativeReward;
+		Game.Manager.Audio.Play(AudioCategory.SOUND, _core.sfxsTokenMatch[Mathf.Min(_matchComboCount, _core.sfxsTokenMatch.Length - 1)], _core.pauseDefinition);
+		List<TokenDefinition> list = new List<TokenDefinition>();
 
-                    bool effectiveLeastFav = context.Properties.IsLeastFav
-                        && !context.Properties.IsMostFav
-                        && !context.Properties.IsBossCharacter
-                        && !context.Properties.SkipLeastFavFactor;
+        //gross
+		if (_status.girlStatusFocused.HasAilment(Game.Session.Puzzle.brokenProtectionAilmentDefinition, true))
+		{
+			list.Add(Game.Session.Puzzle.noSpawnMatchTokenDefinition);
+		}
+		List<TokenDefinition> tokenDefsInSet = puzzleSet.GetTokenDefsInSet(list);
 
-                    if (effectiveMostFav)
-                    {
-                        totalRewardAmount *= 3;
-                    }
-                    else if (!effectiveLeastFav)
-                    {
-                        totalRewardAmount *= 2;
-                    }
+		for (int i = 0; i < tokenDefsInSet.Count; i++)
+		{
+			Game.Manager.Audio.Play(AudioCategory.SOUND, tokenDefsInSet[i].sfxMatch, _core.pauseDefinition);
+		}
+		Game.Session.Ailment.Trigger(AilmentTriggerType.POST_CONSUME, null);
 
-                    int mult = 0;
-                    for (int i = 0; i < sortedSlots.Count; i++)
-                    {
-                        if (sortedSlots[i].token.upgraded)
-                        {
-                            mult += Mathf.Max(
-                                3 + Game.Session.Puzzle.GetPuzzleOffset("power_token_multiplier"), 0);
-                        }
-                    }
-                    if (mult > 0) totalRewardAmount *= mult;
+		if (!_status.bonusRound && onlyPositiveRewards && _matchComboCount % 3 == 0)
+		{
+			UiDoll doll = Game.Session.gameCanvas.GetDoll(_status.altGirlFocused);
+			if (!doll.IsTalking(false))
+			{
+				doll.ReadDialogTrigger(Game.Session.Puzzle.dtBigMove, DialogLineFormat.UNCHECKED, -1);
+			}
+		}
+		_status.CheckChanges();
 
-                    totalRewardAmount += Mathf.RoundToInt(totalRewardAmount
-                        * (4f * (Game.Persistence.playerFile.GetAffectionLevelExp(
-                            match.tokenDefinition.affectionType, false) / 24f)));
+		if (andDestroy)
+		{
+            foreach (var slot in puzzleSet.allSlots)
+            {
+                TokenDefinition replaceDef;
+                bool replaceUpgraded;
 
-                    totalRewardAmount += Mathf.RoundToInt(totalRewardAmount
-                        * (Game.Persistence.playerFile.passionMultiplier * (statusGirl.passion * 0.01f)));
-
-                    break;
+                if (slotRewards.TryGetValue(slot, out var slotReward))
+                {
+                    replaceDef = slotReward.ReplaceDefinition;
+                    replaceUpgraded = slotReward.ReplaceUpgraded;
+                }
+                else
+                {
+                    replaceDef = null;
+                    replaceUpgraded = false;
                 }
 
-                case PuzzleResourceType.MOVES:
-                    totalRewardAmount = Mathf.Max(sortedSlots.Count - 2, 0);
-                    break;
-
-                case PuzzleResourceType.PASSION:
-                    if (!context.Properties.FlatMatch) totalRewardAmount *= Mathf.Max(sortedSlots.Count - 2, 1);
-                    totalRewardAmount *= 5;
-                    break;
-
-                case PuzzleResourceType.SENTIMENT:
-                    if (!context.Properties.FlatMatch) totalRewardAmount *= Mathf.Max(sortedSlots.Count - 2, 1);
-                    break;
+				DestroyToken(slot,replaceDef, replaceUpgraded);
             }
+		}
 
-            if (matchModifier.pointsOp)
-            {
-                totalRewardAmount = Mathf.RoundToInt(MathUtils.CombineValues(
-                    matchModifier.pointsOperation, totalRewardAmount, matchModifier.pointsFactor));
-            }
+		if (_status.bonusRound && !Game.Session.Puzzle.puzzleStatus.IsTutorial(false))
+		{
+			_core.AttemptGirlFocusSwitch();
+		}
 
-            if (matchModifier.pointsOp2)
-            {
-                totalRewardAmount = Mathf.RoundToInt(MathUtils.CombineValues(
-                    matchModifier.pointsOperation2, totalRewardAmount, matchModifier.pointsFactor2));
-            }
+		Game.Session.Cutscenes.standbyProceed = true;
+		__result = onlyPositiveRewards;
 
-            if (match.tokenDefinition.resourceType == PuzzleResourceType.AFFECTION && totalRewardAmount >= 5000)
-            {
-                Game.Manager.Platform.UnlockAchievement("smooth_move", true);
-            }
-        }
-        else
-        {
-            totalRewardAmount *= Mathf.Max(sortedSlots.Count - 2, 1);
-            totalRewardAmount *= 10;
-        }
-
-        // Stage 3: Modification
-        if (context.CancelRewards) totalRewardAmount = 0;
-        totalRewardAmount += context.RewardBonus;
-
-        bool flag = totalRewardAmount < 0;
-        int absoluteRewardAmount = Mathf.Abs(totalRewardAmount);
-        totalRewardAmount = absoluteRewardAmount;
-
-        var dictionary = new Dictionary<UiPuzzleSlot, PuzzleReward>();
-
-        for (int j = 0; j < sortedSlots.Count; j++)
-        {
-            var portion = Mathf.CeilToInt(totalRewardAmount / (float)(sortedSlots.Count - j));
-            if (match.tokenDefinition.resourceType == PuzzleResourceType.BROKEN) portion = totalRewardAmount;
-            totalRewardAmount -= portion;
-
-            var reward = new PuzzleReward(
-                match.tokenDefinition,
-                flag ? -portion : portion,
-                altGirl);
-
-            if (absoluteRewardAmount == 0) reward.zeroedValue = true;
-
-            if (!status.bonusRound && !status.IsTutorial(false) && !match.flatMatch && j == 0)
-            {
-                if (matchModifier.replaceDefinition != null && matchModifier.replacePriority)
-                {
-                    reward.replaceDefinition = matchModifier.replaceDefinition;
-                }
-
-                if (reward.replaceDefinition == null
-                    && match.tokenDefinition.resourceType == PuzzleResourceType.AFFECTION
-                    && sortedSlots.Count > 2
-                    && absoluteRewardAmount > 0)
-                {
-                    float chance;
-                    switch (sortedSlots.Count)
-                    {
-                        case 3:
-                            chance = 0f + 0.1f * Game.Persistence.playerFile.styleFactor + Game.Session.Puzzle.GetPuzzleOffset("power_token_chance") * 0.025f; 
-                            break;
-                        case 4: 
-                            chance = 0.2f + 0.6f * Game.Persistence.playerFile.styleFactor + Game.Session.Puzzle.GetPuzzleOffset("power_token_chance") * 0.15f; 
-                            break;
-                        case 5: 
-                            chance = 0.8f + 0.2f * Game.Persistence.playerFile.styleFactor + Game.Session.Puzzle.GetPuzzleOffset("power_token_chance") * 0.05f; 
-                            break;
-                        default:
-                            chance = 1f; 
-                            break;
-                    }
-
-                    chance = Mathf.Clamp(chance, 0f, 1f);
-                    if (UnityEngine.Random.Range(0f, 1f) <= chance)
-                    {
-                        reward.replaceDefinition = match.tokenDefinition;
-                        reward.replaceUpgraded   = true;
-                    }
-                }
-
-                if (reward.replaceDefinition == null
-                    && matchModifier.replaceDefinition != null
-                    && !matchModifier.replacePriority)
-                {
-                    reward.replaceDefinition = matchModifier.replaceDefinition;
-                }
-            }
-
-            dictionary.Add(sortedSlots[j], reward);
-        }
-
-        var rewards = dictionary;
-        DispatchToAllAilments(status, (scripted, ailment, girl) =>
-            scripted.OnPostMatchReward(ailment, girl, context, rewards));
-        dictionary = rewards;
-
-        ListUtils.DictionaryAddRangeUnique(_activeConsumeContext.Rewards, dictionary);
-        _activeConsumeContext.AdditionalRewards.AddRange(context.AdditionalRewards);
-
-        return dictionary;
-    }
-
-    private void DispatchToAllAilments(
-        PuzzleStatus status,
-        Action<IScriptedAilment, Ailment, PuzzleStatusGirl> action)
-    {
-        if (status == null || status.isEmpty) return;
-
-        var ordered = BuildOrderedAilmentList(
-            status,
-            Game.Session.Ailment.firstPriorityAilDefs,
-            Game.Session.Ailment.lastPriorityAilDefs);
-
-        foreach (var (ailment, girl) in ordered)
-        {
-            if (!ailment.isEnabled) continue;
-
-            var scripted = ailment.GetExpansion().ScriptedAilment;
-            if (scripted == null) continue;
-
-            action(scripted, ailment, girl);
-        }
-    }
-
-    private static List<(Ailment, PuzzleStatusGirl)> BuildOrderedAilmentList(
-        PuzzleStatus status,
-        List<AilmentDefinition> firstPriority,
-        List<AilmentDefinition> lastPriority)
-    {
-        var first = new List<(Ailment, PuzzleStatusGirl)>();
-        var baggage = new List<(Ailment, PuzzleStatusGirl)>();
-        var normal = new List<(Ailment, PuzzleStatusGirl)>();
-        var last = new List<(Ailment, PuzzleStatusGirl)>();
-
-        ProcessGirl(status.girlStatusFocused, firstPriority, lastPriority, first, baggage, normal, last);
-        ProcessGirl(status.girlStatusUnfocused, firstPriority, lastPriority, first, baggage, normal, last);
-
-        return first.Concat(baggage).Concat(normal).Concat(last).ToList();
-    }
-
-    private static void ProcessGirl(
-        PuzzleStatusGirl girl,
-        List<AilmentDefinition> firstPriority,
-        List<AilmentDefinition> lastPriority,
-        List<(Ailment, PuzzleStatusGirl)> first,
-        List<(Ailment, PuzzleStatusGirl)> baggage,
-        List<(Ailment, PuzzleStatusGirl)> normal,
-        List<(Ailment, PuzzleStatusGirl)> last)
-    {
-        if (girl == null) return;
-
-        foreach(var ailment in girl.ailments)
-        {
-            if (firstPriority.Contains(ailment.definition))
-            {
-                int idx = 0;
-                while (idx < first.Count
-                    && firstPriority.IndexOf(ailment.definition)
-                       > firstPriority.IndexOf(first[idx].Item1.definition))
-                {
-                    idx++;
-                }
-                    
-                first.Insert(idx, (ailment, girl));
-            }
-            else if (lastPriority.Contains(ailment.definition))
-            {
-                int idx = 0;
-
-                while (idx < last.Count
-                    && lastPriority.IndexOf(ailment.definition)
-                       > lastPriority.IndexOf(last[idx].Item1.definition))
-                {
-                    idx++;
-                }
-                    
-                last.Insert(idx, (ailment, girl));
-            }
-            else if (girl.girlDefinition.baggageItemDefs.Contains(ailment.definition.itemDefinition))
-            {
-                baggage.Add((ailment, girl));
-            }
-            else
-            {
-                normal.Add((ailment, girl));
-            }
-        }
-    }
+        return false;
+	}
 }

@@ -12,7 +12,7 @@ public static class BonusRoundSuccessCutscene
         {
             Steps = new()
             {
-                CutsceneStepUtility.MakeDialogTriggerInfo(DialogTriggers.SexClimax, CutsceneStepProceedType.INSTANT, CutsceneStepDollTargetType.RANDOM),
+                CutsceneStepUtility.MakeDialogTriggerInfo(DialogTriggers.SexClimax, CutsceneStepProceedType.INSTANT).TargetOrientation(DollOrientationType.RIGHT),
                 CutsceneStepUtility.MakeBannerTextInfo("BannerTextSuccess", 0, CutsceneStepProceedType.AUTOMATIC),
                 CutsceneStepUtility.MakeWaitInfo(1.8f),
                 new ShowSexPhotoCutsceneStep.Info(),
@@ -24,6 +24,6 @@ public static class BonusRoundSuccessCutscene
             CleanUpType = (CutsceneCleanUpType)(-1)
         };
 
-        ModInterface.AddDataMod(mod);
+        ModInterface.DataMod.AddDataMod(mod);
     }
 }

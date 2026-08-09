@@ -29,7 +29,7 @@ public static class ToggleCodeMods
         _fairyWingsCodeId = new RelativeId(modId, 3);
         _kyuHoleCodeId = new RelativeId(modId, 4);
 
-        ModInterface.AddDataMod(new CodeDataMod(_femaleJizzToggleCodeID, InsertStyle.replace)
+        ModInterface.DataMod.AddDataMod(new CodeDataMod(_femaleJizzToggleCodeID, InsertStyle.replace)
         {
             CodeHash = MD5Utility.Encrypt("JIZZ FOR ALL"),
             CodeType = CodeType.TOGGLE,
@@ -37,7 +37,7 @@ public static class ToggleCodeMods
             OffMessage = "Female 'wet' photos disabled."
         });
 
-        ModInterface.AddDataMod(new CodeDataMod(_runInBackgroundCodeId, InsertStyle.replace)
+        ModInterface.DataMod.AddDataMod(new CodeDataMod(_runInBackgroundCodeId, InsertStyle.replace)
         {
             CodeHash = MD5Utility.Encrypt("STAY FOCUSED"),
             CodeType = CodeType.TOGGLE,
@@ -45,7 +45,7 @@ public static class ToggleCodeMods
             OffMessage = "The game will pause when unfocused."
         });
 
-        ModInterface.AddDataMod(new CodeDataMod(_kyuHoleCodeId, InsertStyle.replace)
+        ModInterface.DataMod.AddDataMod(new CodeDataMod(_kyuHoleCodeId, InsertStyle.replace)
         {
             CodeHash = MD5Utility.Encrypt("POR QUE NO LOS TRES"),
             CodeType = CodeType.TOGGLE,
@@ -53,7 +53,7 @@ public static class ToggleCodeMods
             OffMessage = "Only the selected Kyu photo will be available when unlocked."
         });
 
-        ModInterface.AddDataMod(new CodeDataMod(_fairyWingsCodeId, InsertStyle.replace)
+        ModInterface.DataMod.AddDataMod(new CodeDataMod(_fairyWingsCodeId, InsertStyle.replace)
         {
             CodeHash = MD5Utility.Encrypt("PINK BITCH!"),
             CodeType = CodeType.TOGGLE,

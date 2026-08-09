@@ -5,7 +5,7 @@ using Hp2BaseMod.Extension;
 namespace Hp2BaseMod;
 
 [HarmonyPatch(typeof(SaveFile))]
-public static class SaveFilePatch
+internal static class SaveFilePatch
 {
     private static readonly FieldInfo f_saveData = AccessTools.Field(typeof(GamePersistence), "_saveData");
 

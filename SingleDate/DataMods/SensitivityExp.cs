@@ -31,7 +31,7 @@ internal class SensitivityExp : IExpInfo
 
     public string PlateTitle => "SENSTIV. LVL";
 
-    public string PlateDesc => $"On single dates, each <c=#5E2782FF><q=hp_token_broken>Broken Heart</c> token matched will remove <c=#5E2782FF>{State.GetBrokenMult() * 100}%</c> Affection.";
+    public string PlateDesc => $"On single dates, each <c=#5E2782FF><q=hp_token_broken>Broken Heart</c> token matched will remove <c=#5E2782FF>{(State.GetBrokenMult() * 100).ToString("0.00")}%</c> Affection.";
 
     public Sprite IconImage => UiPrefabs.SensitivityIcon;
 

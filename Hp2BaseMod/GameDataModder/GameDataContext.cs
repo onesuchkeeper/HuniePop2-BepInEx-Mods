@@ -46,4 +46,7 @@ internal class GameDataContext
 
     public Dictionary<int, TokenDefinition> tokenDataDict;
     public IEnumerable<IGameDataMod<TokenDefinition>> tokenDataMods;
+
+    public Dictionary<RelativeId, UiDollSpecialEffect> dollSpecialEffects;
+    public Dictionary<RelativeId, IPuzzleResource> puzzleResources;
 }

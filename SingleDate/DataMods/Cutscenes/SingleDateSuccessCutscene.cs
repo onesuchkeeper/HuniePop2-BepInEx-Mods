@@ -9,7 +9,7 @@ public static class SingleDateSuccessCutscene
 {
     internal static void AddDataMods()
     {
-        ModInterface.AddDataMod(new CutsceneDataMod(CutsceneIds.Success, InsertStyle.replace)
+        ModInterface.DataMod.AddDataMod(new CutsceneDataMod(CutsceneIds.Success, InsertStyle.replace)
         {
             CleanUpType = CutsceneCleanUpType.NONE,
             Steps = new List<IGameDefinitionInfo<CutsceneStepSubDefinition>>()
@@ -18,7 +18,7 @@ public static class SingleDateSuccessCutscene
                 CutsceneStepUtility.MakePuzzleRefocusInfo(false, CutsceneStepProceedType.AUTOMATIC),
                 CutsceneStepUtility.MakeSpecialStepInfo("CutsceneStepPostRewards", CutsceneStepProceedType.AUTOMATIC),
                 CutsceneStepUtility.MakeBannerTextHideInfo(CutsceneStepProceedType.AUTOMATIC),
-                CutsceneStepUtility.MakeDialogTriggerInfo(Hp2BaseMod.DialogTriggers.DateSuccess, CutsceneStepProceedType.AUTOMATIC, CutsceneStepDollTargetType.RANDOM),
+                CutsceneStepUtility.MakeDialogTriggerInfo(Hp2BaseMod.DialogTriggers.DateSuccess).TargetOrientation(DollOrientationType.RIGHT),
                 CutsceneStepUtility.MakeWaitInfo(0.5f),
                 new ShowDatePhotoCutsceneStep.Info(),
                 CutsceneStepUtility.MakeHidePuzzleGridInfo(CutsceneStepProceedType.AUTOMATIC),

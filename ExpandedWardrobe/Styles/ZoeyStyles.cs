@@ -36,7 +36,7 @@ internal static partial class Styles
 
         //Fun Bags
 
-        ModInterface.AddDataMod(new GirlDataMod(Girls.Zoey, InsertStyle.append)
+        ModInterface.DataMod.AddDataMod(new GirlDataMod(Girls.Zoey, InsertStyle.append)
         {
             bodies = new List<IGirlBodyDataMod>()
             {

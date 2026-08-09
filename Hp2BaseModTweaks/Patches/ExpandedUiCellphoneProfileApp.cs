@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -46,7 +45,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
         private Hp2ButtonWrapper _nextPage;
         private int _currentPage = 0;
 
-        public void PreStart()
+        internal void PreStart()
         {
             _core.girlHeadIcon.preserveAspect = true;
 
@@ -210,7 +209,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
 
         internal void PostStart() => Refresh();
 
-        public void OnDestroy()
+        private void OnDestroy()
         {
             _previousPage?.Destroy();
             _nextPage?.Destroy();

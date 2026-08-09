@@ -69,7 +69,7 @@ internal class Plugin : BaseUnityPlugin
     private void AddPhoto(string name, RelativeId girlId, Action<RelativeId, IEnumerable<(RelativeId, float)>> m_AddGirlDatePhotos)
     {
         var photoId = new RelativeId(_modId, _photoModCount++);
-        ModInterface.AddDataMod(new PhotoDataMod(photoId, Hp2BaseMod.Utility.InsertStyle.append)
+        ModInterface.DataMod.AddDataMod(new PhotoDataMod(photoId, Hp2BaseMod.Utility.InsertStyle.append)
         {
             BigPhotoCensored = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(IMAGES_DIR, $"{name}.png"), true)),
             ThumbnailCensored = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(IMAGES_DIR, $"{name}_thumb.png"), true))

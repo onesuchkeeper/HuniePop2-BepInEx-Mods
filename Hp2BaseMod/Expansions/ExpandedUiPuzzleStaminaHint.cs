@@ -8,7 +8,7 @@ internal static class UiPuzzleStaminaHintPatch
     [HarmonyPatch("Start")]
     [HarmonyPostfix]
     public static void Start(UiPuzzleStaminaHint __instance)
-        => ExpandedUiPuzzleStaminaHint.Get(__instance).Start();
+        => ExpandedUiPuzzleStaminaHint.Get(__instance).Start_Postfix();
 
     [HarmonyPatch("OnDestroy")]
     [HarmonyPostfix]
@@ -16,10 +16,10 @@ internal static class UiPuzzleStaminaHintPatch
         => ExpandedUiPuzzleStaminaHint.Destroy(__instance);
 }
 
-[Expansion(typeof(UiPuzzleStaminaHint), Methods = new[]{"OnShouldCheck"})]
+[Expansion(typeof(UiPuzzleStaminaHint))]
 public partial class ExpandedUiPuzzleStaminaHint
 {
-    public void Start()
+    internal void Start_Postfix()
     {
         ExpandedUiPuzzleGrid.Get().MoveCompleteEvent += OnShouldCheck;
     }

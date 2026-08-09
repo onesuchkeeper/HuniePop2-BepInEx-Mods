@@ -4,7 +4,7 @@ using UnityEngine;
 namespace Hp2BaseModTweaks;
 
 [HarmonyPatch(typeof(UiGirlSlot))]
-public static class UiGirlSlotPatch
+internal static class UiGirlSlotPatch
 {
 
     [HarmonyPatch(nameof(UiGirlSlot.Populate))]

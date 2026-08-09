@@ -15,9 +15,8 @@ internal static class UiAppFinderSlotPatch
         => ExpandedUiAppFinderSlot.Get(__instance).Populate();
 }
 
-[Expansion(typeof(UiAppFinderSlot), 
-    Fields = new[]{"_playerFileFinderSlot", })]
-public partial class ExpandedUiAppFinderSlot
+[Expansion(typeof(UiAppFinderSlot))]
+internal partial class ExpandedUiAppFinderSlot
 {
     private static readonly float SINGLE_SPACING = 48f;
     private static readonly float DOUBLE_SPACING = 96f;

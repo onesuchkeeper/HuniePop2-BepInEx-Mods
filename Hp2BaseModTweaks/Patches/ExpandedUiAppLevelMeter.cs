@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Reflection;
 using HarmonyLib;
 using Hp2BaseMod;
 using Hp2BaseMod.GameDataInfo.Interface;
@@ -12,7 +10,7 @@ internal static class UiAppLevelMeterPatch
     [HarmonyPatch("Start")]
     [HarmonyPostfix]
     public static void Start(UiAppLevelMeter __instance)
-        => ExpandedUiAppLevelMeter.Get(__instance).Start();
+        => ExpandedUiAppLevelMeter.Get(__instance).Start_Postfix();
 
     [HarmonyPatch("OnDestroy")]
     [HarmonyPrefix]
@@ -30,13 +28,12 @@ internal static class UiAppLevelMeterPatch
         => ExpandedUiAppLevelMeter.Get(__instance).OnTooltipPreShow_Postfix();
 }
 
-[Expansion(typeof(UiAppLevelMeter), 
-    Methods = new[]{"OnTooltipPreShow"})]
+[Expansion(typeof(UiAppLevelMeter))]
 public partial class ExpandedUiAppLevelMeter
 {
     public IExpInfo ExpDisplay;
 
-    public void Start()
+    internal void Start_Postfix()
     {
         ExpandedItemSlotBehavior.Get(_core.smoothieSlot.itemSlot).PreShowEvent += OnTooltipPreShow;
     }
@@ -46,14 +43,14 @@ public partial class ExpandedUiAppLevelMeter
         ExpandedItemSlotBehavior.Get(_core.smoothieSlot.itemSlot).PreShowEvent -= OnTooltipPreShow;
     }
 
-    public void Populate()
+    internal void Populate()
     {
         if (ExpDisplay == null) return;
 
         _core.meterFront.fillAmount = ExpDisplay.Percentage;
     }
 
-    public void OnTooltipPreShow_Postfix()
+    internal void OnTooltipPreShow_Postfix()
     {
         if (ExpDisplay == null) return;
 

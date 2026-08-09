@@ -151,7 +151,7 @@ public static class UiPrefabs
         {
             cleanUpType = CutsceneCleanUpType.NONE,
             steps = new(){
-                CutsceneStepUtility.MakeDollMove(DollPositionType.INNER, DollOrientationType.RIGHT, CutsceneStepProceedType.AUTOMATIC),
+                CutsceneStepUtility.MakeDollMove(DollPositionType.INNER).TargetOrientation(DollOrientationType.RIGHT),
                 CutsceneStepUtility.MakeSubCutsceneGirlPair(GirlPairRelationshipType.UNKNOWN, CutsceneStepProceedType.AUTOMATIC),
                 cutsceneMeeting.steps[5],//compat banner
                 CutsceneStepUtility.MakeTogglePhoneAndHeader(true, CutsceneStepProceedType.AUTOMATIC)

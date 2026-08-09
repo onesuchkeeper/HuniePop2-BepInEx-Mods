@@ -91,10 +91,10 @@ public class Plugin : BaseUnityPlugin
                 ModInterface.Data.RegisterDefaultData(GameDataType.Fruit, FruitTypes.Romance.LocalId);
                 ModInterface.Data.RegisterDefaultData(GameDataType.Fruit, FruitTypes.Sexuality.LocalId);
 
-                ModInterface.Data.RegisterDefaultData(GameDataType.Affection, AffectionTypes.Talent.LocalId);
-                ModInterface.Data.RegisterDefaultData(GameDataType.Affection, AffectionTypes.Flirtation.LocalId);
-                ModInterface.Data.RegisterDefaultData(GameDataType.Affection, AffectionTypes.Romance.LocalId);
-                ModInterface.Data.RegisterDefaultData(GameDataType.Affection, AffectionTypes.Sexuality.LocalId);
+                ModInterface.Data.RegisterDefaultData(GameDataType.Affection, PuzzleAffectionId.Talent.LocalId);
+                ModInterface.Data.RegisterDefaultData(GameDataType.Affection, PuzzleAffectionId.Flirtation.LocalId);
+                ModInterface.Data.RegisterDefaultData(GameDataType.Affection, PuzzleAffectionId.Romance.LocalId);
+                ModInterface.Data.RegisterDefaultData(GameDataType.Affection, PuzzleAffectionId.Sexuality.LocalId);
 
                 ModInterface.Data.RegisterDefaultData(GameDataType.SpecialEffect, SpecialParts.KyuWingId.LocalId);
                 ModInterface.Data.RegisterDefaultData(GameDataType.SpecialEffect, SpecialParts.MoxieWingId.LocalId);

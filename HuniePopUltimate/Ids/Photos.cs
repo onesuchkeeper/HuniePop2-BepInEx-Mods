@@ -41,4 +41,7 @@ public static class Photos
         (HpDacThankYouPhotoBase, HpDacThankYouPhotoCount),
         (HpDacKsRewardPhotoBase, HpDacKsRewardPhotoCount),
     ];
+
+    public static RelativeId TiffanyAudrey => _tiffanyAudrey;
+    private static readonly RelativeId _tiffanyAudrey = new RelativeId(Plugin.ModId, 110_000);
 }

@@ -1,3 +1,4 @@
+using System.Reflection;
 using DG.Tweening;
 using HarmonyLib;
 using Hp2BaseMod.Extension;
@@ -10,20 +11,23 @@ internal static class LocationTransitionNormalPatch
     [HarmonyPatch("ArriveStep")]
     [HarmonyPrefix]
     public static bool ArriveStep(LocationTransitionNormal __instance)
-        => ExpandedLocationTransitionNormal.Get(__instance).ArriveStep();
+        => ExpandedLocationTransitionNormal.Get(__instance).ArriveStep_Prefix();
 
     [HarmonyPatch("DepartStep")]
     [HarmonyPrefix]
     public static bool DepartStep(LocationTransitionNormal __instance)
-        => ExpandedLocationTransitionNormal.Get(__instance).DepartStep_new();
+        => ExpandedLocationTransitionNormal.Get(__instance).DepartStep_Prefix();
 }
 
-[Expansion(typeof(LocationTransitionNormal), 
-    Fields = new[]{"_stepIndex","_gameSaved","_arriveWithGirls","_initialArrive","_sequence"},
-    Methods = new[]{"DepartStep","ArrivalComplete","OnArriveAnimationsComplete","OnDepartAnimationsComplete"})]
+[Expansion(typeof(LocationTransitionNormal))]
 public partial class ExpandedLocationTransitionNormal
 {
-    public bool ArriveStep()
+    private static FieldInfo f_gameSaved = AccessTools.Field(typeof(LocationTransition), "_gameSaved");
+    private static FieldInfo f_arriveWithGirls = AccessTools.Field(typeof(LocationTransition), "_arriveWithGirls");
+    private static FieldInfo f_initialArrive = AccessTools.Field(typeof(LocationTransition), "_initialArrive");
+    private static MethodInfo m_ArrivalComplete = AccessTools.Method(typeof(LocationTransition), "ArrivalComplete");
+
+    internal bool ArriveStep_Prefix()
     {
         // override arrive step 1 to allow additions to the sequence before it plays
         var nextStepIndex = f_stepIndex.GetValue<int>(_core) + 1;
@@ -112,7 +116,7 @@ public partial class ExpandedLocationTransitionNormal
         }
     }
 
-    public bool DepartStep_new()
+    internal bool DepartStep_Prefix()
     {
         // override depart step 1 at sim locations to notify random doll selection
         var stepIndex = f_stepIndex.GetValue<int>(_core);
@@ -130,7 +134,7 @@ public partial class ExpandedLocationTransitionNormal
 
                     if (Game.Manager.Windows.IsWindowActive(null, true, true))
                     {
-                        Game.Manager.Windows.WindowHiddenEvent += OnWindowHidden;
+                        Game.Manager.Windows.WindowHiddenEvent += OnWindowHidden_Hook;
                         Game.Manager.Windows.HideWindow();
                     }
                     else
@@ -155,7 +159,7 @@ public partial class ExpandedLocationTransitionNormal
                     if (dialogTriggerDefinition != null)
                     {
                         ModInterface.Log.Warning("Valediction Dialog Setup");
-                        uiDoll.DialogBoxHiddenEvent += OnValedictionDialogRead;
+                        uiDoll.DialogBoxHiddenEvent += OnValedictionDialogRead_Hook;
                         uiDoll.ReadDialogTrigger(dialogTriggerDefinition, DialogLineFormat.ACTIVE, -1);
                         return false;
                     }
@@ -226,23 +230,22 @@ public partial class ExpandedLocationTransitionNormal
                         return false;
                     }
                     sequence.Complete(false);
-                    this.DepartStep_new();
+                    this.DepartStep_Prefix();
                     return false;
                 }
         }
         return true;
     }
 
-    private void OnWindowHidden()
+    private void OnWindowHidden_Hook()
     {
-        Game.Manager.Windows.WindowHiddenEvent -= OnWindowHidden;
+        Game.Manager.Windows.WindowHiddenEvent -= OnWindowHidden_Hook;
         m_DepartStep.Invoke(_core, null);
     }
 
-    private void OnValedictionDialogRead(UiDoll doll)
+    private void OnValedictionDialogRead_Hook(UiDoll doll)
     {
-        ModInterface.Log.Warning("Valediction Dialog Read");
-        doll.DialogBoxHiddenEvent -= OnValedictionDialogRead;
+        doll.DialogBoxHiddenEvent -= OnValedictionDialogRead_Hook;
         m_DepartStep.Invoke(_core, null);
     }
 }
