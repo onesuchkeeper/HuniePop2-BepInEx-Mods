@@ -35,7 +35,7 @@ public class UniqueItemHandler : IItemGiftHandler
         bool isAltGirl)
     {
         var preGiveLevel = Game.Persistence.playerFile.GetPassionLevel(false);
-        playerFileGirl.ReceiveShoes(item.Core);
+        playerFileGirl.ReceiveUnique(item.Core);
         var postGiveLevel = Game.Persistence.playerFile.GetPassionLevel(false);
         var text = "+1 Passion EXP";
         if (postGiveLevel != preGiveLevel)
@@ -48,7 +48,7 @@ public class UniqueItemHandler : IItemGiftHandler
         playerFileGirl.relationshipPoints++;
         if (!item.Core.noStaminaCost)
         {
-            Game.Session.Puzzle.puzzleStatus.AddResourceValue(PuzzleResourceType.STAMINA, -1, isAltGirl);
+            Game.Session.Puzzle.puzzleStatus.GetExpansion().AddResourceValue(PuzzleResourceId.Stamina, -1, isAltGirl);
         }
 
         return text;

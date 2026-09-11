@@ -118,6 +118,10 @@ public abstract class GirlConfiguratorBase : IGirlConfigurator
         hpBody.BackPosition = new VectorInfo(BackPosition.x, BackPosition.y);
         hpBody.HeadPosition = new VectorInfo(HeadPosition.x, HeadPosition.y);
 
+        // Apply global relative offsets derived from vanilla analysis
+        hpBody.BreathEmitterPos = new VectorInfo(HeadPosition.x + 425f, HeadPosition.y - 81f);
+        hpBody.UpsetEmitterPos = new VectorInfo(HeadPosition.x + 425f, HeadPosition.y + 38f);
+
         Mod.FavAnswers ??= new();
         var favAnswers = Mod.FavAnswers;
         foreach (var (questionId, answerId) in FavAnswersMap)

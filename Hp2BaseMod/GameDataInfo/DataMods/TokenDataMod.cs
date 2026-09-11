@@ -15,6 +15,8 @@ namespace Hp2BaseMod.GameDataInfo
 
         public RelativeId? PuzzleResourceID;
 
+        public RelativeId? TokenHandlerId;
+
         public RelativeId? EnergyDefinitionID;
 
         public int? Weight;
@@ -118,6 +120,7 @@ namespace Hp2BaseMod.GameDataInfo
         {
             var exp = def.GetExpansion();
             if (PuzzleResourceID.HasValue) exp.PuzzleResource = gameDataProvider.GetPuzzleResource(PuzzleResourceID.Value);
+            if (TokenHandlerId.HasValue) exp.TokenHandler = gameDataProvider.GetTokenHandler(TokenHandlerId.Value);
 
             ValidatedSet.SetValue(ref def.weight, Weight);
             ValidatedSet.SetValue(ref def.bonusWeight, BonusWeight);

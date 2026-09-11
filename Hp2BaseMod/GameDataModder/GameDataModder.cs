@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Hp2BaseMod.Extension;
 using Hp2BaseMod.GameDataInfo.Interface;
+using Hp2BaseMod.Utility;
 using UnityEngine;
 
 namespace Hp2BaseMod
@@ -151,14 +152,6 @@ namespace Hp2BaseMod
                         }
                     }
 
-                    using (ModInterface.Log.MakeIndent("pairs"))
-                    {
-                        foreach (var pair in Game.Data.GirlPairs.GetAll())
-                        {
-                            pair.favQuestions ??= new();
-                        }
-                    }
-
                     using (ModInterface.Log.MakeIndent("items"))
                     {
                         foreach (var item in Game.Data.Items.GetAll())
@@ -176,6 +169,17 @@ namespace Hp2BaseMod
                                 if (expansion.Affection.Id == PuzzleAffectionId.Sexuality) item.affectionType = PuzzleAffectionType.SEXUALITY;
 #pragma warning restore HP001 // Deprecated member usage
                             }
+                        }
+                    }
+
+                    using (ModInterface.Log.MakeIndent("tokens"))
+                    {
+                        var defaultTokenHandler = gameDataProvider._tokenHandlers[TokenHandlerId.Default];
+                        
+                        foreach (var token in Game.Data.Tokens.GetAll())
+                        {
+                            var expansion = token.GetExpansion();
+                            expansion.TokenHandler ??= defaultTokenHandler;
                         }
                     }
                 }

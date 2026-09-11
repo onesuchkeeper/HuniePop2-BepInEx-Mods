@@ -8,55 +8,56 @@ using UnityEngine;
 
 namespace Hp2BaseMod;
 
-[HarmonyPatch(typeof(LocationManager))]
-internal static class LocationManagerPatch
-{
-    [HarmonyPatch(nameof(LocationManager.Arrive))]
-    [HarmonyPrefix]
-    private static void PreArrive(LocationManager __instance,
-        ref LocationDefinition locationDef,
-        ref GirlPairDefinition girlPairDef,
-        ref bool sidesFlipped,
-        ref bool initialArrive)
-        => ExpandedLocationManager.Get(__instance).Arrive_Prefix(
-            ref locationDef,
-            ref girlPairDef,
-            ref sidesFlipped,
-            ref initialArrive);
-
-    [HarmonyPatch(nameof(LocationManager.Arrive))]
-    [HarmonyPostfix]
-    private static void PostArrive(LocationManager __instance)
-        => ExpandedLocationManager.Get(__instance).Arrive_Postfix();
-
-    [HarmonyPatch("OnLocationSettled")]
-    [HarmonyPrefix]
-    private static bool OnLocationSettled(LocationManager __instance)
-        => ExpandedLocationManager.Get(__instance).LocationSettled_Prefix();
-
-    [HarmonyPatch(nameof(LocationManager.ResetDolls))]
-    [HarmonyPostfix]
-    private static void ResetDolls(LocationManager __instance, bool unload = false)
-        => ExpandedLocationManager.Get(__instance).ResetDolls(unload);
-
-    [HarmonyPatch("OnDestroy")]
-    [HarmonyPostfix]
-    private static void OnDestroy(LocationManager __instance)
-        => ExpandedLocationManager.Destroy(__instance);
-}
-
-[HarmonyPatch(typeof(UiPuzzleGrid))]
-internal static class UiPuzzleGridCellphonePatch
-{
-    [HarmonyPatch(nameof(UiPuzzleGrid.RefreshGirlDolls))]
-    [HarmonyPostfix]
-    public static void RefreshGirlDolls(UiPuzzleGrid __instance)
-        => ExpandedLocationManager.RefreshGirlDolls();
-}
-
 [Expansion(typeof(LocationManager))]
 public partial class ExpandedLocationManager
 {
+    [HarmonyPatch(typeof(LocationManager))]
+    private static class Patch
+    {
+        [HarmonyPatch(nameof(LocationManager.Arrive))]
+        [HarmonyPrefix]
+        private static void PreArrive(LocationManager __instance,
+            ref LocationDefinition locationDef,
+            ref GirlPairDefinition girlPairDef,
+            ref bool sidesFlipped,
+            ref bool initialArrive)
+            => ExpandedLocationManager.Get(__instance).Arrive_Prefix(
+                ref locationDef,
+                ref girlPairDef,
+                ref sidesFlipped,
+                ref initialArrive);
+
+        [HarmonyPatch(nameof(LocationManager.Arrive))]
+        [HarmonyPostfix]
+        private static void PostArrive(LocationManager __instance)
+            => ExpandedLocationManager.Get(__instance).Arrive_Postfix();
+
+        [HarmonyPatch("OnLocationSettled")]
+        [HarmonyPrefix]
+        private static bool OnLocationSettled(LocationManager __instance)
+            => ExpandedLocationManager.Get(__instance).LocationSettled_Prefix();
+
+        [HarmonyPatch(nameof(LocationManager.ResetDolls))]
+        [HarmonyPostfix]
+        private static void ResetDolls(LocationManager __instance, bool unload = false)
+            => ExpandedLocationManager.Get(__instance).ResetDolls(unload);
+
+        [HarmonyPatch("OnDestroy")]
+        [HarmonyPostfix]
+        private static void OnDestroy(LocationManager __instance)
+            => ExpandedLocationManager.Destroy(__instance);
+    }
+
+    //TODO, move to expanded ui puzzle grid
+    [HarmonyPatch(typeof(UiPuzzleGrid))]
+    internal static class UiPuzzleGridCellphonePatch
+    {
+        [HarmonyPatch(nameof(UiPuzzleGrid.RefreshGirlDolls))]
+        [HarmonyPostfix]
+        private static void RefreshGirlDolls(UiPuzzleGrid __instance)
+            => ExpandedLocationManager.RefreshGirlDolls();
+    }
+
     private CutsceneDefinition _baseCutsceneMeeting;
     private UiWindow _actionBubblesWindow;
 
@@ -79,7 +80,7 @@ public partial class ExpandedLocationManager
     /// <param name="girlPairDef">The pair at the location</param>
     /// <param name="sidesFlipped">If the pairs have their sides flipped</param>
     /// <param name="initialArrive">If this is the session's first arrival</param>
-    internal void Arrive_Prefix(ref LocationDefinition locationDef,
+    private void Arrive_Prefix(ref LocationDefinition locationDef,
         ref GirlPairDefinition girlPairDef,
         ref bool sidesFlipped,
         ref bool initialArrive)
@@ -128,7 +129,7 @@ public partial class ExpandedLocationManager
     /// When the cellphone moves to the left the header shifts, and the puzzle
     /// grid must shift right by the same delta to stay on screen.
     /// </summary>
-    internal void Arrive_Postfix()
+    private void Arrive_Postfix()
     {
         var header = Game.Session.gameCanvas.header;
         var cellphone = Game.Session.gameCanvas.cellphone;
@@ -184,7 +185,7 @@ public partial class ExpandedLocationManager
     /// every RefreshGirlDolls call, RefreshGirlDolls may re-enable it internally,
     /// and without the explicit OnPointerExit the tooltip can persist.
     /// </summary>
-    internal static void RefreshGirlDolls()
+    private static void RefreshGirlDolls()
     {
         if (!ModInterface.State.CellphoneOnLeft) return;
         var focusButton = Game.Session.gameCanvas.dollLeft.focusButton;
@@ -196,7 +197,7 @@ public partial class ExpandedLocationManager
     /// Notifies of location settling, allowing location type and ui to be overwritten.
     /// Notifies of a random doll selection, allowing selection to be overwritten.
     /// </summary>
-    internal bool LocationSettled_Prefix()
+    private bool LocationSettled_Prefix()
     {
         var locationSettledArgs = new LocationSettledArgs()
         {
@@ -254,7 +255,7 @@ public partial class ExpandedLocationManager
     /// - Resolves styles based on relationship, location, or player file.
     /// - Allows mod hooks to override styles.
     /// </summary>
-    internal void ResetDolls(bool unload)
+    private void ResetDolls(bool unload)
     {
         // Early exit: nothing to do if unloading
         if (unload) return;

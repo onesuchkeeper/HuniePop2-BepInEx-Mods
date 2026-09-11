@@ -1,4 +1,7 @@
+using System.Linq;
 using Hp2BaseMod;
+using Hp2BaseMod.Extension;
+using UnityEngine;
 
 namespace SingleDate;
 
@@ -8,10 +11,12 @@ public class SingleDateAilment : IScriptedAilment
     private TokenDefinition _staminaTokenDef;
     private PuzzleStatusGirl _rightGirl;
     private ExpandedAilmentManager _ailmentManager;
+
     public void Enable(ExpandedAilmentManager ailmentManager, object owner = null)
     {
         _ailmentManager = ailmentManager;
         _grid = _ailmentManager._puzzleGrid.GetExpansion();
+
         _grid.SuppressStaminaCost = true;
         _grid.SuppressStaminaWarning = true;
         _grid.SuppressExhaustionWarning = true;
@@ -25,17 +30,28 @@ public class SingleDateAilment : IScriptedAilment
         {
             _rightGirl.invalidTokenDefs.Add(_staminaTokenDef);
         }
+
+        // Subscribe to PostMatchReward via Hp2BaseMod's event system
+        _ailmentManager.PostMatchReward += OnPostMatchReward;
     }
 
     public void Disable()
     {
-        _grid = _ailmentManager._puzzleGrid.GetExpansion();
-        _grid.SuppressStaminaCost = false;
-        _grid.SuppressStaminaWarning = false;
-        _grid.SuppressExhaustionWarning = false;
-        _grid.SuppressUpsetWarning = false;
-        _grid.AutoRevertExhaustion = false;
-        _grid.UnsuppressFocusSwitch();
+        if (_ailmentManager != null)
+        {
+            _ailmentManager.PostMatchReward -= OnPostMatchReward;
+        }
+
+        _grid = _ailmentManager?._puzzleGrid?.GetExpansion();
+        if (_grid != null)
+        {
+            _grid.SuppressStaminaCost = false;
+            _grid.SuppressStaminaWarning = false;
+            _grid.SuppressExhaustionWarning = false;
+            _grid.SuppressUpsetWarning = false;
+            _grid.AutoRevertExhaustion = false;
+            _grid.UnsuppressFocusSwitch();
+        }
 
         if (_staminaTokenDef != null && _rightGirl != null) 
         {
@@ -45,5 +61,31 @@ public class SingleDateAilment : IScriptedAilment
         _staminaTokenDef = null;
         _rightGirl = null;
         _grid = null;
+    }
+
+    private void OnPostMatchReward(AilmentTriggerArgs.PostMatchReward args)
+    {
+        if (!State.IsSingleDate || args?.Rewards == null) return;
+
+        var brokenRewards = args.Rewards
+            .Where(x => x.Reward?.TokenDefinition?.PuzzleResource?.Id == PuzzleResourceId.Broken)
+            .ToList();
+
+        if (brokenRewards.Count == 0) return;
+
+        var puzzleStatus = Game.Session.Puzzle.puzzleStatus;
+        var currentAffection = puzzleStatus.affection;
+
+        // 1. Calculate negative affection allotment using the single date sensitivity multiplier
+        var allotment = -Mathf.Max(1, Mathf.FloorToInt(currentAffection * State.GetBrokenMult()));
+
+        // 2. Set ResourceValue on the reward so splash text / UI displays "-X Affection"
+        foreach (var entry in brokenRewards)
+        {
+            entry.Reward.ResourceValue = allotment;
+        }
+
+        // 3. Deduct affection directly via Hp2BaseMod's public API
+        _grid._status.GetExpansion().AddResourceValue(PuzzleResourceId.AffectionTalent, allotment * brokenRewards.Count, true);
     }
 }

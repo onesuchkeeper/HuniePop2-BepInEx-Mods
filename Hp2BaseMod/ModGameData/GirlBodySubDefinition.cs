@@ -16,7 +16,6 @@ public class GirlBodySubDefinition : SubDefinition
     public Vector2 UpsetEmitterPos;
     public Vector2 BackPos;
     public Vector2 HeadPos;
-    public Vector2 SpecialEffectOffset;
 
     public UiDollSpecialEffect SpecialEffectPrefab;
 
@@ -51,7 +50,6 @@ public class GirlBodySubDefinition : SubDefinition
         BreathEmitterPos = def.breathEmitterPos;
         UpsetEmitterPos = def.upsetEmitterPos;
 
-        SpecialEffectOffset = def.specialEffectOffset;
         SpecialEffectPrefab = def.specialEffectPrefab;
 
         PartIndexBody = def.partIndexBody;
@@ -79,7 +77,6 @@ public class GirlBodySubDefinition : SubDefinition
     {
         def.breathEmitterPos = BreathEmitterPos;
         def.upsetEmitterPos = UpsetEmitterPos;
-        def.specialEffectOffset = SpecialEffectOffset;
 
         def.specialEffectPrefab = SpecialEffectPrefab;
 

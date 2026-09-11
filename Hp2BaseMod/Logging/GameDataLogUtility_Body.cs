@@ -60,7 +60,7 @@ public static partial class GameDataLogUtility
         using (logger.MakeIndent($"Hairstyle: {hairstyle.hairstyleName}"))
         {
             logger.Message($"Part index front: {hairstyle.partIndexFronthair}, "
-                + "Part index back: {hairstyle.partIndexFronthair}");
+                + $"Part index back: {hairstyle.partIndexFronthair}");
 
             if (hairstyle.tightlyPaired) logger.Message($"Paired outfit index: {hairstyle.pairOutfitIndex}");
 

@@ -48,7 +48,7 @@ public class ShoesItemHandler : IItemGiftHandler
         playerFileGirl.relationshipPoints++;
         if (!item.Core.noStaminaCost)
         {
-            Game.Session.Puzzle.puzzleStatus.AddResourceValue(PuzzleResourceType.STAMINA, -1, isAltGirl);
+            Game.Session.Puzzle.puzzleStatus.GetExpansion().AddResourceValue(PuzzleResourceId.Stamina, -1, isAltGirl);
         }
 
         return text;

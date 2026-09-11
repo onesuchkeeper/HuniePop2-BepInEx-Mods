@@ -1,72 +1,61 @@
-using System.Collections.Generic;
-using HarmonyLib;
-using Hp2BaseMod.Extension;
-
 namespace Hp2BaseMod;
 
-// [HarmonyPatch(typeof(PuzzleStatusGirl))]
-// internal static class PuzzleStatusGirlPatch
-// {
-//     [HarmonyPatch("ApplyAilment")]
-//     [HarmonyPostfix]
-//     public static void ApplyAilment(PuzzleStatusGirl __instance, AilmentDefinition ailmentDef, bool __result)
-//         => ExpandedPuzzleStatusGirl.Get(__instance).ApplyAilment(ailmentDef, __result);
-
-//     [HarmonyPatch("PopulateAilments")]
-//     [HarmonyPostfix]
-//     public static void PopulateAilments(PuzzleStatusGirl __instance)
-//         => ExpandedPuzzleStatusGirl.Get(__instance).PopulateAilments();
-// }
-
-/// <summary>
-/// Companion class for <see cref="PuzzleStatusGirl"/> that attaches <see cref="IScriptedAilment"/>
-/// instances to newly constructed <see cref="Ailment"/> objects when the definition's
-/// <see cref="ExpandedAilmentDefinition.ScriptedAilmentFactory"/> is set.
-/// </summary>
 [Expansion(typeof(PuzzleStatusGirl))]
+#pragma warning disable HP001 // Deprecated member usage
+[Deprecates(nameof(PuzzleStatusGirl.exhausted), $"Use {nameof(ExpandedPuzzleStatusGirl)}.{nameof(StateId)} instead")]
+[Deprecates(nameof(PuzzleStatusGirl.upset), $"Use {nameof(ExpandedPuzzleStatusGirl)}.{nameof(StateId)} instead")]
+#pragma warning restore HP001 // Deprecated member usage
 public partial class ExpandedPuzzleStatusGirl
 {
-    // /// <summary>
-    // /// After ApplyAilment succeeds, attach a scripted behaviour to the new Ailment instance
-    // /// if the definition has a factory set.
-    // /// </summary>
-    // internal void ApplyAilment(AilmentDefinition ailmentDef, bool result)
-    // {
-    //     if (!result) return;
+    private RelativeId _stateId = PuzzleStatusGirlStateId.Normal;
 
-    //     var factory = ailmentDef.GetExpansion().ScriptedAilmentFactory;
-    //     if (factory == null) return;
+    public RelativeId StateId => _stateId;
+    public IPuzzleStatusGirlState State => ModInterface.GameData.GetPuzzleStatusGirlState(_stateId);
 
-    //     // The ailment was just added as the last entry by the original method.
-    //     var ailments = f_ailments.GetValue<List<Ailment>>(_core);
-    //     var ailment = ailments[ailments.Count - 1];
-    //     ailment.GetExpansion().ScriptedAilment = factory(ailment);
-    // }
+    public void ChangeState(RelativeId targetStateId)
+    {
+        if (targetStateId == RelativeId.Default) return;
 
-    // /// <summary>
-    // /// After PopulateAilments runs, attach scripted behaviour to any ailment instances
-    // /// whose definitions have a factory set.
-    // /// </summary>
-    // internal void PopulateAilments()
-    // {
-    //     var ailments = f_ailments.GetValue<List<Ailment>>(_core);
+        // Allow sub-mods to redirect or override targetStateId
+        var args = ModInterface.Events.NotifyRequestGirlStateTransition(_core, _stateId, targetStateId);
+        targetStateId = args.TargetStateId;
 
-    //     foreach (var ailment in ailments)
-    //     {
-    //         var factory = ailment.definition.GetExpansion().ScriptedAilmentFactory;
-    //         if (factory == null) continue;
+        if (_stateId == targetStateId) return;
 
-    //         // Only attach if not already populated (guard against double-calls).
-    //         var expansion = ailment.GetExpansion();
-    //         if (expansion.ScriptedAilment == null)
-    //         {
-    //             expansion.ScriptedAilment = factory(ailment);
-    //         }
-    //     }
-    // }
+        var currentState = State;
+        var nextState = ModInterface.GameData.GetPuzzleStatusGirlState(targetStateId);
+        if (nextState == null)
+        {
+            ModInterface.Log.Error($"Could not find {nameof(IPuzzleStatusGirlState)} with id {targetStateId} to switch to.");
+            return;
+        }
+
+        currentState?.OnExit(_core, this);
+        _stateId = targetStateId;
+        nextState.OnEnter(_core, this);
+    }
+
+    public void OnStaminaChanged(int newStamina)
+    {
+        var targetId = State?.OnStaminaChanged(_core, this, newStamina) ?? _stateId;
+        if (targetId != _stateId) ChangeState(targetId);
+    }
+
+    public void OnBrokenHeartMatched(int brokenCount)
+    {
+        var targetId = State?.OnBrokenHeartMatched(_core, this, brokenCount) ?? _stateId;
+        if (targetId != _stateId) ChangeState(targetId);
+    }
+
+    public void OnMoveCompleted()
+    {
+        var targetId = State?.OnMoveCompleted(_core, this) ?? _stateId;
+        if (targetId != _stateId) ChangeState(targetId);
+    }
 
     private void OnDestroy()
     {
+        _stateId = PuzzleStatusGirlStateId.Normal;
         foreach (var ailment in _core.ailments)
         {
             ailment.DestroyExpansion();

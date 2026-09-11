@@ -109,9 +109,10 @@ internal static class LocationManagerPatch
         LocationDefinition locationDef,
         bool sidesFlipped)
     {
-        //time gets updated, so -1 to checks. Not handling data location anymore so 
-        //don't have to worry about date transitions not updating time
-        var time = (ClockDaytimeType)((Game.Persistence.playerFile.daytimeElapsed - 1) % 4);
+        // time gets updated, so -1 to checks. Not handling data location anymore so 
+        // don't have to worry about date transitions not updating time
+        var rawTime = (Game.Persistence.playerFile.daytimeElapsed - 1) % 4;
+        var time = (ClockDaytimeType)((rawTime + 4) % 4);
         var isTimeValid = time == ClockDaytimeType.EVENING || time == ClockDaytimeType.NIGHT;
 
         if (currentLocId == LocationIds.Beach

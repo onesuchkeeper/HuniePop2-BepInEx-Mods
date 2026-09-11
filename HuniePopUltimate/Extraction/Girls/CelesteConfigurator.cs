@@ -151,6 +151,7 @@ public class CelesteConfigurator : GirlConfiguratorBase
         Action<RelativeId, Sprite> setCharmSprite)
         : base(addGirlSexPhotos, setCharmSprite)
     {
+        
     }
 
     public override bool IsTextPhotoIndexNsfw(int photoIndex) => photoIndex.InInclusiveRange(2,3);

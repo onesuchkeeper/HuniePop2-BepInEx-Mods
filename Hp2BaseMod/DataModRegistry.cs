@@ -54,6 +54,10 @@ public class DataModRegistry
 
     private Dictionary<RelativeId, IPuzzleResource> _puzzleResources = new();
 
+    private Dictionary<RelativeId, ITokenHandler> _tokenHandlers = new();
+
+    private Dictionary<RelativeId, IPuzzleStatusGirlState> _puzzleStatusGirlStates = new();
+
     private Dictionary<RelativeId, IAffection> _affections = new();
 
     private Dictionary<RelativeId, IItemGiftHandler> _itemGiftHandlers = new();
@@ -83,7 +87,9 @@ public class DataModRegistry
             _itemStoreHandlers, 
             _itemGiftHandlers, 
             _affections, 
-            _puzzleResources, 
+            _puzzleResources,
+            _tokenHandlers,
+            _puzzleStatusGirlStates,
             _dollSpecialEffects,
             _expDisplays);
         GameDataModder.Mod(Game.Data, gameDefinitionProvider);
@@ -95,7 +101,6 @@ public class DataModRegistry
         _photoDataMods = null;
         _tokenDataMods = null;
         _energyDataMods = null;
-        _energyDataMods = null;
         _abilityDataMods = null;
         _ailmentDataMods = null;
         _cutsceneDataMods = null;
@@ -105,6 +110,8 @@ public class DataModRegistry
         _dialogTriggerDataMods = null;
         _dollSpecialEffects = null;
         _puzzleResources = null;
+        _tokenHandlers = null;
+        _puzzleStatusGirlStates = null;
         _affections = null;
         _itemGiftHandlers = null;
         _itemStoreHandlers = null;
@@ -220,6 +227,18 @@ public class DataModRegistry
         if (puzzleResource == null) return;
         _puzzleResources[id] = puzzleResource;
     }
+    public void AddData(RelativeId id, ITokenHandler tokenHandler)
+    {
+        if (tokenHandler == null) return;
+        _tokenHandlers[id] = tokenHandler;
+    }
+
+    public void AddData(RelativeId id, IPuzzleStatusGirlState puzzleStatusGirlState)
+    {
+        if (puzzleStatusGirlState == null) return;
+        _puzzleStatusGirlStates[id] = puzzleStatusGirlState;
+    }
+
     public void AddData(RelativeId id, IAffection affection)
     {
         if (affection == null) return;

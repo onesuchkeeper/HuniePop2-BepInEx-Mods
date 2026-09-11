@@ -43,7 +43,7 @@ namespace Hp2BaseMod.Save
 
             if (saveData == null) return;
 
-            //codes
+            // codes
             if (saveData.unlockedCodes != null)
             {
                 UnlockedCodes = new List<RelativeId>();
@@ -55,9 +55,9 @@ namespace Hp2BaseMod.Save
                     {
                         defaultCodes.Add(code);
                     }
-                    else
+                    else if (ModInterface.Data.TryGetDataId(GameDataType.Code, code, out var relativeId))
                     {
-                        UnlockedCodes.Add(ModInterface.Data.GetDataId(GameDataType.Code, code));
+                        UnlockedCodes.Add(relativeId);
                     }
                 }
 

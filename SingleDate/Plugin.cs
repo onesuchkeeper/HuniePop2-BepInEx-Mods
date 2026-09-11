@@ -141,6 +141,7 @@ internal partial class Plugin : Hp2BaseModPlugin
         ModInterface.Events.FavQuestionResponse += ModEventHandles.On_TalkFavQuestionResponse;
         ModInterface.Events.PreLocationArrive += ModEventHandles.On_PreLocationArrive;
         ModInterface.Events.PreLocationSettled += ModEventHandles.On_PreLocationSettled;
+        ModInterface.Events.RequestGirlStateTransition += ModEventHandles.On_RequestGirlStateTransition;
 
         new Harmony(MyPluginInfo.PLUGIN_GUID).PatchAll();
     }
@@ -251,6 +252,9 @@ internal partial class Plugin : Hp2BaseModPlugin
 
             ModInterface.DataMod.AddDataMod(mod);
         }
+
+        // states
+        ModInterface.DataMod.AddData(PuzzleStatusGirlStateId.SingleDateUpset, new SingleDateUpsetGirlState());
     }
 
     private void AddPhotoMod(RelativeId id, string name, bool hasAlts = false)

@@ -6,15 +6,6 @@ using Hp2BaseMod.Extension;
 
 namespace Hp2BaseMod;
 
-[HarmonyPatch(typeof(HubManager), "HubStep")]
-internal static class HubManager_HubStep
-{
-    [HarmonyPatch("HubStep")]
-    [HarmonyPrefix]
-    public static bool Prefix(HubManager __instance)
-        => ExpandedHubManager.Get(__instance).HubStep_Prefix();
-}
-
 /// <summary>
 /// Allows for additional non-stop date locations
 /// by overriding the HubStep where the are handled
@@ -22,9 +13,18 @@ internal static class HubManager_HubStep
 [Expansion(typeof(HubManager))]
 public partial class ExpandedHubManager
 {
+    [HarmonyPatch(typeof(HubManager))]
+    private static class Patch
+    {
+        [HarmonyPatch("HubStep")]
+        [HarmonyPrefix]
+        public static bool Prefix(HubManager __instance)
+            => ExpandedHubManager.Get(__instance).HubStep_Prefix();
+    }
+
     private LocationDefinition[] _nonStopLocs;
 
-    internal bool HubStep_Prefix()
+    private bool HubStep_Prefix()
     {
         //replace nonstop step 1 and 4 to expand nonstop location options
 

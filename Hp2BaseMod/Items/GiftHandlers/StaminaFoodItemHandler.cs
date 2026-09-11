@@ -27,9 +27,9 @@ public class StaminaFoodItemHandler : IItemGiftHandler
             case ItemGiveConditionType.SHOES:
                 return fileGirl.receivedShoes.Count > 0;
             case ItemGiveConditionType.PASSION:
-                return Game.Session.Puzzle.puzzleStatus.GetResourceValue(PuzzleResourceType.PASSION, altGirl, false) > 0;
+                return Game.Session.Puzzle.puzzleStatus.GetExpansion().GetResourceValue(PuzzleResourceId.Passion, altGirl, false) > 0;
             case ItemGiveConditionType.SENTIMENT:
-                return Game.Session.Puzzle.puzzleStatus.GetResourceValue(PuzzleResourceType.SENTIMENT, altGirl, false) > 0;
+                return Game.Session.Puzzle.puzzleStatus.GetExpansion().GetResourceValue(PuzzleResourceId.Sentiment, altGirl, false) > 0;
             case ItemGiveConditionType.TALENT_LVL:
                 return Game.Persistence.playerFile.GetAffectionLevel(PuzzleAffectionType.TALENT, true) > 0;
             case ItemGiveConditionType.FLIRTATION_LVL:
@@ -69,7 +69,7 @@ public class StaminaFoodItemHandler : IItemGiftHandler
         playerFileGirl.relationshipPoints++;
         if (!item.Core.noStaminaCost)
         {
-            Game.Session.Puzzle.puzzleStatus.AddResourceValue(PuzzleResourceType.STAMINA, -1, isAltGirl);
+            Game.Session.Puzzle.puzzleStatus.GetExpansion().AddResourceValue(PuzzleResourceId.Stamina, -1, isAltGirl);
         }
         return null;
     }

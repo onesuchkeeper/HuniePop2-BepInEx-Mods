@@ -7,11 +7,11 @@ using UnityEngine;
 namespace HuniePopUltimate;
 
 /// <summary>
-/// For testing, does nothing
+/// 
 /// </summary>
 public class MegaBitchAilment : IScriptedAilment
 {
-    private const float PERCENTAGE_LOST = 0.05f;
+    private const int PERCENTAGE_LOST = 5;
 
     private PuzzleStatusGirl _owner;
     private ExpandedAilmentManager _ailmentManager;
@@ -33,7 +33,7 @@ public class MegaBitchAilment : IScriptedAilment
         if (args.Rewards.Any(x => x.Item2.TokenDefinition.Id == PuzzleResourceId.Sentiment))
         {
             //is already bounded to range [0,100] internally
-            _owner.passion -=5;
+            _owner.passion -= PERCENTAGE_LOST;
             ModInterface.Log.Message("Mega Bitch lowering passion due to sentiment match");
         }
     }

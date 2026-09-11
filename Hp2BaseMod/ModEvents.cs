@@ -8,6 +8,15 @@ namespace Hp2BaseMod
     /// </summary>
     public class ModEvents
     {
+        public event Action<GirlStateTransitionArgs> RequestGirlStateTransition;
+
+        internal GirlStateTransitionArgs NotifyRequestGirlStateTransition(PuzzleStatusGirl statusGirl, RelativeId currentStateId, RelativeId targetStateId)
+        {
+            var args = new GirlStateTransitionArgs(statusGirl, currentStateId, targetStateId);
+            RequestGirlStateTransition?.Invoke(args);
+            return args;
+        }
+
         /// <summary>
         /// Notifies before the game is saved
         /// </summary>

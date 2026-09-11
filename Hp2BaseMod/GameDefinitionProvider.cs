@@ -17,8 +17,12 @@ public class GameDefinitionProvider
 
     public Dictionary<RelativeId, UiDollSpecialEffect> DollSpecialEffects => _dollSpecialEffects;
     internal readonly Dictionary<RelativeId, UiDollSpecialEffect> _dollSpecialEffects;
+
     public Dictionary<RelativeId, IPuzzleResource> PuzzleResources => _puzzleResources;
     internal readonly Dictionary<RelativeId, IPuzzleResource> _puzzleResources;
+
+    public Dictionary<RelativeId, ITokenHandler> TokenHandlers => _tokenHandlers;
+    internal readonly Dictionary<RelativeId, ITokenHandler> _tokenHandlers;
 
     public IReadOnlyDictionary<RelativeId, IAffection> Affections => _affections;
     internal readonly Dictionary<RelativeId, IAffection> _affections;
@@ -28,6 +32,9 @@ public class GameDefinitionProvider
 
     public IReadOnlyDictionary<RelativeId, IItemStoreHandler> ItemStoreHandlers => _itemStoreHandlers;
     internal readonly Dictionary<RelativeId, IItemStoreHandler> _itemStoreHandlers;
+
+    public IReadOnlyDictionary<RelativeId, IPuzzleStatusGirlState> PuzzleStatusGirlStates => _puzzleStatusGirlStates;
+    internal readonly Dictionary<RelativeId, IPuzzleStatusGirlState> _puzzleStatusGirlStates;
 
     public IReadOnlyList<IExpInfo> ExpDisplays => _expDisplays;
     internal readonly List<IExpInfo> _expDisplays = new List<IExpInfo>();
@@ -42,6 +49,8 @@ public class GameDefinitionProvider
         Dictionary<RelativeId, IItemGiftHandler> itemGiftHandlers,
         Dictionary<RelativeId, IAffection> affections,
         Dictionary<RelativeId, IPuzzleResource> puzzleResources,
+        Dictionary<RelativeId, ITokenHandler> tokenHandlers,
+        Dictionary<RelativeId, IPuzzleStatusGirlState> puzzleStatusGirlStates,
         Dictionary<RelativeId, UiDollSpecialEffect> dollSpecialEffects,
         List<IExpInfo> expDisplays)
     {
@@ -49,6 +58,8 @@ public class GameDefinitionProvider
         _itemGiftHandlers = itemGiftHandlers;
         _affections = affections;
         _puzzleResources = puzzleResources;
+        _tokenHandlers = tokenHandlers;
+        _puzzleStatusGirlStates = puzzleStatusGirlStates;
         _dollSpecialEffects = dollSpecialEffects;
         _expDisplays = expDisplays;
         _gameData = gameData ?? throw new ArgumentNullException(nameof(gameData));
@@ -173,12 +184,16 @@ public class GameDefinitionProvider
     public UiDollSpecialEffect GetSpecialEffect(RelativeId? id) => id.HasValue ? GetSpecialEffect(id.Value) : null;
     public IPuzzleResource GetPuzzleResource(RelativeId id) => _puzzleResources.TryGetValue(id, out var value) ? value : null;
     public IPuzzleResource GetPuzzleResource(RelativeId? id) => id.HasValue ? GetPuzzleResource(id.Value) : null;
+    public ITokenHandler GetTokenHandler(RelativeId id) => _tokenHandlers.TryGetValue(id, out var value) ? value : null;
+    public ITokenHandler GetTokenHandler(RelativeId? id) => id.HasValue ? GetTokenHandler(id.Value) : null;
     public IAffection GetAffection(RelativeId id) => _affections.TryGetValue(id, out var value) ? value : null;
     public IAffection GetAffection(RelativeId? id) => id.HasValue ? GetAffection(id.Value) : null;
     public IItemGiftHandler GetItemGiftHandler(RelativeId id) => _itemGiftHandlers.TryGetValue(id, out var value) ? value : null;
     public IItemGiftHandler GetItemGiftHandler(RelativeId? id) => id.HasValue ? GetItemGiftHandler(id.Value) : null;
     public IItemStoreHandler GetItemStoreHandler(RelativeId id) => _itemStoreHandlers.TryGetValue(id, out var value) ? value : null;
     public IItemStoreHandler GetItemStoreHandler(RelativeId? id) => id.HasValue ? GetItemStoreHandler(id.Value) : null;
+    public IPuzzleStatusGirlState GetPuzzleStatusGirlState(RelativeId id) => _puzzleStatusGirlStates.TryGetValue(id, out var value) ? value : null;
+    public IPuzzleStatusGirlState GetPuzzleStatusGirlState(RelativeId? id) => id.HasValue ? GetPuzzleStatusGirlState(id.Value) : null;
 
     /// <summary>
     /// Checks if the code is unlocked

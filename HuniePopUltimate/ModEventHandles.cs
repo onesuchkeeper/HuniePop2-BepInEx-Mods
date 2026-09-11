@@ -323,11 +323,11 @@ public static class ModEventHandles
         // if the player has already met Lola from single date, then the meeting loop won't ever get started
         // ideally I'd make a backup cutscene for this case, but I don't have voice acting...
         // so just un-meet her I guess. She will keep her exp, you just gotta do her cutscene again
-        var nikkiSaveFile = file.girls.FirstOrDefault(x
-            => ModInterface.Data.GetDataId(GameDataType.Girl, x.girlDefinition.id) == Girls.Nikki);
+        var lolaSaveFile = file.girls.FirstOrDefault(x
+            => ModInterface.Data.GetDataId(GameDataType.Girl, x.girlDefinition.id) == Hp2BaseMod.Girls.Lola);
 
-        if (nikkiSaveFile != null
-            && !nikkiSaveFile.playerMet)
+        if (lolaSaveFile != null
+            && !lolaSaveFile.playerMet)
         {
             file.metGirlPairs.Remove(ModInterface.GameData.GetGirlPair(Pairs.LolaSingleDate));
         }

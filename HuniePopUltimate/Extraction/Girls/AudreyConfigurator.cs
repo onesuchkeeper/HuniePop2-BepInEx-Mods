@@ -234,7 +234,7 @@ public class AudreyConfigurator : GirlConfiguratorBase
         var spaceEnergyId = new RelativeId(Plugin.ModId, 0);
         var spaceTokenId = new RelativeId(Plugin.ModId, 0);
         var spaceResourceId = new RelativeId(Plugin.ModId, 0);
-        var spaceAffectionId = new RelativeId(Plugin.ModId, 0);
+        
         ModInterface.DataMod.AddDataMod(new EnergyDataMod(spaceEnergyId, InsertStyle.append)
         {
             TextMaterialName = "stm_talent",
@@ -271,17 +271,32 @@ public class AudreyConfigurator : GirlConfiguratorBase
             },
         });
 
-        //ModInterface.DataMod.AddData(spaceResourceId, new PuzzleResourceAffection("Space", "", spaceResourceId, spaceAffectionId));
+        ModInterface.DataMod.AddData(spaceResourceId, new PuzzleResourceSpace());
 
-        ModInterface.DataMod.AddDataMod(new TokenDataMod(new RelativeId(-1,1), InsertStyle.append)
+        ModInterface.DataMod.AddDataMod(new TokenDataMod(new RelativeId(Plugin.ModId, 0), InsertStyle.append)
         {
+            TokenHandlerId = TokenHandlerId.Default,
             TokenName = "Inhuman",
-            //PuzzleResourceID = spaceResourceId,
+            PuzzleResourceID = spaceResourceId,
             TokenSpriteInfo = new SpriteInfoSprite(assetBundle.LoadAsset<Sprite>("token_space-1")),
             OverSpriteInfo = new SpriteInfoSprite(assetBundle.LoadAsset<Sprite>("token_space-1_over")),
             AltTokenSpriteInfo = new SpriteInfoSprite(assetBundle.LoadAsset<Sprite>("token_space-3")),
             AltOverSpriteInfo = new SpriteInfoSprite(assetBundle.LoadAsset<Sprite>("token_space-3_over")),
-            EnergyDefinitionID = spaceEnergyId
+            EnergyDefinitionID = spaceEnergyId,
+            Weight = 12,
+            BonusWeight = 16,
+            Negative = false,
+            AltBonusSprite = false,
+            DifficultyWeightOffset = [0,0,0],
+            SfxMatchInfo = new AudioKlipInfo() 
+            { 
+                Volume = 0.7f, 
+                AudioClipInfo = new AudioClipInfo() 
+                { 
+                    Path = "sfx_puzzle_token_match_talent", 
+                    IsExternal = false
+                }
+            }
         });
     }
 

@@ -12,8 +12,6 @@ namespace Hp2BaseMod.GameDataInfo
     /// </summary>
     public class GirlSpecialPartDataMod : DataMod, IBodySubDataMod<GirlSpecialPartSubDefinition>
     {
-        public string SpecialPartName;
-
         public IBodySubDataMod<GirlPartSubDefinition> Part;
 
         public DollPartSpecialAnimType? AnimType;
@@ -47,7 +45,6 @@ namespace Hp2BaseMod.GameDataInfo
             Part = new GirlPartDataMod(specialPartDef.partIndexSpecial, assetProvider, girlDef);
             AnimType = specialPartDef.animType;
             SortingPartType = specialPartDef.sortingPartType;
-            SpecialPartName = specialPartDef.specialPartName;
             IsToggleable = true;
         }
 

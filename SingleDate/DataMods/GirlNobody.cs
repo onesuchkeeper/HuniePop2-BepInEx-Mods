@@ -29,6 +29,9 @@ internal static class GirlNobody
             GirlName = "Nobody",
             SpecialCharacter = true,
 
+            FavoriteAffectionId = Hp2BaseMod.PuzzleAffectionId.Talent,
+            LeastFavoriteAffectionId = Hp2BaseMod.PuzzleAffectionId.Talent,
+
             bodies = new List<IGirlBodyDataMod>()
             {
                 new GirlBodyDataMod(new RelativeId(State.ModId,0), InsertStyle.append)

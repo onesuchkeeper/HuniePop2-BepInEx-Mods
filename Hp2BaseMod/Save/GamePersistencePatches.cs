@@ -134,6 +134,7 @@ namespace Hp2BaseMod.Save
 
         private static void CleanFile(SaveFile saveFile, ModSaveFile modSaveFile)
         {
+            saveFile.flags ??= new();
             var wardrobeFlag = saveFile.flags.FirstOrDefault(x => x.flagName == Flags.WARDROBE_GIRL_ID);
             if (wardrobeFlag != null && !ModInterface.Data.TryGetDataId(GameDataType.Girl, wardrobeFlag.flagValue, out _))
             {
@@ -212,7 +213,15 @@ namespace Hp2BaseMod.Save
                 .Distinct()
                 .ToList();
 
-            saveGirl.learnedFavs = Game.Data.Questions.GetAll().Select(x => x.id).Where(x => saveGirl.learnedFavs.Contains(x)).ToList();
+            // Convert legacy 0-based question indices to runtime IDs if needed before filtering
+            var allQuestions = Game.Data.Questions.GetAll();
+            saveGirl.learnedFavs = saveGirl.learnedFavs
+                .Select(fav => (fav >= 0 && fav < allQuestions.Count && !ModInterface.Data.TryGetDataId(GameDataType.Question, fav, out _))
+                    ? allQuestions[fav].id
+                    : fav)
+                .Where(fav => ModInterface.Data.TryGetDataId(GameDataType.Question, fav, out _))
+                .Distinct()
+                .ToList();
 
             saveGirl.recentHerQuestions = saveGirl.recentHerQuestions
                 .Where(x => IsIndexInCollection(x, def.herQuestions.Count))
@@ -233,7 +242,7 @@ namespace Hp2BaseMod.Save
                 .Distinct()
                 .ToList();
 
-            pair.recentFavQuestions = pair.learnedFavs
+            pair.recentFavQuestions = pair.recentFavQuestions
                 .Where(x => ModInterface.Data.TryGetDataId(GameDataType.Question, x, out _))
                 .Distinct()
                 .ToList();

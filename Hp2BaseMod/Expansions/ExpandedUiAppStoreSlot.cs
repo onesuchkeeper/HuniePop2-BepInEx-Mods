@@ -10,21 +10,21 @@ namespace Hp2BaseMod;
 public partial class ExpandedUiAppStoreSlot
 {
     [HarmonyPatch(typeof(UiAppStoreSlot))]
-    private static class UiAppStoreSlotPatch
+    private static class Patch
     {
         [HarmonyPatch("Start")]
         [HarmonyPostfix]
-        public static void Start(UiAppStoreSlot __instance)
+        private static void Start(UiAppStoreSlot __instance)
             => ExpandedUiAppStoreSlot.Get(__instance).Start_Postfix();
 
         [HarmonyPatch("OnDestroy")]
         [HarmonyPostfix]
-        public static void OnDestroy(UiAppStoreSlot __instance)
+        private static void OnDestroy(UiAppStoreSlot __instance)
             => ExpandedUiAppStoreSlot.Destroy(__instance);
 
         [HarmonyPatch(nameof(UiAppStoreSlot.Refresh))]
         [HarmonyPostfix]
-        public static void Refresh(UiAppStoreSlot __instance, ItemType highlightedItemType)
+        private static void Refresh(UiAppStoreSlot __instance, ItemType highlightedItemType)
             => ExpandedUiAppStoreSlot.Get(__instance).Refresh_Postfix(highlightedItemType);
     }
 
@@ -39,7 +39,7 @@ public partial class ExpandedUiAppStoreSlot
 			if (!Game.Persistence.playerFile.IsInventoryFull() 
                 && Game.Persistence.playerFile.GetFruitCount(_core.affectionType) >= _playerFileStoreProduct.itemCost 
                 && (highlightedItemType == ItemType.MISC 
-                || itemExp.StoreHandler.ShowWithStoreFilter(highlightedItemType)))
+                    || itemExp.StoreHandler.ShowWithStoreFilter(highlightedItemType)))
 			{
 				_core.button.Enable();
 				_core.itemSlot.slotBgCanvasGroup.alpha = 1f;

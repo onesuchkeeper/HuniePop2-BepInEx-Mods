@@ -49,6 +49,7 @@ internal static class DefaultGameDataHandler
         var questionDataDict = GetDataDict<QuestionDefinition>(gameData, typeof(QuestionData), "_questionData");
         var tokenDataDict = GetDataDict<TokenDefinition>(gameData, typeof(TokenData), "_tokenData");
         var puzzleResources = gameDefinitionProvider._puzzleResources ?? throw new Exception("Puzzle Resources");
+        var tokenHandlers = gameDefinitionProvider._tokenHandlers ?? throw new Exception("Token Handlers");
         var dollSpecialEffects = gameDefinitionProvider._dollSpecialEffects;
         var affections = gameDefinitionProvider._affections;
         var itemGiftHandlers = gameDefinitionProvider._itemGiftHandlers;
@@ -107,6 +108,14 @@ internal static class DefaultGameDataHandler
                 itemStoreHandlers[ItemTypes.Shoe] = new ShoeItemStoreHandler();
                 itemStoreHandlers[ItemTypes.Smoothie] = new SmoothieStoreHandler();
                 itemStoreHandlers[ItemTypes.Unique] = new UniqueItemStoreHandler();
+            }
+
+            using (ModInterface.Log.MakeIndent("Puzzle Status Girl States"))
+            {
+                var puzzleGirlStates = gameDefinitionProvider._puzzleStatusGirlStates;
+                puzzleGirlStates[PuzzleStatusGirlStateId.Normal] = new NormalGirlState();
+                puzzleGirlStates[PuzzleStatusGirlStateId.Upset] = new UpsetGirlState();
+                puzzleGirlStates[PuzzleStatusGirlStateId.Exhausted] = new ExhaustedGirlState();
             }
 
             using (ModInterface.Log.MakeIndent("girls"))
@@ -426,11 +435,23 @@ internal static class DefaultGameDataHandler
                 puzzleResources[PuzzleResourceId.Broken] = new PuzzleResourceBroken(broken.resourceName, broken.resourceSign);
             }
 
+            using (ModInterface.Log.MakeIndent("Token Handlers"))
+            {
+                var defaultHandler = new BaseToken();
+                tokenHandlers[TokenHandlerId.Default] = defaultHandler;
+
+                var staminaHandler = new TokenStamina();
+                tokenHandlers[TokenHandlerId.Stamina] = staminaHandler;
+
+                var movesHandler = new TokenMoves();
+                tokenHandlers[TokenHandlerId.Moves] = movesHandler;
+            }
+
             using (ModInterface.Log.MakeIndent("Tokens"))
             {
                 foreach (var token in tokenDataDict.Values)
                 {
-                    token.GetExpansion().InitInternalDefinition(puzzleResources);
+                    token.GetExpansion().InitInternalDefinition(puzzleResources, tokenHandlers);
                 }
             }
         }

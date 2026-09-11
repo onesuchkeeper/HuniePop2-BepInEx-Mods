@@ -32,6 +32,7 @@ public class AddictAilment : IScriptedAilment
     public void Disable()
     {
         _ailmentManager.PreMatchReward -= On_PreMatchReward;
+        _ailmentManager.PostMove -= On_AilmentManger_PostMove;
     }
 
     private void On_PreMatchReward(AilmentTriggerArgs.PreMatchReward args)

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -300,6 +301,17 @@ internal static class ModEventHandles
         if (State.IsSingleDate)
         {
             args.actionBubblesWindow = UiPrefabs.SingleDateBubbles;
+        }
+    }
+
+    internal static void On_RequestGirlStateTransition(GirlStateTransitionArgs args)
+    {
+        if (!State.IsSingleDate) return;
+
+        // Redirect standard Upset transitions to SingleDateUpset when on a single date
+        if (args.TargetStateId == Hp2BaseMod.PuzzleStatusGirlStateId.Upset)
+        {
+            args.TargetStateId = PuzzleStatusGirlStateId.SingleDateUpset;
         }
     }
 }

@@ -53,13 +53,14 @@ internal static class UiWindowActionBubblesPatch
             return false;
         }
 
+        var puzzleStatusExp = Game.Session.Puzzle.puzzleStatus.GetExpansion();
         var staminaEnergy = Game.Data.Tokens.GetByResourceType(PuzzleResourceType.STAMINA).energyDefinition;
         if (args.LeftStaminaGain != 0
             && Game.Session.Puzzle.puzzleStatus.girlStatusLeft.stamina < 6)
         {
             var value = Mathf.Min(6 - Game.Session.Puzzle.puzzleStatus.girlStatusLeft.stamina, args.LeftStaminaGain);
 
-            Game.Session.Puzzle.puzzleStatus.AddResourceValue(PuzzleResourceType.STAMINA,
+            puzzleStatusExp.AddResourceValue(PuzzleResourceId.Stamina,
                 value,
                 false);
 
@@ -76,7 +77,7 @@ internal static class UiWindowActionBubblesPatch
         {
             int value = Mathf.Min(6 - Game.Session.Puzzle.puzzleStatus.girlStatusRight.stamina, args.RightStaminaGain);
 
-            Game.Session.Puzzle.puzzleStatus.AddResourceValue(PuzzleResourceType.STAMINA,
+            puzzleStatusExp.AddResourceValue(PuzzleResourceId.Stamina,
                 value,
                 true);
 

@@ -67,7 +67,9 @@ namespace Hp2BaseMod.Save
             // this needs to come after we strip the learned baggage so we don't default to any non-default baggage
             if (ActiveBaggage.HasValue && ActiveBaggage.Value.SourceId != -1)
             {
-                saveFileGirl.activeBaggageIndex = saveFileGirl.learnedBaggage.First();
+                saveFileGirl.activeBaggageIndex = saveFileGirl.learnedBaggage.Any() 
+                    ? saveFileGirl.learnedBaggage.First() 
+                    : -1;
             }
 
             if (!girlExpanded.HairstyleLookup.TryGetId(saveFileGirl.hairstyleIndex, out HairstyleId))

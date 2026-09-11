@@ -1,0 +1,1056 @@
+File: Ids.cs
+Content:
+using Hp2BaseMod;
+
+namespace ExpandedWardrobe;
+
+internal static class Ids
+{
+    public static RelativeId Style1 => _style1;
+    private static RelativeId _style1;
+
+    public static RelativeId Style2 => _style2;
+    private static RelativeId _style2;
+
+    public static RelativeId Style3 => _style3;
+    private static RelativeId _style3;
+
+    public static RelativeId Style4 => _style4;
+    private static RelativeId _style4;
+
+    public static RelativeId OutfitPart1 => _outfitPart1;
+    private static RelativeId _outfitPart1;
+
+    public static RelativeId OutfitPart1Mirror => _outfitPart1Mirror;
+    private static RelativeId _outfitPart1Mirror;
+
+    public static RelativeId OutfitPart2 => _outfitPart2;
+    private static RelativeId _outfitPart2;
+
+    public static RelativeId OutfitPart3 => _outfitPart3;
+    private static RelativeId _outfitPart3;
+
+    public static RelativeId OutfitPart4 => _outfitPart4;
+    private static RelativeId _outfitPart4;
+
+    public static RelativeId FronthairPart1 => _fronthairPart1;
+    private static RelativeId _fronthairPart1;
+
+    public static RelativeId BackhairPart1 => _backhairPart1;
+    private static RelativeId _backhairPart1;
+
+    public static RelativeId FronthairPart2 => _fronthairPart2;
+    private static RelativeId _fronthairPart2;
+
+    public static RelativeId BackhairPart2 => _backhairPart2;
+    private static RelativeId _backhairPart2;
+
+    public static RelativeId FronthairPart3 => _fronthairPart3;
+    private static RelativeId _fronthairPart3;
+
+    public static RelativeId BackhairPart3 => _backhairPart3;
+    private static RelativeId _backhairPart3;
+
+    public static RelativeId FronthairPart4 => _fronthairPart4;
+    private static RelativeId _fronthairPart4;
+
+    public static RelativeId BackhairPart4 => _backhairPart4;
+    private static RelativeId _backhairPart4;
+
+    public static int ModId => _modId;
+    private static int _modId;
+
+    public static void Init()
+    {
+        var styleIndex = 0;
+        var partIndex = 0;
+
+        _modId = ModInterface.GetSourceId(MyPluginInfo.PLUGIN_GUID);
+
+        _style1 = new RelativeId(_modId, styleIndex++);
+        _style2 = new RelativeId(_modId, styleIndex++);
+        _style3 = new RelativeId(_modId, styleIndex++);
+        _style4 = new RelativeId(_modId, styleIndex++);
+
+        _outfitPart1 = new RelativeId(_modId, partIndex++);
+        _outfitPart1Mirror = new RelativeId(_modId, partIndex++);
+        _outfitPart2 = new RelativeId(_modId, partIndex++);
+        _outfitPart3 = new RelativeId(_modId, partIndex++);
+        _outfitPart4 = new RelativeId(_modId, partIndex++);
+
+        _fronthairPart1 = new RelativeId(_modId, partIndex++);
+        _fronthairPart2 = new RelativeId(_modId, partIndex++);
+        _fronthairPart3 = new RelativeId(_modId, partIndex++);
+        _fronthairPart4 = new RelativeId(_modId, partIndex++);
+
+        _backhairPart1 = new RelativeId(_modId, partIndex++);
+        _backhairPart2 = new RelativeId(_modId, partIndex++);
+        _backhairPart3 = new RelativeId(_modId, partIndex++);
+        _backhairPart4 = new RelativeId(_modId, partIndex++);
+    }
+}
+
+File: Plugin.cs
+Content:
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using BepInEx;
+using BepInEx.Configuration;
+using Hp2BaseMod;
+using Hp2BaseMod.Utility;
+using UnityEngine;
+
+namespace ExpandedWardrobe;
+
+[BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
+[BepInDependency("OSK.BepInEx.Hp2BaseMod", "1.0.0")]
+[BepInDependency("OSK.BepInEx.Hp2BaseModTweaks", BepInDependency.DependencyFlags.SoftDependency)]
+internal class Plugin : BaseUnityPlugin
+{
+    private const string CONFIG_CAT_STYLES = "styles";
+
+    public static ConfigEntry<bool> AbiaStyles => _abiaStyles;
+    private static ConfigEntry<bool> _abiaStyles;
+
+    public static ConfigEntry<bool> AshleyStyles => _ashleyStyles;
+    private static ConfigEntry<bool> _ashleyStyles;
+
+    public static ConfigEntry<bool> BrookeStyles => _brookeStyles;
+    private static ConfigEntry<bool> _brookeStyles;
+
+    public static ConfigEntry<bool> CandaceStyles => _candaceStyles;
+    private static ConfigEntry<bool> _candaceStyles;
+
+    public static ConfigEntry<bool> JessieStyles => _jessieStyles;
+    private static ConfigEntry<bool> _jessieStyles;
+
+    public static ConfigEntry<bool> JewnStyles => _jewnStyles;
+    private static ConfigEntry<bool> _jewnStyles;
+
+    public static ConfigEntry<bool> KyuStyles => _kyuStyles;
+    private static ConfigEntry<bool> _kyuStyles;
+
+    public static ConfigEntry<bool> LailaniStyles => _lailaniStyles;
+    private static ConfigEntry<bool> _lailaniStyles;
+
+    public static ConfigEntry<bool> LillianStyles => _lillianStyles;
+    private static ConfigEntry<bool> _lillianStyles;
+
+    public static ConfigEntry<bool> LolaStyles => _lolaStyles;
+    private static ConfigEntry<bool> _lolaStyles;
+
+    public static ConfigEntry<bool> MoxieStyles => _moxieStyles;
+    private static ConfigEntry<bool> _moxieStyles;
+
+    public static ConfigEntry<bool> NoraStyles => _noraStyles;
+    private static ConfigEntry<bool> _noraStyles;
+
+    public static ConfigEntry<bool> PollyStyles => _pollyStyles;
+    private static ConfigEntry<bool> _pollyStyles;
+
+    public static ConfigEntry<bool> SarahStyles => _sarahStyles;
+    private static ConfigEntry<bool> _sarahStyles;
+
+    public static ConfigEntry<bool> ZoeyStyles => _zoeyStyles;
+    private static ConfigEntry<bool> _zoeyStyles;
+
+    public static ConfigEntry<bool> UnlockAll => _unlockAll;
+    private static ConfigEntry<bool> _unlockAll;
+
+    public static readonly string ROOT_DIR = Path.Combine(Paths.PluginPath, MyPluginInfo.PLUGIN_NAME);
+    public static readonly string IMAGES_DIR = Path.Combine(ROOT_DIR, "images");
+
+    private void Awake()
+    {
+        Ids.Init();
+
+        _abiaStyles = Config.Bind(CONFIG_CAT_STYLES, "Abia Styles", true, "If all Abia's styles should be added.");
+        _ashleyStyles = Config.Bind(CONFIG_CAT_STYLES, "Ashley Styles", true, "If all Ashley's styles should be added.");
+        _brookeStyles = Config.Bind(CONFIG_CAT_STYLES, "Brooke Styles", true, "If all Brooke's styles should be added.");
+        _candaceStyles = Config.Bind(CONFIG_CAT_STYLES, "Candace Styles", true, "If all Candace's styles should be added.");
+        _jessieStyles = Config.Bind(CONFIG_CAT_STYLES, "Jessie Styles", true, "If all Jessie's styles should be added.");
+        _jewnStyles = Config.Bind(CONFIG_CAT_STYLES, "Jewn Styles", true, "If all Jewn's styles should be added.");
+        _kyuStyles = Config.Bind(CONFIG_CAT_STYLES, "Kyu Styles", true, "If all Kyu's styles should be added.");
+        _lailaniStyles = Config.Bind(CONFIG_CAT_STYLES, "Lailani Styles", true, "If all Lailani's styles should be added.");
+        _lillianStyles = Config.Bind(CONFIG_CAT_STYLES, "Lillian Styles", true, "If all Lillian's styles should be added.");
+        _lolaStyles = Config.Bind(CONFIG_CAT_STYLES, "Lola Styles", true, "If all Lola's styles should be added.");
+        _moxieStyles = Config.Bind(CONFIG_CAT_STYLES, "Moxie Styles", true, "If all Moxie's styles should be added.");
+        _noraStyles = Config.Bind(CONFIG_CAT_STYLES, "Nora Styles", true, "If all Nora's styles should be added.");
+        _pollyStyles = Config.Bind(CONFIG_CAT_STYLES, "Polly Styles", true, "If all Polly's styles should be added.");
+        _sarahStyles = Config.Bind(CONFIG_CAT_STYLES, "Sarah Styles", true, "If all Sarah's styles should be added.");
+        _zoeyStyles = Config.Bind(CONFIG_CAT_STYLES, "Zoey Styles", true, "If all Zoey's styles should be added.");
+
+        _unlockAll = Config.Bind(Hp2BaseModPlugin.CONFIG_GENERAL, "Unlock All Styles", true, "If all expanded wardrobe outfits and hairstyles should be automatically unlocked.");
+
+        var bundle = AssetBundle.LoadFromFile(Path.Combine(ROOT_DIR, "expandedwardrobe_assetbundle"));
+
+        if (bundle == null)
+        {
+            ModInterface.Log.Error("Failed to load AssetBundle");
+            return;
+        }
+
+        if (_abiaStyles.Value) Styles.AddAbiaStyles(bundle);
+        if (_ashleyStyles.Value) Styles.AddAshleyStyles(bundle);
+        if (_brookeStyles.Value) Styles.AddBrookeStyles(bundle);
+        if (_candaceStyles.Value) Styles.AddCandaceStyles(bundle);
+        if (_jessieStyles.Value) Styles.AddJessieStyles(bundle);
+        if (_jewnStyles.Value) Styles.AddJewnStyles(bundle);
+        if (_kyuStyles.Value) Styles.AddKyuStyles(bundle);
+        if (_lailaniStyles.Value) Styles.AddLailaniStyles(bundle);
+        if (_lillianStyles.Value) Styles.AddLillianStyles(bundle);
+        if (_lolaStyles.Value) Styles.AddLolaStyles(bundle);
+        if (_moxieStyles.Value) Styles.AddMoxieStyles(bundle);
+        if (_noraStyles.Value) Styles.AddNoraStyles(bundle);
+        if (_pollyStyles.Value) Styles.AddPollyStyles(bundle);
+        if (_sarahStyles.Value) Styles.AddSarahStyles(bundle);
+        if (_zoeyStyles.Value) Styles.AddZoeyStyles(bundle);
+
+        if (ModInterface.TryGetInterModValue("OSK.BepInEx.Hp2BaseModTweaks", "AddModCredit",
+            out Action<Sprite, IEnumerable<(Sprite creditButtonPath, Sprite creditButtonOverPath, string redirectLink)>> m_addModConfig))
+        {
+            m_addModConfig(TextureUtility.SpriteFromPng(Path.Combine(IMAGES_DIR, "CreditsLogo.png"), true), [
+                (
+                    TextureUtility.SpriteFromPng(Path.Combine(IMAGES_DIR, "ScallyCapFan_credits.png"), true),
+                    TextureUtility.SpriteFromPng(Path.Combine(IMAGES_DIR, "ScallyCapFan_credits_over.png"), true),
+                    "https://www.reddit.com/user/scallycapfan/"
+                ),
+                (
+                    TextureUtility.SpriteFromPng(Path.Combine(IMAGES_DIR, "onesuchKeeper_credits_art.png"), true),
+                    TextureUtility.SpriteFromPng(Path.Combine(IMAGES_DIR, "onesuchKeeper_credits_art_over.png"), true),
+                    "https://linktr.ee/onesuchkeeper"
+                ),
+            ]);
+        }
+
+        ModInterface.Events.PreLoadPlayerFile += On_PreLoadPlayerFile;
+    }
+
+    // unlock all expanded wardrobe styles
+    private void On_PreLoadPlayerFile(PlayerFile file)
+    {
+        if (_unlockAll.Value)
+        {
+            foreach (var fileGirl in file.girls)
+            {
+                var expansion = fileGirl.girlDefinition.GetExpansion();
+
+                foreach (var outfitId in expansion.OutfitLookup.Ids.Where(x => x.SourceId == Ids.ModId))
+                {
+                    fileGirl.UnlockOutfit(expansion.OutfitLookup[outfitId]);
+                }
+
+                foreach (var hairstyleId in expansion.HairstyleLookup.Ids.Where(x => x.SourceId == Ids.ModId))
+                {
+                    fileGirl.UnlockHairstyle(expansion.HairstyleLookup[hairstyleId]);
+                }
+            }
+        }
+    }
+}
+
+
+File: AbiaStyles.cs
+Content:
+using System.Collections.Generic;
+using Hp2BaseMod;
+using Hp2BaseMod.GameDataInfo;
+using Hp2BaseMod.GameDataInfo.Interface;
+using Hp2BaseMod.Utility;
+using UnityEngine;
+
+namespace ExpandedWardrobe;
+
+internal static partial class Styles
+{
+    private static readonly int _abiaBodyX = 423;
+    private static readonly int _abiaBodyY = 957;
+    public static void AddAbiaStyles(AssetBundle assets)
+    {
+        var modOutfits = new List<IBodySubDataMod<GirlOutfitSubDefinition>>();
+
+        AddOutfit(assets, modOutfits, "jwoww", "Jwoww", "abia", _abiaBodyX + 22, _abiaBodyY - 269, false, false, false, true);
+
+        //Mammaries
+        ModInterface.DataMod.AddDataMod(new GirlDataMod(Girls.Abia, InsertStyle.append)
+        {
+            bodies = new List<IGirlBodyDataMod>()
+            {
+                new GirlBodyDataMod(new RelativeId(-1,0), InsertStyle.append)
+                {
+                    outfits = modOutfits
+                }
+            }
+        });
+    }
+}
+
+File: AshleyStyles.cs
+Content:
+using System.Collections.Generic;
+using Hp2BaseMod;
+using Hp2BaseMod.GameDataInfo;
+using Hp2BaseMod.GameDataInfo.Interface;
+using Hp2BaseMod.Utility;
+using UnityEngine;
+
+namespace ExpandedWardrobe;
+
+internal static partial class Styles
+{
+    private static readonly int _ashleyBodyX = 387;
+    private static readonly int _ashleyBodyY = 964;
+    public static void AddAshleyStyles(AssetBundle assets)
+    {
+        var modOutfits = new List<IBodySubDataMod<GirlOutfitSubDefinition>>();
+        var modHairstyles = new List<IBodySubDataMod<GirlHairstyleSubDefinition>>();
+
+        AddOutfit(assets, modOutfits, "bikerlaces", "Biker Laces", "ashley", _ashleyBodyX, _ashleyBodyY - 96, false, false, false, true);
+        AddPair(assets, modOutfits, modHairstyles, "junko", "Junko", "ashley",
+            _ashleyBodyX - 4, _ashleyBodyY - 99,
+            _ashleyBodyX + 205, _ashleyBodyY + 13,
+            _ashleyBodyX + 45, _ashleyBodyY + 102,
+            false, false, false, true);
+
+        //Chesticles
+
+        ModInterface.DataMod.AddDataMod(new GirlDataMod(Girls.Ashley, InsertStyle.append)
+        {
+            bodies = new List<IGirlBodyDataMod>()
+            {
+                new GirlBodyDataMod(new RelativeId(-1,0), InsertStyle.append)
+                {
+                    outfits = modOutfits,
+                    hairstyles = modHairstyles
+                }
+            }
+        });
+    }
+}
+
+File: BrookeStyles.cs
+Content:
+using System.Collections.Generic;
+using Hp2BaseMod;
+using Hp2BaseMod.GameDataInfo;
+using Hp2BaseMod.GameDataInfo.Interface;
+using Hp2BaseMod.Utility;
+using UnityEngine;
+
+namespace ExpandedWardrobe;
+
+internal static partial class Styles
+{
+    private static readonly int _brookeBodyX = 378;
+    private static readonly int _brookeBodyY = 960;
+    public static void AddBrookeStyles(AssetBundle assets)
+    {
+        var modOutfits = new List<IBodySubDataMod<GirlOutfitSubDefinition>>();
+        var modHairstyles = new List<IBodySubDataMod<GirlHairstyleSubDefinition>>();
+
+        AddOutfit(assets, modOutfits, "plastic", "Plastic", "brooke", _brookeBodyX + 2, _brookeBodyY - 234, false, false, false, true);
+
+        AddPair(assets, modOutfits, modHairstyles, "warcrimes", "M. R. E.", "brooke",
+            _brookeBodyX + 44, _brookeBodyY - 269,
+            _brookeBodyX + 163, _brookeBodyY + 38,
+            _brookeBodyX + 258, _brookeBodyY - 115,
+            false, false, false, true);
+
+        AddOutfit(assets, modOutfits, "topless", "Jubblies", "brooke", _brookeBodyX + 105, _brookeBodyY - 643, true, false, false, false);
+
+        ModInterface.DataMod.AddDataMod(new GirlDataMod(Girls.Brooke, InsertStyle.append)
+        {
+            bodies = new List<IGirlBodyDataMod>()
+            {
+                new GirlBodyDataMod(new RelativeId(-1,0), InsertStyle.append)
+                {
+                    outfits = modOutfits,
+                    hairstyles = modHairstyles
+                }
+            }
+        });
+    }
+}
+
+File: CandaceStyles.cs
+Content:
+using System.Collections.Generic;
+using Hp2BaseMod;
+using Hp2BaseMod.GameDataInfo;
+using Hp2BaseMod.GameDataInfo.Interface;
+using Hp2BaseMod.Utility;
+using UnityEngine;
+
+namespace ExpandedWardrobe;
+
+internal static partial class Styles
+{
+    private static readonly int _candaceBodyX = 348;
+    private static readonly int _candaceBodyY = 972;
+    public static void AddCandaceStyles(AssetBundle assets)
+    {
+        var modOutfits = new List<IBodySubDataMod<GirlOutfitSubDefinition>>();
+        var modHairstyles = new List<IBodySubDataMod<GirlHairstyleSubDefinition>>();
+
+        AddPair(assets, modOutfits, modHairstyles, "hime", "Hime", "candace",
+            _candaceBodyX + 107, _candaceBodyY - 184,
+            _candaceBodyX + 176, _candaceBodyY + 35,
+            _candaceBodyX + 150, _candaceBodyY - 50,
+            false, false, false, true);
+
+        AddPair(assets, modOutfits, modHairstyles, "backwoods", "Backwoods Bottom", "candace",
+            _candaceBodyX + 107, _candaceBodyY - 277,
+            _candaceBodyX + 192, _candaceBodyY + 58,
+            _candaceBodyX + 251, _candaceBodyY - 113,
+            false, false, false, true);
+
+        AddPair(assets, modOutfits, modHairstyles, "clown", "Clussy", "candace",
+            _candaceBodyX - 2, _candaceBodyY - 168,
+            _candaceBodyX + 210, _candaceBodyY + 78,
+            _candaceBodyX + 455, _candaceBodyY - 203,
+            false, false, false, true);
+
+        AddOutfit(assets, modOutfits, "topless", "Boobs", "candace", _candaceBodyX + 207, _candaceBodyY - 248, true, false, false, false);
+
+        ModInterface.DataMod.AddDataMod(new GirlDataMod(Girls.Candace, InsertStyle.append)
+        {
+            bodies = new List<IGirlBodyDataMod>()
+            {
+                new GirlBodyDataMod(new RelativeId(-1,0), InsertStyle.append)
+                {
+                    outfits = modOutfits,
+                    hairstyles = modHairstyles
+                }
+            }
+        });
+    }
+}
+
+File: JessieStyles.cs
+Content:
+using System.Collections.Generic;
+using Hp2BaseMod;
+using Hp2BaseMod.GameDataInfo;
+using Hp2BaseMod.GameDataInfo.Interface;
+using Hp2BaseMod.Utility;
+using UnityEngine;
+
+namespace ExpandedWardrobe;
+
+internal static partial class Styles
+{
+    private static readonly int _jessieBodyX = 457;
+    private static readonly int _jessieBodyY = 983;
+    public static void AddJessieStyles(AssetBundle assets)
+    {
+        var modOutfits = new List<IBodySubDataMod<GirlOutfitSubDefinition>>();
+        var modHairstyles = new List<IBodySubDataMod<GirlHairstyleSubDefinition>>();
+
+        AddOutfit(assets, modOutfits, "businesscasual", "Office Siren", "jessie", _jessieBodyX - 3, _jessieBodyY - 261, true, false, false, false);
+        AddOutfit(assets, modOutfits, "milf", "MILF", "Jessie", _jessieBodyX - 3, _jessieBodyY - 227, true, false, false, false);
+
+        AddPair(assets, modOutfits, modHairstyles, "marlena", "Bombshell", "jessie",
+            _jessieBodyX + 1, _jessieBodyY - 406,
+            _jessieBodyX + 54, _jessieBodyY + 10,
+            _jessieBodyX + 58, _jessieBodyY - 102,
+            false, false, false, true);
+
+        //Knockers
+
+        ModInterface.DataMod.AddDataMod(new GirlDataMod(Girls.Jessie, InsertStyle.append)
+        {
+            bodies = new List<IGirlBodyDataMod>()
+            {
+                new GirlBodyDataMod(new RelativeId(-1,0), InsertStyle.append)
+                {
+                    outfits = modOutfits,
+                    hairstyles = modHairstyles
+                }
+            }
+        });
+    }
+}
+
+File: JewnStyles.cs
+Content:
+using System.Collections.Generic;
+using Hp2BaseMod;
+using Hp2BaseMod.GameDataInfo;
+using Hp2BaseMod.GameDataInfo.Interface;
+using Hp2BaseMod.Utility;
+using UnityEngine;
+
+namespace ExpandedWardrobe;
+
+internal static partial class Styles
+{
+    private static readonly int _jewnBodyX = 228;
+    private static readonly int _jewnBodyY = 1019;
+    public static void AddJewnStyles(AssetBundle assets)
+    {
+        //On Your Chest
+        var modOutfits = new List<IBodySubDataMod<GirlOutfitSubDefinition>>();
+        var modHairstyles = new List<IBodySubDataMod<GirlHairstyleSubDefinition>>();
+
+        AddOutfit(assets, modOutfits, "occult", "Occult", "jewn", _jewnBodyX + 165, _jewnBodyY - 292, true, false, false, false);
+
+        //Shoulder Boulders
+
+        ModInterface.DataMod.AddDataMod(new GirlDataMod(Girls.Jewn, InsertStyle.append)
+        {
+            bodies = new List<IGirlBodyDataMod>()
+            {
+                new GirlBodyDataMod(new RelativeId(-1,0), InsertStyle.append)
+                {
+                    outfits = modOutfits,
+                    hairstyles = modHairstyles
+                }
+            }
+        });
+    }
+}
+
+File: KyuStyles.cs
+Content:
+using System.Collections.Generic;
+using System.Linq;
+using Hp2BaseMod;
+using Hp2BaseMod.GameDataInfo;
+using Hp2BaseMod.GameDataInfo.Interface;
+using Hp2BaseMod.Utility;
+using UnityEngine;
+
+namespace ExpandedWardrobe;
+
+internal static partial class Styles
+{
+    private static readonly int _kyuBodyX = 420;
+    private static readonly int _kyuBodyY = 968;
+    public static void AddKyuStyles(AssetBundle assets)
+    {
+        var modOutfits = new List<IBodySubDataMod<GirlOutfitSubDefinition>>();
+        var modHairstyles = new List<IBodySubDataMod<GirlHairstyleSubDefinition>>();
+
+        AddPair(assets, modOutfits, modHairstyles, "pamu", "Crushed", "kyu",
+            _kyuBodyX - 38, _kyuBodyY - 383,
+            _kyuBodyX + 121, _kyuBodyY + 9,
+            _kyuBodyX - 58, _kyuBodyY + 98,
+            false, false, false, true);
+
+        ((OutfitDataMod)modOutfits.Last()).HideSpecial = true;
+
+        AddPair(assets, modOutfits, modHairstyles, "micro", "Valentine", "kyu",
+            _kyuBodyX + 138, _kyuBodyY - 272,
+            _kyuBodyX + 89, _kyuBodyY + 25,
+            _kyuBodyX + 146, _kyuBodyY - 152,
+            true, false, false, true);
+
+        AddOutfit(assets, modOutfits, "topless", "Big Breasts", "kyu", _kyuBodyX + 96, _kyuBodyY - 624, true, false, false, false);
+
+        ModInterface.DataMod.AddDataMod(new GirlDataMod(Girls.Kyu, InsertStyle.append)
+        {
+            bodies = new List<IGirlBodyDataMod>()
+            {
+                new GirlBodyDataMod(new RelativeId(-1,0), InsertStyle.append)
+                {
+                    outfits = modOutfits,
+                    hairstyles = modHairstyles
+                }
+            }
+        });
+    }
+}
+
+
+File: LailaniStyles.cs
+Content:
+using System.Collections.Generic;
+using Hp2BaseMod;
+using Hp2BaseMod.GameDataInfo;
+using Hp2BaseMod.GameDataInfo.Interface;
+using Hp2BaseMod.Utility;
+using UnityEngine;
+
+namespace ExpandedWardrobe;
+
+internal static partial class Styles
+{
+    private static readonly int _lailaniBodyX = 345;
+    private static readonly int _lailaniBodyY = 931;
+    public static void AddLailaniStyles(AssetBundle assets)
+    {
+        var modOutfits = new List<IBodySubDataMod<GirlOutfitSubDefinition>>();
+        var modHairstyles = new List<IBodySubDataMod<GirlHairstyleSubDefinition>>();
+
+        AddOutfit(assets, modOutfits, "keyWest", "Key West", "lailani", _lailaniBodyX + 76, _lailaniBodyY - 249, false, false, false, true);
+        AddOutfit(assets, modOutfits, "topless", "Chest Puppies", "lailani", _lailaniBodyX + 101, _lailaniBodyY - 284, true, false, false, false);
+
+        ModInterface.DataMod.AddDataMod(new GirlDataMod(Girls.Lailani, InsertStyle.append)
+        {
+            bodies = new List<IGirlBodyDataMod>()
+            {
+                new GirlBodyDataMod(new RelativeId(-1,0), InsertStyle.append)
+                {
+                    outfits = modOutfits,
+                    hairstyles = modHairstyles
+                }
+            }
+        });
+    }
+}
+
+File: LillianStyles.cs
+Content:
+using System.Collections.Generic;
+using System.Linq;
+using Hp2BaseMod;
+using Hp2BaseMod.GameDataInfo;
+using Hp2BaseMod.GameDataInfo.Interface;
+using Hp2BaseMod.Utility;
+using UnityEngine;
+
+namespace ExpandedWardrobe;
+
+internal static partial class Styles
+{
+    private static readonly int _lillianBodyX = 435;
+    private static readonly int _lillianBodyY = 918;
+    public static void AddLillianStyles(AssetBundle assets)
+    {
+        var modOutfits = new List<IBodySubDataMod<GirlOutfitSubDefinition>>();
+        var modHairstyles = new List<IBodySubDataMod<GirlHairstyleSubDefinition>>();
+
+        AddPair(assets, modOutfits, modHairstyles, "sceneQueen", "Scene Queen", "lillian",
+            _lillianBodyX - 17, _lillianBodyY - 208,
+            _lillianBodyX + 111, _lillianBodyY + 31,
+            _lillianBodyX + 71, _lillianBodyY + 73,
+            false, false, false, true);
+
+        ((GirlPartDataMod)((OutfitDataMod)modOutfits.Last()).OutfitPart).MirroredPart = new GirlPartDataMod(new RelativeId(Ids.ModId, _partCount++), InsertStyle.replace)
+        {
+            PartType = GirlPartType.OUTFIT,
+            PartName = "sceneQueenOutfitLillianMirror",
+            X = _lillianBodyX - 17,
+            Y = _lillianBodyY - 208,
+            SpriteInfo = new SpriteInfoSprite(assets.LoadAsset<Sprite>("lillian_outfit_sceneQueen_mirror.png"))
+        };
+
+        AddPair(assets, modOutfits, modHairstyles, "lolita", "Lolita", "lillian",
+            _lillianBodyX - 149, _lillianBodyY - 227,
+            _lillianBodyX - 7, _lillianBodyY + 67,
+            _lillianBodyX - 48, _lillianBodyY - 185,
+            false, false, false, true);
+
+        AddOutfit(assets, modOutfits, "topless", "Double D's", "lillian", _lillianBodyX - 2, _lillianBodyY - 225, true, false, false, false);
+        AddOutfit(assets, modOutfits, "batMicro", "Anarchy", "lillian", _lillianBodyX + 3, _lillianBodyY - 203, true, false, false, true);
+
+        ModInterface.DataMod.AddDataMod(new GirlDataMod(Girls.Lillian, InsertStyle.append)
+        {
+            bodies = new List<IGirlBodyDataMod>()
+            {
+                new GirlBodyDataMod(new RelativeId(-1,0), InsertStyle.append)
+                {
+                    outfits = modOutfits,
+                    hairstyles = modHairstyles
+                }
+            }
+        });
+    }
+}
+
+
+File: LolaStyles.cs
+Content:
+using System.Collections.Generic;
+using Hp2BaseMod;
+using Hp2BaseMod.GameDataInfo;
+using Hp2BaseMod.GameDataInfo.Interface;
+using Hp2BaseMod.Utility;
+using UnityEngine;
+
+namespace ExpandedWardrobe;
+
+internal static partial class Styles
+{
+    private static readonly int _lolaBodyX = 414;
+    private static readonly int _lolaBodyY = 985;
+    public static void AddLolaStyles(AssetBundle assets)
+    {
+        var modOutfits = new List<IBodySubDataMod<GirlOutfitSubDefinition>>();
+        var modHairstyles = new List<IBodySubDataMod<GirlHairstyleSubDefinition>>();
+
+        AddPair(assets, modOutfits, modHairstyles, "nostalgia", "Nostalgia", "lola",
+            _lolaBodyX + 24, _lolaBodyY - 284,
+            _lolaBodyX + 164, _lolaBodyY + 7,
+            _lolaBodyX + 66, _lolaBodyY + 50,
+            false, false, false, true);
+
+        AddOutfit(assets, modOutfits, "topless", "Tits", "lola", _lolaBodyX - 4, _lolaBodyY - 675, true, false, false, false);
+
+        ModInterface.DataMod.AddDataMod(new GirlDataMod(Girls.Lola, InsertStyle.append)
+        {
+            bodies = new List<IGirlBodyDataMod>()
+            {
+                new GirlBodyDataMod(new RelativeId(-1,0), InsertStyle.append)
+                {
+                    outfits = modOutfits,
+                    hairstyles = modHairstyles
+                }
+            }
+        });
+    }
+}
+
+File: MoxieStyles.cs
+Content:
+using System.Collections.Generic;
+using Hp2BaseMod;
+using Hp2BaseMod.GameDataInfo;
+using Hp2BaseMod.GameDataInfo.Interface;
+using Hp2BaseMod.Utility;
+using UnityEngine;
+
+namespace ExpandedWardrobe;
+
+internal static partial class Styles
+{
+    private static readonly int _moxieBodyX = 262;
+    private static readonly int _moxieBodyY = 956;
+    public static void AddMoxieStyles(AssetBundle assets)
+    {
+        var modOutfits = new List<IBodySubDataMod<GirlOutfitSubDefinition>>();
+        var modHairstyles = new List<IBodySubDataMod<GirlHairstyleSubDefinition>>();
+
+        AddOutfit(assets, modOutfits, "roost", "Roost", "moxie", _moxieBodyX + 105, _moxieBodyY - 247, true, false, false, false);
+
+        //Shoulder Boulders
+
+        ModInterface.DataMod.AddDataMod(new GirlDataMod(Girls.Moxie, InsertStyle.append)
+        {
+            bodies = new List<IGirlBodyDataMod>()
+            {
+                new GirlBodyDataMod(new RelativeId(-1,0), InsertStyle.append)
+                {
+                    outfits = modOutfits,
+                    hairstyles = modHairstyles
+                }
+            }
+        });
+    }
+}
+
+File: NoraStyles.cs
+Content:
+using System.Collections.Generic;
+using Hp2BaseMod;
+using Hp2BaseMod.GameDataInfo;
+using Hp2BaseMod.GameDataInfo.Interface;
+using Hp2BaseMod.Utility;
+using UnityEngine;
+
+namespace ExpandedWardrobe;
+
+internal static partial class Styles
+{
+    private static readonly int _noraBodyX = 478;
+    private static readonly int _noraBodyY = 966;
+    public static void AddNoraStyles(AssetBundle assets)
+    {
+        var modOutfits = new List<IBodySubDataMod<GirlOutfitSubDefinition>>();
+        var modHairstyles = new List<IBodySubDataMod<GirlHairstyleSubDefinition>>();
+
+        AddOutfit(assets, modOutfits, "hotline", "Hotline", "nora", _noraBodyX - 11, _noraBodyY - 250, false, false, false, true);
+        AddOutfit(assets, modOutfits, "topless", "Melons", "nora", _noraBodyX - 24, _noraBodyY - 810, true, false, false, false);
+        AddPair(assets, modOutfits, modHairstyles, "cow", "Texas", "nora",
+            _noraBodyX - 8, _noraBodyY - 251,
+            _noraBodyX - 2, _noraBodyY + 42,
+            _noraBodyX, _noraBodyY,
+            false, false, false, true);
+
+        ModInterface.DataMod.AddDataMod(new GirlDataMod(Girls.Nora, InsertStyle.append)
+        {
+            bodies = new List<IGirlBodyDataMod>()
+            {
+                new GirlBodyDataMod(new RelativeId(-1,0), InsertStyle.append)
+                {
+                    outfits = modOutfits,
+                    hairstyles = modHairstyles
+                }
+            }
+        });
+    }
+}
+
+File: PollyStyles.cs
+Content:
+using System.Collections.Generic;
+using Hp2BaseMod;
+using Hp2BaseMod.GameDataInfo;
+using Hp2BaseMod.GameDataInfo.Interface;
+using Hp2BaseMod.Utility;
+using UnityEngine;
+
+namespace ExpandedWardrobe;
+
+internal static partial class Styles
+{
+    private static readonly int _pollyBodyX = 384;
+    private static readonly int _pollyBodyY = 949;
+    public static void AddPollyStyles(AssetBundle assets)
+    {
+        var modOutfits = new List<IBodySubDataMod<GirlOutfitSubDefinition>>();
+        var modHairstyles = new List<IBodySubDataMod<GirlHairstyleSubDefinition>>();
+
+        AddPair(assets, modOutfits, modHairstyles, "finalGirl", "Final Girl", "polly",
+            _pollyBodyX + 53, _pollyBodyY - 245,
+            _pollyBodyX + 156, _pollyBodyY + 35,
+            _pollyBodyX + 187, _pollyBodyY - 142,
+            false, false, false, true);
+
+        //Milk Jugs
+
+        ModInterface.DataMod.AddDataMod(new GirlDataMod(Girls.Polly, InsertStyle.append)
+        {
+            bodies = new List<IGirlBodyDataMod>()
+            {
+                new GirlBodyDataMod(new RelativeId(-1,0), InsertStyle.append)
+                {
+                    outfits = modOutfits,
+                    hairstyles = modHairstyles
+                }
+            }
+        });
+    }
+}
+
+File: SarahStyles.cs
+Content:
+using System.Collections.Generic;
+using Hp2BaseMod;
+using Hp2BaseMod.GameDataInfo;
+using Hp2BaseMod.GameDataInfo.Interface;
+using Hp2BaseMod.Utility;
+using UnityEngine;
+
+namespace ExpandedWardrobe;
+
+internal static partial class Styles
+{
+    private static readonly int _sarahBodyX = 414;
+    private static readonly int _sarahBodyY = 917;
+    public static void AddSarahStyles(AssetBundle assets)
+    {
+        var modOutfits = new List<IBodySubDataMod<GirlOutfitSubDefinition>>();
+        var modHairstyles = new List<IBodySubDataMod<GirlHairstyleSubDefinition>>();
+
+        AddOutfit(assets, modOutfits, "tsuyome", "Tsuyome", "sarah", _sarahBodyX, _sarahBodyY - 272, false, false, false, true);
+
+        AddPair(assets, modOutfits, modHairstyles, "yamanba", "Yamanba", "sarah",
+            _sarahBodyX + 18, _sarahBodyY - 82,
+            _sarahBodyX + 119, _sarahBodyY + 62,
+            _sarahBodyX - 1, _sarahBodyY + 83,
+            false, false, false, true);
+
+        AddPair(assets, modOutfits, modHairstyles, "momo", "Neko", "sarah",
+            _sarahBodyX - 11, _sarahBodyY - 109,
+            _sarahBodyX + 88, _sarahBodyY + 90,
+            _sarahBodyX + 153, _sarahBodyY - 61,
+            false, false, false, true);
+
+        //Hooters
+
+        ModInterface.DataMod.AddDataMod(new GirlDataMod(Girls.Sarah, InsertStyle.append)
+        {
+            bodies = new List<IGirlBodyDataMod>()
+            {
+                new GirlBodyDataMod(new RelativeId(-1,0), InsertStyle.append)
+                {
+                    outfits = modOutfits,
+                    hairstyles = modHairstyles
+                }
+            }
+        });
+    }
+}
+
+
+File: Styles.cs
+Content:
+using System.Collections.Generic;
+using Hp2BaseMod;
+using Hp2BaseMod.GameDataInfo;
+using Hp2BaseMod.GameDataInfo.Interface;
+using Hp2BaseMod.Utility;
+using UnityEngine;
+
+namespace ExpandedWardrobe;
+
+internal partial class Styles
+{
+    private static int _partCount = 0;
+
+    public static void AddHair(AssetBundle assets, List<IBodySubDataMod<GirlHairstyleSubDefinition>> hairstyles,
+        string name, string displayName, string girlName, int frontX, int frontY, int backX, int backY, bool isNSFW, bool isCodeUnlocked, bool isPurchased)
+    {
+        hairstyles.Add(new HairstyleDataMod(new RelativeId(Ids.ModId, hairstyles.Count), InsertStyle.replace)
+        {
+            Name = displayName,
+            FrontHairPart = new GirlPartDataMod(new RelativeId(Ids.ModId, _partCount++), InsertStyle.replace)
+            {
+                PartType = GirlPartType.FRONTHAIR,
+                PartName = $"{name}Fronthair{girlName}",
+                X = frontX,
+                Y = frontY,
+                SpriteInfo = new SpriteInfoSprite(assets.LoadAsset<Sprite>($"{girlName}_fronthair_{name}.png"))
+            },
+            BackHairPart = new GirlPartDataMod(new RelativeId(Ids.ModId, _partCount++), InsertStyle.replace)
+            {
+                PartType = GirlPartType.BACKHAIR,
+                PartName = $"{name}Backhair{girlName}",
+                X = backX,
+                Y = backY,
+                SpriteInfo = new SpriteInfoSprite(assets.LoadAsset<Sprite>($"{girlName}_backhair_{name}.png"))
+            },
+            IsNSFW = isNSFW,
+            IsCodeUnlocked = isCodeUnlocked,
+            IsPurchased = isPurchased,
+            TightlyPaired = false
+        });
+    }
+
+    public static void AddOutfit(AssetBundle assets, List<IBodySubDataMod<GirlOutfitSubDefinition>> outfits,
+        string name, string displayName, string girlName, int x, int y, bool isNSFW, bool isCodeUnlocked, bool isPurchased, bool hideNipples)
+    {
+        outfits.Add(new OutfitDataMod(new RelativeId(Ids.ModId, outfits.Count), InsertStyle.replace)
+        {
+            Name = displayName,
+            OutfitPart = new GirlPartDataMod(new RelativeId(Ids.ModId, _partCount++), InsertStyle.replace)
+            {
+                PartType = GirlPartType.OUTFIT,
+                PartName = $"{name}Outfit{girlName}",
+                X = x,
+                Y = y,
+                SpriteInfo = new SpriteInfoSprite(assets.LoadAsset<Sprite>($"{girlName}_outfit_{name}.png"))
+            },
+            IsNSFW = isNSFW,
+            HideNipples = hideNipples,
+            IsCodeUnlocked = isCodeUnlocked,
+            IsPurchased = isPurchased,
+            TightlyPaired = false,
+        });
+    }
+
+    public static void AddPair(AssetBundle assets, List<IBodySubDataMod<GirlOutfitSubDefinition>> outfits,
+        List<IBodySubDataMod<GirlHairstyleSubDefinition>> hairstyles,
+        string name, string displayName, string girlName,
+        int outfitX, int outfitY, int frontX, int frontY, int backX, int backY,
+        bool isNSFW, bool isCodeUnlocked, bool isPurchased, bool hideNipples)
+    {
+        var hairId = new RelativeId(Ids.ModId, hairstyles.Count);
+        var outfitId = new RelativeId(Ids.ModId, outfits.Count);
+
+        hairstyles.Add(new HairstyleDataMod(hairId, InsertStyle.replace)
+        {
+            Name = displayName,
+            FrontHairPart = new GirlPartDataMod(new RelativeId(Ids.ModId, _partCount++), InsertStyle.replace)
+            {
+                PartType = GirlPartType.FRONTHAIR,
+                PartName = $"{name}Fronthair{girlName}",
+                X = frontX,
+                Y = frontY,
+                SpriteInfo = new SpriteInfoSprite(assets.LoadAsset<Sprite>($"{girlName}_fronthair_{name}.png"))
+            },
+            BackHairPart = new GirlPartDataMod(new RelativeId(Ids.ModId, _partCount++), InsertStyle.replace)
+            {
+                PartType = GirlPartType.BACKHAIR,
+                PartName = $"{name}Backhair{girlName}",
+                X = backX,
+                Y = backY,
+                SpriteInfo = new SpriteInfoSprite(assets.LoadAsset<Sprite>($"{girlName}_backhair_{name}.png"))
+            },
+            IsNSFW = isNSFW,
+            IsCodeUnlocked = isCodeUnlocked,
+            IsPurchased = isPurchased,
+            TightlyPaired = true,
+            PairOutfitId = outfitId
+        });
+
+        outfits.Add(new OutfitDataMod(outfitId, InsertStyle.replace)
+        {
+            Name = displayName,
+            OutfitPart = new GirlPartDataMod(new RelativeId(Ids.ModId, _partCount++), InsertStyle.replace)
+            {
+                PartType = GirlPartType.OUTFIT,
+                PartName = $"{name}Outfit{girlName}",
+                X = outfitX,
+                Y = outfitY,
+                SpriteInfo = new SpriteInfoSprite(assets.LoadAsset<Sprite>($"{girlName}_outfit_{name}.png"))
+            },
+            IsNSFW = isNSFW,
+            HideNipples = hideNipples,
+            IsCodeUnlocked = isCodeUnlocked,
+            IsPurchased = isPurchased,
+            TightlyPaired = true,
+            PairHairstyleId = hairId
+        });
+    }
+}
+
+
+File: ZoeyStyles.cs
+Content:
+using System.Collections.Generic;
+using Hp2BaseMod;
+using Hp2BaseMod.GameDataInfo;
+using Hp2BaseMod.GameDataInfo.Interface;
+using Hp2BaseMod.Utility;
+using UnityEngine;
+
+namespace ExpandedWardrobe;
+
+internal static partial class Styles
+{
+    private static readonly int _zoeyBodyX = 522;
+    private static readonly int _zoeyBodyY = 900;
+    public static void AddZoeyStyles(AssetBundle assets)
+    {
+        var modOutfits = new List<IBodySubDataMod<GirlOutfitSubDefinition>>();
+        var modHairstyles = new List<IBodySubDataMod<GirlHairstyleSubDefinition>>();
+
+        AddPair(assets, modOutfits, modHairstyles, "extraterrestrial", "Extraterrestrial", "zoey",
+            _zoeyBodyX - 3, _zoeyBodyY - 215,
+            _zoeyBodyX + 26, _zoeyBodyY + 21,
+            _zoeyBodyX + 65, _zoeyBodyY + 33,
+            false, false, false, true);
+
+        AddPair(assets, modOutfits, modHairstyles, "freakshit", "Freak Shit", "zoey",
+            _zoeyBodyX - 11, _zoeyBodyY - 247,
+            _zoeyBodyX + 23, _zoeyBodyY + 19,
+            _zoeyBodyX + 5, _zoeyBodyY + 46,
+            false, false, false, true);
+
+        AddPair(assets, modOutfits, modHairstyles, "tropical", "Tropical", "zoey",
+            _zoeyBodyX - 8, _zoeyBodyY - 209,
+            _zoeyBodyX + 13, _zoeyBodyY + 71,
+            _zoeyBodyX + 121, _zoeyBodyY + 71,
+            false, false, false, true);
+
+        //Fun Bags
+
+        ModInterface.DataMod.AddDataMod(new GirlDataMod(Girls.Zoey, InsertStyle.append)
+        {
+            bodies = new List<IGirlBodyDataMod>()
+            {
+                new GirlBodyDataMod(new RelativeId(-1,0), InsertStyle.append)
+                {
+                    outfits = modOutfits,
+                    hairstyles = modHairstyles
+                }
+            }
+        });
+    }
+}
+
+

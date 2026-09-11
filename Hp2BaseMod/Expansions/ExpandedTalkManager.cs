@@ -10,21 +10,21 @@ namespace Hp2BaseMod;
 public partial class ExpandedTalkManager
 {
     [HarmonyPatch(typeof(TalkManager))]
-    private static class TalkManagerPatch
+    private static class Patch
     {
         [HarmonyPatch("TalkStep")]
         [HarmonyPrefix]
-        public static bool TalkStep(TalkManager __instance)
+        private static bool TalkStep(TalkManager __instance)
             => ExpandedTalkManager.Get(__instance).TalkStep_Prefix();
 
         [HarmonyPatch(nameof(TalkManager.TalkWith))]
         [HarmonyPrefix]
-        public static bool TalkWith(TalkManager __instance, int dollIndex)
+        private static bool TalkWith(TalkManager __instance, int dollIndex)
             => ExpandedTalkManager.Get(__instance).TalkWith_Prefix(dollIndex);
 
         [HarmonyPatch("ReceiveFruitFromGirl")]
         [HarmonyPrefix]
-        public static bool ReceiveFruitFromGirl(TalkManager __instance, UiDoll fruitDoll, bool silent)
+        private static bool ReceiveFruitFromGirl(TalkManager __instance, UiDoll fruitDoll, bool silent)
             => ExpandedTalkManager.Get(__instance).ReceiveFruitFromGirl_Prefix(fruitDoll, silent);
     }
 
@@ -99,12 +99,17 @@ public partial class ExpandedTalkManager
             statusGirl.playerFileGirl.relationshipPoints += 2;
         }
 
-        Game.Session.Puzzle.puzzleStatus.AddResourceValue(PuzzleResourceType.STAMINA, -2, altGirl);
+        var puzzleStatusExp = Game.Session.Puzzle.puzzleStatus.GetExpansion();
+
+        puzzleStatusExp.AddResourceValue(PuzzleResourceId.Stamina, -2, altGirl);
         if (Game.Session.Puzzle.puzzleStatus.movesRemaining < Game.Session.Puzzle.puzzleStatus.maxMovesRemaining)
         {
-            Game.Session.Puzzle.puzzleStatus.AddResourceValue(PuzzleResourceType.MOVES, 1, altGirl);
-            TokenDefinition byResourceType = Game.Data.Tokens.GetByResourceType(PuzzleResourceType.MOVES, PuzzleAffectionType.TALENT);
-            UnityEngine.Object.Instantiate(_core.energyTrailPrefab).Init(EnergyTrailFormat.START_AND_END, byResourceType.energyDefinition, null, targetDoll, "+1 " + byResourceType.resourceName);
+            puzzleStatusExp.AddResourceValue(PuzzleResourceId.Moves, 1, altGirl);
+            var movesResource = Game.Data.Tokens.GetByResourceType(PuzzleResourceType.MOVES);
+
+            var splashText = movesResource.GetExpansion().PuzzleResource.GetLabelText(1).splashText;
+
+            UnityEngine.Object.Instantiate(_core.energyTrailPrefab).Init(EnergyTrailFormat.START_AND_END, movesResource.energyDefinition, null, targetDoll, splashText);
             Game.Manager.Audio.Play(AudioCategory.SOUND, _core.sfxTalkReward, targetDoll.pauseDefinition);
         }
 
@@ -185,7 +190,6 @@ public partial class ExpandedTalkManager
     private void FavoriteQuestionResponse()
     {
         var girl = _fileGirl.girlDefinition;
-
         var oppositeDoll = _oppositeDoll;
         var oppositeDef = oppositeDoll.girlDefinition.GetExpansion().FavQuestionIdToAnswerId;
 
@@ -203,6 +207,7 @@ public partial class ExpandedTalkManager
         if (args.OtherGirlResponds)
         {
             _oppositeFileGirl.LearnFavAnswer(selectedQuestion);
+            _fileGirlPair.LearnFavAnswer(selectedQuestion);
             m_ReceiveFruitFromGirl.Invoke(_core, [oppositeDoll, false]);
             oppositeDoll.DialogLineCompleteEvent += OnDialogLineComplete_Hook;
             oppositeDoll.ReadDialogTrigger(_core.dtFavQuestionAgreement, DialogLineFormat.ACTIVE, selectedQuestion.GetExpansion().AnswerLookup[oppositeAnswer]);
@@ -339,7 +344,7 @@ public partial class ExpandedTalkManager
             {
                 questionPool.RemoveRange(0, questionPool.Count - (ModInterface.State.FavQuestionOptionCount - 1));
                 var randomQuestion = ModInterface.GameData.GetQuestion(validCommons.GetRandom());
-                questionPool.Add(ModInterface.GameData.GetQuestion(validCommons.GetRandom()));
+                questionPool.Add(randomQuestion);
                 fileGirlPair.AddRecentFavQuestion(randomQuestion.id);
             }
             else

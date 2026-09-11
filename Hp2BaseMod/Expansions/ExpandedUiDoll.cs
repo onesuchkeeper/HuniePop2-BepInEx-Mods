@@ -7,64 +7,72 @@ using UnityEngine;
 
 namespace Hp2BaseMod;
 
-[HarmonyPatch(typeof(UiDoll))]
-internal class UiDoll_ChangeStyle
-{
-    [HarmonyPatch(nameof(UiDoll.LoadGirl))]
-    [HarmonyPostfix]
-    private static void LoadGirl(UiDoll __instance, GirlDefinition girlDef, int expressionIndex, int hairstyleIndex, int outfitIndex, GirlDefinition soulGirlDef)
-        => ExpandedUiDoll.Get(__instance).LoadGirl(girlDef);
-
-    [HarmonyPatch(nameof(UiDoll.UnloadGirl))]
-    [HarmonyPostfix]
-    private static void UnloadGirl(UiDoll __instance)
-        => ExpandedUiDoll.Get(__instance).UnloadGirl();
-
-    [HarmonyPatch(nameof(UiDoll.ChangeOutfit))]
-    [HarmonyPrefix()]
-    public static void ChangeOutfit(UiDoll __instance, ref int outfitIndex)
-        => ExpandedUiDoll.Get(__instance).ChangeOutfit(ref outfitIndex);
-
-    [HarmonyPatch(nameof(UiDoll.ChangeOutfit))]
-    [HarmonyPostfix()]
-    public static void PostChangeOutfit(UiDoll __instance, int outfitIndex)
-        => ExpandedUiDoll.Get(__instance).PostChangeOutfit();
-
-    [HarmonyPatch(nameof(UiDoll.ChangeHairstyle))]
-    [HarmonyPrefix()]
-    public static bool ChangeHairstyle(UiDoll __instance, ref int hairstyleIndex)
-        => ExpandedUiDoll.Get(__instance).ChangeHairstyle(hairstyleIndex);
-
-    [HarmonyPatch("OnDestroy")]
-    [HarmonyPrefix()]
-    public static void OnDestroy(UiDoll __instance)
-        => ExpandedUiDoll.Destroy(__instance);
-
-    [HarmonyPatch(nameof(UiDoll.ShowEnergySurge))]
-    [HarmonyPrefix]
-    public static bool ShowEnergySurge(UiDoll __instance, EnergyDefinition energyDef, float duration, bool knockback, bool negative = false, bool silent = false)
-    {
-        // Safety - Skip showing surge is there is no definition
-        return __instance.girlDefinition != null;
-    }
-
-    [HarmonyPatch(nameof(UiDoll.ReadDialogTrigger))]
-    [HarmonyPrefix()]
-    public static void ReadDialogTrigger(UiDoll __instance, DialogTriggerDefinition dialogTriggerDef, DialogLineFormat format, ref int lineIndex)
-        => ExpandedUiDoll.Get(__instance).ReadDialogTrigger(dialogTriggerDef, format, ref lineIndex);
-}
-
 /// <summary>
 /// Handles <see cref="ExpandedStyleDefinition"/> fields.
 /// </summary>
 [Expansion(typeof(UiDoll))]
 public partial class ExpandedUiDoll
 {
+    [HarmonyPatch(typeof(UiDoll))]
+    private class Patch
+    {
+        [HarmonyPatch(nameof(UiDoll.LoadGirl))]
+        [HarmonyPostfix]
+        private static void LoadGirl(UiDoll __instance, GirlDefinition girlDef, int expressionIndex, int hairstyleIndex, int outfitIndex, GirlDefinition soulGirlDef)
+            => ExpandedUiDoll.Get(__instance).LoadGirl(girlDef);
+
+        [HarmonyPatch(nameof(UiDoll.UnloadGirl))]
+        [HarmonyPostfix]
+        private static void UnloadGirl(UiDoll __instance)
+            => ExpandedUiDoll.Get(__instance).UnloadGirl();
+
+        [HarmonyPatch(nameof(UiDoll.ChangeOutfit))]
+        [HarmonyPrefix()]
+        private static void ChangeOutfit(UiDoll __instance, ref int outfitIndex)
+            => ExpandedUiDoll.Get(__instance).ChangeOutfit(ref outfitIndex);
+
+        [HarmonyPatch(nameof(UiDoll.ChangeOutfit))]
+        [HarmonyPostfix()]
+        private static void PostChangeOutfit(UiDoll __instance, int outfitIndex)
+            => ExpandedUiDoll.Get(__instance).PostChangeOutfit();
+
+        [HarmonyPatch(nameof(UiDoll.ChangeHairstyle))]
+        [HarmonyPrefix()]
+        private static bool ChangeHairstyle(UiDoll __instance, ref int hairstyleIndex)
+            => ExpandedUiDoll.Get(__instance).ChangeHairstyle(hairstyleIndex);
+
+        [HarmonyPatch("OnDestroy")]
+        [HarmonyPrefix()]
+        private static void OnDestroy(UiDoll __instance)
+            => ExpandedUiDoll.Destroy(__instance);
+
+        [HarmonyPatch(nameof(UiDoll.ShowEnergySurge))]
+        [HarmonyPrefix]
+        private static bool ShowEnergySurge(UiDoll __instance, EnergyDefinition energyDef, float duration, bool knockback, bool negative = false, bool silent = false)
+        {
+            // Safety - Skip showing surge is there is no definition
+            return __instance.girlDefinition != null;
+        }
+
+        [HarmonyPatch(nameof(UiDoll.ReadDialogTrigger))]
+        [HarmonyPrefix()]
+        private static void ReadDialogTrigger(UiDoll __instance, DialogTriggerDefinition dialogTriggerDef, DialogLineFormat format, ref int lineIndex)
+            => ExpandedUiDoll.Get(__instance).ReadDialogTrigger(dialogTriggerDef, format, ref lineIndex);
+
+        [HarmonyPatch(nameof(UiDoll.SetExhaustion))]
+        [HarmonyPrefix]
+        private static void SetExhaustion_Prefix(UiDoll __instance, bool exhausted, bool upset, ref bool silent)
+        {
+            // Dialog lines are now handled by the IPuzzleStatusGirlState instances. They will play lines when needed
+            silent = true;
+        }
+    }
+
     private UiDollSpecialEffect _specialEffect_hold;
 
-    internal void LoadGirl(GirlDefinition girlDef)
+    private void LoadGirl(GirlDefinition girlDef)
     {
-        //scale to match body
+        // Scale to match body
         var body = girlDef.GetExpansion().GetCurrentBody();
 
         if (body != null)
@@ -74,7 +82,7 @@ public partial class ExpandedUiDoll
             _core.outlineUiEffectGroup.transform.localScale = vecScale;
         }
 
-        //Non special girls wont load special effects by default
+        // Non-special girls won't load special effects by default
         if (_core?.soulGirlDefinition == null
             || _core.soulGirlDefinition.specialEffectPrefab == null)
         {
@@ -83,13 +91,19 @@ public partial class ExpandedUiDoll
 
         ModInterface.Log.Message($"Loading special effect {_core.soulGirlDefinition.specialEffectPrefab.name} for {_core.soulGirlDefinition.girlName}");
 
-        if (_core.soulGirlDefinition.specialEffectPrefab.GetType() == typeof(UiDollSpecialEffectFairyWings))
+        var specialEffectPrefab = _core.soulGirlDefinition.specialEffectPrefab;
+
+        if (specialEffectPrefab.GetType() == typeof(UiDollSpecialEffectFairyWings))
         {
             _core.soulGirlDefinition.specialEffectOffset = body.BackPos;
         }
-        else if (_core.soulGirlDefinition.specialEffectPrefab.GetType() == typeof(UiDollSpecialEffectGloWings))
+        else if (specialEffectPrefab.GetType() == typeof(UiDollSpecialEffectGloWings))
         {
             _core.soulGirlDefinition.specialEffectOffset = body.HeadPos;
+        }
+        else if (specialEffectPrefab is IUiDollSpecialEffect uiDollSpecialEffect)
+        {
+            _core.soulGirlDefinition.specialEffectOffset = uiDollSpecialEffect.GetSpecialEffectOffset(girlDef);
         }
 
         if (_core.soulGirlDefinition.specialCharacter) return;
@@ -108,7 +122,7 @@ public partial class ExpandedUiDoll
         }
     }
 
-    internal void UnloadGirl()
+    private void UnloadGirl()
     {
         if (_specialEffect_hold != null)
         {
@@ -117,7 +131,7 @@ public partial class ExpandedUiDoll
         }
     }
 
-    internal void ChangeOutfit(ref int outfitIndex)
+    private void ChangeOutfit(ref int outfitIndex)
     {
         if (_core.girlDefinition == null) return;
 
@@ -167,14 +181,14 @@ public partial class ExpandedUiDoll
     /// <summary>
     /// After changing outfit, move it to the bottom of its layer
     /// </summary>
-    internal void PostChangeOutfit()
+    private void PostChangeOutfit()
     {
         var girlExp = _core.girlDefinition.GetExpansion();
         RefreshSpecialParts(girlExp.HairstyleLookup[_core.currentHairstyleIndex],
             girlExp.OutfitLookup[_core.currentOutfitIndex]);
     }
 
-    internal bool ChangeHairstyle(int hairstyleIndex)
+    private bool ChangeHairstyle(int hairstyleIndex)
     {
         if (_core.girlDefinition == null) return true;
 
@@ -286,13 +300,18 @@ public partial class ExpandedUiDoll
         }
     }
 
-    internal void ReadDialogTrigger(DialogTriggerDefinition dialogTriggerDef, DialogLineFormat format, ref int lineIndex)
+    private void ReadDialogTrigger(DialogTriggerDefinition dialogTriggerDef, DialogLineFormat format, ref int lineIndex)
     {
         var girlId = _core.girlDefinition.ModId();
 
         if (!dialogTriggerDef.GetExpansion().TryGetLineSet(dialogTriggerDef, girlId, out var lineSet))
         {
-            throw new Exception("Failed to find dt line set");
+            throw new Exception($"Failed to find dt line set {dialogTriggerDef.ModId()}");
+        }
+
+        if (!lineSet.dialogLines.Any())
+        {
+            throw new Exception($"dt line set {dialogTriggerDef.ModId()} has no lines");
         }
 
         // the normal index used is the index of the current location in Game.Session.Location.dateLocationDefs
@@ -307,7 +326,7 @@ public partial class ExpandedUiDoll
             ModInterface.Log.Message($"Using index {lineIndex} for date greeting at location {locId} - {Game.Session.Location.currentLocation.locationName}");
         }
 
-        // when no valid index is specified, pick a random one that is
+        // when no valid index is specified, pick a random one
         if (lineIndex <= -1
             || lineSet.dialogLines.Count <= lineIndex
             || lineSet.dialogLines[lineIndex] == null)

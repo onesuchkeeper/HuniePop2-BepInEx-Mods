@@ -10,8 +10,8 @@ public class PuzzleResourceAffection : BasePuzzleResource
 
     public override RelativeId Id => _resourceId;
     private readonly RelativeId _resourceId;
-
     private readonly RelativeId _affectionId;
+
     public PuzzleResourceAffection(string name, string sign, RelativeId resourceId, RelativeId affectionId)
         : base(name, sign)
     {
@@ -19,14 +19,48 @@ public class PuzzleResourceAffection : BasePuzzleResource
         _affectionId = affectionId;
     }
 
-    public override bool AddResourceValue(int value, 
-        ExpandedPuzzleStatus puzzleStatus, 
-        PuzzleStatusGirl puzzleStatusGirl)
+    public override bool AddResourceValue(int value, ExpandedPuzzleStatus puzzleStatus, PuzzleStatusGirl puzzleStatusGirl)
     {
         if (value == 0) return false;
+        puzzleStatus._affection = Mathf.Clamp(puzzleStatus._affection + value, 0, puzzleStatus._affectionGoal);
+        return true;
+    }
 
-		puzzleStatus._affection = Mathf.Clamp(puzzleStatus._affection + value, 0, puzzleStatus._affectionGoal);
-		return true;
+    public override int GetResourceValue(ExpandedPuzzleStatus puzzleStatus, PuzzleStatusGirl puzzleStatusGirl, bool maxVal = false)
+    {
+        return maxVal ? puzzleStatus.Core.affectionGoal : puzzleStatus.Core.affection;
+    }
+
+    public override bool IsMostFav(PuzzleStatusGirl statusGirl)
+    {
+        if (statusGirl?.girlDefinition == null || statusGirl.girlDefinition.bossCharacter) return false;
+        var girlExp = statusGirl.girlDefinition.GetExpansion();
+        
+        bool flipped = Game.Session.Puzzle.isPuzzleActive 
+            && Game.Session.Puzzle.IsPuzzleOffset(PuzzleOffsetId.FlipMostLeastFavs);
+        var targetAffection = flipped ? girlExp.GetLeastFavAffectionType() : girlExp.GetMostFavAffectionType();
+
+        return _affectionId == targetAffection?.Id;
+    }
+
+    public override bool IsLeastFav(PuzzleStatusGirl statusGirl)
+    {
+        if (statusGirl?.girlDefinition == null || statusGirl.girlDefinition.bossCharacter) return false;
+        var girlExp = statusGirl.girlDefinition.GetExpansion();
+
+        bool flipped = Game.Session.Puzzle.isPuzzleActive 
+            && Game.Session.Puzzle.IsPuzzleOffset(PuzzleOffsetId.FlipMostLeastFavs);
+        var targetAffection = flipped ? girlExp.GetMostFavAffectionType() : girlExp.GetLeastFavAffectionType();
+
+        return _affectionId == targetAffection?.Id;
+    }
+
+    public override EnergyDefinition GetEnergyDefinition(PuzzleStatusGirl statusGirl)
+    {
+        var tokenDef = Game.Data.Tokens.GetAll()
+            .FirstOrDefault(t => t.GetExpansion().PuzzleResource == this);
+            
+        return tokenDef?.energyDefinition;
     }
 
     public override int CalculateMatchReward(
@@ -41,7 +75,7 @@ public class PuzzleResourceAffection : BasePuzzleResource
     {
         if (statusGirl.girlDefinition.bossCharacter)
         {
-            matchModifier.skipLeastFavFactor = true;
+            matchModifier.skipMostFavFactor = true;
             matchModifier.skipLeastFavFactor = true;
         }
 
@@ -100,17 +134,11 @@ public class PuzzleResourceAffection : BasePuzzleResource
             var powerTokenChance = Game.Session.Puzzle.GetPuzzleOffset(PuzzleOffsetId.PowerTokenChance);
             var powerTokenOdds = Mathf.Clamp(sortedSlots.Count switch
             {
-                0 or
-                1 or
-                2 or
-                3 => 0f + 0.1f * Game.Persistence.playerFile.styleFactor + powerTokenChance * 0.025f,
-
+                0 or 1 or 2 or 3 => 0f + 0.1f * Game.Persistence.playerFile.styleFactor + powerTokenChance * 0.025f,
                 4 => 0.2f + 0.6f * Game.Persistence.playerFile.styleFactor + powerTokenChance * 0.15f,
                 5 => 0.8f + 0.2f * Game.Persistence.playerFile.styleFactor + powerTokenChance * 0.05f,
                 _ => 1f,
             }, 0f, 1f);
-
-            //powerTokenOdds = NotifyPreReplaceDefinition(match, matchModifier, sortedSlots, powerTokenOdds, out var canceled);          
 
             if (Random.Range(0f, 1f) <= powerTokenOdds)
             {
@@ -130,20 +158,12 @@ public class PuzzleResourceAffection : BasePuzzleResource
         PuzzleStatusGirl statusGirl, 
         List<UiPuzzleSlot> orderedMatchSlots)
     {
-        var isMostFav = false;
-        var isLeastFav = false;
+        var isMostFav = IsMostFav(statusGirl);
+        var isLeastFav = IsLeastFav(statusGirl);
 
-        var girlExp = statusGirl.girlDefinition.GetExpansion();
+        if (matchModifier.skipMostFavFactor) isMostFav = false;
+        if (matchModifier.skipLeastFavFactor) isLeastFav = false;
 
-        if (!statusGirl.girlDefinition.bossCharacter)
-        {
-            isMostFav = !matchModifier.skipMostFavFactor
-                && _affectionId == girlExp.GetMostFavAffectionType().Id;
-
-            isLeastFav = !matchModifier.skipLeastFavFactor
-                && _affectionId == girlExp.GetLeastFavAffectionType().Id;
-        }
-        
         var args = new AilmentTriggerArgs.PreAffectionMatchReward(uiPuzzleGrid, 
             statusGirl, 
             match, 

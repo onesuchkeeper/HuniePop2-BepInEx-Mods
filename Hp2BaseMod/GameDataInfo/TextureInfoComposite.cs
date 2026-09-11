@@ -61,28 +61,35 @@ public class TextureInfoComposite : ITextureInfo
                     if (outputX < 0 || outputX >= _size.x) continue;
 
                     int outputIndex = rowOffset + outputX;
-                    Color dstColor = outputPixels[outputIndex];
                     Color srcColor = sourcePixels[yShift + x];
 
-                    if (dstColor.a == 0f)
+                    // Skip completely transparent source pixels
+                    if (srcColor.a <= 0f) continue;
+
+                    Color dstColor = outputPixels[outputIndex];
+
+                    if (dstColor.a <= 0f || srcColor.a >= 1f)
                     {
                         outputPixels[outputIndex] = srcColor;
                     }
                     else
                     {
-                        // Alpha blend srcColor over dstColor:
                         float srcAlpha = srcColor.a;
-                        if (srcAlpha == 1f)
+                        float dstAlpha = dstColor.a;
+                        float dstWeight = dstAlpha * (1f - srcAlpha);
+                        float outAlpha = srcAlpha + dstWeight;
+
+                        if (outAlpha <= 0f)
                         {
-                            outputPixels[outputIndex] = srcColor;
+                            outputPixels[outputIndex] = clear;
                         }
                         else
                         {
                             outputPixels[outputIndex] = new Color(
-                                srcColor.r * srcAlpha + dstColor.r * (1f - srcAlpha),
-                                srcColor.g * srcAlpha + dstColor.g * (1f - srcAlpha),
-                                srcColor.b * srcAlpha + dstColor.b * (1f - srcAlpha),
-                                srcAlpha + dstColor.a * (1f - srcAlpha)
+                                (srcColor.r * srcAlpha + dstColor.r * dstWeight) / outAlpha,
+                                (srcColor.g * srcAlpha + dstColor.g * dstWeight) / outAlpha,
+                                (srcColor.b * srcAlpha + dstColor.b * dstWeight) / outAlpha,
+                                outAlpha
                             );
                         }
                     }

@@ -113,8 +113,6 @@ namespace Hp2BaseMod.GameDataInfo
             ValidatedSet.SetValue(ref def.BreathEmitterPos, BreathEmitterPos, InsertStyle, gameData, assetProvider);
             ValidatedSet.SetValue(ref def.UpsetEmitterPos, UpsetEmitterPos, InsertStyle, gameData, assetProvider);
 
-            ValidatedSet.SetValue(ref def.SpecialEffectOffset, HeadPosition, InsertStyle, gameData, assetProvider);
-
             ValidatedSet.SetValue(ref def.HeadPos, HeadPosition, InsertStyle, gameData, assetProvider);
             ValidatedSet.SetValue(ref def.BackPos, BackPosition, InsertStyle, gameData, assetProvider);
 

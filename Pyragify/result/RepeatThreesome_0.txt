@@ -1,0 +1,327 @@
+File: Constants.cs
+Content:
+﻿// RepeatThreesome 2021, By OneSuchKeeper
+
+using Hp2BaseMod;
+namespace RepeatThreesome;
+
+public static class Constants
+{
+    public static RelativeId LocalCodeId;
+    public static RelativeId NudeCodeId;
+    public static RelativeId NudeOutfitId;
+    public static RelativeId AltNudeOutfitId;
+
+    internal static void Init(int modId)
+    {
+        LocalCodeId = new RelativeId(modId, 0);
+        NudeCodeId = new RelativeId(modId, 1);
+
+        NudeOutfitId = new RelativeId(modId, 0);
+        AltNudeOutfitId = new RelativeId(modId, 1);
+    }
+}
+
+
+File: Plugin.cs
+Content:
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using BepInEx;
+using BepInEx.Configuration;
+using HarmonyLib;
+using Hp2BaseMod;
+using Hp2BaseMod.GameDataInfo;
+using Hp2BaseMod.GameDataInfo.Interface;
+using Hp2BaseMod.Utility;
+using UnityEngine;
+
+namespace RepeatThreesome;
+
+[BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
+[BepInDependency("OSK.BepInEx.Hp2BaseMod", "1.0.0")]
+[BepInDependency("OSK.BepInEx.Hp2BaseModTweaks", BepInDependency.DependencyFlags.SoftDependency)]
+internal class Plugin : Hp2BaseModPlugin
+{
+    private const string GENERAL_CONFIG_CAT = "general";
+
+    private static string PLUGIN_DIR = Path.Combine(Paths.PluginPath, MyPluginInfo.PLUGIN_NAME);
+    private static string IMAGES_DIR = Path.Combine(PLUGIN_DIR, "images");
+
+    public static ConfigEntry<bool> LoversLocationRequirement => _loversLocationRequirement;
+    public static ConfigEntry<bool> _loversLocationRequirement;
+
+    public ConfigEntry<bool> IsBonusRoundNude => _isBonusRoundNude;
+    public ConfigEntry<bool> _isBonusRoundNude;
+
+    public static new int ModId { get { return ((Hp2BaseModPlugin)_instance).ModId; } }
+    private static Plugin _instance;
+
+    public Plugin() : base(MyPluginInfo.PLUGIN_GUID) { }
+
+    protected override void Awake()
+    {
+        _instance = this;
+        base.Awake();
+
+        _loversLocationRequirement = Config.Bind(GENERAL_CONFIG_CAT, nameof(LoversLocationRequirement), false, "If threesomes can only take place at the location their photo occurs at.");
+        _isBonusRoundNude = Config.Bind(GENERAL_CONFIG_CAT, nameof(IsBonusRoundNude), true, "If characters will change to nude outfits during bonus rounds.");
+
+        if (ModInterface.TryGetInterModValue("OSK.BepInEx.Hp2BaseModTweaks", "AddModCredit",
+            out Action<Sprite, IEnumerable<(Sprite creditButtonPath, Sprite creditButtonOverPath, string redirectLink)>> m_addModConfig))
+        {
+            m_addModConfig(TextureUtility.SpriteFromPng(Path.Combine(IMAGES_DIR, "CreditsLogo.png"), true), [
+                (
+                    TextureUtility.SpriteFromPng(Path.Combine(IMAGES_DIR, "onesuchkeeper_credits_dev.png"), true),
+                    TextureUtility.SpriteFromPng(Path.Combine(IMAGES_DIR, "onesuchkeeper_credits_dev_over.png"), true),
+                    "https://linktr.ee/onesuchkeeper"
+                ),
+                (
+                    TextureUtility.SpriteFromPng(Path.Combine(IMAGES_DIR, "silverwoodwork_credits_art.png"), true),
+                    TextureUtility.SpriteFromPng(Path.Combine(IMAGES_DIR, "silverwoodwork_credits_art_over.png"), true),
+                    "https://twitter.com/silverwoodwork"
+                ),
+            ]);
+        }
+
+        Constants.Init(ModId);
+
+        ModInterface.DataMod.AddDataMod(new CodeDataMod(Constants.LocalCodeId, InsertStyle.replace)
+        {
+            CodeHash = MD5Utility.Encrypt("OH THE PLACES YOU'LL GO"),
+            CodeType = CodeType.TOGGLE,
+            OnMessage = "Lovers' threesome location requirement off.",
+            OffMessage = "Lovers' threesome location requirement on."
+        });
+
+        ModInterface.DataMod.AddDataMod(new CodeDataMod(Constants.NudeCodeId, InsertStyle.replace)
+        {
+            CodeHash = MD5Utility.Encrypt("BEWBS"),
+            CodeType = CodeType.TOGGLE,
+            OnMessage = "Nudity during bonus rounds on.",
+            OffMessage = "Nudity during bonus rounds off."
+        });
+
+        ModInterface.Events.PreDataMods += On_PreDataMods;
+        ModInterface.Events.PuzzleRoundOver += ThreesomeHandler.OnPuzzleRoundOver;
+        ModInterface.Events.PostCodeSubmitted += On_PostCodeSubmitted;
+        ModInterface.Events.PrePersistenceReset += On_PostPersistenceReset;
+        new Harmony(MyPluginInfo.PLUGIN_GUID).PatchAll();
+    }
+
+    private void On_PostPersistenceReset(SaveData data)
+    {
+        CodeUtility.ValidateCode(data, Constants.LocalCodeId, !LoversLocationRequirement.Value);
+        CodeUtility.ValidateCode(data, Constants.NudeCodeId, IsBonusRoundNude.Value);
+    }
+
+    private void On_PostCodeSubmitted(CodeDefinition codeDefinition)
+    {
+        if (codeDefinition == null) return;
+
+        LoversLocationRequirement.Value = ModInterface.GameData.IsCodeUnlocked(Constants.LocalCodeId);
+        IsBonusRoundNude.Value = ModInterface.GameData.IsCodeUnlocked(Constants.NudeCodeId);
+    }
+
+    private void On_PreDataMods()
+    {
+        var emptySpriteInfo = new SpriteInfoInternal("EmptySprite");
+
+        var nudeOutfitPart = new GirlPartDataMod(Constants.NudeOutfitId, InsertStyle.replace)
+        {
+            PartType = GirlPartType.OUTFIT,
+            PartName = "nudeOutfit",
+            X = 0,
+            Y = 0,
+            SpriteInfo = emptySpriteInfo
+        };
+
+        var pollyNudeOutfitPartAlt = new GirlPartDataMod(Constants.AltNudeOutfitId, InsertStyle.replace)
+        {
+            PartType = GirlPartType.OUTFIT,
+            PartName = "nudeOutfitPollyAlt",
+            X = 604,
+            Y = 165,
+            SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(Paths.PluginPath, @"RepeatThreesome\images\alt_polly_nude.png"), transform))
+        };
+
+        var pollyNudeOutfitPart = new GirlPartDataMod(Constants.NudeOutfitId, InsertStyle.replace)
+        {
+            PartType = GirlPartType.OUTFIT,
+            PartName = "nudeOutfitPolly",
+            X = 0,
+            Y = 0,
+            AltPart = pollyNudeOutfitPartAlt,
+            SpriteInfo = emptySpriteInfo
+        };
+
+        var nudeOutfit = new OutfitDataMod(Constants.NudeOutfitId, InsertStyle.replace)
+        {
+            Name = "Nude",
+            OutfitPart = nudeOutfitPart,
+            IsNSFW = true,
+            HideNipples = false,
+            TightlyPaired = false,
+            PairHairstyleId = null
+        };
+
+        var nudeOutfitPolly = new OutfitDataMod(Constants.NudeOutfitId, InsertStyle.replace)
+        {
+            Name = "Nude",
+            OutfitPart = pollyNudeOutfitPart,
+            IsNSFW = true,
+            HideNipples = false,
+            TightlyPaired = false,
+            PairHairstyleId = null
+        };
+
+        // add nude outfits for girls
+        foreach (var girlId in ModInterface.Data.GetIds(GameDataType.Girl).Where(x => x.SourceId == -1))
+        {
+            // polly has an alt
+            if (girlId == Girls.Polly)
+            {
+                ModInterface.Log.Message($"Adding nude outfit for polly {girlId}");
+
+                ModInterface.DataMod.AddDataMod(new GirlDataMod(girlId, InsertStyle.append)
+                {
+                    bodies = new(){
+                        new GirlBodyDataMod(new RelativeId(-1,0), InsertStyle.append){
+                            outfits = new List<IBodySubDataMod<GirlOutfitSubDefinition>>()
+                            {
+                                nudeOutfitPolly
+                            }
+                        }
+                    }
+                });
+            }
+            // all others
+            else
+            {
+                ModInterface.Log.Message($"Adding nude outfit for girl {girlId}");
+
+                ModInterface.DataMod.AddDataMod(new GirlDataMod(girlId, InsertStyle.append)
+                {
+                    bodies = new(){
+                        new GirlBodyDataMod(new RelativeId(-1,0), InsertStyle.append){
+                            outfits = new List<IBodySubDataMod<GirlOutfitSubDefinition>>()
+                            {
+                                nudeOutfit
+                            }
+                        }
+                    }
+                });
+            }
+        }
+    }
+}
+
+
+File: ThreesomeHandler.cs
+Content:
+﻿// Hp2RepeatThreesomeMod 2021, By onesuchkeeper
+
+using System.Reflection;
+using HarmonyLib;
+using Hp2BaseMod;
+using Hp2BaseMod.Extension;
+using Hp2BaseMod.Utility;
+
+namespace RepeatThreesome
+{
+    public static class ThreesomeHandler
+    {
+        private static readonly FieldInfo f_newRoundCutscene = AccessTools.Field(typeof(PuzzleManager), "_newRoundCutscene");
+
+        public static void OnPuzzleRoundOver(PuzzleRoundOverArgs args)
+        {
+            if (Game.Session.Puzzle.puzzleStatus.statusType == PuzzleStatusType.NORMAL)
+            {
+                var currentGirlPair = Game.Session.Location.currentGirlPair;
+
+                var playerFileGirlPair = Game.Persistence.playerFile.GetPlayerFileGirlPair(currentGirlPair);
+
+                if (playerFileGirlPair != null
+                    && Game.Session.Puzzle.puzzleGrid.roundState == PuzzleRoundState.SUCCESS
+                    && playerFileGirlPair.relationshipType == GirlPairRelationshipType.LOVERS
+                    && (Game.Session.Location.currentLocation == currentGirlPair.sexLocationDefinition
+                        || ModInterface.GameData.IsCodeUnlocked(Constants.LocalCodeId)))
+                {
+                    args.IsSexDate = true;
+                    args.IsGameOver = Game.Session.Puzzle.puzzleStatus.bonusRound;
+                }
+            }
+
+            Game.Session.Cutscenes.CutsceneCompleteEvent += On_CutsceneCompleteEvent;
+        }
+
+        private static void On_CutsceneCompleteEvent()
+        {
+            Game.Session.Cutscenes.CutsceneCompleteEvent -= On_CutsceneCompleteEvent;
+
+            var newRoundCutscene = f_newRoundCutscene.GetValue<CutsceneDefinition>(Game.Session.Puzzle);
+
+            if (newRoundCutscene == Game.Session.Puzzle.cutsceneNewroundBossBonus)
+            {
+                Game.Session.Cutscenes.CutsceneStartedEvent += On_BossBonusStart;
+            }
+            else if (!Game.Session.Puzzle.puzzleStatus.gameOver
+                && ModInterface.GameData.IsCodeUnlocked(Constants.NudeCodeId)
+                && Game.Session.Puzzle.puzzleStatus.statusType == PuzzleStatusType.NORMAL)
+            {
+                var silent = Game.Session.Puzzle.puzzleStatus.girlStatusLeft != null
+                    && ChangeToNudeOutfit(Game.Session.Puzzle.puzzleStatus.girlStatusLeft.playerFileGirl,
+                        Game.Session.gameCanvas.dollLeft,
+                        false);
+
+                //ignore kyu during tutorial
+                if (!Game.Session.Puzzle.puzzleStatus.IsTutorial(false)
+                    && Game.Session.Puzzle.puzzleStatus.girlStatusRight != null)
+                {
+                    ChangeToNudeOutfit(Game.Session.Puzzle.puzzleStatus.girlStatusRight.playerFileGirl,
+                        Game.Session.gameCanvas.dollRight,
+                        silent);
+                }
+            }
+        }
+
+        private static void On_BossBonusStart()
+        {
+            Game.Session.Cutscenes.CutsceneStartedEvent -= On_BossBonusStart;
+
+            var silent = ChangeToNudeOutfit(Game.Session.Puzzle.puzzleStatus.girlStatusLeft.playerFileGirl,
+                Game.Session.gameCanvas.dollLeft,
+                false);
+
+            ChangeToNudeOutfit(Game.Session.Puzzle.puzzleStatus.girlStatusRight.playerFileGirl,
+                Game.Session.gameCanvas.dollRight,
+                silent);
+        }
+
+        private static bool ChangeToNudeOutfit(PlayerFileGirl girl, UiDoll doll, bool silentUnlock)
+        {
+            if (girl == null
+                || doll == null
+                || doll.girlDefinition == null)
+            {
+                return false;
+            }
+
+            var expansion = ExpandedGirlDefinition.Get(girl.girlDefinition);
+
+            if (!expansion.OutfitLookup.TryGetIndex(Constants.NudeOutfitId, out var nudeOutfitIndex))
+            {
+                ModInterface.Log.Warning($"Failed to find nude outfit for Girl {girl.girlDefinition.girlName}.");
+                return false;
+            }
+
+            doll.ChangeOutfit(nudeOutfitIndex);
+
+            return StyleUnlockUtility.UnlockStyle(girl, -1, nudeOutfitIndex, silentUnlock);
+        }
+    }
+}
+
+

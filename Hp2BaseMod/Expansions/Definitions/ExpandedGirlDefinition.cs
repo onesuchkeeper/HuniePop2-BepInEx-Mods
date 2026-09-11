@@ -7,9 +7,12 @@ using UnityEngine;
 
 namespace Hp2BaseMod;
 
+#pragma warning disable HP001 // Deprecated member usage
 [Expansion(typeof(GirlDefinition), HasModId = true)]
 [Deprecates(nameof(GirlDefinition.GetMostFavAffectionType), $"Use {nameof(ExpandedGirlDefinition)}.{nameof(ExpandedGirlDefinition.GetMostFavAffectionType)} instead.")]
 [Deprecates(nameof(GirlDefinition.GetLeastFavAffectionType), $"Use {nameof(ExpandedGirlDefinition)}.{nameof(ExpandedGirlDefinition.GetMostFavAffectionType)} instead.")]
+[Deprecates(nameof(GirlDefinition.specialEffectOffset), $"Use {nameof(GirlBodySubDefinition)}.{nameof(GirlBodySubDefinition.BackPos)} or {nameof(GirlBodySubDefinition)}.{nameof(GirlBodySubDefinition.HeadPos)} instead.")]
+#pragma warning restore HP001 // Deprecated member usage
 public partial class ExpandedGirlDefinition
 {
     /// <summary>
@@ -27,14 +30,21 @@ public partial class ExpandedGirlDefinition
 
     public ItemDefinition GetRandomFruit()
     {
-        if (Random.Range(0f, 1f) >= 0.5f)
-		{
-			return FavAffection.GetRandomFruit();
-		}
+        // Fall back to general pool if FavAffection is null
+        if (FavAffection != null && Random.Range(0f, 1f) >= 0.5f)
+        {
+            return FavAffection.GetRandomFruit();
+        }
 
         var pool = ModInterface.GameData.Affections.Values.Where(x => x.HasFruit).ToList();
-        pool.Remove(FavAffection);
-        pool.Remove(LeastFavAffection);
+        if (FavAffection != null) pool.Remove(FavAffection);
+        if (LeastFavAffection != null) pool.Remove(LeastFavAffection);
+
+        if (pool.Count == 0)
+        {
+            return ModInterface.GameData.GetRandomFruit();
+        }
+
         return pool.GetRandom().GetRandomFruit();
     }
 

@@ -1,0 +1,384 @@
+File: Locations.cs
+Content:
+using Hp2BaseMod;
+namespace ExtraLocations;
+
+public static class Locations
+{
+    public static readonly RelativeId HiddenWaterfall = new RelativeId(Plugin.ModId, 0);
+    public static readonly RelativeId Volcano = new RelativeId(Plugin.ModId, 1);
+    public static readonly RelativeId HotelRoom = new RelativeId(Plugin.ModId, 2);
+    public static readonly RelativeId OuterSpace = new RelativeId(Plugin.ModId, 3);
+    public static readonly RelativeId AirplaneBathroom = new RelativeId(Plugin.ModId, 4);
+    public static readonly RelativeId AirplaneCabin = new RelativeId(Plugin.ModId, 5);
+    public static readonly RelativeId Poolside = new RelativeId(Plugin.ModId, 6);
+    public static readonly RelativeId Apartment = new RelativeId(Plugin.ModId, 7);
+}
+
+
+File: Plugin.cs
+Content:
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using BepInEx;
+using BepInEx.Configuration;
+using Hp2BaseMod;
+using Hp2BaseMod.GameDataInfo;
+using Hp2BaseMod.GameDataInfo.Interface;
+using Hp2BaseMod.Utility;
+using UnityEngine;
+
+namespace ExtraLocations;
+
+[BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
+[BepInDependency("OSK.BepInEx.Hp2BaseMod", "1.0.0")]
+[BepInDependency("OSK.BepInEx.Hp2BaseModTweaks", BepInDependency.DependencyFlags.SoftDependency)]
+public class Plugin : BaseUnityPlugin
+{
+    internal static readonly string ROOT_DIR = Path.Combine(Paths.PluginPath, MyPluginInfo.PLUGIN_NAME);
+    internal static readonly string IMAGES_DIR = Path.Combine(ROOT_DIR, "images");
+
+    private static readonly Vector2 BG_SIZE = new Vector2(2008, 1130);
+    private static readonly Vector2 DAC_SIZE = new Vector2(3568, 2025);
+
+    public static ConfigEntry<string> ConfigDac => _configDac;
+    private static ConfigEntry<string> _configDac;
+
+    public static ConfigEntry<string> ConfigOst => _configOst;
+    private static ConfigEntry<string> _configOst;
+
+    public static int ModId => _modId;
+    private static int _modId = ModInterface.GetSourceId(MyPluginInfo.PLUGIN_GUID);
+
+    private void Awake()
+    {
+        if (ModInterface.TryGetInterModValue("OSK.BepInEx.Hp2BaseModTweaks", "AddModCredit",
+            out Action<Sprite, IEnumerable<(Sprite creditButtonPath, Sprite creditButtonOverPath, string redirectLink)>> m_addModConfig))
+        {
+            m_addModConfig(TextureUtility.SpriteFromPng(Path.Combine(IMAGES_DIR, "CreditsLogo.png"), true), [
+                (
+                    TextureUtility.SpriteFromPng(Path.Combine(IMAGES_DIR, "onesuchKeeper_credits_dev.png"), true),
+                    TextureUtility.SpriteFromPng(Path.Combine(IMAGES_DIR, "onesuchKeeper_credits_dev_over.png"), true),
+                    "https://linktr.ee/onesuchkeeper"
+                ),
+            ]);
+        }
+
+        _configDac = Config.Bind(Hp2BaseModPlugin.CONFIG_GENERAL,
+            "DigitalArtCollectionDir",
+            Path.Combine(Paths.PluginPath, "..", "..", "Digital Art Collection"),
+            "Directory containing the HuniePop 2 Digital Art Collection Dlc");
+
+        _configOst = Config.Bind(Hp2BaseModPlugin.CONFIG_GENERAL,
+            "DoubleDateOstDir",
+            Path.Combine(Paths.PluginPath, "..", "..", "..", "..", "music", "HuniePop 2 - Double Date OST", "WAV"),
+            "Directory containing the HuniePop 2 OST");
+
+        var dacBgScaleRs = new TextureRsScale(BG_SIZE / DAC_SIZE);
+
+        //ost audio
+        AudioClipInfo waterfallBgMusic = null;
+        AudioClipInfo volcanoBgMusic = null;
+        AudioClipInfo hotelRoomBgMusic = null;
+
+        if (!string.IsNullOrWhiteSpace(ConfigOst.Value)
+            && Directory.Exists(ConfigOst.Value))
+        {
+            var ostHiddenPartyMix = Path.Combine(ConfigOst.Value, "31 Double Date Party Mix (Bonus).wav");
+
+            if (File.Exists(ostHiddenPartyMix))
+            {
+                volcanoBgMusic = new AudioClipInfo()
+                {
+                    IsExternal = true,
+                    Path = ostHiddenPartyMix
+                };
+            }
+
+            var ostHiddenWaterfall = Path.Combine(ConfigOst.Value, "33 Hidden Waterfall (Bonus).wav");
+
+            if (File.Exists(ostHiddenWaterfall))
+            {
+                waterfallBgMusic = new AudioClipInfo()
+                {
+                    IsExternal = true,
+                    Path = ostHiddenWaterfall
+                };
+            }
+
+            var ostSurf = Path.Combine(ConfigOst.Value, "32 Surfin' IDP (Bonus).wav");
+
+            if (File.Exists(ostSurf))
+            {
+                hotelRoomBgMusic = new AudioClipInfo()
+                {
+                    IsExternal = true,
+                    Path = ostSurf
+                };
+            }
+        }
+
+        waterfallBgMusic ??= new AudioClipInfo()
+        {
+            IsExternal = false,
+            Path = "bgm_secret_grotto"
+        };
+
+        volcanoBgMusic ??= new AudioClipInfo()
+        {
+            IsExternal = false,
+            Path = "bgm_volcano_top"
+        };
+
+        hotelRoomBgMusic ??= new AudioClipInfo()
+        {
+            IsExternal = false,
+            Path = "bgm_hotel_room"
+        };
+
+        //dac locs
+        if (!string.IsNullOrWhiteSpace(ConfigDac.Value)
+            && Directory.Exists(ConfigDac.Value))
+        {
+            var waterfallImgDir = Path.Combine(ConfigDac.Value, "Misc", "Cut Locations", "Waterfall");
+
+            ModInterface.DataMod.AddDataMod(new LocationDataMod(Locations.HiddenWaterfall, InsertStyle.replace)
+            {
+                DefaultStyle = Styles.Water,
+                LocationName = "Hidden Waterfall",
+                LocationType = LocationType.SIM,
+                BgMusic = new AudioKlipInfo()
+                {
+                    AudioClipInfo = waterfallBgMusic,
+                    Volume = 0.8f
+                },
+                Backgrounds = new List<IGameDefinitionInfo<Sprite>>(){
+                    new SpriteInfoTexture(new TextureInfoCache(
+                        Path.Combine(IMAGES_DIR, "hiddenWaterfall_Morning.png"),
+                        new TextureInfoExternal(Path.Combine(waterfallImgDir, "Morning.jpg"), false,
+                            FilterMode.Bilinear,
+                            [dacBgScaleRs]))),
+
+                    new SpriteInfoTexture(new TextureInfoCache(
+                        Path.Combine(IMAGES_DIR, "hiddenWaterfall_Afternoon.png"),
+                        new TextureInfoExternal(Path.Combine(waterfallImgDir, "Afternoon.jpg"), false,
+                            FilterMode.Bilinear,
+                            [dacBgScaleRs]))),
+
+                    new SpriteInfoTexture(new TextureInfoCache(
+                        Path.Combine(IMAGES_DIR, "hiddenWaterfall_Evening.png"),
+                        new TextureInfoExternal(Path.Combine(waterfallImgDir, "Evening.jpg"), false,
+                            FilterMode.Bilinear,
+                            [dacBgScaleRs]))),
+
+                    new SpriteInfoTexture(new TextureInfoCache(
+                        Path.Combine(IMAGES_DIR, "hiddenWaterfall_Night.png"),
+                        new TextureInfoExternal(Path.Combine(waterfallImgDir, "Night.jpg"), false,
+                            FilterMode.Bilinear,
+                            [dacBgScaleRs])))
+                },
+                FinderLocationIcon = new SpriteInfoTexture(new TextureInfoCache(
+                    Path.Combine(IMAGES_DIR, "hiddenWaterfall_Icon.png"),
+                    new TextureInfoSprite(new SpriteInfoInternal("item_unique_hot_stones"), false, false, true, [new TextureRsCellphoneOutline(4f, 0f, 1f)]), true))
+            });
+        }
+
+        //others
+        ModInterface.DataMod.AddDataMod(new LocationDataMod(Locations.Volcano, InsertStyle.replace)
+        {
+            DefaultStyle = Styles.Activity,
+            LocationName = "Volcano",
+            LocationType = LocationType.DATE,
+            NonStopOptionText = "Kyu. The [[highlight]VOLCANO]. IT'S A VOLCANO KYU. FUCKING FUCKIN' IN A FUCKING VOLCANO.",
+            BgMusic = new AudioKlipInfo()
+            {
+                AudioClipInfo = volcanoBgMusic,
+                Volume = 0.8f
+            },
+            Backgrounds = new List<IGameDefinitionInfo<Sprite>>(){
+                new SpriteInfoInternal("loc_bg_special_volcano_0"),
+                new SpriteInfoInternal("loc_bg_special_volcano_0")
+            },
+            AllowNonStop = true,
+            AllowNormal = true,
+            PostBoss = true,
+            DateTimes = new List<ClockDaytimeType>() {
+                ClockDaytimeType.NIGHT
+            }
+        });
+
+        ModInterface.DataMod.AddDataMod(new LocationDataMod(Locations.HotelRoom, InsertStyle.replace)
+        {
+            DefaultStyle = Styles.Relaxing,
+            LocationName = "Hotel Room",
+            LocationType = LocationType.DATE,
+            NonStopOptionText = "I dunno, I guess [[highlight]HERE] is good.",
+            BgMusic = new AudioKlipInfo()
+            {
+                AudioClipInfo = hotelRoomBgMusic,
+                Volume = 0.8f
+            },
+            Backgrounds = new List<IGameDefinitionInfo<Sprite>>(){
+                new SpriteInfoInternal("loc_bg_hub_room_3"),
+                new SpriteInfoInternal("loc_bg_hub_room_3"),
+            },
+            AllowNonStop = true,
+            AllowNormal = true,
+            PostBoss = true,
+            DateTimes = new List<ClockDaytimeType>() {
+                ClockDaytimeType.NIGHT
+            }
+        });
+
+        ModInterface.DataMod.AddDataMod(new LocationDataMod(Locations.OuterSpace, InsertStyle.replace)
+        {
+            DefaultStyle = Styles.Activity,
+            LocationName = "Space",
+            LocationType = LocationType.DATE,
+            NonStopOptionText = "Hey, is [[highlight]SPACE] on the table? How the hell did we get there anyways?",
+            BgMusic = new AudioKlipInfo()
+            {
+                AudioClipInfo = new AudioClipInfo()
+                {
+                    IsExternal = false,
+                    Path = "bgm_outer_space_bonus"
+                },
+                Volume = 0.8f
+            },
+            Backgrounds = new List<IGameDefinitionInfo<Sprite>>(){
+                new SpriteInfoInternal("loc_bg_date_space_0"),
+                new SpriteInfoInternal("loc_bg_date_space_1")
+            },
+            AllowNormal = false,
+            AllowNonStop = true,
+            PostBoss = true,
+            DateTimes = new List<ClockDaytimeType>() {
+                ClockDaytimeType.MORNING,
+                ClockDaytimeType.AFTERNOON,
+                ClockDaytimeType.EVENING,
+                ClockDaytimeType.NIGHT
+            }
+        });
+
+        ModInterface.DataMod.AddDataMod(new LocationDataMod(Locations.AirplaneBathroom, InsertStyle.replace)
+        {
+            DefaultStyle = Styles.Activity,
+            LocationName = "Airplane Bathroom",
+            LocationType = LocationType.DATE,
+            NonStopOptionText = "I think the [[highlight]AIRPLANE BATHROOM] may have awoken something in me... Not sure how I feel about that...",
+            BgMusic = new AudioKlipInfo()
+            {
+                AudioClipInfo = new AudioClipInfo()
+                {
+                    IsExternal = false,
+                    Path = "bgm_airplane_bathroom"
+                },
+                Volume = 0.8f
+            },
+            Backgrounds = new List<IGameDefinitionInfo<Sprite>>(){
+                new SpriteInfoInternal("loc_bg_date_airplanebath_0"),
+                new SpriteInfoInternal("loc_bg_date_airplanebath_1")
+            },
+            AllowNormal = false,
+            AllowNonStop = true,
+            PostBoss = false,
+            DateTimes = new List<ClockDaytimeType>() {
+                ClockDaytimeType.MORNING,
+                ClockDaytimeType.AFTERNOON,
+                ClockDaytimeType.EVENING,
+                ClockDaytimeType.NIGHT
+            }
+        });
+
+        var airplaneCabinBg = new SpriteInfoInternal("loc_bg_special_airplanecabin_0");
+        ModInterface.DataMod.AddDataMod(new LocationDataMod(Locations.AirplaneCabin, InsertStyle.replace)
+        {
+            DefaultStyle = Styles.Activity,
+            LocationName = "Airplane Cabin",
+            LocationType = LocationType.DATE,
+            NonStopOptionText = "Something about the cramped quarters and needless expense of a date in an [[highlight]AIRPLANE CABIN] just gets me going.",
+            BgMusic = new AudioKlipInfo()
+            {
+                AudioClipInfo = new AudioClipInfo()
+                {
+                    IsExternal = false,
+                    Path = "bgm_airplane_cabin"
+                },
+                Volume = 0.8f
+            },
+            Backgrounds = new List<IGameDefinitionInfo<Sprite>>(){
+                airplaneCabinBg,
+                airplaneCabinBg
+            },
+            AllowNormal = false,
+            AllowNonStop = true,
+            PostBoss = false,
+            DateTimes = new List<ClockDaytimeType>() {
+                ClockDaytimeType.MORNING,
+                ClockDaytimeType.AFTERNOON,
+                ClockDaytimeType.EVENING,
+                ClockDaytimeType.NIGHT
+            }
+        });
+
+        var poolsideBg = new SpriteInfoInternal("loc_bg_special_poolside_0");
+        ModInterface.DataMod.AddDataMod(new LocationDataMod(Locations.Poolside, InsertStyle.replace)
+        {
+            DefaultStyle = Styles.Water,
+            LocationName = "Poolside",
+            LocationType = LocationType.DATE,
+            NonStopOptionText = "Maybe a trip to the [[highlight]POOLSIDE]?",
+            BgMusic = new AudioKlipInfo()
+            {
+                AudioClipInfo = new AudioClipInfo()
+                {
+                    IsExternal = false,
+                    Path = "bgm_poolside"
+                },
+                Volume = 0.8f
+            },
+            Backgrounds = new List<IGameDefinitionInfo<Sprite>>(){
+                poolsideBg,
+                poolsideBg
+            },
+            PostBoss = false,
+            AllowNormal = true,
+            AllowNonStop = true,
+            DateTimes = new List<ClockDaytimeType>(){
+                ClockDaytimeType.NIGHT
+            }
+        });
+
+        var apartmentBg = new SpriteInfoInternal("loc_bg_special_apartment_0");
+        ModInterface.DataMod.AddDataMod(new LocationDataMod(Locations.Apartment, InsertStyle.replace)
+        {
+            DefaultStyle = Styles.Romantic,
+            LocationName = "Your Apartment",
+            LocationType = LocationType.DATE,
+            NonStopOptionText = "I'm starting to get a little homesick, with some fairy magic we could pop on over to [[highlight]MY APARTMENT] right?",
+            BgMusic = new AudioKlipInfo()
+            {
+                AudioClipInfo = new AudioClipInfo()
+                {
+                    IsExternal = false,
+                    Path = "bgm_your_apartment"
+                },
+                Volume = 0.8f
+            },
+            Backgrounds = new List<IGameDefinitionInfo<Sprite>>(){
+                apartmentBg,
+                apartmentBg
+            },
+            PostBoss = false,
+            AllowNormal = false,
+            AllowNonStop = true,
+            DateTimes = new List<ClockDaytimeType>() {
+                ClockDaytimeType.EVENING,
+                ClockDaytimeType.NIGHT
+            }
+        });
+    }
+}
+
+

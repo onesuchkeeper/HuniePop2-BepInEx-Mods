@@ -4,20 +4,6 @@ using Hp2BaseMod.Extension;
 
 namespace Hp2BaseMod;
 
-[HarmonyPatch(typeof(ItemSlotBehavior))]
-internal static class ItemSlotBehaviorPatch
-{
-    [HarmonyPatch(nameof(ItemSlotBehavior.ShowTooltip))]
-    [HarmonyPrefix]
-    public static bool ShowTooltip(ItemSlotBehavior __instance)
-        => ExpandedItemSlotBehavior.Get(__instance).ShowTooltip();
-
-    [HarmonyPatch("OnDestroy")]
-    [HarmonyPrefix]
-    public static void OnDestroy(ItemSlotBehavior __instance)
-        => ExpandedItemSlotBehavior.Destroy(__instance);
-}
-
 /// <summary>
 /// Allows tooltips to be displayed when ui is offset outside the hub.
 /// Use <see cref="ModInterface.State.CellphoneOnLeft"/> to control ui position
@@ -25,9 +11,23 @@ internal static class ItemSlotBehaviorPatch
 [Expansion(typeof(ItemSlotBehavior))]
 public partial class ExpandedItemSlotBehavior
 {
+    [HarmonyPatch(typeof(ItemSlotBehavior))]
+    private static class Patch
+    {
+        [HarmonyPatch(nameof(ItemSlotBehavior.ShowTooltip))]
+        [HarmonyPrefix]
+        private static bool ShowTooltip(ItemSlotBehavior __instance)
+            => ExpandedItemSlotBehavior.Get(__instance).ShowTooltip();
+
+        [HarmonyPatch("OnDestroy")]
+        [HarmonyPrefix]
+        private static void OnDestroy(ItemSlotBehavior __instance)
+            => ExpandedItemSlotBehavior.Destroy(__instance);
+    }
+
     public event Action PreShowEvent;
 
-    internal bool ShowTooltip()
+    private bool ShowTooltip()
     {
         if (_core.showTooltip
             && _core.eastOnHub

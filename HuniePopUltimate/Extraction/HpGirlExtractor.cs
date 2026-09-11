@@ -200,8 +200,7 @@ public class HpGirlExtractor
                 Part = headPartMod,
                 SortingPartType = GirlPartType.OUTFIT,
                 AnimType = DollPartSpecialAnimType.NONE,
-                IsToggleable = false,
-                SpecialPartName = "head"
+                IsToggleable = false
             });
         }
     }
@@ -444,8 +443,7 @@ public class HpGirlExtractor
                                 {
                                     AnimType = DollPartSpecialAnimType.NONE,
                                     SortingPartType = GirlPartType.EYEBROWS,
-                                    Part = glassesPart,
-                                    SpecialPartName = extraName
+                                    Part = glassesPart
                                 });
                             }
                             break;
@@ -458,8 +456,7 @@ public class HpGirlExtractor
                                 {
                                     AnimType = DollPartSpecialAnimType.NONE,
                                     SortingPartType = GirlPartType.EYES,
-                                    Part = earringsPart,
-                                    SpecialPartName = extraName
+                                    Part = earringsPart
                                 });
                             }
                             break;
@@ -472,8 +469,7 @@ public class HpGirlExtractor
                                 {
                                     AnimType = DollPartSpecialAnimType.NONE,
                                     SortingPartType = GirlPartType.EYEBROWS,
-                                    Part = hairclipPart,
-                                    SpecialPartName = extraName
+                                    Part = hairclipPart
                                 });
                             }
                             break;
@@ -504,8 +500,7 @@ public class HpGirlExtractor
                                 {
                                     AnimType = DollPartSpecialAnimType.NONE,
                                     SortingPartType = GirlPartType.EYEBROWS,
-                                    Part = cowboyHatPart,
-                                    SpecialPartName = extraName
+                                    Part = cowboyHatPart
                                 });
                             }
                             break;

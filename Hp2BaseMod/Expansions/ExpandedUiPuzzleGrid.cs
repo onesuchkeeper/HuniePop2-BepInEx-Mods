@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using DG.Tweening;
 using HarmonyLib;
 using UnityEngine;
@@ -15,7 +16,7 @@ namespace Hp2BaseMod;
 public partial class ExpandedUiPuzzleGrid
 {
     [HarmonyPatch(typeof(UiPuzzleGrid))]
-    private static class UiPuzzleGridPatch
+    private static class Patch
     {
         [HarmonyPatch("AttemptGirlFocusSwitch")]
         [HarmonyPrefix]
@@ -56,6 +57,11 @@ public partial class ExpandedUiPuzzleGrid
         [HarmonyPrefix]
         private static bool ConsumePuzzleSet(UiPuzzleGrid __instance, PuzzleSet puzzleSet, bool andDestroy, ref bool __result)
             => ExpandedUiPuzzleGrid.Get(__instance).ConsumePuzzleSet_Prefix(puzzleSet, andDestroy, ref __result);
+
+        [HarmonyPatch("CreateToken")]
+        [HarmonyPrefix]
+        public static void CreateToken_Prefix(UiPuzzleGrid __instance, int col, bool noMatch)
+            => ExpandedUiPuzzleGrid.Get(__instance).CreateToken_Prefix(col, noMatch);
     }
 
     public static ExpandedUiPuzzleGrid Get() => Get(Game.Session.Puzzle.puzzleGrid);
@@ -116,15 +122,28 @@ public partial class ExpandedUiPuzzleGrid
     /// </summary>
     public event Action MoveCompleteEvent;
 
-    internal void StartPuzzle()
+    private void StartPuzzle()
     {
+        var statusExp = _status.GetExpansion();
+        statusExp.SuppressStateDialog = false;
+
         _core.MoveCompleteEvent += RaiseMoveCompleteEvent;
     }
 
-    private void RaiseMoveCompleteEvent() => MoveCompleteEvent?.Invoke();
-
-    internal void EndPuzzle()
+    private void RaiseMoveCompleteEvent()
     {
+        // Notify both girls' state machines on move completion
+        _status.girlStatusLeft?.GetExpansion().OnMoveCompleted();
+        _status.girlStatusRight?.GetExpansion().OnMoveCompleted();
+        
+        MoveCompleteEvent?.Invoke();
+    }
+
+    private void EndPuzzle()
+    {
+        var statusExp = _status.GetExpansion();
+        statusExp.SuppressStateDialog = true;
+
         _core.MoveCompleteEvent -= RaiseMoveCompleteEvent;
     }
 
@@ -140,32 +159,45 @@ public partial class ExpandedUiPuzzleGrid
         var status = _status;
 
         if (!Game.Session.Puzzle.dateForfeited && status.affection == status.affectionGoal)
-		{
-			args.RoundState = PuzzleRoundState.SUCCESS;
-			args.RoundOver = true;
-		}
-		else if (Game.Session.Puzzle.dateForfeited 
+        {
+            args.RoundState = PuzzleRoundState.SUCCESS;
+            args.RoundOver = true;
+        }
+        else if (Game.Session.Puzzle.dateForfeited 
             || (
                 !status.bonusRound && (status.movesRemaining == 0 
                 || (status.girlStatusLeft.exhausted && status.girlStatusRight.exhausted))
                 )
             )
-		{
-			if (!Game.Session.Puzzle.puzzleStatus.IsTutorial(false))
-			{
-				args.RoundState = PuzzleRoundState.FAILURE;
-				args.RoundOver = true;
-			}
+        {
+            if (!Game.Session.Puzzle.puzzleStatus.IsTutorial(false))
+            {
+                args.RoundState = PuzzleRoundState.FAILURE;
+                args.RoundOver = true;
+            }
             args.ReviveGirls = true;
             args.CheckChanges = true;
-		}
+        }
 
         var ailmentManager = Game.Session.Ailment.GetExpansion();
         ailmentManager.OnCheckRoundOver(args);
 
+        // Set round flags before reviving girls
+        // that way the revive knows it's ending and 
+        // doesn't play the recovery lines
         _roundState = args.RoundState;
         _roundOver = args.RoundOver;
-        if (args.ReviveGirls) status.ReviveGirls();
+
+        if (args.RoundOver || args.ReviveGirls)
+        {
+            var statusExp = status.GetExpansion();
+            statusExp.SuppressStateDialog = true;
+
+            if (args.ReviveGirls) status.ReviveGirls();
+
+            statusExp.SuppressStateDialog = false;
+        }
+        
         if (args.CheckChanges) status.CheckChanges();
 
         return false;
@@ -199,17 +231,17 @@ public partial class ExpandedUiPuzzleGrid
             return true;
         }
 
-        var state = (PuzzleGameState)f_state.GetValue(_core);
+        var state = _state;
         if (state != PuzzleGameState.MOVING) return true;
 
         WarningTooltip(null);
 
         _core.guideContainer.HideMovementGuides();
 
-        var status = f_status.GetValue(_core) as PuzzleStatus;
-        var moveMatchSet = f_moveMatchSet.GetValue(_core) as PuzzleSet;
-        var moveSlotFrom = f_moveSlotFrom.GetValue(_core) as UiPuzzleSlot;
-        var moveSlotTo = f_moveSlotTo.GetValue(_core) as UiPuzzleSlot;
+        var status = _status;
+        var moveMatchSet = _moveMatchSet;
+        var moveSlotFrom = _moveSlotFrom;
+        var moveSlotTo = _moveSlotTo;
 
         var girlStatusFocused = status.girlStatusFocused;
         var girlStatusUnfocused = status.girlStatusUnfocused;
@@ -220,6 +252,8 @@ public partial class ExpandedUiPuzzleGrid
 
         if (validMove)
         {
+            var moveMatchSetExp = moveMatchSet.GetExpansion();
+            var statusExp = status.GetExpansion();
             int movesCost = moveMatchSet.GetMovesCost();
             int staminaCostRawFull = moveMatchSet.GetStaminaCost(true, true);
 
@@ -244,7 +278,7 @@ public partial class ExpandedUiPuzzleGrid
                 // Apply move cost, still respected even without stamina cost.
                 if (movesCost > 0 && !moveModifier.blockMoveCost)
                 {
-                    status.AddResourceValue(PuzzleResourceType.MOVES, -movesCost, girlStatusFocused.altGirl);
+                    statusExp.AddResourceValue(PuzzleResourceId.Moves, -movesCost, girlStatusFocused.altGirl);
                 }
 
                 // Stamina deduction and unfocused stamina recovery are skipped entirely.
@@ -264,7 +298,8 @@ public partial class ExpandedUiPuzzleGrid
             if (girlStatusFocused == status.girlStatusFocused
                 && staminaCostRawFull > 1
                 && isBigMatch
-                && moveMatchSet.HasMatchWithResourceType(PuzzleResourceType.BROKEN, true))
+                && moveMatchSetExp.HasMatchWithResource(PuzzleResourceId.Broken, true)
+                && !girlStatusFocused.GetExpansion().State.SatisfiesCondition(AbilityStepConditionType.IS_UPSET)) // Skip big move line if girl is upset
             {
                 Game.Session.gameCanvas.GetDoll(girlStatusFocused.altGirl)
                     .ReadDialogTrigger(Game.Session.Puzzle.dtBigMove, DialogLineFormat.UNCHECKED, -1);
@@ -311,7 +346,7 @@ public partial class ExpandedUiPuzzleGrid
             _core.ChangeState(PuzzleGameState.RESETTING);
         }
 
-        MoveCompleteEvent?.Invoke();
+        RaiseMoveCompleteEvent();
         return false;
     }
 
@@ -442,4 +477,145 @@ public partial class ExpandedUiPuzzleGrid
 
         return false;
 	}
+
+    // Grid's own collection of excluded tokens (kept separate from PuzzleStatusGirl.invalidTokenDefs)
+    public HashSet<TokenDefinition> ExcludedTokenDefs { get; } = new HashSet<TokenDefinition>();
+
+    public void AddExcludedToken(TokenDefinition tokenDef)
+    {
+        if (tokenDef != null) ExcludedTokenDefs.Add(tokenDef);
+    }
+
+    public void RemoveExcludedToken(TokenDefinition tokenDef)
+    {
+        if (tokenDef != null) ExcludedTokenDefs.Remove(tokenDef);
+    }
+
+    public void ClearExcludedTokens() => ExcludedTokenDefs.Clear();
+
+    /// <summary>
+    /// Combines girl-specific invalid tokens, grid-level exclusions, and predicate failures 
+    /// into a single list without mutating PuzzleStatusGirl.invalidTokenDefs.
+    /// </summary>
+    public List<TokenDefinition> GetTotalExcludedTokenDefs(PuzzleStatus status)
+    {
+        var excluded = new List<TokenDefinition>();
+
+        // 1. Read-only merge of the focused girl's invalid tokens
+        if (status?.girlStatusFocused?.invalidTokenDefs != null)
+        {
+            foreach (var tokenDef in status.girlStatusFocused.invalidTokenDefs)
+            {
+                if (tokenDef != null && !excluded.Contains(tokenDef))
+                    excluded.Add(tokenDef);
+            }
+        }
+
+        // 2. Merge grid-managed exclusions
+        foreach (var tokenDef in ExcludedTokenDefs)
+        {
+            if (tokenDef != null && !excluded.Contains(tokenDef))
+                excluded.Add(tokenDef);
+        }
+
+        // 3. Evaluate CanSpawnPredicate on all active status tokens
+        if (status?.tokenStatus != null)
+        {
+            foreach (var statusToken in status.tokenStatus)
+            {
+                var tokenDef = statusToken.tokenDefinition;
+                if (tokenDef == null || excluded.Contains(tokenDef)) continue;
+
+                var tokenExp = tokenDef.GetExpansion();
+                if (!tokenExp.CanSpawn(status))
+                {
+                    excluded.Add(tokenDef);
+                }
+            }
+        }
+
+        return excluded;
+    }
+
+    private bool CreateToken_Prefix(int col, bool noMatch)
+    {
+        var status = _status;
+        if (status == null || status.isEmpty) return true;
+
+        var targetSlot = GetLowestEmptySlot(col);
+        if (targetSlot == null) return false;
+
+        var token = UnityEngine.Object.Instantiate(_core.tokenPrefab, _core.tokenContainer, false);
+        token.rectTransform.position = _core.puzzleSpawners[col].position;
+        _newTokenCount++;
+        targetSlot.SetToken(token, _newTokenCount * 0.025f);
+
+        var excludeTokenDefs = GetTotalExcludedTokenDefs(status);
+
+        if (!_initialRoundSettleComplete
+            && targetSlot.row >= 5
+            && !excludeTokenDefs.Contains(Game.Session.Puzzle.noSpawnMatchTokenDefinition))
+        {
+            excludeTokenDefs.Add(Game.Session.Puzzle.noSpawnMatchTokenDefinition);
+        }
+
+        int selectedTokenStatus = 0;
+        if (_core.preloadedTokens.Count > col && _core.preloadedTokens[col].Count > 0)
+        {
+            var tokenDefinition = _core.preloadedTokens[col][_core.preloadedTokens[col].Count - 1];
+            _core.preloadedTokens[col].RemoveAt(_core.preloadedTokens[col].Count - 1);
+
+            if (tokenDefinition != null)
+            {
+                token.Define(tokenDefinition, true);
+                status.GetTokenInfoByDefinition(tokenDefinition)?.AdjustCurrentWeight(-1);
+                return false;
+            }
+        }
+
+        do {
+            int totalWeight = 0;
+            foreach (var t in status.tokenStatus)
+            {
+                if (!excludeTokenDefs.Contains(t.tokenDefinition))
+                    totalWeight += t.GetCurrentWeight();
+            }
+
+            // FIX 2: If all tokens are excluded or weights sum to <= 0, clear exclusions as fallback
+            if (totalWeight <= 0)
+            {
+                throw new Exception("Invalid weight total of 0, cannot handle token spawning");
+                // excludeTokenDefs.Clear();
+                // totalWeight = status.tokenStatus.Sum(t => t.GetCurrentWeight());
+            }
+
+            int selectedWeight = UnityEngine.Random.Range(1, totalWeight + 1);
+            int currentWeight = 0;
+            for (int j = 0; j < status.tokenStatus.Count; j++)
+            {
+                if (excludeTokenDefs.Contains(status.tokenStatus[j].tokenDefinition)) continue;
+
+                currentWeight += status.tokenStatus[j].GetCurrentWeight();
+                if (selectedWeight <= currentWeight)
+                {
+                    selectedTokenStatus = j;
+                    break;
+                }
+            }
+
+            var tokenDef = status.tokenStatus[selectedTokenStatus].tokenDefinition;
+            excludeTokenDefs.Add(tokenDef);
+            token.Define(tokenDef, true);
+        } 
+        while (excludeTokenDefs.Count < status.tokenStatus.Count
+            && (noMatch
+                || !_initialRoundSettleComplete
+                || token.definition == status.girlStatusFocused.noSpawnMatchTokenDef
+                || status.girlStatusFocused.extraNoSpawnMatchTokenDefs.Contains(token.definition))
+            && GetMatchWithSlot(targetSlot, false, 3) != null
+        );
+
+        status.tokenStatus[selectedTokenStatus].AdjustCurrentWeight(-1);
+        return false;
+    }
 }

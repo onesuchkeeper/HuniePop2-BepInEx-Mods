@@ -7,19 +7,19 @@ using UnityEngine;
 
 namespace Hp2BaseMod;
 
-[HarmonyPatch(typeof(CutsceneManager))]
-internal static class CutsceneManagerPatch
-{
-    [HarmonyPatch("NextStep")]
-    [HarmonyPrefix]
-    public static bool NextStep(CutsceneManager __instance, bool resetSequence = true)
-        => ExpandedCutsceneManager.Get(__instance).NextStep_Prefix(resetSequence);
-}
-
 [Expansion(typeof(CutsceneManager))]
 public partial class ExpandedCutsceneManager
 {
-    internal bool NextStep_Prefix(bool resetSequence)
+    [HarmonyPatch(typeof(CutsceneManager))]
+    private static class Patch
+    {
+        [HarmonyPatch("NextStep")]
+        [HarmonyPrefix]
+        private static bool NextStep(CutsceneManager __instance, bool resetSequence = true)
+            => ExpandedCutsceneManager.Get(__instance).NextStep_Prefix(resetSequence);
+    }
+
+    private bool NextStep_Prefix(bool resetSequence)
     {
         var branchStepIndices = f_branchStepIndices.GetValue<List<int>>(_core);
         var branches = f_branches.GetValue<List<List<CutsceneStepSubDefinition>>>(_core);

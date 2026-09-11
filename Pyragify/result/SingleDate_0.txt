@@ -1,0 +1,3362 @@
+File: ModEventHandles.cs
+Content:
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using HarmonyLib;
+using Hp2BaseMod;
+using Hp2BaseMod.Extension;
+using UnityEngine;
+
+namespace SingleDate;
+
+internal static class ModEventHandles
+{
+    private static readonly FieldInfo f_altGirlFocused = AccessTools.Field(typeof(PuzzleStatus), "_altGirlFocused");
+
+    private static bool _singleDropZone = false;
+
+    internal static void On_LocationArriveSequence(LocationArriveSequenceArgs sequence)
+    {
+        var rightOuter = Game.Session.gameCanvas.dollRight.GetPositionByType(DollPositionType.OUTER);
+        var rightInnerPos = Game.Session.gameCanvas.dollRight.GetPositionByType(DollPositionType.INNER);
+        var diff = rightInnerPos - rightOuter;
+
+        if (State.IsSingleDate)
+        {
+            sequence.LeftDollPosition = DollPositionType.HIDDEN;
+            sequence.RightDollPosition = DollPositionType.INNER;
+
+            if (!_singleDropZone)
+            {
+                _singleDropZone = true;
+                Game.Session.gameCanvas.dollRight.dropZone.transform.localPosition += new Vector3(diff.x, diff.y, 0);
+            }
+
+            Game.Session.gameCanvas.dollRight.slideLayer.anchoredPosition += diff;
+        }
+        else
+        {
+            if (_singleDropZone)
+            {
+                _singleDropZone = false;
+                Game.Session.gameCanvas.dollRight.dropZone.transform.localPosition -= new Vector3(diff.x, diff.y, 0);
+            }
+        }
+    }
+
+    internal static void On_RandomDollSelected(RandomDollSelectedArgs args)
+    {
+        if (!State.IsSingleDate)
+        {
+            return;
+        }
+
+        ModInterface.Log.Message("Forcing focus for single date");
+
+        args.SelectedDoll = Game.Session.gameCanvas.dollRight;
+
+        //here we force the focus of the puzzle grid because the initial puzzle 'NextRound' occurs before the current pair is set
+        f_altGirlFocused.SetValue(Game.Session.Puzzle.puzzleStatus, true);
+    }
+
+    internal static void On_FinderSlotsPopulate(FinderSlotPopulateEventArgs args)
+    {
+        var maxSingleGirlRelationshipLevel = Plugin.MaxSingleGirlRelationshipLevel.Value;
+
+        args.SexPool?.RemoveAll(x => State.IsSingle(x.girlPairDefinition)
+            && State.SaveFile.GetGirl(x.girlPairDefinition.girlDefinitionTwo.id)?.RelationshipLevel != maxSingleGirlRelationshipLevel - 1);
+
+        foreach (var id in args.SexPool)
+        {
+            ModInterface.Log.Message(id.ToString());
+        }
+
+        if (Plugin.RequireLoversBeforeThreesome.Value)
+        {
+            args.SexPool?.RemoveAll(x => !State.IsSingle(x.girlPairDefinition)
+                && (State.SaveFile.GetGirl(x.girlPairDefinition.girlDefinitionOne.id)?.RelationshipLevel != maxSingleGirlRelationshipLevel
+                || State.SaveFile.GetGirl(x.girlPairDefinition.girlDefinitionTwo.id)?.RelationshipLevel != maxSingleGirlRelationshipLevel));
+        }
+
+        args.CompatiblePool.AddRange(args.AttractedPool.Where(x => IsIncompleteAttracted(x, maxSingleGirlRelationshipLevel)));
+        args.AttractedPool.RemoveAll(x => IsIncompleteAttracted(x, maxSingleGirlRelationshipLevel));
+    }
+
+    private static bool IsIncompleteAttracted(PlayerFileGirlPair filePair, int maxSingleGirlRelationshipLevel) => State.IsSingle(filePair.girlPairDefinition)
+        && State.SaveFile.GetGirl(filePair.girlPairDefinition.girlDefinitionTwo.id)?.RelationshipLevel < (maxSingleGirlRelationshipLevel - 1);
+
+    internal static void On_PuzzleRoundOver(PuzzleRoundOverArgs args)
+    {
+        if (Game.Session.Puzzle.puzzleStatus.statusType != PuzzleStatusType.NORMAL
+            || Game.Session.Puzzle.puzzleGrid.roundState != PuzzleRoundState.SUCCESS)
+        {
+            return;
+        }
+
+        var playerFileGirlPair = Game.Persistence.playerFile.GetPlayerFileGirlPair(Game.Session.Location.currentGirlPair);
+
+        if (playerFileGirlPair == null
+            || playerFileGirlPair.relationshipType != GirlPairRelationshipType.ATTRACTED)
+        {
+            return;
+        }
+
+        var maxSingleGirlRelationshipLevel = Plugin.MaxSingleGirlRelationshipLevel.Value;
+        var girlId = ModInterface.Data.GetDataId(GameDataType.Girl, playerFileGirlPair.girlPairDefinition.girlDefinitionTwo.id);
+        var girlSave = State.SaveFile.GetGirl(girlId);
+
+        if (State.IsSingleDate)
+        {
+            var oneUnderMaxLevel = girlSave?.RelationshipLevel >= maxSingleGirlRelationshipLevel - 1;
+
+            if ((Game.Session.Location.currentGirlPair.sexLocationDefinition == null
+                    || Game.Session.Location.currentGirlPair.sexLocationDefinition == Game.Session.Location.currentLocation)
+                && oneUnderMaxLevel
+                && Game.Session.Location.currentGirlPair.sexDaytime == (ClockDaytimeType)(Game.Persistence.playerFile.daytimeElapsed % 4))
+            {
+                girlSave.RelationshipLevel = maxSingleGirlRelationshipLevel;
+
+                ModInterface.Log.Message("Enable single date bonus round");
+                args.IsSexDate = true;
+                args.LevelUpType = PuzzleRoundOverArgs.CutsceneType.AttractToLovers;
+                args.IsGameOver = Game.Session.Puzzle.puzzleStatus.bonusRound;
+            }
+            else
+            {
+                if (!oneUnderMaxLevel)
+                {
+                    girlSave.RelationshipLevel++;
+                }
+
+                ModInterface.Log.Message("Single date deny bonus round");
+                if (args.LevelUpType == PuzzleRoundOverArgs.CutsceneType.AttractToLovers)
+                {
+                    args.LevelUpType = PuzzleRoundOverArgs.CutsceneType.None;
+                }
+                args.IsSexDate = false;
+                args.IsGameOver = true;
+            }
+        }
+        else if (Plugin.RequireLoversBeforeThreesome.Value)
+        {
+            var girlSaveOne = State.SaveFile.GetGirl(playerFileGirlPair.girlPairDefinition.girlDefinitionOne.id);
+            var girlSaveTwo = State.SaveFile.GetGirl(playerFileGirlPair.girlPairDefinition.girlDefinitionTwo.id);
+
+            if ((girlSaveOne != null && girlSaveOne.RelationshipLevel < maxSingleGirlRelationshipLevel)
+                || (girlSaveTwo != null && girlSaveTwo.RelationshipLevel < maxSingleGirlRelationshipLevel))
+            {
+                ModInterface.Log.Message("Deny double date bonus due to single date levels");
+                args.IsSexDate = false;
+                args.LevelUpType = PuzzleRoundOverArgs.CutsceneType.None;
+            }
+        }
+    }
+
+    internal static void On_DateLocationSelected(DateLocationSelectedArgs args)
+    {
+        var playerFileGirlPair = Game.Persistence.playerFile.GetPlayerFileGirlPair(Game.Session.Location.currentGirlPair);
+
+        if (playerFileGirlPair == null)
+        {
+            return;
+        }
+
+        var maxSingleGirlRelationshipLevel = Plugin.MaxSingleGirlRelationshipLevel.Value;
+
+        if (State.IsSingleDate)
+        {
+            // Deny single dates if not enough stamina
+            var statusGirl = Game.Session.Puzzle.puzzleStatus.GetStatusGirl(true);
+            if (statusGirl.stamina < 1)
+            {
+                args.DenyDate = true;
+                // exhausted
+                Game.Session.gameCanvas.GetDoll(true).ReadDialogTrigger(ModInterface.GameData.GetDialogTrigger(Hp2BaseMod.DialogTriggers.StaminaInsufficient), DialogLineFormat.PASSIVE);
+                return;
+            }
+
+            args.LeftStaminaGain = 0;
+            args.RightStaminaGain = 0;
+
+            args.PlayerPoints = 5;
+            args.LeftPoints = 0;
+            args.RightPoints = 5;
+
+            var girlId = ModInterface.Data.GetDataId(GameDataType.Girl, playerFileGirlPair.girlPairDefinition.girlDefinitionTwo.id);
+            var girlSave = State.SaveFile.GetGirl(girlId);
+
+            if (playerFileGirlPair.relationshipType == GirlPairRelationshipType.ATTRACTED
+                && girlSave.RelationshipLevel == maxSingleGirlRelationshipLevel - 1
+                && Game.Persistence.playerFile.daytimeElapsed % 4 == (int)playerFileGirlPair.girlPairDefinition.sexDaytime
+                && Plugin.TryGetSingleDateGirl(girlId, out var singleDateGirl))
+            {
+                // pick a photo with a loc
+                if (singleDateGirl.SexPhotos.Any()
+                    && singleDateGirl.SexPhotos.Select(x => x.LocationId).ToArray().GetRandom() is var randomLocId
+                    && randomLocId != RelativeId.Default)
+                {
+                    args.Location = ModInterface.GameData.GetLocation(randomLocId);
+                }
+                // or if the photo doesn't have a loc pick randomly
+                else
+                {
+                    args.Location = playerFileGirlPair.girlPairDefinition.sexLocationDefinition;
+
+                    if (args.Location == null)
+                    {
+                        var time = (ClockDaytimeType)(Game.Persistence.playerFile.daytimeElapsed % 4);
+                        Game.Data.Locations.GetAllByLocationType(LocationType.DATE).Where(x =>
+                        {
+                            var expansion = x.GetExpansion();
+                            return expansion.IsValidForNormalDate(time)
+                                && !singleDateGirl.SexLocBlackList.Contains(ModInterface.Data.GetDataId(GameDataType.Location, x.id));
+                        }).ToArray().TryGetRandom(out args.Location);
+                    }
+                }
+
+                return;
+            }
+            else
+            {
+                args.Location = null;
+            }
+        }
+        else if (Plugin.RequireLoversBeforeThreesome.Value)
+        {
+            var girlSaveOne = State.SaveFile.GetGirl(playerFileGirlPair.girlPairDefinition.girlDefinitionOne.id);
+            var girlSaveTwo = State.SaveFile.GetGirl(playerFileGirlPair.girlPairDefinition.girlDefinitionTwo.id);
+
+            if (girlSaveOne?.RelationshipLevel == maxSingleGirlRelationshipLevel
+                && girlSaveTwo?.RelationshipLevel == maxSingleGirlRelationshipLevel
+                && playerFileGirlPair.relationshipType == GirlPairRelationshipType.ATTRACTED
+                && Game.Persistence.playerFile.daytimeElapsed % 4 == (int)playerFileGirlPair.girlPairDefinition.sexDaytime)
+            {
+                args.Location = playerFileGirlPair.girlPairDefinition.sexLocationDefinition;
+                return;
+            }
+            else
+            {
+                args.Location = null;
+            }
+        }
+    }
+
+    internal static void On_RequestUnlockedPhotos(RequestUnlockedPhotosEventArgs args)
+    {
+        args.UnlockedPhotos ??= new List<PhotoDefinition>();
+        args.UnlockedPhotos.AddRange(State.SaveFile.Girls.Values.SelectManyNN(x => x.UnlockedPhotos).Select(ModInterface.GameData.GetPhoto));
+    }
+
+    internal static void On_PreDateDollsRefresh(PreDateDollResetArgs args)
+    {
+        var playerFileGirlPair = Game.Persistence.playerFile.GetPlayerFileGirlPair(Game.Session.Location.currentGirlPair);
+        var maxSingleGirlRelationshipLevel = Plugin.MaxSingleGirlRelationshipLevel.Value;
+
+        if (State.IsSingleDate)
+        {
+            var girlSave = State.SaveFile.GetGirl(playerFileGirlPair.girlPairDefinition.girlDefinitionTwo.id);
+
+            // must be non default and at pre max level
+            var pairStyle = Game.Session.Location.currentGirlPair.GetExpansion().PairStyle;
+            if (pairStyle != null && pairStyle.SexGirlTwo.OutfitId != RelativeId.Default
+                && girlSave?.RelationshipLevel == maxSingleGirlRelationshipLevel - 1)
+            {
+                args.Style = PreDateDollResetArgs.StyleType.Sex;
+            }
+        }
+        else if (Plugin.RequireLoversBeforeThreesome.Value)
+        {
+            var girlSaveOne = State.SaveFile.GetGirl(playerFileGirlPair.girlPairDefinition.girlDefinitionOne.id);
+            var girlSaveTwo = State.SaveFile.GetGirl(playerFileGirlPair.girlPairDefinition.girlDefinitionTwo.id);
+
+            if ((girlSaveOne == null || girlSaveOne.RelationshipLevel == maxSingleGirlRelationshipLevel)
+                && (girlSaveTwo == null || girlSaveTwo.RelationshipLevel == maxSingleGirlRelationshipLevel))
+            {
+                args.Style = PreDateDollResetArgs.StyleType.Sex;
+            }
+        }
+    }
+
+    internal static void On_TalkFavQuestionResponse(TalkFavQuestionResponseArgs args)
+    {
+        if (State.IsSingleDate)
+        {
+            args.OtherGirlResponds = false;
+        }
+    }
+
+    internal static void On_PreLocationArrive(LocationArriveArgs args)
+    {
+        State.On_LocationManger_Arrive(args.girlPairDef);
+
+        if (State.IsSingle(args.girlPairDef))
+        {
+            args.cellphoneOnLeft = true;
+            args.meetingCutscene = UiPrefabs.SingleCutsceneMeeting;
+        }
+    }
+
+    internal static void On_PreLocationSettled(LocationSettledArgs args)
+    {
+        if (State.IsSingleDate)
+        {
+            args.actionBubblesWindow = UiPrefabs.SingleDateBubbles;
+        }
+    }
+
+    internal static void On_RequestGirlStateTransition(GirlStateTransitionArgs args)
+    {
+        if (!State.IsSingleDate) return;
+
+        // Redirect standard Upset transitions to SingleDateUpset when on a single date
+        if (args.TargetStateId == Hp2BaseMod.PuzzleStatusGirlStateId.Upset)
+        {
+            args.TargetStateId = PuzzleStatusGirlStateId.SingleDateUpset;
+        }
+    }
+}
+
+
+File: Plugin.cs
+Content:
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using BepInEx;
+using BepInEx.Configuration;
+using DG.Tweening;
+using HarmonyLib;
+using Hp2BaseMod;
+using Hp2BaseMod.Extension;
+using Hp2BaseMod.GameDataInfo;
+using Hp2BaseMod.GameDataInfo.Interface;
+using Hp2BaseMod.Utility;
+using UnityEngine;
+
+namespace SingleDate;
+
+/// <summary>
+/// Please note, any pair with <see cref="GirlNobody"/> (LocalId 0) as girl 1 will be treated as a single date pair.
+/// The sex location will be chosen from the locations of the girls sex photos set by <see cref="AddGirlSexPhotos"/>.
+/// If the location for the sex photo is <see cref="RelativeId.Default"/>, the sex location for the pair will be used instead.
+/// If the pair's sex location is <see cref="RelativeId.Default"/> it will be randomized. 
+/// Use <see cref="AddSexLocationBlackList"/> to limit the pool if needed. (maybe add multiple loc support to the base mod? Could be cool)
+/// All Data mods are added with a priority of zero
+/// </summary>
+[BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
+[BepInDependency("OSK.BepInEx.Hp2BaseMod", "1.0.1")]
+[BepInDependency("OSK.BepInEx.Hp2BaseModTweaks", BepInDependency.DependencyFlags.SoftDependency)]
+internal partial class Plugin : Hp2BaseModPlugin
+{
+    private const string GENERAL_CONFIG_CAT = "general";
+    public static readonly string ROOT_DIR = Path.Combine(Paths.PluginPath, MyPluginInfo.PLUGIN_NAME);
+    public static readonly string IMAGES_DIR = Path.Combine(ROOT_DIR, "images");
+
+    public static ConfigEntry<bool> ShowSingleUpsetHint => _showSingleUpsetHint;
+    private static ConfigEntry<bool> _showSingleUpsetHint;
+
+    public static ConfigEntry<bool> SingleDateBaggage => _singleDateBaggage;
+    private static ConfigEntry<bool> _singleDateBaggage;
+
+    public static ConfigEntry<bool> RequireLoversBeforeThreesome => _requireLoversBeforeThreesome;
+    private static ConfigEntry<bool> _requireLoversBeforeThreesome;
+
+    public static ConfigEntry<int> MaxSingleGirlRelationshipLevel => _maxSingleGirlRelationshipLevel;
+    private static ConfigEntry<int> _maxSingleGirlRelationshipLevel;
+
+    public static ConfigEntry<int> MaxSensitivityLevel => _maxSensitivityLevel;
+    private static ConfigEntry<int> _maxSensitivityLevel;
+
+    public static AssetBundle AssetBundle => _instance._assetBundle;
+    private AssetBundle _assetBundle;
+
+    public static CharmAnimationRegistry CharmAnimationRegistry => _instance._charmAnimationRegistry;
+    private CharmAnimationRegistry _charmAnimationRegistry;
+
+    public static new int ModId => ((Hp2BaseModPlugin)_instance).ModId;
+
+    private Dictionary<RelativeId, SingleDateGirl> _singleDateGirls = new();
+    private static Plugin _instance;
+    public Plugin() : base(MyPluginInfo.PLUGIN_GUID) { }
+
+    protected override void Awake()
+    {
+        _instance = this;
+        _charmAnimationRegistry = new();
+        base.Awake();
+
+        _assetBundle = AssetBundle.LoadFromFile(Path.Combine(ROOT_DIR, "singledate_assetbundle")); 
+
+        if (ModInterface.TryGetInterModValue("OSK.BepInEx.Hp2BaseModTweaks", "AddModCredit",
+            out Action<Sprite, IEnumerable<(Sprite creditButtonPath, Sprite creditButtonOverPath, string redirectLink)>> m_addModConfig))
+        {
+            m_addModConfig(_assetBundle.LoadAsset<Sprite>("CreditsLogo"), [
+                (
+                    _assetBundle.LoadAsset<Sprite>("onesuchkeeper_credits_art"),
+                    _assetBundle.LoadAsset<Sprite>("onesuchkeeper_credits_art_over"),
+                    "https://linktr.ee/onesuchkeeper"
+                ),
+            ]);
+        }
+
+        _showSingleUpsetHint = Config.Bind(GENERAL_CONFIG_CAT, nameof(ShowSingleUpsetHint), false, "If upset hints are shown on single dates.");
+        _singleDateBaggage = Config.Bind(GENERAL_CONFIG_CAT, nameof(SingleDateBaggage), true, "If baggage is active on single dates.");
+        _requireLoversBeforeThreesome = Config.Bind(GENERAL_CONFIG_CAT, nameof(RequireLoversBeforeThreesome), false, "If both characters must reach lovers on single dates before a threesome can occur.");
+        _maxSingleGirlRelationshipLevel = Config.Bind(GENERAL_CONFIG_CAT, nameof(MaxSingleGirlRelationshipLevel), 3, "Maximum relationship level for single dates. Maximum level must be reached for lovers status.");
+        _maxSensitivityLevel = Config.Bind(GENERAL_CONFIG_CAT, nameof(MaxSensitivityLevel), 4, "Maximum level for sensitivity.");
+
+        State.On_Plugin_Awake();
+
+        GirlNobody.AddDataMods();
+        ModInterface.DataMod.AddDataMod(new AilmentDataMod(Ailments.SingleDateAilment, InsertStyle.append)
+        {
+            ScriptedAilmentFactory = (ailment) => new SingleDateAilment()
+        });
+        ItemSensitivitySmoothie.AddDataMods(_assetBundle);
+
+        SingleDateMeetingCutscene.AddDataMods();
+        SingleDateAttractCutscene.AddDataMods();
+        SingleDatePreSexCutscene.AddDataMods();
+        SingleDatePostSexCutscene.AddDataMods();
+        SingleDateSuccessCutscene.AddDataMods();
+        BonusRoundSuccessCutscene.AddDataMods();
+
+        AddPhotoMod(Photos.DefaultSex, "default");
+        AddPhotoMod(Photos.AbiaSex, "abia");
+        AddPhotoMod(Photos.BrookeSex, "brooke");
+        AddPhotoMod(Photos.CandaceSex, "candace");
+        AddPhotoMod(Photos.LailaniSex, "lailani");
+        AddPhotoMod(Photos.LillianSex, "lillian");
+        AddPhotoMod(Photos.NoraSex, "nora");
+        AddPhotoMod(Photos.PollySex, "polly", true);
+        AddPhotoMod(Photos.SarahSex, "sarah");
+        AddPhotoMod(Photos.ZoeySex, "zoey");
+
+        AddGirlSexPhotos(Hp2BaseMod.Girls.Abia, [(Photos.AbiaSex, Locations.RoyalSuite)]);
+        AddGirlSexPhotos(Hp2BaseMod.Girls.Brooke, [(Photos.BrookeSex, Locations.RoyalSuite)]);
+        AddGirlSexPhotos(Hp2BaseMod.Girls.Candace, [(Photos.CandaceSex, Locations.RoyalSuite)]);
+        AddGirlSexPhotos(Hp2BaseMod.Girls.Lailani, [(Photos.LailaniSex, Locations.RoyalSuite)]);
+        AddGirlSexPhotos(Hp2BaseMod.Girls.Lillian, [(Photos.LillianSex, Locations.RoyalSuite)]);
+        AddGirlSexPhotos(Hp2BaseMod.Girls.Nora, [(Photos.NoraSex, Locations.RoyalSuite)]);
+        AddGirlSexPhotos(Hp2BaseMod.Girls.Polly, [(Photos.PollySex, Locations.RoyalSuite)]);
+        AddGirlSexPhotos(Hp2BaseMod.Girls.Sarah, [(Photos.SarahSex, Locations.RoyalSuite)]);
+        AddGirlSexPhotos(Hp2BaseMod.Girls.Zoey, [(Photos.ZoeySex, Locations.RoyalSuite)]);
+
+        UiPrefabs.InitExternals(_assetBundle);
+
+        ModInterface.DataMod.AddExp(new SensitivityExp());
+
+        ModInterface.Events.PreDataMods += On_PreDataMods;
+
+        ModInterface.Events.PreGameSave += State.On_PreGameSave;
+        ModInterface.Events.PostPersistenceReset += State.On_PostPersistenceReset;
+
+        ModInterface.Events.PuzzleRoundOver += ModEventHandles.On_PuzzleRoundOver;
+        ModInterface.Events.FinderSlotsPopulate += ModEventHandles.On_FinderSlotsPopulate;
+        ModInterface.Events.LocationArriveSequence += ModEventHandles.On_LocationArriveSequence;
+        ModInterface.Events.RandomDollSelected += ModEventHandles.On_RandomDollSelected;
+        ModInterface.Events.DateLocationSelected += ModEventHandles.On_DateLocationSelected;
+        ModInterface.Events.RequestUnlockedPhotos += ModEventHandles.On_RequestUnlockedPhotos;
+        ModInterface.Events.PreDateDollReset += ModEventHandles.On_PreDateDollsRefresh;
+        ModInterface.Events.FavQuestionResponse += ModEventHandles.On_TalkFavQuestionResponse;
+        ModInterface.Events.PreLocationArrive += ModEventHandles.On_PreLocationArrive;
+        ModInterface.Events.PreLocationSettled += ModEventHandles.On_PreLocationSettled;
+        ModInterface.Events.RequestGirlStateTransition += ModEventHandles.On_RequestGirlStateTransition;
+
+        new Harmony(MyPluginInfo.PLUGIN_GUID).PatchAll();
+    }
+
+    [InteropMethod]
+    public static void AddGirlSexPhotos(RelativeId girlId, IEnumerable<(RelativeId, RelativeId)> photoIds)
+        => _instance._singleDateGirls.GetOrNew(girlId).SexPhotos.AddRange(photoIds.Select(x => new SexPhotoData() { PhotoId = x.Item1, LocationId = x.Item2 }));
+
+    [InteropMethod]
+    public static void AddGirlDatePhotos(RelativeId girlId, IEnumerable<(RelativeId, float)> photoIds)
+            => _instance._singleDateGirls.GetOrNew(girlId).DatePhotos.AddRange(photoIds.Select(x => new DatePhotoData() { PhotoId = x.Item1, RelationshipPercentage = x.Item2 }));
+
+    [InteropMethod]
+    public static void AddSexLocationBlackList(RelativeId girlId, IEnumerable<RelativeId> photoIds)
+    {
+        var singleDateGirl = _instance._singleDateGirls.GetOrNew(girlId);
+        singleDateGirl.SexLocBlackList.UnionWith(photoIds);
+    }
+
+    [InteropMethod]
+    public static void SetCutsceneSuccessAttracted(RelativeId girlId, RelativeId CutsceneId)
+        => _instance._singleDateGirls.GetOrNew(girlId).CutsceneSuccessAttracted = CutsceneId;
+
+    [InteropMethod]
+    public static void SetBonusRoundSuccessCutscene(RelativeId girlId, RelativeId CutsceneId)
+        => _instance._singleDateGirls.GetOrNew(girlId).CutsceneSuccessBonus = CutsceneId;
+
+    [InteropMethod]
+    public static void SwapGirls(RelativeId girlIdA, RelativeId girlIdB)
+    {
+        var aData = _instance._singleDateGirls.GetOrNew(girlIdA);
+        var bData = _instance._singleDateGirls.GetOrNew(girlIdB);
+
+        _instance._singleDateGirls[girlIdA] = bData;
+        _instance._singleDateGirls[girlIdB] = aData;
+    }
+
+    [InteropMethod]
+    public static void SetGirlCharm(RelativeId girlId, Sprite charmSprite)
+        => _instance._singleDateGirls.GetOrNew(girlId).CharmSprite = charmSprite;
+
+    [InteropMethod]
+    public static bool IsSexDateValid(RelativeId girlId) => State.SaveFile.GetGirl(girlId).RelationshipLevel >= (MaxSensitivityLevel.Value - 1);
+
+    [InteropMethod]
+    public static IGameDefinitionInfo<CutsceneStepSubDefinition> MakeSexPhotoCutsceneStep() => new ShowSexPhotoCutsceneStep.Info();
+
+    [InteropMethod]
+    public static IGameDefinitionInfo<CutsceneStepSubDefinition> MakeDatePhotoCutsceneStep() => new ShowDatePhotoCutsceneStep.Info();
+
+    [InteropMethod]
+        public void RegisterCharmAnimation(
+        float weight, 
+        float cost,
+        Func<Sequence, (RectTransform transform, bool dir, RelativeId girlId), bool> build,
+        HashSet<RelativeId> allowedCharacters) 
+            => _charmAnimationRegistry.Register(weight, cost, build, allowedCharacters);
+
+    public static SingleDateGirl GetSingleDateGirl(RelativeId girlId)
+            => _instance._singleDateGirls.GetOrNew(girlId);
+
+    public static bool TryGetSingleDateGirl(RelativeId girlId, out SingleDateGirl singleDateGirl)
+        => _instance._singleDateGirls.TryGetValue(girlId, out singleDateGirl);
+
+    private void On_PreDataMods()
+    {
+        ModInterface.Events.PreDataMods -= On_PreDataMods;
+
+        //styles
+        var defaultGirlStyle = new GirlStyleInfo()
+        {
+            HairstyleId = RelativeId.Default,
+            OutfitId = RelativeId.Default,
+        };
+
+        var defaultPairStyle = new PairStyleInfo()
+        {
+            MeetingGirlOne = defaultGirlStyle,
+            MeetingGirlTwo = defaultGirlStyle,
+            SexGirlOne = defaultGirlStyle,
+            SexGirlTwo = defaultGirlStyle,
+        };
+
+        // base game girl pairs
+        for (int i = 1; i < 13; i++)
+        {
+            var mod = new GirlPairDataMod(new RelativeId(State.ModId, i), InsertStyle.replace)
+            {
+                GirlDefinitionOneID = Girls.Nobody,
+                GirlDefinitionTwoID = new RelativeId(-1, i),
+                SpecialPair = false,
+                PhotoDefinitionID = Photos.DefaultSex,
+                IntroductionPair = false,
+                IntroSidesFlipped = false,
+                HasMeetingStyleOne = false,
+                HasMeetingStyleTwo = false,
+                MeetingLocationDefinitionID = new RelativeId(-1, 1 + (i % 8)),
+                SexDayTime = ClockDaytimeType.NIGHT,
+                SexLocationDefinitionID = Locations.RoyalSuite,
+                IntroRelationshipCutsceneDefinitionID = CutsceneIds.Meeting,
+                AttractRelationshipCutsceneDefinitionID = CutsceneIds.Attract,
+                PreSexRelationshipCutsceneDefinitionID = CutsceneIds.PreSex,
+                PostSexRelationshipCutsceneDefinitionID = CutsceneIds.PostSex,
+                SuccessCutsceneDefinitionID = CutsceneIds.Success,
+                BonusSuccessCutsceneDefinitionID = CutsceneIds.BonusSuccess,
+                Styles = defaultPairStyle
+            };
+
+            ModInterface.DataMod.AddDataMod(mod);
+        }
+
+        // states
+        ModInterface.DataMod.AddData(PuzzleStatusGirlStateId.SingleDateUpset, new SingleDateUpsetGirlState());
+    }
+
+    private void AddPhotoMod(RelativeId id, string name, bool hasAlts = false)
+    {
+        if (!(
+                TryGetSprite($"photo_{name}_1", out var photoSprite)
+                && TryGetSprite($"photo_{name}_1_thumb", out var photoThumbSprite)
+            ))
+        {
+            ModInterface.Log.Warning($"Failed to get photo for {name}");
+            return;
+        }
+
+        var photoMod = new PhotoDataMod(id, InsertStyle.replace)
+        {
+            HasAlts = false,
+
+            //BigPhotoCensored = photoInfo,
+            BigPhotoUncensored = new SpriteInfoSprite(photoSprite),
+            //BigPhotoWet = photoInfo,
+
+            //ThumbnailCensored = thumbInfo,
+            ThumbnailUncensored = new SpriteInfoSprite(photoThumbSprite),
+            //ThumbnailWet = thumbInfo,
+        };
+
+        ModInterface.DataMod.AddDataMod(photoMod);
+
+        if (hasAlts)
+        {
+            if (!(
+                    TryGetSprite($"photo_{name}_1", out var photoSpriteAlt)
+                    && TryGetSprite($"photo_{name}_1_thumb", out var photoThumbSpriteAlt)
+                ))
+            {
+                ModInterface.Log.Warning($"Failed to get alt photo for {name}");
+                return;
+            }
+
+            photoMod.HasAlts = true;
+            photoMod.BigPhotoUncensoredAlt = new SpriteInfoSprite(photoSpriteAlt);
+            photoMod.ThumbnailUncensoredAlt = new SpriteInfoSprite(photoThumbSpriteAlt);
+        }
+    }
+
+    private bool TryGetSprite(string assetName, out Sprite sprite)
+    {
+        sprite = _assetBundle.LoadAsset<Sprite>(assetName);
+        return sprite != null;
+    }
+}
+
+
+File: SingleDateGirl.cs
+Content:
+using System.Collections.Generic;
+using Hp2BaseMod;
+using UnityEngine;
+
+namespace SingleDate;
+
+public class SingleDateGirl
+{
+    public List<SexPhotoData> SexPhotos = new();
+
+    public List<DatePhotoData> DatePhotos = new();
+
+    public Sprite CharmSprite;
+    //charm behaviors
+
+    public HashSet<RelativeId> SexLocBlackList = new();
+
+    public RelativeId CutsceneSuccessAttracted = RelativeId.Default;
+    public RelativeId CutsceneSuccessBonus = RelativeId.Default;
+}
+
+public struct DatePhotoData
+{
+    public RelativeId PhotoId;
+    public float RelationshipPercentage;
+}
+
+public struct SexPhotoData
+{
+    public RelativeId PhotoId;
+    public RelativeId LocationId;
+}
+
+
+File: SingleDateUpsetGirlState.cs
+Content:
+using Hp2BaseMod;
+using Hp2BaseMod.Extension;
+using UnityEngine;
+
+namespace SingleDate;
+
+public class SingleDateUpsetGirlState : IPuzzleStatusGirlState
+{
+    private int _movesInState = 0;
+
+    public RelativeId Id => PuzzleStatusGirlStateId.SingleDateUpset;
+
+    public void OnEnter(PuzzleStatusGirl statusGirl, ExpandedPuzzleStatusGirl expansion)
+    {
+        ModInterface.Log.Message("Entered Single Date Upset");
+
+        _movesInState = 0;
+
+        UiDoll doll = Game.Session.gameCanvas.GetDoll(true); // Right doll on single dates
+
+        // Set upset mood and initialize particle emitter
+        doll.SetMood(GirlExpressionType.UPSET, 4f);
+        doll.upsetEmitter.Init();
+
+        // Use UNCHECKED so the voice line isn't cut off by grid updates
+        doll.ReadDialogTrigger(Game.Session.Puzzle.dtBrokenExhausted, DialogLineFormat.UNCHECKED, -1);
+        Game.Session.Ailment.Trigger(AilmentTriggerType.ON_EXHAUSTION);
+    }
+
+    public void OnExit(PuzzleStatusGirl statusGirl, ExpandedPuzzleStatusGirl expansion)
+    {
+        ModInterface.Log.Message("Exited Single Date Upset");
+
+        UiDoll doll = Game.Session.gameCanvas.GetDoll(true);
+
+        // Clear mood expression and stop particles
+        doll.ClearMood();
+        doll.upsetEmitter.Stop();
+
+        // Use UNCHECKED so recovery audio plays smoothly without UI cancellation
+        // doll.ReadDialogTrigger(Game.Session.Puzzle.dtBrokenRecovered, DialogLineFormat.UNCHECKED, -1);
+    }
+
+    public RelativeId OnStaminaChanged(PuzzleStatusGirl statusGirl, ExpandedPuzzleStatusGirl expansion, int newStamina) => Id;
+
+    public RelativeId OnBrokenHeartMatched(PuzzleStatusGirl statusGirl, ExpandedPuzzleStatusGirl expansion, int brokenCount)
+    {
+        _movesInState = 0; // Reset timer on consecutive broken matches
+
+        UiDoll doll = Game.Session.gameCanvas.GetDoll(true);
+        doll.SetMood(GirlExpressionType.UPSET, 4f);
+        doll.upsetEmitter.Init();
+        doll.ReadDialogTrigger(Game.Session.Puzzle.dtBrokenExhausted, DialogLineFormat.UNCHECKED, -1);
+
+        return Id;
+    }
+
+    public RelativeId OnMoveCompleted(PuzzleStatusGirl statusGirl, ExpandedPuzzleStatusGirl expansion)
+    {
+        _movesInState++;
+
+        // Persists through the matching turn (_movesInState = 1) 
+        // and clears on completion of the next move (_movesInState = 2)
+        if (_movesInState >= 2)
+        {
+            return Hp2BaseMod.PuzzleStatusGirlStateId.Normal;
+        }
+
+        return Id;
+    }
+
+    public bool SatisfiesCondition(AbilityStepConditionType abilityStepConditionType) 
+        => abilityStepConditionType == AbilityStepConditionType.IS_UPSET;
+
+    public bool SatisfiesCondition(GirlConditionType girlConditionType) 
+        => girlConditionType == GirlConditionType.UPSET || girlConditionType == GirlConditionType.EXHAUSTED_OR_UPSET;
+}
+
+File: SingleSaveData.cs
+Content:
+using System;
+using System.Collections.Generic;
+
+namespace SingleDate;
+
+[Serializable]
+public class SingleSaveData
+{
+    public List<SingleSaveFile> SaveFiles;
+
+    public void Clean()
+    {
+        SaveFiles ??= new List<SingleSaveFile>();
+        SaveFiles.ForEach(x => x.Clean());
+    }
+}
+
+
+File: SingleSaveFile.cs
+Content:
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Hp2BaseMod;
+using Hp2BaseMod.Extension;
+
+namespace SingleDate;
+
+[Serializable]
+public class SingleSaveFile
+{
+    public int SensitivityExp;
+    public Dictionary<RelativeId, SingleSaveGirl> Girls;
+
+    public void Clean()
+    {
+        Girls ??= new();
+
+        Girls = Girls.Where(x => ModInterface.Data.IsRegistered(GameDataType.Girl, x.Key)).ToDictionary(x => x.Key, x => x.Value);
+        Girls.Values.ForEach(x => x.Clean());
+    }
+
+    public SingleSaveGirl GetGirl(int runtimeId)
+        => GetGirl(ModInterface.Data.GetDataId(GameDataType.Girl, runtimeId));
+
+    public SingleSaveGirl GetGirl(RelativeId girlId)
+    {
+        if (ModInterface.GameData.GetGirl(girlId).specialCharacter)
+        {
+            return null;
+        }
+
+        return Girls.GetOrNew(girlId);
+    }
+}
+
+
+File: SingleSaveGirl.cs
+Content:
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Hp2BaseMod;
+
+namespace SingleDate;
+
+[Serializable]
+public class SingleSaveGirl
+{
+    public int RelationshipLevel;
+    public HashSet<RelativeId> UnlockedPhotos;
+
+    public void Clean()
+    {
+        UnlockedPhotos ??= new();
+        UnlockedPhotos = [.. UnlockedPhotos.Where(x => ModInterface.Data.IsRegistered(GameDataType.Photo, x))];
+    }
+}
+
+
+File: State.cs
+Content:
+using System;
+using Hp2BaseMod;
+using Newtonsoft.Json;
+using UnityEngine;
+
+namespace SingleDate;
+
+public static class State
+{
+    private static readonly float _baseBrokenMult = 0.12f;
+    private static readonly float _deltaBrokenMult = 0.01f;
+
+    public static Vector2 DefaultPuzzleGridPosition => _defaultPuzzleGridPosition;
+    private static Vector2 _defaultPuzzleGridPosition;
+
+    public static int ModId => _modId;
+    private static int _modId;
+
+    public static SingleSaveFile SaveFile
+    {
+        get
+        {
+            while (_save.SaveFiles.Count - 1 < Game.Persistence.loadedFileIndex)
+            {
+                var saveFile = new SingleSaveFile();
+                saveFile.Clean();
+                _save.SaveFiles.Add(saveFile);
+            }
+
+            return _save.SaveFiles[Game.Persistence.loadedFileIndex];
+        }
+    }
+    private static SingleSaveData _save;
+
+    public static bool IsSingleDate => IsSingle(Game.Session.Location.currentGirlPair);
+
+    public static int SensitivityExp => SaveFile.SensitivityExp;
+    public static float SensitivityPercentage => SaveFile.SensitivityExp / (Plugin.MaxSensitivityLevel.Value * 6f);
+
+    public static bool IsSingle(GirlPairDefinition def)
+    {
+        if (def?.girlDefinitionOne == null)
+        {
+            return false;
+        }
+
+        return ModInterface.Data.GetDataId(GameDataType.Girl, def.girlDefinitionOne.id) == Girls.Nobody;
+    }
+
+    public static float GetBrokenMult() => Math.Max(0.01f, _baseBrokenMult - (GetSensitivityLevel() * _deltaBrokenMult));
+
+    public static int GetSensitivityLevel() => SaveFile.SensitivityExp / 6;
+
+    public static void On_UiPuzzleGrid_Start(UiPuzzleGrid uiPuzzleGrid)
+    {
+        _defaultPuzzleGridPosition = uiPuzzleGrid.GetComponent<RectTransform>().anchoredPosition;
+    }
+
+    public static void On_LocationManger_Arrive(GirlPairDefinition pair)
+    {
+        ModInterface.Log.Message("State isSingleDate init");
+        var isSingleDate = IsSingle(pair);
+        Game.Session.gameCanvas.dollLeft.dropZoneCanvasGroup.blocksRaycasts = !isSingleDate;
+        ModInterface.State.CellphoneOnLeft = isSingleDate;
+    }
+
+    public static void On_Plugin_Awake()
+    {
+        _modId = ModInterface.GetSourceId(MyPluginInfo.PLUGIN_GUID);
+    }
+
+    public static void On_PreGameSave()
+    {
+        ModInterface.SetSourceSave(State.ModId, JsonConvert.SerializeObject(_save));
+    }
+
+    public static void On_PostPersistenceReset(SaveData data)
+    {
+        var saveStr = ModInterface.GetSourceSave(State.ModId);
+
+        if (!string.IsNullOrWhiteSpace(saveStr))
+        {
+            _save = JsonConvert.DeserializeObject<SingleSaveData>(saveStr);
+        }
+
+        _save ??= new SingleSaveData();
+
+        _save.Clean();
+    }
+}
+
+
+File: UiPrefabs.cs
+Content:
+using System.IO;
+using BepInEx;
+using Hp2BaseMod;
+using Hp2BaseMod.GameDataInfo;
+using Hp2BaseMod.Utility;
+using UnityEngine;
+
+namespace SingleDate;
+
+/// <summary>
+/// Holds unity engine objects to use as prefabs for alternate single date ui
+/// </summary>
+public static class UiPrefabs
+{
+    private static readonly string _charmsDir = Path.Combine(Paths.PluginPath, "..", "..", "Digital Art Collection", "Charms");
+
+    public static Sprite SingleUiAppPairSlotBgOver => _singleUiAppPairSlotBgOver;
+    private static Sprite _singleUiAppPairSlotBgOver;
+
+    public static Sprite SingleUiAppPairSlotBg => _singleUiAppPairSlotBg;
+    private static Sprite _singleUiAppPairSlotBg;
+
+    public static Sprite SensitivityIcon => _sensitivityIcon;
+    private static Sprite _sensitivityIcon;
+
+    public static Sprite SensitivityPlate => _sensitivityPlate;
+    private static Sprite _sensitivityPlate;
+
+    public static Sprite SensitivityMeter => _sensitivityMeter;
+    private static Sprite _sensitivityMeter;
+
+    public static UiWindow SingleDateBubbles => _singleBubbles;
+    private static UiWindowActionBubbles _singleBubbles;
+
+    public static CutsceneDefinition SingleCutsceneMeeting => _singleCutsceneMeeting;
+    private static CutsceneDefinition _singleCutsceneMeeting;
+
+    private static Sprite _defaultCharmSprite;
+
+    public static void InitExternals(AssetBundle assetBundle)
+    {
+        _singleUiAppPairSlotBg = assetBundle.LoadAsset<Sprite>("ui_app_pairs_pair_bg");
+        _singleUiAppPairSlotBgOver = assetBundle.LoadAsset<Sprite>("ui_app_pairs_pair_bg_over");
+        _sensitivityIcon = assetBundle.LoadAsset<Sprite>("ui_app_pair_icon_sensitivity");
+        _sensitivityPlate = assetBundle.LoadAsset<Sprite>("ui_app_pair_sensitivity");
+        _sensitivityMeter = assetBundle.LoadAsset<Sprite>("ui_app_pair_meter_sensitivity");
+
+        if (Directory.Exists(_charmsDir))
+        {
+            Plugin.SetGirlCharm(Hp2BaseMod.Girls.Abia, GetCharmSprite("Abia"));
+            Plugin.SetGirlCharm(Hp2BaseMod.Girls.Ashley, GetCharmSprite("Ashley"));
+            Plugin.SetGirlCharm(Hp2BaseMod.Girls.Brooke, GetCharmSprite("Brooke"));
+            Plugin.SetGirlCharm(Hp2BaseMod.Girls.Candace, GetCharmSprite("Candace"));
+            Plugin.SetGirlCharm(Hp2BaseMod.Girls.Jessie, GetCharmSprite("Jessie"));
+            Plugin.SetGirlCharm(Hp2BaseMod.Girls.Jewn, GetCharmSprite("Jewn"));
+            Plugin.SetGirlCharm(Hp2BaseMod.Girls.Kyu, GetCharmSprite("Kyu"));
+            Plugin.SetGirlCharm(Hp2BaseMod.Girls.Lailani, GetCharmSprite("Lailani"));
+            Plugin.SetGirlCharm(Hp2BaseMod.Girls.Lillian, GetCharmSprite("Lillian"));
+            Plugin.SetGirlCharm(Hp2BaseMod.Girls.Lola, GetCharmSprite("Lola"));
+            Plugin.SetGirlCharm(Hp2BaseMod.Girls.Moxie, GetCharmSprite("Moxie"));
+            Plugin.SetGirlCharm(Hp2BaseMod.Girls.Nora, GetCharmSprite("Nora"));
+            Plugin.SetGirlCharm(Hp2BaseMod.Girls.Polly, GetCharmSprite("Polly"));
+            Plugin.SetGirlCharm(Hp2BaseMod.Girls.Sarah, GetCharmSprite("Sarah"));
+            Plugin.SetGirlCharm(Hp2BaseMod.Girls.Zoey, GetCharmSprite("Zoey"));
+        }
+
+        _defaultCharmSprite = assetBundle.LoadAsset<Sprite>("DefaultCharm");
+    }
+
+    private static TextureRsScale _charmScale = new TextureRsScale(new Vector2(14 / 45f, 14 / 45f));
+
+    private static Sprite GetCharmSprite(string name) => new SpriteInfoTexture(new TextureInfoCache(
+        Path.Combine(SingleDate.Plugin.IMAGES_DIR, $"{name}Charm.png"),
+        new TextureInfoExternal(Path.Combine(_charmsDir, $"{name}.png"), false, FilterMode.Bilinear, [
+            _charmScale
+        ])
+    )).GetSprite();
+
+    public static void InitActionBubbles(UiWindow actionBubblesWindow)
+    {
+        var delta = Game.Session.gameCanvas.header.xValues.y - Game.Session.gameCanvas.header.xValues.x;
+        _singleBubbles = (UiWindowActionBubbles)Object.Instantiate(actionBubblesWindow);
+
+        UiActionBubble badTalkBubble = null;
+        UiActionBubble dateBubble = null;
+        UiActionBubble goodTalkBubble = null;
+        foreach (var bubble in _singleBubbles.actionBubbles)
+        {
+            switch (bubble.actionBubbleType)
+            {
+                case ActionBubbleType.TALK:
+                    if (bubble.actionBubbleValue == 0)
+                    {
+                        badTalkBubble = bubble;
+                    }
+                    else
+                    {
+                        goodTalkBubble = bubble;
+                    }
+                    break;
+                case ActionBubbleType.DATE:
+                    dateBubble = bubble;
+                    break;
+            }
+
+            bubble.transform.position = new Vector3(bubble.transform.position.x + delta, bubble.transform.position.y, bubble.transform.position.z);
+        }
+
+        if (badTalkBubble != null && dateBubble != null)
+        {
+            dateBubble.transform.position = new Vector3(badTalkBubble.transform.position.x + 48,
+                badTalkBubble.transform.position.y + 32f);
+
+            var padding_GO = new GameObject($"{dateBubble.name}Padding");
+            padding_GO.transform.SetParent(dateBubble.transform.parent, false);
+            var padding_RectTransform = padding_GO.AddComponent<RectTransform>();
+            var ratio = 29f / 33f;
+            padding_RectTransform.localScale = new Vector3(ratio, ratio, 1f);
+
+            dateBubble.transform.SetParent(padding_RectTransform, true);
+        }
+
+        if (goodTalkBubble != null)
+        {
+            goodTalkBubble.transform.position = new Vector3(goodTalkBubble.transform.position.x - 48,
+                goodTalkBubble.transform.position.y + 32f);
+        }
+
+        if (badTalkBubble != null)
+        {
+            badTalkBubble.transform.SetParent(null);
+            UnityEngine.Object.Destroy(badTalkBubble);
+            _singleBubbles.actionBubbles.Remove(badTalkBubble);
+        }
+    }
+
+    public static Sprite GetCharmSprite(RelativeId girlId)
+    {
+        if (Plugin.TryGetSingleDateGirl(girlId, out var singleDateGirl)
+            && singleDateGirl.CharmSprite != null)
+        {
+            return singleDateGirl.CharmSprite;
+        }
+
+        return _defaultCharmSprite;
+    }
+
+    internal static void InitCutsceneMeeting(CutsceneDefinition cutsceneMeeting)
+    {
+        _singleCutsceneMeeting = new CutsceneDefinition()
+        {
+            cleanUpType = CutsceneCleanUpType.NONE,
+            steps = new(){
+                CutsceneStepUtility.MakeDollMove(DollPositionType.INNER).TargetOrientation(DollOrientationType.RIGHT),
+                CutsceneStepUtility.MakeSubCutsceneGirlPair(GirlPairRelationshipType.UNKNOWN, CutsceneStepProceedType.AUTOMATIC),
+                cutsceneMeeting.steps[5],//compat banner
+                CutsceneStepUtility.MakeTogglePhoneAndHeader(true, CutsceneStepProceedType.AUTOMATIC)
+            }
+        };
+    }
+}
+
+
+File: CharmAnimationContext.cs
+Content:
+using Hp2BaseMod;
+using UnityEngine;
+
+namespace SingleDate;
+
+public class CharmAnimationContext
+{
+    public RectTransform Transform;
+    public float Dir;
+    public RelativeId GirlId;
+}
+
+File: CharmAnimationDefinition.cs
+Content:
+using System;
+using System.Collections.Generic;
+using DG.Tweening;
+using Hp2BaseMod;
+
+namespace SingleDate;
+
+public class CharmAnimationDefinition
+{
+    public float Weight;
+    public float Cost;
+
+    // null = applies to all characters
+    public HashSet<RelativeId> AllowedCharacters;
+
+    public Action<Sequence, CharmAnimationContext> Build;
+}
+
+File: CharmAnimationRegistry.cs
+Content:
+using System.Collections.Generic;
+using DG.Tweening;
+using Hp2BaseMod;
+using UnityEngine;
+using System.Linq;
+using HarmonyLib;
+using System;
+
+namespace SingleDate;
+
+public class CharmAnimationRegistry
+{
+    private readonly List<CharmAnimationDefinition> _animations = new();
+
+    public CharmAnimationRegistry()
+    {
+        RegisterAll();
+    }
+
+    public Sequence CreateSequence(CharmAnimationContext context, float budget)
+    {
+        var seq = DOTween.Sequence();
+        float remaining = budget;
+
+        int safety = 0;
+
+        while (remaining > 0.01f && safety++ < 20)
+        {
+            var pool = GetValidAnimations(context.GirlId, remaining);
+
+            if (pool.Count == 0)
+            {
+                seq.AppendInterval(0.5f);
+                break;
+            }
+
+            var anim = WeightedPick(pool);
+
+            remaining -= anim.Cost;
+
+            anim.Build(seq, context);
+        }
+
+        return seq;
+    }
+
+    private List<CharmAnimationDefinition> GetValidAnimations(RelativeId id, float budget)
+    {
+        var result = new List<CharmAnimationDefinition>();
+
+        foreach (var a in _animations)
+        {
+            if (a.Cost > budget)
+                continue;
+
+            if (a.AllowedCharacters != null && !a.AllowedCharacters.Contains(id))
+                continue;
+
+            result.Add(a);
+        }
+
+        return result;
+    }
+
+    private CharmAnimationDefinition WeightedPick(List<CharmAnimationDefinition> list)
+    {
+        float total = 0f;
+
+        foreach (var a in list) total += a.Weight;
+
+        float roll = UnityEngine.Random.value * total;
+
+        foreach (var a in list)
+        {
+            roll -= a.Weight;
+            if (roll <= 0) return a;
+        }
+
+        return list[list.Count - 1];
+    }
+
+    public void Register(
+        float weight, 
+        float cost,
+        Func<Sequence, (RectTransform transform, bool dir, RelativeId girlId), bool> build,
+        HashSet<RelativeId> allowedCharacters)
+    {
+        _animations.Add(new CharmAnimationDefinition
+        {
+            Weight = weight,
+            Cost = cost,
+            AllowedCharacters = allowedCharacters,
+            Build = (seq, c) =>
+            {
+                if (build(seq, (c.Transform, c.Dir > 0, c.GirlId)))
+                {
+                    c.Dir *= -1;
+                }
+            }
+        });
+    }
+
+    private void RegisterAll()
+    {
+        _animations.Add(new CharmAnimationDefinition
+        {
+            Weight = 1.4f,
+            Cost = 1.0f,
+            AllowedCharacters = null,
+            Build = (seq, c) =>
+            {
+                seq.Append(c.Transform.DOLocalJump(
+                    c.Transform.localPosition + new Vector3(UnityEngine.Random.Range(-60f, 60f), 0),
+                    UnityEngine.Random.Range(10f, 20f),
+                    UnityEngine.Random.Range(1, 2),
+                    1.2f).SetEase(Ease.Linear));
+            }
+        });
+
+        _animations.Add(new CharmAnimationDefinition
+        {
+            Weight = 0.8f,
+            Cost = 0.15f,
+            AllowedCharacters = null,
+            Build = (seq, c) =>
+            {
+                c.Dir *= -1;
+            }
+        });
+
+        _animations.Add(new CharmAnimationDefinition
+        {
+            Weight = 1.0f,
+            Cost = 0.6f,
+            AllowedCharacters = null,
+            Build = (seq, c) =>
+            {
+                seq.Join(c.Transform.DOScaleY(0.95f, 1f).SetEase(Ease.InOutElastic));
+                seq.Join(c.Transform.DOScaleX(1.05f * c.Dir, 1f).SetEase(Ease.InOutElastic));
+            }
+        });
+
+        _animations.Add(new CharmAnimationDefinition
+        {
+            Weight = 1.0f,
+            Cost = 0.6f,
+            AllowedCharacters = null,
+            Build = (seq, c) =>
+            {
+                seq.Join(c.Transform.DOScaleY(1.05f, 1f).SetEase(Ease.InOutElastic));
+                seq.Join(c.Transform.DOScaleX(0.95f * c.Dir, 1.2f).SetEase(Ease.InOutElastic));
+            }
+        });
+
+        _animations.Add(new CharmAnimationDefinition
+        {
+            Weight = 1.1f,
+            Cost = 0.8f,
+            AllowedCharacters = null,
+            Build = (seq, c) =>
+            {
+                seq.Append(c.Transform.DOScaleX(-1f * c.Dir, 1).SetEase(Ease.InSine));
+                seq.Append(c.Transform.DOScaleX(1f * c.Dir, 1).SetEase(Ease.OutSine));
+            }
+        });
+
+        _animations.Add(new CharmAnimationDefinition
+        {
+            Weight = 0.5f,
+            Cost = 3.5f,
+            AllowedCharacters = null,
+            Build = (seq, c) =>
+            {
+                // full impulse buildup
+                seq.Append(c.Transform.DOScaleX(1.4f * c.Dir, 1.2f));
+                seq.Join(c.Transform.DOScaleY(0.75f, 1.2f));
+                seq.AppendInterval(0.45f);
+
+                // jump impulse
+                seq.Append(c.Transform.DOLocalJump(c.Transform.localPosition, 200f, 1, 3.5f));
+
+                // spin decay
+                seq.Append(c.Transform.DORotate(new Vector3(0, 0, c.Dir * 360f), 2.3f, RotateMode.FastBeyond360));
+
+                seq.Append(c.Transform.DOScale(1f, 1f));
+            }
+        });
+
+        // Sarah
+        _animations.Add(new CharmAnimationDefinition
+        {
+            Weight = 1.35f,
+            Cost = 1.2f,
+            AllowedCharacters = new HashSet<RelativeId> { Hp2BaseMod.Girls.Sarah },
+            Build = (seq, c) =>
+            {
+                seq.Append(c.Transform.DOScale(1.25f, 0.15f));
+                seq.Append(c.Transform.DOScale(0.9f, 0.15f));
+                seq.Append(c.Transform.DOScale(1.15f, 0.2f));
+
+                seq.Append(c.Transform.DOLocalMoveX(c.Transform.localPosition.x + (30f * c.Dir), 0.25f));
+                seq.Append(c.Transform.DOLocalMoveX(c.Transform.localPosition.x, 0.35f));
+
+                seq.Append(c.Transform.DOShakeAnchorPos(0.8f, 12f, 14));
+            }
+        });
+
+        // Lillian
+        _animations.Add(new CharmAnimationDefinition
+        {
+            Weight = 0.85f,
+            Cost = 1.2f,
+            AllowedCharacters = new HashSet<RelativeId> { Hp2BaseMod.Girls.Lillian },
+            Build = (seq, c) =>
+            {
+                seq.Append(c.Transform.DOLocalMoveY(c.Transform.localPosition.y - 16f, 1.4f));
+                seq.AppendInterval(2.5f);
+                seq.Append(c.Transform.DOLocalMoveY(c.Transform.localPosition.y - 6f, 1.6f));
+                seq.Join(c.Transform.DOScale(0.98f, 1.6f));
+            }
+        });
+
+        // Abia
+        _animations.Add(new CharmAnimationDefinition
+        {
+            Weight = 0.8f,
+            Cost = 1.5f,
+            AllowedCharacters = new HashSet<RelativeId> { Hp2BaseMod.Girls.Abia },
+            Build = (seq, c) =>
+            {
+                seq.Append(c.Transform.DOShakeAnchorPos(4f, 30f));
+
+                seq.Append(c.Transform.DOScale(1.1f, 0.2f));
+                seq.Append(c.Transform.DOScale(1f, 0.4f));
+
+                seq.Append(c.Transform.DOShakePosition(0.8f, 6f, 20));
+            }
+        });
+
+        // Ashley
+        // Brooke
+        // Candace
+        // Jessie
+        // Jewn
+        // Kyu
+        // Lailani
+        // Lola
+        // Moxie
+        // Nora
+        // Polly
+        // Zoey
+    }
+}
+
+File: GirlNobody.cs
+Content:
+using System.Collections.Generic;
+using Hp2BaseMod;
+using Hp2BaseMod.GameDataInfo;
+using Hp2BaseMod.GameDataInfo.Interface;
+using Hp2BaseMod.Utility;
+
+namespace SingleDate;
+
+internal static class GirlNobody
+{
+    internal static void AddDataMods()
+    {
+        var emptyPartId = new RelativeId(State.ModId, 0);
+        var emptySpriteInfo = new SpriteInfoInternal("EmptySprite");
+
+        var emptyPart = new GirlPartDataMod(emptyPartId, InsertStyle.replace)
+        {
+            X = 0,
+            Y = 0,
+            PartType = GirlPartType.BODY,
+            PartName = "Body",
+            SpriteInfo = emptySpriteInfo
+        };
+
+        var neutralExpressionId = new RelativeId(-1, (int)GirlExpressionType.NEUTRAL);
+
+        ModInterface.DataMod.AddDataMod(new GirlDataMod(Girls.Nobody, InsertStyle.replace)
+        {
+            GirlName = "Nobody",
+            SpecialCharacter = true,
+
+            FavoriteAffectionId = Hp2BaseMod.PuzzleAffectionId.Talent,
+            LeastFavoriteAffectionId = Hp2BaseMod.PuzzleAffectionId.Talent,
+
+            bodies = new List<IGirlBodyDataMod>()
+            {
+                new GirlBodyDataMod(new RelativeId(State.ModId,0), InsertStyle.append)
+                {
+                    PartBody = emptyPart,
+                    PartBlink = emptyPart,
+                    PartBlushHeavy = emptyPart,
+                    PartBlushLight = emptyPart,
+                    PartMouthNeutral = emptyPart,
+                    PartNipples = emptyPart,
+                    DefaultExpressionId = neutralExpressionId,
+                    DefaultHairstyleId = emptyPartId,
+                    DefaultOutfitId = emptyPartId,
+
+                    expressions = new List<IBodySubDataMod<GirlExpressionSubDefinition>>(){
+                        new GirlExpressionDataMod(neutralExpressionId, InsertStyle.replace)
+                        {
+                            ExpressionType = GirlExpressionType.NEUTRAL,
+                            PartEyebrows = emptyPart,
+                            PartEyes = emptyPart,
+                            PartEyesGlow = emptyPart,
+                            PartMouthClosed = emptyPart,
+                            PartMouthOpen = emptyPart
+                        }
+                    },
+                    hairstyles = new List<IBodySubDataMod<GirlHairstyleSubDefinition>>(){
+                        new HairstyleDataMod(emptyPartId, InsertStyle.replace){
+                            Name = string.Empty,
+                            FrontHairPart = emptyPart,
+                            BackHairPart = emptyPart
+                        }
+                    },
+                    outfits = new List<IBodySubDataMod<GirlOutfitSubDefinition>>()
+                    {
+                        new OutfitDataMod(emptyPartId, InsertStyle.replace)
+                        {
+                            Name = string.Empty,
+                            OutfitPart = emptyPart
+                        }
+                    }
+                }
+            },
+
+            HasAltStyles = false,
+
+            CellphoneHead = emptySpriteInfo,
+            CellphoneHeadAlt = emptySpriteInfo,
+            CellphoneMiniHead = emptySpriteInfo,
+            CellphoneMiniHeadAlt = emptySpriteInfo,
+            CellphonePortrait = emptySpriteInfo,
+            CellphonePortraitAlt = emptySpriteInfo,
+        });
+    }
+}
+
+
+File: ItemSensitivitySmoothie.cs
+Content:
+using Hp2BaseMod;
+using Hp2BaseMod.GameDataInfo;
+using Hp2BaseMod.Utility;
+using UnityEngine;
+
+namespace SingleDate;
+
+internal static class ItemSensitivitySmoothie
+{
+    public static RelativeId SmoothieId => _smoothieId;
+    private static RelativeId _smoothieId;
+
+    public static RelativeId Exp => _expId;
+    private static RelativeId _expId;
+
+    public static RelativeId Level => _levelId;
+    private static RelativeId _levelId;
+
+    public static void AddDataMods(AssetBundle assetBundle)
+    {
+        _smoothieId = new RelativeId(State.ModId, 0);
+        _expId = new RelativeId(State.ModId, 1);
+        _levelId = new RelativeId(State.ModId, 2);
+
+        var spriteInfo = new SpriteInfoSprite(assetBundle.LoadAsset<Sprite>("item_smoothie_sensitivity"));
+
+        ModInterface.DataMod.AddData(ItemGiftHandlers.SensitivitySmoothie, new GiftHandler());
+
+        ModInterface.DataMod.AddDataMod(new ItemDataMod(_smoothieId, InsertStyle.replace)
+        {
+            ItemSpriteInfo = spriteInfo,
+            ItemName = "Sensitivity Smoothie",
+            ItemDescription = "+1 [[broken]@Sensitivity] EXP.",
+            TooltipColorIndex = 6,
+            StoreCost = 5,
+            CategoryDescription = "Sensitivity",
+            EnergyDefinitionID = new RelativeId(-1, 6),
+            StoreSectionPreference = false,
+            ItemGiftHandlerId = ItemGiftHandlers.SensitivitySmoothie,
+            ItemStoreHandlerId = ItemTypes.Smoothie
+        });
+
+        ModInterface.DataMod.AddDataMod(new ItemDataMod(_expId, InsertStyle.replace)
+        {
+            ItemSpriteInfo = spriteInfo,
+            ItemName = "Sensitivity EXP",
+            ItemDescription = "Earn [[broken]@Sensitivity] EXP by giving [[broken]@Sensitivity] smoothies to girls.",
+            TooltipColorIndex = 6,
+            CategoryDescription = "+(NUM0) EXP until Level (NUM1)"
+        });
+
+        ModInterface.DataMod.AddDataMod(new ItemDataMod(_levelId, InsertStyle.replace)
+        {
+            ItemName = "Sensitivity Level (LEVEL)",
+            ItemDescription = "[[broken]@Broken Heart] token matches will yield [[broken]-(13-(NUM0))%] Affection.",
+            TooltipColorIndex = 6,
+            CategoryDescription = "Affection Level • Sensitivity"
+        });
+    }
+
+    private class GiftHandler : IItemGiftHandler
+    {
+        private static readonly RelativeId DT_SMOOTHIE_ACCEPT = new RelativeId(-1, 18);
+        private static readonly RelativeId DT_SMOOTHIE_FULL = new RelativeId(-1, 19);
+        private static readonly RelativeId DT_SMOOTHIE_REJECT = new RelativeId(-1, 20);
+
+        public bool CanGive(ExpandedItemDefinition item, 
+            ExpandedGirlDefinition girl, 
+            PuzzleStatusGirl statusGirl, 
+            PlayerFileGirl fileGirl, 
+            bool altGirl)
+        {
+            if (!Game.Session.Location.AtLocationType(LocationType.SIM)
+                || State.SaveFile.SensitivityExp < 24)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public string OnGiveSucceed(ExpandedItemDefinition item, 
+            UiDoll doll, 
+            ExpandedGirlDefinition girl, 
+            PuzzleStatusGirl statusGirl, 
+            PlayerFileGirl playerFileGirl, 
+            bool isAltGirl)
+        {
+            var text = $"+1 Sensitivity EXP";
+
+            var affectionLevel = State.GetSensitivityLevel();
+
+            State.SaveFile.SensitivityExp++;
+
+            var updatedAffectionLevel = State.GetSensitivityLevel();
+            if (updatedAffectionLevel != affectionLevel)
+            {
+                doll.notificationBox.Show($"Sensitivity Level {updatedAffectionLevel + 1} achieved!", 0f, false);
+            }
+
+            doll.ReadDialogTrigger(ModInterface.GameData.GetDialogTrigger(DT_SMOOTHIE_ACCEPT), DialogLineFormat.PASSIVE, -1);
+
+            Game.Persistence.playerFile.relationshipPoints++;
+            playerFileGirl.relationshipPoints++;
+
+            return text;
+        }
+
+        public void OnGiveFailed(ExpandedItemDefinition item, ExpandedGirlDefinition girl, UiDoll doll)
+        {
+            if (State.SaveFile.SensitivityExp < 24)
+            {
+                doll.ReadDialogTrigger(ModInterface.GameData.GetDialogTrigger(DT_SMOOTHIE_FULL), DialogLineFormat.PASSIVE, -1);
+                return;
+            }
+
+            doll.ReadDialogTrigger(ModInterface.GameData.GetDialogTrigger(DT_SMOOTHIE_REJECT), DialogLineFormat.PASSIVE, -1);
+        }
+    }
+}
+
+
+File: SensitivityExp.cs
+Content:
+using Hp2BaseMod;
+using Hp2BaseMod.GameDataInfo.Interface;
+using UnityEngine;
+
+namespace SingleDate;
+
+internal class SensitivityExp : IExpInfo
+{
+    public float Percentage => State.SensitivityPercentage;
+
+    public int CurrentLevel => State.GetSensitivityLevel() + 1;
+
+    public int MaxLevel => Plugin.MaxSensitivityLevel.Value + 1;
+
+    public ItemDefinition ExpItemDef => ModInterface.GameData.GetItem(ItemSensitivitySmoothie.Exp);
+
+    public ItemDefinition LevelPlateItemDef => ModInterface.GameData.GetItem(ItemSensitivitySmoothie.Level);
+
+    public string ExpTitle => $"Sensitivity Level {State.GetSensitivityLevel() + 1}";
+
+    public string ExpDesc
+    {
+        get
+        {
+            var sensitivityLevel = State.GetSensitivityLevel();
+            return sensitivityLevel == Plugin.MaxSensitivityLevel.Value
+                ? "Maximum Sensitivity Level!"
+                : $"Misc • +{6 - (State.SensitivityExp % 6)} EXP until Level {sensitivityLevel + 2}";
+        }
+    }
+
+    public string PlateTitle => "SENSTIV. LVL";
+
+    public string PlateDesc => $"On single dates, each <c=#5E2782FF><q=hp_token_broken>Broken Heart</c> token matched will remove <c=#5E2782FF>{(State.GetBrokenMult() * 100).ToString("0.00")}%</c> Affection.";
+
+    public Sprite IconImage => UiPrefabs.SensitivityIcon;
+
+    public Sprite MeterFront => UiPrefabs.SensitivityMeter;
+    public Sprite PlateImage => UiPrefabs.SensitivityPlate;
+
+    public RelativeId AffectionType => RelativeId.Default;
+
+    public Color32 OutlineColor => new Color32(80, 57, 157, 255);
+    public Color32 TextColor => new Color32(221, 217, 255, 255);
+
+    public ItemDefinition SmoothieItemDef => ModInterface.GameData.GetItem(ItemSensitivitySmoothie.SmoothieId);
+}
+
+
+File: Ailments.cs
+Content:
+using Hp2BaseMod;
+
+namespace SingleDate;
+
+public static class Ailments
+{
+    public static RelativeId SingleDateAilment => _singleDateAilment;
+    private static readonly RelativeId _singleDateAilment = new RelativeId(Plugin.ModId, 0);
+}
+
+
+File: Girls.cs
+Content:
+using Hp2BaseMod;
+
+namespace SingleDate;
+
+public static class Girls
+{
+    public static RelativeId Nobody => _nobody;
+    private static readonly RelativeId _nobody = new RelativeId(Plugin.ModId, 0);
+}
+
+
+File: ItemGiftHandlers.cs
+Content:
+using Hp2BaseMod;
+
+namespace SingleDate;
+
+public static class ItemGiftHandlers
+{
+    public static RelativeId SensitivitySmoothie => _sensitivitySmoothie;
+    private static readonly RelativeId _sensitivitySmoothie = new RelativeId(Plugin.ModId, 0);
+}
+
+
+File: Photos.cs
+Content:
+using Hp2BaseMod;
+
+namespace SingleDate;
+
+public static class Photos
+{
+    public static RelativeId DefaultSex => _defaultSex;
+    private static readonly RelativeId _defaultSex = new RelativeId(Plugin.ModId, -1);
+
+    public static RelativeId AbiaSex => _abiaSex;
+    private static readonly RelativeId _abiaSex = new RelativeId(Plugin.ModId, 0);
+    
+    public static RelativeId BrookeSex => _brookeSex;
+    private static readonly RelativeId _brookeSex = new RelativeId(Plugin.ModId, 1);
+
+    public static RelativeId CandaceSex => _candaceSex;
+    private static readonly RelativeId _candaceSex = new RelativeId(Plugin.ModId, 2);
+
+    public static RelativeId LailaniSex => _lailaniSex;
+    private static readonly RelativeId _lailaniSex = new RelativeId(Plugin.ModId, 3);
+
+    public static RelativeId LillianSex => _lillianSex;
+    private static readonly RelativeId _lillianSex = new RelativeId(Plugin.ModId, 4);
+
+    public static RelativeId NoraSex => _noraSex;
+    private static readonly RelativeId _noraSex = new RelativeId(Plugin.ModId, 5);
+
+    public static RelativeId PollySex => _pollySex;
+    private static readonly RelativeId _pollySex = new RelativeId(Plugin.ModId, 6);
+
+    public static RelativeId SarahSex => _sarahSex;
+    private static readonly RelativeId _sarahSex = new RelativeId(Plugin.ModId, 7);
+
+    public static RelativeId ZoeySex => _zoeySex;
+    private static readonly RelativeId _zoeySex = new RelativeId(Plugin.ModId, 8);
+}
+
+
+File: PuzzleStatusGirlStateId.cs
+Content:
+using Hp2BaseMod;
+
+namespace SingleDate;
+
+public static class PuzzleStatusGirlStateId
+{
+    public static RelativeId SingleDateUpset => _singleDateUpset;
+    private static readonly RelativeId _singleDateUpset = new RelativeId(Plugin.ModId, 0);
+}
+
+File: AilmentPatch.cs
+Content:
+using HarmonyLib;
+using Hp2BaseMod;
+
+namespace SingleDate;
+
+[HarmonyPatch(typeof(Ailment))]
+internal static class AilmentPatch
+{
+    private static readonly RelativeId[] _singleDateDisabledAilments = [
+        new RelativeId(-1, 28),//Ashley - Commitment Issues - disabled because after 4 turns all matches turn negative
+        new RelativeId(-1, 31)//Abia - Self Effacing - disables because doesn't allow gifts at all on single dates
+    ];
+
+    private static readonly RelativeId _commitmentIssuesId = new RelativeId(-1, 28);
+
+    [HarmonyPatch(nameof(Ailment.Enable))]
+    [HarmonyPrefix]
+    public static bool Enable(Ailment __instance)
+    {
+        //prevent incompatible ailments from being enabled during single dates
+        if (!State.IsSingleDate)
+        {
+            return true;
+        }
+
+        if (!Plugin.SingleDateBaggage.Value)
+        {
+            return false;
+        }
+
+        foreach (var id in _singleDateDisabledAilments)
+        {
+            if (ModInterface.Data.TryGetRuntimeDataId(GameDataType.Ailment, id, out var runtimeId)
+                && __instance.definition.id == runtimeId)
+            {
+                ModInterface.Log.Message($"Preventing ailment {id} \"{__instance.definition.name}\" from being enabled during single date");
+                return false;
+            }
+        }
+
+        return true;
+    }
+}
+
+
+File: CutsceneStepSpecialPostRewardsPatch.cs
+Content:
+using System.Collections.Generic;
+using System.Reflection;
+using HarmonyLib;
+using Hp2BaseMod;
+using Hp2BaseMod.Extension;
+using UnityEngine;
+
+namespace SingleDate;
+
+[HarmonyPatch(typeof(CutsceneStepSpecialPostRewards))]
+internal static class CutsceneStepSpecialPostRewardsPatch
+{
+    private static readonly FieldInfo f_puzzleStatus = AccessTools.Field(typeof(CutsceneStepSpecialPostRewards), "_puzzleStatus");
+    private static readonly FieldInfo f_puzzleGrid = AccessTools.Field(typeof(CutsceneStepSpecialPostRewards), "_puzzleGrid");
+    private static readonly FieldInfo f_puzzleFailure = AccessTools.Field(typeof(CutsceneStepSpecialPostRewards), "_puzzleFailure");
+    private static readonly FieldInfo f_postRewards = AccessTools.Field(typeof(CutsceneStepSpecialPostRewards), "_postRewards");
+    private static readonly FieldInfo f_rewardtimestamp = AccessTools.Field(typeof(CutsceneStepSpecialPostRewards), "_rewardtimestamp");
+    private static readonly FieldInfo f_rewardDelay = AccessTools.Field(typeof(CutsceneStepSpecialPostRewards), "_rewardDelay");
+
+    [HarmonyPatch("Start")]
+    [HarmonyPrefix]
+    private static bool Start(CutsceneStepSpecialPostRewards __instance)
+    {
+        // On normal double dates, let base game & Hp2BaseMod handle both girls
+        if (!State.IsSingleDate) return true;
+
+        var puzzleStatus = Game.Session.Puzzle.puzzleStatus;
+        var puzzleGrid = Game.Session.Puzzle.puzzleGrid;
+
+        f_puzzleStatus.SetValue(__instance, puzzleStatus);
+        f_puzzleGrid.SetValue(__instance, puzzleGrid);
+        f_puzzleFailure.SetValue(__instance, false);
+
+        var postRewards = f_postRewards.GetValue<List<PuzzlePostReward>>(__instance);
+        postRewards.Clear();
+
+        var fruitCount = __instance.baseFruitCount;
+
+        // Calculate total fruit count based on date type & failure state
+        if (puzzleStatus.statusType == PuzzleStatusType.NONSTOP)
+        {
+            fruitCount = 0;
+            int fruitIncrease = 2;
+            for (int i = 0; i < puzzleStatus.roundIndex; i++)
+            {
+                if (i % 2 == 0 && i > 0)
+                {
+                    fruitIncrease += 2;
+                }
+                fruitCount += fruitIncrease;
+            }
+            fruitCount *= 2;
+        }
+        else if (puzzleStatus.statusType == PuzzleStatusType.NORMAL 
+                 && !puzzleStatus.IsTutorial(false) 
+                 && puzzleGrid.roundState == PuzzleRoundState.FAILURE)
+        {
+            fruitCount = 2;
+            for (int j = 0; j < 6; j++)
+            {
+                if (puzzleStatus.affection / (float)puzzleStatus.affectionGoal >= 0.15f * (j + 1))
+                {
+                    fruitCount += 2;
+                }
+            }
+            f_puzzleFailure.SetValue(__instance, true);
+        }
+
+        var focusedGirl = puzzleStatus.girlStatusFocused.girlDefinition;
+
+        // Roll fruit seeds strictly for the active date partner (Nobody is skipped)
+        for (int k = 0; k < fruitCount; k++)
+        {
+            var itemDefinition = focusedGirl.GetExpansion().GetRandomFruit();
+
+            if (itemDefinition != null)
+            {
+                postRewards.Add(new PuzzlePostReward(
+                    itemDefinition,
+                    "+1 " + StringUtils.Titleize(itemDefinition.GetExpansion().Affection.Name) + " Seed",
+                    true // Always target the right doll on single dates
+                ));
+            }
+        }
+
+        f_rewardtimestamp.SetValue(__instance, Game.Manager.Time.Lifetime(__instance.pauseDefinition));
+        f_rewardDelay.SetValue(__instance, 0.64f);
+
+        if (!f_puzzleFailure.GetValue<bool>(__instance))
+        {
+            Game.Session.gameCanvas.GetDoll(true).ChangeExpression(__instance.startExpression, false);
+        }
+
+        return false; // Skip original method and Hp2BaseMod prefix on single dates
+    }
+}
+
+
+File: EnergyTrailBehaviorPatch.cs
+Content:
+using System.Reflection;
+using HarmonyLib;
+
+namespace SingleDate;
+
+[HarmonyPatch(typeof(EnergyTrailBehavior))]
+internal static class EnergyTrailBehaviorPatch
+{
+    private static readonly FieldInfo f_splashText = AccessTools.Field(typeof(EnergyTrailBehavior), "_splashText");
+
+    [HarmonyPatch(nameof(EnergyTrailBehavior.Init), [typeof(EnergyTrailFormat), typeof(PuzzleReward), typeof(UiPuzzleSlot)])]
+    [HarmonyPostfix]
+    private static void Init(EnergyTrailBehavior __instance, EnergyTrailFormat format, PuzzleReward reward, UiPuzzleSlot puzzleSlot)
+    {
+        if (!State.IsSingleDate)
+        {
+            return;
+        }
+
+        if (reward.resourceValue != 0
+            && reward.resourceType == PuzzleResourceType.BROKEN)
+        {
+            f_splashText.SetValue(__instance, reward.GetLabelText(false));
+        }
+    }
+}
+
+
+File: ExpandedUiAppFinderSlotPatch.cs
+Content:
+using System.Reflection;
+using HarmonyLib;
+using Hp2BaseMod;
+using Hp2BaseMod.Extension;
+using UnityEngine;
+
+namespace SingleDate;
+
+[HarmonyPatch(typeof(UiAppFinderSlot))]
+internal static class UiAppFinderSlotPatch
+{
+    [HarmonyPatch(nameof(UiAppFinderSlot.Populate))]
+    [HarmonyPostfix]
+    public static void Populate(UiAppFinderSlot __instance, bool settled)
+        => ExpandedUiAppFinderSlot.Get(__instance).Populate();
+}
+
+[Expansion(typeof(UiAppFinderSlot))]
+internal partial class ExpandedUiAppFinderSlot
+{
+    private static readonly float SINGLE_SPACING = 48f;
+    private static readonly float DOUBLE_SPACING = 96f;
+    private static readonly FieldInfo f_girlDefinition = AccessTools.Field(typeof(UiAppHeadSlot), "_girlDefinition");
+
+    private UiAppHeadSlot _girlSlot;
+    private UiAppHeadSlot _nobodySlot;
+    private bool _populatedAsSingle;
+
+    internal void Populate()
+    {
+        var pairDef = _core.locationDefinition.locationType == LocationType.SIM && _core.locationDefinition == Game.Session.Location.currentLocation
+            ? Game.Session.Location.currentGirlPair
+            : f_playerFileFinderSlot.GetValue<PlayerFileFinderSlot>(_core)?.girlPairDefinition;
+
+        if (State.IsSingle(pairDef))
+        {
+            if (!_populatedAsSingle)
+            {
+                var leftDef = f_girlDefinition.GetValue<GirlDefinition>(_core.headSlotLeft);
+                var leftId = ModInterface.Data.GetDataId(GameDataType.Girl, leftDef.id);
+
+                _girlSlot = leftId.SourceId == State.ModId
+                    ? _core.headSlotRight
+                    : _core.headSlotLeft;
+
+                _nobodySlot = leftId.SourceId == State.ModId
+                    ? _core.headSlotLeft
+                    : _core.headSlotRight;
+
+                _girlSlot.rectTransform.anchoredPosition = new Vector2(-SINGLE_SPACING, _core.headSlotLeft.rectTransform.anchoredPosition.y);
+
+                _nobodySlot.rectTransform.SetParent(null);
+
+                var relationshipTransform = _core.relationshipSlot.GetComponent<RectTransform>();
+                relationshipTransform.anchoredPosition = new Vector2(SINGLE_SPACING, relationshipTransform.anchoredPosition.y);
+
+                _populatedAsSingle = true;
+            }
+
+            _girlSlot.Populate(pairDef.girlDefinitionTwo);
+        }
+        else if (_populatedAsSingle)
+        {
+            _nobodySlot.rectTransform.SetParent(_girlSlot.transform.parent);
+
+            _core.headSlotLeft.rectTransform.anchoredPosition = new Vector2(-DOUBLE_SPACING, _girlSlot.rectTransform.anchoredPosition.y);
+            _core.headSlotRight.rectTransform.anchoredPosition = new Vector2(DOUBLE_SPACING, _girlSlot.rectTransform.anchoredPosition.y);
+
+            var relationshipTransform = _core.relationshipSlot.GetComponent<RectTransform>();
+            relationshipTransform.anchoredPosition = new Vector2(0, relationshipTransform.anchoredPosition.y);
+
+            _populatedAsSingle = false;
+        }
+
+        if (_core.locationDefinition.locationType != LocationType.HUB
+            && pairDef == null)
+        {
+            _core.headSlotLeft.Populate(null);
+            _core.headSlotRight.Populate(null);
+            _core.relationshipSlot.Populate(null);
+        }
+    }
+}
+
+
+File: ExpandedUiAppPairSlot.cs
+Content:
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using HarmonyLib;
+using Hp2BaseMod;
+using Hp2BaseMod.Extension;
+using UnityEngine;
+using UnityEngine.UI;
+
+namespace SingleDate;
+
+[HarmonyPatch(typeof(UiAppPairSlot))]
+internal static class UiAppPairSlotPatch
+{
+    [HarmonyPatch("Start")]
+    [HarmonyPostfix]
+    public static void Start(UiAppPairSlot __instance)
+    => ExpandedUiAppPairSlot.Get(__instance).Start_Postfix();
+
+    [HarmonyPatch(nameof(UiAppPairSlot.Refresh))]
+    [HarmonyPostfix]
+    public static void Refresh(UiAppPairSlot __instance)
+        => ExpandedUiAppPairSlot.Get(__instance).Refresh();
+
+    [HarmonyPatch(nameof(UiAppPairSlot.ShowTooltip))]
+    [HarmonyPostfix]
+    public static void ShowTooltip(UiAppPairSlot __instance)
+        => ExpandedUiAppPairSlot.Get(__instance).ShowTooltip();
+
+    [HarmonyPatch("OnDestroy")]
+    [HarmonyPostfix]
+    public static void OnDestroy(UiAppPairSlot __instance)
+        => ExpandedUiAppPairSlot.Destroy(__instance);
+}
+
+[Expansion(typeof(UiAppPairSlot))]
+public partial class ExpandedUiAppPairSlot
+{
+    private static readonly FieldInfo f_transitionDef = AccessTools.Field(typeof(ButtonStateTransition), "_transitionDef");
+    private static readonly FieldInfo f_origSprite = AccessTools.Field(typeof(ButtonStateTransition), "_origSprite");
+    private static readonly FieldInfo f_overTransitions = AccessTools.Field(typeof(ButtonBehavior), "_overTransitions");
+
+    private ButtonStateTransitionDef _singleOverDef;
+    private ButtonStateTransitionDef _defaultOverDef;
+    private ButtonStateTransition _overSpriteTransition;
+    private bool _defaultProfileLinked;
+    private Sprite _defaultBackgroundSprite;
+    private Image _background;
+    private Transform _headWrapper;
+    private bool _started;
+
+    internal void Start_Postfix()
+    {
+        _overSpriteTransition = f_overTransitions.GetValue<List<ButtonStateTransition>>(_core.button)
+            .FirstOrDefault(x => x.transitionDef.sprite != null);
+
+        _defaultOverDef = _overSpriteTransition?.transitionDef;
+
+        if (_defaultOverDef != null)
+        {
+            _started = true;
+
+            _singleOverDef = new ButtonStateTransitionDef()
+            {
+                duration = _defaultOverDef.duration,
+                imageTarget = _defaultOverDef.imageTarget,
+                rectTransformTarget = _defaultOverDef.rectTransformTarget,
+                type = _defaultOverDef.type,
+                val = _defaultOverDef.val,
+
+                sprite = UiPrefabs.SingleUiAppPairSlotBgOver
+            };
+        }
+
+        _defaultProfileLinked = _core.profileLinked;
+        _background = _core.transform.Find("Background").GetComponent<Image>();
+        _defaultBackgroundSprite = _background.sprite;
+
+        var headWrapperGO = new GameObject();
+        _headWrapper = headWrapperGO.transform;
+
+        _headWrapper.transform.SetParent(_core.girlHeadTwo.transform.parent, false);
+        _headWrapper.localPosition = Vector3.zero;
+        _headWrapper.localRotation = Quaternion.identity;
+        _headWrapper.localScale = Vector3.one;
+
+        _core.girlHeadTwo.transform.SetParent(_headWrapper, false);
+
+        _started = true;
+
+        Refresh();
+    }
+
+    internal void Refresh()
+    {
+        if (!_started) return;
+
+        if (!State.IsSingle(f_playerFileGirlPair.GetValue<PlayerFileGirlPair>(_core)?.girlPairDefinition))
+        {
+            if (_overSpriteTransition?.transitionDef != _defaultOverDef)
+            {
+                f_transitionDef.SetValue(_overSpriteTransition, _defaultOverDef);
+                f_origSprite.SetValue(_overSpriteTransition, _defaultBackgroundSprite);
+            }
+
+            _background.sprite = _defaultBackgroundSprite;
+            _headWrapper.localPosition = Vector3.zero;
+            _core.profileLinked = _defaultProfileLinked;
+
+            return;
+        }
+
+        if (_overSpriteTransition?.transitionDef != _singleOverDef)
+        {
+            f_transitionDef.SetValue(_overSpriteTransition, _singleOverDef);
+            f_origSprite.SetValue(_overSpriteTransition, UiPrefabs.SingleUiAppPairSlotBg);
+        }
+
+        _background.sprite = UiPrefabs.SingleUiAppPairSlotBg;
+        _headWrapper.localPosition = new Vector3(-32f, 0f, 0f);
+        _core.profileLinked = false;
+    }
+
+    internal void ShowTooltip()
+    {
+        var playerFileGirlPair = f_playerFileGirlPair.GetValue<PlayerFileGirlPair>(_core);
+
+        if (!State.IsSingle(playerFileGirlPair?.girlPairDefinition))
+        {
+            return;
+        }
+
+        var text = $"{playerFileGirlPair.girlPairDefinition.girlDefinitionTwo.girlName}:\n{playerFileGirlPair.relationshipType}";
+
+        if (playerFileGirlPair.relationshipType == GirlPairRelationshipType.ATTRACTED
+            || playerFileGirlPair.relationshipType == GirlPairRelationshipType.COMPATIBLE)
+        {
+            var girlSave = State.SaveFile.GetGirl(playerFileGirlPair.girlPairDefinition.girlDefinitionTwo.id);
+            text += $" {girlSave.RelationshipLevel}/{Plugin.MaxSingleGirlRelationshipLevel.Value}";
+        }
+
+        f_tooltip.GetValue<UiTooltipSimple>(_core)?
+            .Populate(text, 0, 1f, 1920f);
+    }
+}
+
+
+File: ExpandedUiCellphoneAppStatus.cs
+Content:
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using DG.Tweening;
+using HarmonyLib;
+using Hp2BaseMod;
+using Hp2BaseMod.Extension;
+using UnityEngine;
+using UnityEngine.UI;
+
+namespace SingleDate;
+
+[HarmonyPatch(typeof(UiCellphoneAppStatus))]
+internal static class UiCellphoneAppStatusPatch
+{
+    [HarmonyPatch("Start")]
+    [HarmonyPrefix]
+    public static void Start(UiCellphoneAppStatus __instance)
+    {
+        ExpandedUiCellphoneAppStatus.Get(__instance).Start();
+    }
+
+    [HarmonyPatch("OnDestroy")]
+    [HarmonyPrefix]
+    public static void OnDestroy(UiCellphoneAppStatus __instance)
+    {
+        ExpandedUiCellphoneAppStatus.Get(__instance).OnDestroy();
+    }
+}
+
+internal class ExpandedUiCellphoneAppStatus : UiPatchController<UiCellphoneAppStatus>
+{
+    private const float HEART_DIST = 96;
+    private static readonly Vector3 HEART_SIZE = new Vector3(100, 100);
+    private static readonly Vector3 HEART_OFFSET = new Vector3(37.5f, -20 + 16, 0);
+    private static readonly Vector3 CHARM_OFFSET = new Vector3(37.5f, -30 - 110, 0);
+    private static readonly Vector2 CHARM_SIZE = new Vector2(220, 220);
+
+    private static Dictionary<UiCellphoneAppStatus, ExpandedUiCellphoneAppStatus> _expansions
+        = new Dictionary<UiCellphoneAppStatus, ExpandedUiCellphoneAppStatus>();
+
+    public static ExpandedUiCellphoneAppStatus Get(UiCellphoneAppStatus uiCellphoneAppPair)
+    {
+        if (!_expansions.TryGetValue(uiCellphoneAppPair, out var expansion))
+        {
+            expansion = new ExpandedUiCellphoneAppStatus(uiCellphoneAppPair);
+            _expansions[uiCellphoneAppPair] = expansion;
+        }
+
+        return expansion;
+    }
+
+    private static readonly FieldInfo f_image = AccessTools.Field(typeof(ButtonBehavior), "_image");
+
+    private RelativeId _girlId;
+    private RectTransform _charmTransform;
+    private List<Sequence> _heartSequences = new List<Sequence>();
+    private Sequence _charmSequence;
+    private CharmAnimationContext _charmContext;
+
+    public ExpandedUiCellphoneAppStatus(UiCellphoneAppStatus uiCellphoneAppStatus) : base(uiCellphoneAppStatus) {}
+
+    protected override void Apply()
+    {
+        if (!State.IsSingleDate) return;
+        ModInterface.Log.Message("Using single date UiCellphoneAppStatus");
+
+        // move right things more to the center
+        foreach (var left_right in _core.baggageSlotsLeft
+            .Reverse()
+            .Zip(_core.baggageSlotsRight, (x, y) => (x.GetComponent<RectTransform>(), y.GetComponent<RectTransform>())))
+        {
+            left_right.Item2.position = (left_right.Item1.position + left_right.Item2.position) / 2;
+        }
+
+        // Get RectTransforms for easier positioning
+        var canvasRect = _core.GetComponent<RectTransform>();
+        var leftPortraitRect = _core.statusPortraitLeft.GetComponent<RectTransform>();
+        var rightPortraitRect = _core.statusPortraitRight.GetComponent<RectTransform>();
+        var relationshipSlotRect = _core.relationshipSlot.GetComponent<RectTransform>();
+
+        // Align sentiment roller to passion roller
+        var sentimentRect = _core.sentimentRollerRight.GetComponent<RectTransform>();
+        var passionRect = _core.passionRollerLeft.GetComponent<RectTransform>();
+        sentimentRect.anchoredPosition = passionRect.anchoredPosition;
+
+        // Remove left and relationship slot
+        _girlId = ModInterface.Data.GetDataId(GameDataType.Girl, Game.Session.Puzzle.puzzleStatus.girlStatusRight.girlDefinition.id);
+
+        // Hide stamina on dates
+        if (Game.Session.Location.AtLocationType(LocationType.DATE))
+        {
+            var staminaRect = _core.staminaMeterRight.GetComponent<RectTransform>();
+            _core.staminaMeterRight.transform.SetParent(null);
+            rightPortraitRect.anchoredPosition -= new Vector2(staminaRect.sizeDelta.x / 2, 0);
+        }
+
+        // Charm background
+        var charmBG_go = new GameObject("CharmBG");
+        var charmBG_transform = charmBG_go.AddComponent<RectTransform>();
+        var charmBG_image = charmBG_go.AddComponent<Image>();
+
+        var portraitImage = f_image.GetValue<Image>(_core.statusPortraitRight.buttonBehavior);
+        charmBG_transform.sizeDelta = portraitImage.rectTransform.sizeDelta;
+        charmBG_image.sprite = portraitImage.sprite;
+
+        charmBG_transform.SetParent(canvasRect, false);
+        charmBG_transform.anchoredPosition = leftPortraitRect.anchoredPosition + new Vector2(37.5f, 0);
+
+        // Build hearts
+        var saveGirl = State.SaveFile.GetGirl(_girlId);
+
+        var maxSingleGirlRelationshipLevel = Plugin.MaxSingleGirlRelationshipLevel.Value;
+        var radAllotment = Mathf.PI / maxSingleGirlRelationshipLevel;
+
+        if (Game.Session.Puzzle.puzzleStatus.bonusRound)
+        {
+            for (int i = 0; i < maxSingleGirlRelationshipLevel; i++)
+            {
+                MakeHeart(_core.relationshipSlot.hornyIcon, i, radAllotment, _core.relationshipSlot.pauseDefinition, leftPortraitRect);
+            }
+        }
+        else if (maxSingleGirlRelationshipLevel == saveGirl.RelationshipLevel)
+        {
+            for (int i = 0; i < maxSingleGirlRelationshipLevel; i++)
+            {
+                MakeHeart(_core.relationshipSlot.relationshipIcons[3], i, radAllotment, _core.relationshipSlot.pauseDefinition, leftPortraitRect);
+            }  
+        }
+        else
+        {
+            for (int i = 0; i < maxSingleGirlRelationshipLevel - saveGirl.RelationshipLevel; i++)
+            {
+                MakeHeart(_core.relationshipSlot.relationshipIcons[0], i, radAllotment, _core.relationshipSlot.pauseDefinition, leftPortraitRect);
+            }
+
+            for (int i = maxSingleGirlRelationshipLevel - saveGirl.RelationshipLevel; i < maxSingleGirlRelationshipLevel; i++)
+            {
+                MakeHeart(_core.relationshipSlot.relationshipIcons[2], i, radAllotment, _core.relationshipSlot.pauseDefinition, leftPortraitRect);
+            }
+        }
+
+        // Charm
+        var charm_go = new GameObject("Charm");
+        _charmTransform = charm_go.AddComponent<RectTransform>();
+        _charmTransform.sizeDelta = CHARM_SIZE;
+        var charm_image = charm_go.AddComponent<Image>();
+        charm_image.sprite = UiPrefabs.GetCharmSprite(_girlId);
+
+        _charmTransform.SetParent(canvasRect, false);
+        _charmTransform.anchoredPosition = leftPortraitRect.anchoredPosition + new Vector2(CHARM_OFFSET.x, CHARM_OFFSET.y);
+        _charmTransform.pivot = new Vector2(0.5f, 0f);
+
+        MakeCharmSequence();
+
+        _core.canvasGroupLeft.transform.SetParent(null);
+        _core.statusPortraitLeft.transform.SetParent(null);
+        _core.relationshipSlot.transform.SetParent(null);
+    }
+
+    public void MakeCharmSequence()
+    {
+        if (_charmSequence != null)
+        {
+            Game.Manager.Time.KillTween(_charmSequence);
+        }
+        else
+        {
+            _charmContext = new CharmAnimationContext()
+            {
+                Dir = 1,
+                GirlId = _girlId,
+                Transform = _charmTransform
+            };
+        }
+
+        _charmSequence = Plugin.CharmAnimationRegistry.CreateSequence(_charmContext, 10f);
+        _charmSequence.OnComplete(MakeCharmSequence);
+
+        _charmSequence.Append(_charmTransform.DOLocalJump(_charmTransform.localPosition, 20f, 2, 3f).SetEase(Ease.OutBounce));
+        _charmSequence.Join(_charmTransform.DOScaleX(_charmContext.Dir, 1.5f).SetEase(Ease.InOutElastic));
+        _charmSequence.Join(_charmTransform.DOScaleY(1f, 1.5f).SetEase(Ease.InOutElastic));
+        _charmSequence.AppendInterval(1f);
+
+        Game.Manager.Time.Play(_charmSequence, _core.relationshipSlot.pauseDefinition, 0f);
+    }
+
+    protected override void OnCleanup()
+    {
+        foreach (var sequence in _heartSequences)
+        {
+            Game.Manager.Time.KillTween(sequence, false, false);
+        }
+
+        if (_charmSequence != null)
+        {
+            Game.Manager.Time.KillTween(_charmSequence, false, false);
+        }
+        
+        _expansions.Remove(_core);
+    }
+
+    private void MakeHeart(Sprite sprite, int index, float radAllotment, PauseDefinition pauseDefinition, RectTransform parentRect)
+    {
+        var heart_go = new GameObject($"heart_{index}");
+        var heart_rectTransform = heart_go.AddComponent<RectTransform>();
+        heart_rectTransform.sizeDelta = HEART_SIZE;
+        var heart_image = heart_go.AddComponent<Image>();
+        heart_image.sprite = sprite;
+
+        heart_rectTransform.SetParent(parentRect.parent, false); // same canvas as portraits
+
+        var rads = radAllotment * (index + 0.5f);
+        heart_rectTransform.anchoredPosition = parentRect.anchoredPosition
+            + (Vector2)HEART_OFFSET
+            + new Vector2(Mathf.Cos(rads), Mathf.Sin(rads)) * HEART_DIST;
+
+        var sequence = DOTween.Sequence().SetLoops(-1, LoopType.Restart);
+        _heartSequences.Add(sequence);
+
+        sequence.Append(heart_rectTransform.DOLocalMoveY(heart_rectTransform.localPosition.y + 8f, 0.7f).SetEase(Ease.InOutSine));
+        sequence.Append(heart_rectTransform.DOLocalMoveY(heart_rectTransform.localPosition.y, 2.5f).SetEase(Ease.OutElastic));
+        sequence.AppendInterval(3f);
+
+        Game.Manager.Time.Play(sequence, pauseDefinition, 0.8f * index);
+    }
+}
+
+File: LocationManagerPatch.cs
+Content:
+using HarmonyLib;
+
+namespace SingleDate;
+
+[HarmonyPatch(typeof(LocationManager))]
+internal static class LocationManagerPatch
+{
+    [HarmonyPatch("Awake")]
+    [HarmonyPostfix]
+    public static void Awake(LocationManager __instance)
+    {
+        UiPrefabs.InitActionBubbles(__instance.actionBubblesWindow);
+        UiPrefabs.InitCutsceneMeeting(__instance.cutsceneMeeting);
+    }
+
+    [HarmonyPatch(nameof(LocationManager.Depart))]
+    [HarmonyPrefix]
+    public static void Depart(LocationManager __instance, LocationDefinition locationDef, GirlPairDefinition girlPairDef, ref bool sidesFlipped)
+    {
+        if (State.IsSingle(girlPairDef))
+        {
+            sidesFlipped = false;
+        }
+    }
+}
+
+
+File: PlayerFileGirlPairPatch.cs
+Content:
+using HarmonyLib;
+
+namespace SingleDate;
+
+[HarmonyPatch(typeof(PlayerFileGirlPair))]
+internal static class PlayerFileGirlPairPatch
+{
+    [HarmonyPatch(nameof(PlayerFileGirlPair.RelationshipLevelUp))]
+    [HarmonyPrefix]
+    public static bool RelationshipLevelUp(PlayerFileGirlPair __instance)
+    {
+        if (!State.IsSingle(__instance.girlPairDefinition)
+            || __instance.relationshipType == GirlPairRelationshipType.LOVERS)
+        {
+            return true;
+        }
+
+        __instance.relationshipType++;
+        if (!__instance.girlPairDefinition.specialPair)
+        {
+            if (__instance.relationshipType == GirlPairRelationshipType.ATTRACTED
+                || __instance.relationshipType == GirlPairRelationshipType.LOVERS)
+            {
+                Game.Persistence.playerFile.relationshipUpCount++;
+                Game.Persistence.playerFile.GetPlayerFileGirl(__instance.girlPairDefinition.girlDefinitionOne).relationshipUpCount++;
+                Game.Persistence.playerFile.GetPlayerFileGirl(__instance.girlPairDefinition.girlDefinitionTwo).relationshipUpCount++;
+            }
+
+            if (__instance.relationshipType == GirlPairRelationshipType.COMPATIBLE
+                && !Game.Persistence.playerFile.metGirlPairs.Contains(__instance.girlPairDefinition))
+            {
+                Game.Persistence.playerFile.metGirlPairs.Add(__instance.girlPairDefinition);
+            }
+        }
+
+        Game.Persistence.playerFile.KeyValueChanged();
+
+        return false;
+    }
+}
+
+
+File: PuzzleRewardPatch.cs
+Content:
+using HarmonyLib;
+
+namespace SingleDate;
+
+[HarmonyPatch(typeof(PuzzleReward))]
+internal static class PuzzleRewardPatch
+{
+    [HarmonyPatch(nameof(PuzzleReward.GetLabelText))]
+    [HarmonyPostfix]
+    public static void GetLabelText(PuzzleReward __instance, bool shortVersion, ref string __result)
+    {
+        if (!State.IsSingleDate
+            || __instance.zeroedValue
+            || __instance.tokenDefinition.resourceType != PuzzleResourceType.BROKEN
+            || Game.Session.Puzzle.puzzleStatus.bonusRound)
+        {
+            return;
+        }
+
+        __result = $"{__instance.resourceValue}";
+        if (!shortVersion)
+        {
+            __result += " Affection";
+        }
+    }
+}
+
+
+File: PuzzleSetPatch.cs
+Content:
+using HarmonyLib;
+
+namespace SingleDate;
+
+[HarmonyPatch(typeof(PuzzleSet))]
+internal static class PuzzleSetPatch
+{
+    [HarmonyPatch(nameof(PuzzleSet.GetStaminaCost))]
+    [HarmonyPostfix]
+    public static void GetStaminaCost(PuzzleSet __instance, bool raw, bool forceFull, ref int __result)
+    {
+        if (!State.IsSingleDate || raw) return;
+
+        __result = 0;
+    }
+}
+
+File: PuzzleStatusPatch.cs
+Content:
+using System.Reflection;
+using HarmonyLib;
+
+namespace SingleDate;
+
+[HarmonyPatch(typeof(PuzzleStatus))]
+internal static class PuzzleStatusPatch
+{
+    private static readonly FieldInfo f_altGirlFocused = AccessTools.Field(typeof(PuzzleStatus), "_altGirlFocused");
+    private static readonly FieldInfo f_affection = AccessTools.Field(typeof(PuzzleStatus), "_affection");
+    private static readonly FieldInfo f_affectionGoal = AccessTools.Field(typeof(PuzzleStatus), "_affectionGoal");
+
+    [HarmonyPatch(nameof(PuzzleStatus.NextRound))]
+    [HarmonyPostfix]
+    public static void NextRound(PuzzleStatus __instance, int staminaOverride, bool checkStaminaFreeze)
+    {
+        if (!State.IsSingleDate) return;
+        f_altGirlFocused.SetValue(__instance, true);
+    }
+
+    [HarmonyPatch(nameof(PuzzleStatus.SetGirlFocus))]
+    [HarmonyPrefix]
+    public static void SetGirlFocus(PuzzleStatus __instance, ref bool altGirl)
+    {
+        if (!State.IsSingleDate) return;
+        altGirl = true;
+    }
+
+    [HarmonyPatch(nameof(PuzzleStatus.SetGirlFocusByStamina))]
+    [HarmonyPostfix]
+    public static void SetGirlFocusByStamina(PuzzleStatus __instance)
+    {
+        if (!State.IsSingleDate) return;
+        f_altGirlFocused.SetValue(__instance, true);
+    }
+}
+
+File: UiAppRelationshipSlotPatch.cs
+Content:
+using System.Reflection;
+using DG.Tweening;
+using HarmonyLib;
+using Hp2BaseMod.Extension;
+using UnityEngine;
+
+namespace SingleDate;
+
+[HarmonyPatch(typeof(UiAppRelationshipSlot))]
+internal static class UiAppRelationshipSlotPatch
+{
+    private static readonly FieldInfo f_hornySequence = AccessTools.Field(typeof(UiAppRelationshipSlot), "_hornySequence");
+    private static readonly FieldInfo f_playerFileGirlPair = AccessTools.Field(typeof(UiAppRelationshipSlot), "_playerFileGirlPair");
+    private static readonly FieldInfo f_daytimeOffset = AccessTools.Field(typeof(UiAppRelationshipSlot), "_daytimeOffset");
+    private static readonly FieldInfo f_mainGirlDefinition = AccessTools.Field(typeof(UiAppRelationshipSlot), "_mainGirlDefinition");
+    private static readonly FieldInfo f_tooltip = AccessTools.Field(typeof(UiAppRelationshipSlot), "_tooltip");
+
+    [HarmonyPatch(nameof(UiAppRelationshipSlot.Refresh))]
+    [HarmonyPrefix]
+    public static bool Refresh(UiAppRelationshipSlot __instance)
+    {
+        var playerFileGirlPair = f_playerFileGirlPair.GetValue<PlayerFileGirlPair>(__instance);
+
+        if (!State.IsSingle(playerFileGirlPair?.girlPairDefinition))
+        {
+            return true;
+        }
+
+        var hornySequence = f_hornySequence.GetValue<Sequence>(__instance);
+        var daytimeOffset = f_daytimeOffset.GetValue<int>(__instance);
+        //var mainGirlDefinition = _mainGirlDefinition.GetValue<GirlDefinition>(__instance);
+
+        var girlSave = State.SaveFile.GetGirl(playerFileGirlPair.girlPairDefinition.girlDefinitionTwo.id);
+
+        Game.Manager.Time.KillTween(hornySequence);
+        __instance.itemIcon.rectTransform.localScale = Vector3.one;
+
+        if (playerFileGirlPair != null)
+        {
+            var maxSingleGirlRelationshipLevel = Plugin.MaxSingleGirlRelationshipLevel.Value;
+
+            if (playerFileGirlPair.relationshipType == GirlPairRelationshipType.ATTRACTED
+                && girlSave?.RelationshipLevel == (maxSingleGirlRelationshipLevel - 1)
+                && (Game.Persistence.playerFile.daytimeElapsed + daytimeOffset) % 4 == (int)playerFileGirlPair.girlPairDefinition.sexDaytime
+                && (!__instance.hornyDelayed || (__instance.hornyDelayed && (!Game.Session.Location.AtLocationType(LocationType.DATE) || Game.Session.Puzzle.isPuzzleActive))))
+            {
+                __instance.itemIcon.sprite = __instance.hornyIcon;
+
+                hornySequence = DOTween.Sequence().SetLoops(-1, LoopType.Restart);
+                f_hornySequence.SetValue(__instance, hornySequence);
+
+                hornySequence.Insert(0f, __instance.itemIcon.rectTransform.DOScale(1.15f, 0.2f).SetEase(Ease.InOutSine));
+                hornySequence.Insert(0.2f, __instance.itemIcon.rectTransform.DOScale(1f, 0.2f).SetEase(Ease.InOutSine));
+                hornySequence.Insert(0.4f, __instance.itemIcon.rectTransform.DOScale(1.15f, 0.2f).SetEase(Ease.InOutSine));
+                hornySequence.Insert(0.6f, __instance.itemIcon.rectTransform.DOScale(1f, 0.2f).SetEase(Ease.InOutSine));
+                hornySequence.AppendInterval(0.25f);
+                hornySequence.PrependInterval(0.25f);
+                Game.Manager.Time.Play(hornySequence, __instance.pauseDefinition);
+            }
+            else
+            {
+                __instance.itemIcon.sprite = __instance.relationshipIcons[(int)playerFileGirlPair.relationshipType];
+            }
+
+            __instance.itemIcon.SetNativeSize();
+            if (__instance.headIcon != null)
+            {
+                // if (_mainGirlDefinition != null)
+                // {
+                //     // this code is copied straight from the decomp, but GetOtherGirlDef returns null here and throws where it doesn't
+                //     // without this patch. I don't know why, and I also don't think I've ever even seen this head icon
+                //     // on the relationship icon in game before. So I'mma just comment this bit out for now. Weird.
+                //     __instance.headIcon.sprite = playerFileGirlPair.girlPairDefinition.GetOtherGirlDef(mainGirlDefinition).GetHead(mini: false);
+
+                //     __instance.headIcon.SetNativeSize();
+                // }
+                // else
+                // {
+                __instance.headIcon.sprite = null;
+                __instance.headIcon.rectTransform.sizeDelta = Vector2.zero;
+                //}
+            }
+            __instance.canvasGroup.alpha = 1f;
+            __instance.canvasGroup.blocksRaycasts = true;
+        }
+        else
+        {
+            __instance.itemIcon.sprite = null;
+            __instance.itemIcon.rectTransform.sizeDelta = Vector2.zero;
+
+            if (__instance.headIcon != null)
+            {
+                __instance.headIcon.sprite = null;
+                __instance.headIcon.rectTransform.sizeDelta = Vector2.zero;
+            }
+
+            __instance.canvasGroup.alpha = (!__instance.multiSlot)
+                ? 0f
+                : 0.4f;
+
+            __instance.canvasGroup.blocksRaycasts = false;
+        }
+
+        return false;
+    }
+
+    [HarmonyPatch(nameof(UiAppRelationshipSlot.ShowTooltip))]
+    [HarmonyPostfix]
+    public static void ShowTooltip(UiAppRelationshipSlot __instance)
+    {
+        var playerFileGirlPair = f_playerFileGirlPair.GetValue<PlayerFileGirlPair>(__instance);
+
+        if (!State.IsSingle(playerFileGirlPair.girlPairDefinition))
+        {
+            return;
+        }
+
+        var girlSave = State.SaveFile.GetGirl(playerFileGirlPair.girlPairDefinition.girlDefinitionTwo.id);
+        var daytimeOffset = f_daytimeOffset.GetValue<int>(__instance);
+
+        //when not horny
+        var maxSingleGirlRelationshipLevel = Plugin.MaxSingleGirlRelationshipLevel.Value;
+        if (!(girlSave.RelationshipLevel == maxSingleGirlRelationshipLevel - 1
+                && (Game.Persistence.playerFile.daytimeElapsed + daytimeOffset) % 4 == (int)playerFileGirlPair.girlPairDefinition.sexDaytime)
+        //and attracted or compatible
+            && (playerFileGirlPair.relationshipType == GirlPairRelationshipType.ATTRACTED
+                || playerFileGirlPair.relationshipType == GirlPairRelationshipType.COMPATIBLE))
+        {
+            var tooltip = f_tooltip.GetValue<UiTooltipSimple>(__instance);
+            tooltip.Populate($"Relationship Status:\n{playerFileGirlPair.relationshipType} {girlSave.RelationshipLevel}/{maxSingleGirlRelationshipLevel}", 0, 1f, 1920f);
+        }
+    }
+}
+
+
+File: UiAppSaveFilePatch.cs
+Content:
+using System.Reflection;
+using HarmonyLib;
+
+namespace SingleDate;
+
+[HarmonyPatch(typeof(UiAppSaveFile))]
+internal static class UiAppSaveFilePatch
+{
+    private static readonly FieldInfo f_playerFile = AccessTools.Field(typeof(UiAppSaveFile), "_playerFile");
+
+    [HarmonyPatch(nameof(UiAppSaveFile.Refresh))]
+    [HarmonyPostfix]
+    public static void Refresh(UiAppSaveFile __instance)
+    {
+        // the bitPair uses both girls in the pair, this replaces it with just girlTwo's name for single pairs
+        var playerFile = (PlayerFile)f_playerFile.GetValue(__instance);
+
+        if (!playerFile.started
+            || !State.IsSingle(playerFile.girlPairDefinition))
+        {
+            return;
+        }
+
+        __instance.bitPair.Populate(playerFile.girlPairDefinition.girlDefinitionTwo.girlName);
+    }
+}
+
+
+File: UiBackgroundBarPatch.cs
+Content:
+using HarmonyLib;
+
+namespace SingleDate;
+
+[HarmonyPatch(typeof(UiBackgroundBar))]
+internal static class UiBackgroundBarPatch
+{
+    [HarmonyPatch(nameof(UiBackgroundBar.Refresh))]
+    [HarmonyPostfix]
+    public static void Refresh(UiBackgroundBar __instance, LocationDefinition locationDef, int daytimeElapsed, GirlPairDefinition girlPairDef = null, bool sidesFlipped = false)
+    {
+        // The label for the bar uses both girls in the pair, for single pair use only the girlTwo
+        if (!State.IsSingle(girlPairDef))
+        {
+            return;
+        }
+
+        __instance.daytimeLabel.text = $"{((ClockDaytimeType)(daytimeElapsed % 4)).ToString().ToUpper()} | {girlPairDef.girlDefinitionTwo.girlName}";
+    }
+}
+
+File: UiPuzzleDateGiftsContainerPatch.cs
+Content:
+using HarmonyLib;
+
+namespace SingleDate;
+
+[HarmonyPatch(typeof(UiPuzzleDateGiftsContainer))]
+internal static class UiPuzzleDateGiftsContainerPatch
+{
+    [HarmonyPatch("Start")]
+    [HarmonyPostfix]
+    public static void Start(UiPuzzleDateGiftsContainer __instance)
+    {
+        foreach (var slot in __instance.slotsRight)
+        {
+            slot.itemSlot.eastOnHub = true;
+        }
+    }
+}
+
+File: UiPuzzleGridPatch.cs
+Content:
+using Hp2BaseMod;
+using HarmonyLib;
+
+namespace SingleDate;
+  
+[HarmonyPatch(typeof(UiPuzzleGrid))]
+internal static class SingleDateStartPuzzlePatch
+{
+    [HarmonyPatch(nameof(UiPuzzleGrid.StartPuzzle))]
+    [HarmonyPrefix]
+    public static void Prefix(UiPuzzleGrid __instance)
+    {
+        if (!State.IsSingleDate) return;
+        Game.Session.Ailment.GetExpansion().AddGlobal(Ailments.SingleDateAilment);
+    }
+}
+
+File: UiStatusPortraitPatch.cs
+Content:
+using HarmonyLib;
+using Hp2BaseMod;
+
+namespace SingleDate;
+
+[HarmonyPatch(typeof(UiStatusPortrait))]
+internal static class UiStatusPortraitPatch
+{
+    [HarmonyPrefix]
+    [HarmonyPatch("Populate")]
+    public static void PopulatePrefix(GirlDefinition girlDef, ref bool showTraitIcons)
+    {
+        if (girlDef.ModId() == Girls.Nobody)
+        {
+            showTraitIcons = false;
+        }
+    }
+}
+
+File: UiWindowActionBubblesPatch.cs
+Content:
+using System.Reflection;
+using HarmonyLib;
+using Hp2BaseMod.Extension;
+using UnityEngine;
+
+namespace SingleDate;
+
+[HarmonyPatch(typeof(UiWindowActionBubbles))]
+internal static class UiWindowActionBubblesPatch
+{
+    private static readonly FieldInfo f_highlightedBubble = AccessTools.Field(typeof(UiWindowActionBubbles), "_highlightedBubble");
+    private static readonly FieldInfo f_tooltip = AccessTools.Field(typeof(UiWindowActionBubbles), "_tooltip");
+
+    [HarmonyPatch("OnActionBubbleEnter")]
+    [HarmonyPrefix]
+    private static bool OnActionBubbleEnter(UiWindowActionBubbles __instance, UiActionBubble actionBubble)
+    {
+        //Show stamina hint for talking, since it still is used to limit how much the player can talk at a sim location
+        //Hide hint for date, since it doesn't apply to single dates.
+        if (State.IsSingleDate
+            && (actionBubble.actionBubbleType == ActionBubbleType.DATE || actionBubble.actionBubbleType == ActionBubbleType.TALK))
+        {
+            f_highlightedBubble.SetValue(__instance, actionBubble);
+
+            if (actionBubble.actionBubbleType == ActionBubbleType.TALK)
+            {
+                Game.Session.Talk.ShowStaminaHint(2, 2);
+            }
+            else if (actionBubble.actionBubbleType == ActionBubbleType.DATE)
+            {
+                var statusGirl = Game.Session.Puzzle.puzzleStatus.GetStatusGirl(true);
+                if (statusGirl.stamina < 1)
+                {
+                    var tooltip = f_tooltip.GetValue<UiTooltipSimple>(__instance);
+                    tooltip.Populate("No Stamina!", 1, 1f, 1920f);
+                    tooltip.Show(Vector2.up * 50f);
+                }
+            }
+
+            Game.Manager.Audio.Play(AudioCategory.SOUND, __instance.sfxBubbleOver, null).audioSource.pitch = Random.Range(1f, 2f);
+
+            return false;
+        }
+
+        return true;
+    }
+
+    [HarmonyPatch("OnActionBubbleExit")]
+    [HarmonyPostfix]
+    private static void OnActionBubbleExit(UiWindowActionBubbles __instance, UiActionBubble actionBubble)
+    {
+        if (actionBubble.actionBubbleType == ActionBubbleType.DATE)
+        {
+            f_tooltip.GetValue<UiTooltipSimple>(__instance).Hide();
+        }
+    }
+}
+
+
+File: SingleDateAilment.cs
+Content:
+using System.Linq;
+using Hp2BaseMod;
+using Hp2BaseMod.Extension;
+using UnityEngine;
+
+namespace SingleDate;
+
+public class SingleDateAilment : IScriptedAilment
+{
+    private ExpandedUiPuzzleGrid _grid;
+    private TokenDefinition _staminaTokenDef;
+    private PuzzleStatusGirl _rightGirl;
+    private ExpandedAilmentManager _ailmentManager;
+
+    public void Enable(ExpandedAilmentManager ailmentManager, object owner = null)
+    {
+        _ailmentManager = ailmentManager;
+        _grid = _ailmentManager._puzzleGrid.GetExpansion();
+
+        _grid.SuppressStaminaCost = true;
+        _grid.SuppressStaminaWarning = true;
+        _grid.SuppressExhaustionWarning = true;
+        _grid.SuppressUpsetWarning = true;
+        _grid.AutoRevertExhaustion = true;
+        _grid.SuppressFocusSwitch();
+
+        _rightGirl = _grid._status.girlStatusRight;
+        _staminaTokenDef = Game.Data.Tokens.GetByResourceType(PuzzleResourceType.STAMINA);
+        if (_staminaTokenDef != null && !_rightGirl.invalidTokenDefs.Contains(_staminaTokenDef)) 
+        {
+            _rightGirl.invalidTokenDefs.Add(_staminaTokenDef);
+        }
+
+        // Subscribe to PostMatchReward via Hp2BaseMod's event system
+        _ailmentManager.PostMatchReward += OnPostMatchReward;
+    }
+
+    public void Disable()
+    {
+        if (_ailmentManager != null)
+        {
+            _ailmentManager.PostMatchReward -= OnPostMatchReward;
+        }
+
+        _grid = _ailmentManager?._puzzleGrid?.GetExpansion();
+        if (_grid != null)
+        {
+            _grid.SuppressStaminaCost = false;
+            _grid.SuppressStaminaWarning = false;
+            _grid.SuppressExhaustionWarning = false;
+            _grid.SuppressUpsetWarning = false;
+            _grid.AutoRevertExhaustion = false;
+            _grid.UnsuppressFocusSwitch();
+        }
+
+        if (_staminaTokenDef != null && _rightGirl != null) 
+        {
+            _rightGirl.invalidTokenDefs.Remove(_staminaTokenDef);
+        }
+
+        _staminaTokenDef = null;
+        _rightGirl = null;
+        _grid = null;
+    }
+
+    private void OnPostMatchReward(AilmentTriggerArgs.PostMatchReward args)
+    {
+        if (!State.IsSingleDate || args?.Rewards == null) return;
+
+        var brokenRewards = args.Rewards
+            .Where(x => x.Reward?.TokenDefinition?.PuzzleResource?.Id == PuzzleResourceId.Broken)
+            .ToList();
+
+        if (brokenRewards.Count == 0) return;
+
+        var puzzleStatus = Game.Session.Puzzle.puzzleStatus;
+        var currentAffection = puzzleStatus.affection;
+
+        // 1. Calculate negative affection allotment using the single date sensitivity multiplier
+        var allotment = -Mathf.Max(1, Mathf.FloorToInt(currentAffection * State.GetBrokenMult()));
+
+        // 2. Set ResourceValue on the reward so splash text / UI displays "-X Affection"
+        foreach (var entry in brokenRewards)
+        {
+            entry.Reward.ResourceValue = allotment;
+        }
+
+        // 3. Deduct affection directly via Hp2BaseMod's public API
+        _grid._status.GetExpansion().AddResourceValue(PuzzleResourceId.AffectionTalent, allotment * brokenRewards.Count, true);
+    }
+}
+
+File: BonusRoundSuccessCutscene.cs
+Content:
+using Hp2BaseMod;
+using Hp2BaseMod.GameDataInfo;
+using Hp2BaseMod.Utility;
+
+namespace SingleDate;
+
+public static class BonusRoundSuccessCutscene
+{
+    internal static void AddDataMods()
+    {
+        var mod = new CutsceneDataMod(CutsceneIds.BonusSuccess, InsertStyle.append)
+        {
+            Steps = new()
+            {
+                CutsceneStepUtility.MakeDialogTriggerInfo(DialogTriggers.SexClimax, CutsceneStepProceedType.INSTANT).TargetOrientation(DollOrientationType.RIGHT),
+                CutsceneStepUtility.MakeBannerTextInfo("BannerTextSuccess", 0, CutsceneStepProceedType.AUTOMATIC),
+                CutsceneStepUtility.MakeWaitInfo(1.8f),
+                new ShowSexPhotoCutsceneStep.Info(),
+                CutsceneStepUtility.MakeBannerTextHideInfo(CutsceneStepProceedType.AUTOMATIC),
+                CutsceneStepUtility.MakeSubCutsceneGirlPairInfo(GirlPairRelationshipType.LOVERS, CutsceneStepProceedType.AUTOMATIC),
+                CutsceneStepUtility.MakeHidePuzzleGridInfo(CutsceneStepProceedType.AUTOMATIC),
+                CutsceneStepUtility.MakeWaitInfo(0.25f),
+            },
+            CleanUpType = (CutsceneCleanUpType)(-1)
+        };
+
+        ModInterface.DataMod.AddDataMod(mod);
+    }
+}
+
+
+File: CutsceneIds.cs
+Content:
+using Hp2BaseMod;
+namespace SingleDate;
+
+public static class CutsceneIds
+{
+    public static RelativeId Meeting => _meeting;
+    private static RelativeId _meeting = new RelativeId(State.ModId, 0);
+
+    public static RelativeId Attract => _attract;
+    private static RelativeId _attract = new RelativeId(State.ModId, 1);
+
+    public static RelativeId PreSex => _preSex;
+    private static RelativeId _preSex = new RelativeId(State.ModId, 2);
+
+    public static RelativeId PostSex => _postSex;
+    private static RelativeId _postSex = new RelativeId(State.ModId, 3);
+
+    public static RelativeId Success => _success;
+    private static RelativeId _success = new RelativeId(State.ModId, 4);
+
+    public static RelativeId BonusSuccess => _bonusSuccess;
+    private static RelativeId _bonusSuccess = new RelativeId(State.ModId, 5);
+}
+
+File: ShowDatePhotoCutsceneStep.cs
+Content:
+using System.Linq;
+using System.Reflection;
+using HarmonyLib;
+using Hp2BaseMod;
+using Hp2BaseMod.Extension;
+using Hp2BaseMod.GameDataInfo.Interface;
+using Hp2BaseMod.ModGameData.Interface;
+using Hp2BaseMod.Utility;
+
+namespace SingleDate;
+
+public class ShowDatePhotoCutsceneStep : CutsceneStepSubDefinition, IFunctionalCutsceneStep
+{
+    private static readonly FieldInfo f_currentWindow = AccessTools.Field(typeof(WindowManager), "_currentWindow");
+    private static readonly FieldInfo f_bigPhotoDefinition = AccessTools.Field(typeof(UiWindowPhotos), "_bigPhotoDefinition");
+    private static readonly MethodInfo m_refreshBigPhoto = AccessTools.Method(typeof(UiWindowPhotos), "RefreshBigPhoto");
+
+    public class Info : IGameDefinitionInfo<CutsceneStepSubDefinition>
+    {
+        public void SetData(ref CutsceneStepSubDefinition def, GameDefinitionProvider gameData, AssetProvider assetProvider, InsertStyle insertStyle)
+        {
+            _ = gameData;
+            _ = assetProvider;
+            _ = insertStyle;
+            def = new ShowDatePhotoCutsceneStep();
+        }
+
+        public void RequestInternals(AssetProvider assetProvider)
+        {
+            // no internals
+        }
+    }
+
+    public event CutsceneStepComplete Complete;
+
+    public void Act()
+    {
+        var playerFileGirlPair = Game.Persistence.playerFile.GetPlayerFileGirlPair(Game.Session.Location.currentGirlPair);
+
+        if (playerFileGirlPair == null
+            || !State.IsSingle(playerFileGirlPair.girlPairDefinition))
+        {
+            Complete?.Invoke(this);
+            return;
+        }
+
+        var girlId = ModInterface.Data.GetDataId(playerFileGirlPair.girlPairDefinition.girlDefinitionTwo);
+        var girlSave = State.SaveFile.GetGirl(girlId);
+        var singleDateGirl = Plugin.GetSingleDateGirl(girlId);
+
+        var datePercentage = girlSave.RelationshipLevel / (float)Plugin.MaxSingleGirlRelationshipLevel.Value;
+
+        if (!singleDateGirl.DatePhotos.Any())
+        {
+            Complete?.Invoke(this);
+            return;
+        }
+
+        var validDatePhotos = singleDateGirl.DatePhotos.Where(x => x.RelationshipPercentage <= datePercentage).Select(x => x.PhotoId).ToArray();
+
+        if (validDatePhotos.Length == 0)
+        {
+            Complete?.Invoke(this);
+            return;
+        }
+
+        var lockedDatePhotos = girlSave.UnlockedPhotos == null
+            ? validDatePhotos
+            : validDatePhotos.Except(girlSave.UnlockedPhotos).ToArray();
+
+        var bigPhotoId = lockedDatePhotos.Length == 0
+            ? validDatePhotos.GetRandom()
+            : lockedDatePhotos.GetRandom();
+
+        girlSave.UnlockedPhotos ??= new();
+        girlSave.UnlockedPhotos.Add(bigPhotoId);
+
+        var photo = ModInterface.GameData.GetPhoto(bigPhotoId);
+        if (photo == null)
+        {
+            Complete?.Invoke(this);
+            return;
+        }
+
+        Game.Manager.Windows.WindowHideEvent += OnWindowHideEvent;
+
+        Game.Manager.Windows.ShowWindow(ModInterface.Assets.PhotosWindow, false);
+
+        var window = f_currentWindow.GetValue(Game.Manager.Windows);
+
+        f_bigPhotoDefinition.SetValue(window, photo);
+        m_refreshBigPhoto.Invoke(window, null);
+    }
+
+    private void OnWindowHideEvent()
+    {
+        Game.Manager.Windows.WindowHideEvent -= OnWindowHideEvent;
+        Complete?.Invoke(this);
+    }
+}
+
+
+File: ShowSexPhotoCutsceneStep.cs
+Content:
+using System.Linq;
+using System.Reflection;
+using HarmonyLib;
+using Hp2BaseMod;
+using Hp2BaseMod.Extension;
+using Hp2BaseMod.GameDataInfo.Interface;
+using Hp2BaseMod.ModGameData.Interface;
+using Hp2BaseMod.Utility;
+
+namespace SingleDate;
+
+public class ShowSexPhotoCutsceneStep : CutsceneStepSubDefinition, IFunctionalCutsceneStep
+{
+    private static readonly FieldInfo f_currentWindow = AccessTools.Field(typeof(WindowManager), "_currentWindow");
+    private static readonly FieldInfo f_bigPhotoDefinition = AccessTools.Field(typeof(UiWindowPhotos), "_bigPhotoDefinition");
+    private static readonly MethodInfo m_refreshBigPhoto = AccessTools.Method(typeof(UiWindowPhotos), "RefreshBigPhoto");
+
+    public class Info : IGameDefinitionInfo<CutsceneStepSubDefinition>
+    {
+        public void SetData(ref CutsceneStepSubDefinition def, GameDefinitionProvider gameData, AssetProvider assetProvider, InsertStyle insertStyle)
+        {
+            _ = gameData;
+            _ = assetProvider;
+            _ = insertStyle;
+            def = new ShowSexPhotoCutsceneStep();
+        }
+
+        public void RequestInternals(AssetProvider assetProvider)
+        {
+            // no internals
+        }
+    }
+
+    public event CutsceneStepComplete Complete;
+
+    public void Act()
+    {
+        var playerFileGirlPair = Game.Persistence.playerFile.GetPlayerFileGirlPair(Game.Session.Location.currentGirlPair);
+
+        if (playerFileGirlPair == null
+            || !State.IsSingle(playerFileGirlPair.girlPairDefinition))
+        {
+            Complete?.Invoke(this);
+            return;
+        }
+
+        var girlId = ModInterface.Data.GetDataId(playerFileGirlPair.girlPairDefinition.girlDefinitionTwo);
+        var girlSave = State.SaveFile.GetGirl(girlId);
+        var singleDateGirl = Plugin.GetSingleDateGirl(girlId);
+
+        if (!singleDateGirl.SexPhotos.Any())
+        {
+            Complete?.Invoke(this);
+            return;
+        }
+
+        var locId = ModInterface.Data.GetDataId(GameDataType.Location, Game.Session.Location.currentLocation.id);
+
+        var sexPhotos = singleDateGirl.SexPhotos.Where(x => x.LocationId == locId).Select(x => x.PhotoId).ToArray();
+
+        if (sexPhotos.Length == 0)
+        {
+            sexPhotos = singleDateGirl.SexPhotos.Select(x => x.PhotoId).ToArray();
+        }
+
+        if (sexPhotos.Length == 0)
+        {
+            Complete?.Invoke(this);
+            return;
+        }
+
+        var photoPool = sexPhotos.Except(girlSave.UnlockedPhotos).ToArray();
+        var bigPhotoId = photoPool.Length == 0
+            ? sexPhotos.GetRandom()
+            : photoPool.GetRandom();
+
+        girlSave.UnlockedPhotos ??= new();
+        girlSave.UnlockedPhotos.Add(bigPhotoId);
+
+        var photo = ModInterface.GameData.GetPhoto(bigPhotoId);
+        if (photo == null)
+        {
+            Complete?.Invoke(this);
+            return;
+        }
+
+        Game.Manager.Windows.WindowHideEvent += OnWindowHideEvent;
+
+        Game.Manager.Windows.ShowWindow(ModInterface.Assets.PhotosWindow, false);
+
+        var window = f_currentWindow.GetValue(Game.Manager.Windows);
+
+        f_bigPhotoDefinition.SetValue(window, photo);
+        m_refreshBigPhoto.Invoke(window, null);
+    }
+
+    private void OnWindowHideEvent()
+    {
+        Game.Manager.Windows.WindowHideEvent -= OnWindowHideEvent;
+        Complete?.Invoke(this);
+    }
+}
+
+
+File: SingleDateAttractCutscene.cs
+Content:
+using System.Collections.Generic;
+using System.Reflection;
+using HarmonyLib;
+using Hp2BaseMod;
+using Hp2BaseMod.GameDataInfo;
+using Hp2BaseMod.GameDataInfo.Interface;
+using Hp2BaseMod.Utility;
+namespace SingleDate;
+
+public static class SingleDateAttractCutscene
+{
+    private static readonly FieldInfo f_currentWindow = AccessTools.Field(typeof(WindowManager), "_currentWindow");
+    private static readonly FieldInfo f_bigPhotoDefinition = AccessTools.Field(typeof(UiWindowPhotos), "_bigPhotoDefinition");
+    private static readonly MethodInfo m_refreshBigPhoto = AccessTools.Method(typeof(UiWindowPhotos), "RefreshBigPhoto");
+
+    internal static void AddDataMods()
+    {
+        ModInterface.DataMod.AddDataMod(new CutsceneDataMod(CutsceneIds.Attract, InsertStyle.replace)
+        {
+            CleanUpType = CutsceneCleanUpType.NONE,
+            Steps = new List<IGameDefinitionInfo<CutsceneStepSubDefinition>>()
+            {
+                // big move dialogue
+                CutsceneStepUtility.MakeDialogTriggerInfo(Hp2BaseMod.DialogTriggers.BigMove).TargetOrientation(DollOrientationType.RIGHT),
+                CutsceneStepUtility.MakeWaitInfo(0.5f),
+                new ShowDatePhotoCutsceneStep.Info()
+            }
+        });
+    }
+}
+
+
+File: SingleDateMeetingCutscene.cs
+Content:
+using System.Collections.Generic;
+using Hp2BaseMod;
+using Hp2BaseMod.GameDataInfo;
+using Hp2BaseMod.GameDataInfo.Interface;
+using Hp2BaseMod.Utility;
+namespace SingleDate;
+
+public static class SingleDateMeetingCutscene
+{
+    internal static void AddDataMods()
+    {
+        ModInterface.DataMod.AddDataMod(new CutsceneDataMod(CutsceneIds.Meeting, InsertStyle.replace)
+        {
+            CleanUpType = CutsceneCleanUpType.NONE,
+            Steps = new List<IGameDefinitionInfo<CutsceneStepSubDefinition>>()
+            {
+                CutsceneStepUtility.MakeDialogTriggerInfo(Hp2BaseMod.DialogTriggers.GreetingAfternoon).TargetOrientation(DollOrientationType.RIGHT),
+            }
+        });
+    }
+}
+
+
+File: SingleDatePostSexCutscene.cs
+Content:
+using System.Collections.Generic;
+using Hp2BaseMod;
+using Hp2BaseMod.GameDataInfo;
+using Hp2BaseMod.GameDataInfo.Interface;
+using Hp2BaseMod.Utility;
+namespace SingleDate;
+
+public static class SingleDatePostSexCutscene
+{
+    internal static void AddDataMods()
+    {
+        ModInterface.DataMod.AddDataMod(new CutsceneDataMod(CutsceneIds.PostSex, InsertStyle.replace)
+        {
+            CleanUpType = CutsceneCleanUpType.NONE,
+            Steps = new List<IGameDefinitionInfo<CutsceneStepSubDefinition>>()
+            {
+                //moan 
+                CutsceneStepUtility.MakeDialogTriggerInfo(Hp2BaseMod.DialogTriggers.SexMoans1).TargetOrientation(DollOrientationType.RIGHT),
+                CutsceneStepUtility.MakeDialogTriggerInfo(Hp2BaseMod.DialogTriggers.DateSuccess).TargetOrientation(DollOrientationType.RIGHT),
+                CutsceneStepUtility.MakeWaitInfo(0.5f),
+            }
+        });
+    }
+}
+
+
+File: SingleDatePreSexCutscene.cs
+Content:
+using System.Collections.Generic;
+using Hp2BaseMod;
+using Hp2BaseMod.GameDataInfo;
+using Hp2BaseMod.GameDataInfo.Interface;
+using Hp2BaseMod.Utility;
+namespace SingleDate;
+
+public static class SingleDatePreSexCutscene
+{
+    internal static void AddDataMods()
+    {
+        ModInterface.DataMod.AddDataMod(new CutsceneDataMod(CutsceneIds.PreSex, InsertStyle.replace)
+        {
+            CleanUpType = CutsceneCleanUpType.NONE,
+            Steps = new List<IGameDefinitionInfo<CutsceneStepSubDefinition>>()
+            {
+                //moan
+                CutsceneStepUtility.MakeDialogTriggerInfo(Hp2BaseMod.DialogTriggers.SexMoans1).TargetOrientation(DollOrientationType.RIGHT),
+            }
+        });
+    }
+}
+
+
+File: SingleDateSuccessCutscene.cs
+Content:
+using System.Collections.Generic;
+using Hp2BaseMod;
+using Hp2BaseMod.GameDataInfo;
+using Hp2BaseMod.GameDataInfo.Interface;
+using Hp2BaseMod.Utility;
+namespace SingleDate;
+
+public static class SingleDateSuccessCutscene
+{
+    internal static void AddDataMods()
+    {
+        ModInterface.DataMod.AddDataMod(new CutsceneDataMod(CutsceneIds.Success, InsertStyle.replace)
+        {
+            CleanUpType = CutsceneCleanUpType.NONE,
+            Steps = new List<IGameDefinitionInfo<CutsceneStepSubDefinition>>()
+            {
+                CutsceneStepUtility.MakeBannerTextInfo("BannerTextSuccess", 0, CutsceneStepProceedType.AUTOMATIC),
+                CutsceneStepUtility.MakePuzzleRefocusInfo(false, CutsceneStepProceedType.AUTOMATIC),
+                CutsceneStepUtility.MakeSpecialStepInfo("CutsceneStepPostRewards", CutsceneStepProceedType.AUTOMATIC),
+                CutsceneStepUtility.MakeBannerTextHideInfo(CutsceneStepProceedType.AUTOMATIC),
+                CutsceneStepUtility.MakeDialogTriggerInfo(Hp2BaseMod.DialogTriggers.DateSuccess).TargetOrientation(DollOrientationType.RIGHT),
+                CutsceneStepUtility.MakeWaitInfo(0.5f),
+                new ShowDatePhotoCutsceneStep.Info(),
+                CutsceneStepUtility.MakeHidePuzzleGridInfo(CutsceneStepProceedType.AUTOMATIC),
+                CutsceneStepUtility.MakeWaitInfo(0.5f),
+            }
+        });
+    }
+}
+
+

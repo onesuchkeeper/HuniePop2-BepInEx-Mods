@@ -42,7 +42,7 @@ public class GirlStyleInfo
     public void ReplaceRelativeIds(Func<RelativeId?, RelativeId?> getNewId)
     {
         OutfitId = getNewId(OutfitId);
-        HairstyleId = getNewId(OutfitId);
+        HairstyleId = getNewId(HairstyleId);
     }
 
     public void Apply(UiDoll doll, int defaultOutfitIndex, int defaultHairstyleIndex)

@@ -34,7 +34,7 @@ internal static class PlayerFileGirl_FavAnswers
     public static bool HasFavAnswer(PlayerFileGirl __instance, QuestionDefinition questionDef, ref bool __result)
     {
         var learnedFavs = f_learnedFavs.GetValue<List<int>>(__instance);
-        __result = !learnedFavs.Contains(questionDef.id);
+        __result = learnedFavs.Contains(questionDef.id);
         return false;
     }
 

@@ -149,12 +149,6 @@ internal class GameDataModApplicator
                 SetData(context.tokenDataDict, context.tokenDataMods, gameDataProvider, assetProvider, GameDataType.Token);
             }
         }
-
-        // using (ModInterface.Log.MakeIndent("registering functional mods"))
-        // {
-        //     ModInterface.Log.LogInfo("ailments");
-        //     ModInterface.Data.RegisterFunctionalAilments(ailmentDataMods.OfType<IFunctionalAilmentDataMod>());
-        // }
     }
 
     private static void SetData<T>(Dictionary<int, T> data,

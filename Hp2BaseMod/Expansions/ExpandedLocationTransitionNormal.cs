@@ -5,29 +5,29 @@ using Hp2BaseMod.Extension;
 
 namespace Hp2BaseMod;
 
-[HarmonyPatch(typeof(LocationTransitionNormal))]
-internal static class LocationTransitionNormalPatch
-{
-    [HarmonyPatch("ArriveStep")]
-    [HarmonyPrefix]
-    public static bool ArriveStep(LocationTransitionNormal __instance)
-        => ExpandedLocationTransitionNormal.Get(__instance).ArriveStep_Prefix();
-
-    [HarmonyPatch("DepartStep")]
-    [HarmonyPrefix]
-    public static bool DepartStep(LocationTransitionNormal __instance)
-        => ExpandedLocationTransitionNormal.Get(__instance).DepartStep_Prefix();
-}
-
 [Expansion(typeof(LocationTransitionNormal))]
 public partial class ExpandedLocationTransitionNormal
 {
+    [HarmonyPatch(typeof(LocationTransitionNormal))]
+    internal static class Patch
+    {
+        [HarmonyPatch("ArriveStep")]
+        [HarmonyPrefix]
+        private static bool ArriveStep(LocationTransitionNormal __instance)
+            => ExpandedLocationTransitionNormal.Get(__instance).ArriveStep_Prefix();
+
+        [HarmonyPatch("DepartStep")]
+        [HarmonyPrefix]
+        private static bool DepartStep(LocationTransitionNormal __instance)
+            => ExpandedLocationTransitionNormal.Get(__instance).DepartStep_Prefix();
+    }
+
     private static FieldInfo f_gameSaved = AccessTools.Field(typeof(LocationTransition), "_gameSaved");
     private static FieldInfo f_arriveWithGirls = AccessTools.Field(typeof(LocationTransition), "_arriveWithGirls");
     private static FieldInfo f_initialArrive = AccessTools.Field(typeof(LocationTransition), "_initialArrive");
     private static MethodInfo m_ArrivalComplete = AccessTools.Method(typeof(LocationTransition), "ArrivalComplete");
 
-    internal bool ArriveStep_Prefix()
+    private bool ArriveStep_Prefix()
     {
         // override arrive step 1 to allow additions to the sequence before it plays
         var nextStepIndex = f_stepIndex.GetValue<int>(_core) + 1;
@@ -116,7 +116,7 @@ public partial class ExpandedLocationTransitionNormal
         }
     }
 
-    internal bool DepartStep_Prefix()
+    private bool DepartStep_Prefix()
     {
         // override depart step 1 at sim locations to notify random doll selection
         var stepIndex = f_stepIndex.GetValue<int>(_core);

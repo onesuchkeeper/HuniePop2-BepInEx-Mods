@@ -35,6 +35,7 @@ public class PerfectionistAilment : IScriptedAilment
     public void Disable()
     {
         _ailmentManager.PreMatchReward -= On_AilmentManager_PreMatchReward;
+        _ailmentManager.PostMatchReward -= On_AilmentManager_PostMatchReward;
     }
 
     private void On_AilmentManager_PreMatchReward(AilmentTriggerArgs.PreMatchReward args)

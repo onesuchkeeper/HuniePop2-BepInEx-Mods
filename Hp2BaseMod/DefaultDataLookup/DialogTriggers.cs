@@ -68,7 +68,6 @@ public static class DialogTriggers
             || relativeId == Baggage2
             || relativeId == Baggage3
             || relativeId == SexClimax
-            || relativeId == SexClimax
             || relativeId == HubWingCheck
             || relativeId == HubNymphoPre
             || relativeId == HubNymphoPost

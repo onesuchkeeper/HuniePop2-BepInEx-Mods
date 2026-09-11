@@ -5,196 +5,197 @@ using HarmonyLib;
 
 namespace Hp2BaseMod;
 
-[HarmonyPatch(typeof(PuzzleManager))]
-internal static class PuzzleManagerPatch
+[Expansion(typeof(PuzzleManager))]
+public partial class ExpandedPuzzleManager
 {
-    private static readonly MethodInfo m_handleCutscenes = AccessTools.Method(typeof(PuzzleManagerPatch), nameof(HandleCutscenes));
-    private static readonly MethodInfo m_checkRelationship = AccessTools.Method(typeof(PuzzleManagerPatch), nameof(CheckRelationship));
-
-    [HarmonyPatch("EndPuzzle")]
-    [HarmonyPostfix]
-    private static void EndPuzzle(PuzzleManager __instance)
-        => ExpandedPuzzleManager.Get(__instance).EndPuzzle_Postfix();
-
-    [HarmonyPatch("OnDestroy")]
-    [HarmonyPostfix]
-    private static void OnDestroy(PuzzleManager __instance) 
-        => ExpandedPuzzleManager.Destroy(__instance);
-
-    [HarmonyPatch("OnRoundOver")]
-    [HarmonyTranspiler]
-    private static IEnumerable<CodeInstruction> OnRoundOver(IEnumerable<CodeInstruction> instructions)
+    [HarmonyPatch(typeof(PuzzleManager))]
+    private static class Patch
     {
-        yield return new CodeInstruction(OpCodes.Ldarg_0);
-        yield return new CodeInstruction(OpCodes.Call, m_checkRelationship);
+        private static readonly MethodInfo m_handleCutscenes = AccessTools.Method(typeof(Patch), nameof(HandleCutscenes));
+        private static readonly MethodInfo m_checkRelationship = AccessTools.Method(typeof(Patch), nameof(CheckRelationship));
 
-        int step = 0;
-        foreach (var instruction in instructions)
+        [HarmonyPatch("EndPuzzle")]
+        [HarmonyPostfix]
+        private static void EndPuzzle(PuzzleManager __instance)
+            => ExpandedPuzzleManager.Get(__instance).EndPuzzle_Postfix();
+
+        [HarmonyPatch("OnDestroy")]
+        [HarmonyPostfix]
+        private static void OnDestroy(PuzzleManager __instance) 
+            => ExpandedPuzzleManager.Destroy(__instance);
+
+        [HarmonyPatch("OnRoundOver")]
+        [HarmonyTranspiler]
+        private static IEnumerable<CodeInstruction> OnRoundOver(IEnumerable<CodeInstruction> instructions)
         {
-            switch (step)
+            yield return new CodeInstruction(OpCodes.Ldarg_0);
+            yield return new CodeInstruction(OpCodes.Call, m_checkRelationship);
+
+            int step = 0;
+            foreach (var instruction in instructions)
             {
-                case 0:
-                    step = instruction.opcode == OpCodes.Ldarg_0 ? 1 : 0;
+                switch (step)
+                {
+                    case 0:
+                        step = instruction.opcode == OpCodes.Ldarg_0 ? 1 : 0;
+                        break;
+                    case 1:
+                        step = instruction.opcode == OpCodes.Ldfld ? 2 : 0;
+                        break;
+                    case 2:
+                        step = instruction.opcode == OpCodes.Ldloc_0 ? 3 : 0;
+                        break;
+                    case 3:
+                        step = instruction.opcode == OpCodes.Callvirt && instruction.operand?.ToString() == "Void set_gameOver(Boolean)" ? 4 : 0;
+                        break;
+                    case 4:
+                        step = -1;
+                        yield return new CodeInstruction(OpCodes.Ldarg_0);
+                        yield return new CodeInstruction(OpCodes.Call, m_handleCutscenes);
+                        break;
+                }
+
+                yield return instruction;
+            }
+
+            if (step != -1)
+            {
+                ModInterface.Log.Error("Failed to transply hook into PuzzleManager.OnRoundOver");
+            }
+        }
+
+        private static void CheckRelationship(PuzzleManager manager)
+        {
+            if (Game.Session.Puzzle.puzzleStatus.statusType != PuzzleStatusType.NORMAL) return;
+
+            var currentGirlPair = Game.Session.Location.currentGirlPair;
+
+            var playerFileGirlPair = Game.Persistence.playerFile.GetPlayerFileGirlPair(currentGirlPair);
+
+            var managerExp = manager.GetExpansion();
+
+            var args = new PuzzleRoundOverArgs();
+            args.IsSexDate = playerFileGirlPair.relationshipType == GirlPairRelationshipType.ATTRACTED
+                && Game.Session.Location.currentLocation == currentGirlPair.sexLocationDefinition;
+
+            switch (Game.Session.Puzzle.puzzleStatus.statusType)
+            {
+                case PuzzleStatusType.NORMAL:
+                    switch (playerFileGirlPair.relationshipType)
+                    {
+                        case GirlPairRelationshipType.UNKNOWN:
+                            args.LevelUpType = PuzzleRoundOverArgs.CutsceneType.None;
+                            break;
+                        case GirlPairRelationshipType.COMPATIBLE:
+                            args.LevelUpType = PuzzleRoundOverArgs.CutsceneType.CompatToAttract;
+                            break;
+                        case GirlPairRelationshipType.ATTRACTED:
+                            args.LevelUpType = PuzzleRoundOverArgs.CutsceneType.AttractToLovers;
+                            break;
+                        case GirlPairRelationshipType.LOVERS:
+                            args.LevelUpType = PuzzleRoundOverArgs.CutsceneType.None;
+                            break;
+                    }
                     break;
-                case 1:
-                    step = instruction.opcode == OpCodes.Ldfld ? 2 : 0;
-                    break;
-                case 2:
-                    step = instruction.opcode == OpCodes.Ldloc_0 ? 3 : 0;
-                    break;
-                case 3:
-                    step = instruction.opcode == OpCodes.Callvirt && instruction.operand?.ToString() == "Void set_gameOver(Boolean)" ? 4 : 0;
-                    break;
-                case 4:
-                    step = -1;
-                    yield return new CodeInstruction(OpCodes.Ldarg_0);
-                    yield return new CodeInstruction(OpCodes.Call, m_handleCutscenes);
+                case PuzzleStatusType.NONSTOP:
+                case PuzzleStatusType.BOSS:
+                    args.LevelUpType = PuzzleRoundOverArgs.CutsceneType.None;
                     break;
             }
 
-            yield return instruction;
+            managerExp.Args = args;
         }
 
-        if (step != -1)
+        private static void HandleCutscenes(PuzzleManager manager)
         {
-            ModInterface.Log.Error("Failed to transply hook into PuzzleManager.OnRoundOver");
-        }
-    }
+            ModInterface.Log.Message("HANDLE CUTSCENES");
+            if (Game.Session.Puzzle.puzzleStatus.statusType != PuzzleStatusType.NORMAL) return;
 
-    public static void CheckRelationship(PuzzleManager manager)
-    {
-        ModInterface.Log.Message("CHECK RELATIONSHIP");
-        if (Game.Session.Puzzle.puzzleStatus.statusType != PuzzleStatusType.NORMAL) return;
+            var managerExp = manager.GetExpansion();
+            var args = manager.GetExpansion().Args;
+            args.IsGameOver = Game.Session.Puzzle.puzzleStatus.gameOver;
+            args.IsSuccess = Game.Session.Puzzle.puzzleGrid.roundState == PuzzleRoundState.SUCCESS;
 
-        var currentGirlPair = Game.Session.Location.currentGirlPair;
-        var playerFileGirlPair = Game.Persistence.playerFile.GetPlayerFileGirlPair(currentGirlPair);
-        var managerExp = manager.GetExpansion();
+            ModInterface.Events.NotifyPuzzleRoundOver(args);
 
-        var args = new PuzzleRoundOverArgs();
-        args.IsSexDate = playerFileGirlPair.relationshipType == GirlPairRelationshipType.ATTRACTED
-            && Game.Session.Location.currentLocation == currentGirlPair.sexLocationDefinition;
+            ModInterface.Log.Message(args.ToString());
 
-        switch (Game.Session.Puzzle.puzzleStatus.statusType)
-        {
-            case PuzzleStatusType.NORMAL:
-                switch (playerFileGirlPair.relationshipType)
-                {
-                    case GirlPairRelationshipType.UNKNOWN:
-                        args.LevelUpType = PuzzleRoundOverArgs.CutsceneType.None;
-                        break;
-                    case GirlPairRelationshipType.COMPATIBLE:
-                        args.LevelUpType = PuzzleRoundOverArgs.CutsceneType.CompatToAttract;
-                        break;
-                    case GirlPairRelationshipType.ATTRACTED:
-                        args.LevelUpType = PuzzleRoundOverArgs.CutsceneType.AttractToLovers;
-                        break;
-                    case GirlPairRelationshipType.LOVERS:
-                        args.LevelUpType = PuzzleRoundOverArgs.CutsceneType.None;
-                        break;
-                }
-                break;
-            case PuzzleStatusType.NONSTOP:
-            case PuzzleStatusType.BOSS:
-                args.LevelUpType = PuzzleRoundOverArgs.CutsceneType.None;
-                break;
-        }
+            var puzzleStatusExp = Game.Session.Puzzle.puzzleStatus.GetExpansion();
+            puzzleStatusExp._gameOver = args.IsGameOver;
 
-        managerExp.Args = args;
-    }
+            var puzzleGridExp = Game.Session.Puzzle.puzzleGrid.GetExpansion();
+            puzzleGridExp._roundState = args.IsSuccess
+                ? PuzzleRoundState.SUCCESS
+                : PuzzleRoundState.FAILURE;
 
-    public static void HandleCutscenes(PuzzleManager manager)
-    {
-        ModInterface.Log.Message("HANDLE CUTSCENES");
-        if (Game.Session.Puzzle.puzzleStatus.statusType != PuzzleStatusType.NORMAL) return;
-
-        var managerExp = manager.GetExpansion();
-        var args = manager.GetExpansion().Args;
-        args.IsGameOver = Game.Session.Puzzle.puzzleStatus.gameOver;
-        args.IsSuccess = Game.Session.Puzzle.puzzleGrid.roundState == PuzzleRoundState.SUCCESS;
-
-        ModInterface.Events.NotifyPuzzleRoundOver(args);
-
-        ModInterface.Log.Message(args.ToString());
-
-        var puzzleStatusExp = Game.Session.Puzzle.puzzleStatus.GetExpansion();
-        puzzleStatusExp._gameOver = args.IsGameOver;
-
-        var puzzleGridExp = Game.Session.Puzzle.puzzleGrid.GetExpansion();
-        puzzleGridExp._roundState = args.IsSuccess
-            ? PuzzleRoundState.SUCCESS
-            : PuzzleRoundState.FAILURE;
-
-        //TODO, handle other puzzle types
-        switch (Game.Session.Puzzle.puzzleStatus.statusType)
-        {
-            case PuzzleStatusType.NORMAL:
-                ProcessNormalDate(managerExp);
-                break;
-            case PuzzleStatusType.NONSTOP:
-                break;
-            case PuzzleStatusType.BOSS:
-                break;
-        }
-    }
-
-    private static void ProcessNormalDate(ExpandedPuzzleManager managerExp)
-    {
-        ModInterface.Log.Message("PROCESS NORMAL DATE");
-        var args = managerExp.Args;
-        var pairExpansion = Game.Session.Location.currentGirlPair.GetExpansion();
-
-        if (args.IsSuccess)
-        {
-            if (args.IsSexDate)
+            //TODO, handle other puzzle types
+            switch (Game.Session.Puzzle.puzzleStatus.statusType)
             {
-                if (Game.Session.Puzzle.puzzleStatus.bonusRound)
-                {
-                    managerExp._newRoundCutscene = null;
+                case PuzzleStatusType.NORMAL:
+                    ProcessNormalDate(managerExp);
+                    break;
+                case PuzzleStatusType.NONSTOP:
+                    break;
+                case PuzzleStatusType.BOSS:
+                    break;
+            }
+        }
 
-                    managerExp._roundOverCutscene = ModInterface.GameData.GetCutscene(pairExpansion.CutsceneNormalBonusSuccessId) 
-                        ?? Game.Session.Puzzle.cutsceneSuccessBonus;
+        private static void ProcessNormalDate(ExpandedPuzzleManager managerExp)
+        {
+            ModInterface.Log.Message("PROCESS NORMAL DATE");
+            var args = managerExp.Args;
+            var pairExpansion = Game.Session.Location.currentGirlPair.GetExpansion();
+
+            if (args.IsSuccess)
+            {
+                if (args.IsSexDate)
+                {
+                    if (Game.Session.Puzzle.puzzleStatus.bonusRound)
+                    {
+                        managerExp._newRoundCutscene = null;
+
+                        managerExp._roundOverCutscene = ModInterface.GameData.GetCutscene(pairExpansion.CutsceneNormalBonusSuccessId) 
+                            ?? Game.Session.Puzzle.cutsceneSuccessBonus;
+                    }
+                    else
+                    {
+                        managerExp._roundOverCutscene = ModInterface.GameData.GetCutscene(pairExpansion.CutsceneNormalAttractedSuccessId) 
+                            ?? Game.Session.Puzzle.cutsceneSuccessAttracted;
+
+                        managerExp._newRoundCutscene = ModInterface.GameData.GetCutscene(pairExpansion.CutsceneNormalBonusNewRoundId) 
+                            ?? Game.Session.Puzzle.cutsceneNewroundBonus;
+                    }
                 }
                 else
                 {
-                    managerExp._roundOverCutscene = ModInterface.GameData.GetCutscene(pairExpansion.CutsceneNormalAttractedSuccessId) 
-                        ?? Game.Session.Puzzle.cutsceneSuccessAttracted;
-
-                    managerExp._newRoundCutscene = ModInterface.GameData.GetCutscene(pairExpansion.CutsceneNormalBonusNewRoundId) 
-                        ?? Game.Session.Puzzle.cutsceneNewroundBonus;
+                    switch (args.LevelUpType)
+                    {
+                        case PuzzleRoundOverArgs.CutsceneType.None:
+                            managerExp._roundOverCutscene = ModInterface.GameData.GetCutscene(pairExpansion.CutsceneNormalSuccessId) ?? Game.Session.Puzzle.cutsceneSuccess;
+                            break;
+                        case PuzzleRoundOverArgs.CutsceneType.AttractToLovers:
+                            managerExp._roundOverCutscene = ModInterface.GameData.GetCutscene(pairExpansion.CutsceneNormalAttractedSuccessId) 
+                                ?? Game.Session.Puzzle.cutsceneSuccessAttracted;
+                            break;
+                        case PuzzleRoundOverArgs.CutsceneType.CompatToAttract:
+                            managerExp._roundOverCutscene = ModInterface.GameData.GetCutscene(pairExpansion.CutsceneNormalCompatibleSuccessId) 
+                                ?? Game.Session.Puzzle.cutsceneSuccessCompatible;
+                            break;
+                    }
                 }
             }
             else
             {
-                switch (args.LevelUpType)
-                {
-                    case PuzzleRoundOverArgs.CutsceneType.None:
-                        managerExp._roundOverCutscene = ModInterface.GameData.GetCutscene(pairExpansion.CutsceneNormalSuccessId) ?? Game.Session.Puzzle.cutsceneSuccess;
-                        break;
-                    case PuzzleRoundOverArgs.CutsceneType.AttractToLovers:
-                        managerExp._roundOverCutscene = ModInterface.GameData.GetCutscene(pairExpansion.CutsceneNormalAttractedSuccessId) 
-                            ?? Game.Session.Puzzle.cutsceneSuccessAttracted;
-                        break;
-                    case PuzzleRoundOverArgs.CutsceneType.CompatToAttract:
-                        managerExp._roundOverCutscene = ModInterface.GameData.GetCutscene(pairExpansion.CutsceneNormalCompatibleSuccessId) 
-                            ?? Game.Session.Puzzle.cutsceneSuccessCompatible;
-                        break;
-                }
+                managerExp._roundOverCutscene = ModInterface.GameData.GetCutscene(pairExpansion.CutsceneNormalFailureId) 
+                    ?? Game.Session.Puzzle.cutsceneFailure;
             }
         }
-        else
-        {
-            managerExp._roundOverCutscene = ModInterface.GameData.GetCutscene(pairExpansion.CutsceneNormalFailureId) 
-                ?? Game.Session.Puzzle.cutsceneFailure;
-        }
     }
-}
 
-[Expansion(typeof(PuzzleManager))]
-public partial class ExpandedPuzzleManager
-{
-    internal PuzzleRoundOverArgs Args;
+    private PuzzleRoundOverArgs Args;
 
-    internal void EndPuzzle_Postfix()
+    private void EndPuzzle_Postfix()
     {
         Game.Session.Ailment.GetExpansion().OnEndPuzzle();
     }
