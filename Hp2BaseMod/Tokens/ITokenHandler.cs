@@ -1,6 +1,3 @@
-using System;
-using UnityEngine;
-
 namespace Hp2BaseMod
 {
     public interface ITokenHandler

@@ -93,7 +93,7 @@ public partial class Plugin : Hp2BaseModPlugin
 
         RegisterData();
         RegisterEvents();
-        ApplyPatches();
+        new Harmony(MyPluginInfo.PLUGIN_GUID).PatchAll();
     }
 
     private void InitializeConfiguration()
@@ -286,6 +286,8 @@ public partial class Plugin : Hp2BaseModPlugin
 
         ModInterface.Events.PopulateStoreProducts +=
             ModEventHandles.On_PopulateStoreProducts;
+
+        ModInterface.Events.PreLocationDepart += SpecialCharacterUnlocks.On_PreLocationDepart;
     }
 
     private void RegisterModCredits()
@@ -326,15 +328,6 @@ public partial class Plugin : Hp2BaseModPlugin
                     "https://twitter.com/silverwoodwork"
                 ),
             ]);
-    }
-
-    #endregion
-
-    #region Harmony
-
-    private void ApplyPatches()
-    {
-        new Harmony(MyPluginInfo.PLUGIN_GUID).PatchAll();
     }
 
     #endregion

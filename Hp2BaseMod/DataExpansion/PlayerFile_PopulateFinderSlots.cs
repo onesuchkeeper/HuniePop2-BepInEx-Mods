@@ -15,6 +15,9 @@ namespace Hp2BaseMod;
 /// the base PopulateFinderSlots doesn't account for that possibility
 /// 
 /// also allows mods to validate pairs via <see cref="ModEvents.FinderSlotsPopulate"/>
+/// 
+/// This takes a different route, but at the end the order in which pools are
+/// selected from is the same as the base game.
 /// </summary>
 [HarmonyPatch(typeof(PlayerFile), nameof(PlayerFile.PopulateFinderSlots))]
 public static class PlayerFile_PopulateFinderSlots
@@ -25,7 +28,6 @@ public static class PlayerFile_PopulateFinderSlots
 
         var normalGirls = Game.Data.Girls.GetAllBySpecial(false).ToDictionary(x => x, playerFile.GetPlayerFileGirl);
         List<PlayerFileGirlPair> filePairs = Game.Data.GirlPairs.GetAllBySpecial(false).Select(playerFile.GetPlayerFileGirlPair).ToList();
-        ListUtils.ShuffleList(filePairs);
 
         //remove pairs containing a girl from the current pair
         if (playerFile.girlPairDefinition != null)
@@ -54,6 +56,8 @@ public static class PlayerFile_PopulateFinderSlots
             filePairs.RemoveAll(x => x.girlPairDefinition.girlDefinitionOne == Game.Session.Hub.hubGirlDefinition
                     || x.girlPairDefinition.girlDefinitionTwo == Game.Session.Hub.hubGirlDefinition);
         }
+
+        filePairs.Shuffle();
 
         var nextTime = (ClockDaytimeType)((playerFile.daytimeElapsed + 1) % 4);
 

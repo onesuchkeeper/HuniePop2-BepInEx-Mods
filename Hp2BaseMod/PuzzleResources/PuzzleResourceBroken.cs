@@ -13,7 +13,6 @@ public class PuzzleResourceBroken : BasePuzzleResource
     {
         if (value == 0) return false;
         puzzleStatusGirl.stamina -= puzzleStatusGirl.stamina;
-        puzzleStatusGirl.upset = true;
         
         // Notify the state machine that broken hearts were matched
         puzzleStatusGirl.GetExpansion().OnBrokenHeartMatched(value);

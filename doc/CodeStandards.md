@@ -4,8 +4,6 @@ This document defines the required C# coding standards for this library. These r
 
 The project targets Unity 2019.4 and uses BepInEx with Harmony for runtime patching. Do NOT import or utilize any namespaces or modern .NET syntax incompatible with the Unity 2019.4 Mono runtime.
 
-A Roslyn analyzer is in development to better enforce these rules. Until it is available, contributors and AI agents are responsible for applying them manually during implementation and code review.
-
 ---
 
 ## General Principles
@@ -90,7 +88,7 @@ The same brace and scope rules apply to if, else, for, foreach, while, do, switc
 
 Do not add indentation to align punctuation, parameters, operators, assignments, or member-access operators.
 
-Long member-access chains must be split across separate lines. Each continuation line is indented exactly once relative to the initial expression. Do not align . characters vertically.
+Long member-access chains must be split across separate lines. Each continuation line is indented exactly once relative to the initial expression. Do not align '.' characters vertically.
 ```cs
 var result = source
     .Where(item => item.IsEnabled)
@@ -605,13 +603,3 @@ private static readonly MethodInfo ON_TOOLTIP_PRE_SHOW_METHOD
 Reflection lookups must not be performed repeatedly in lifecycle callbacks, Harmony patches, UI refresh methods, or other high-frequency code paths.
 
 If a required reflected member cannot be found during a load-time operation, allow the exception to propagate so the mod-loading failure is visible. If reflection fails during gameplay, log the failure with ModInterface.Log and preserve gameplay stability where possible.
-
----
-
-## Enforcement
-
-A Roslyn analyzer is under development and will become the authoritative automated enforcement mechanism for these standards.
-
-Until then, pull requests must be reviewed against this document. Contributors and AI agents must treat these requirements as mandatory, not advisory.
-
-When automated formatting or analyzer rules conflict with this document, follow the analyzer once it has been explicitly adopted by the project.

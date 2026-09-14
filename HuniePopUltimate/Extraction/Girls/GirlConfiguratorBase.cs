@@ -206,7 +206,8 @@ public abstract class GirlConfiguratorBase : IGirlConfigurator
             ItemSpriteInfo = new SpriteInfoSprite(assetBundle.LoadAsset<Sprite>($"{GirlAssetFileName}_shoes_{index}")),
             StoreCost = 4,
             StoreSectionPreference = true,
-            AffectionId = _mod.FavoriteAffectionId
+            AffectionId = _mod.FavoriteAffectionId,
+            CategoryPrefix = "Shoes"
         });
 
         _mod.ShoesItemDefIDs.Add(itemId);
@@ -221,6 +222,7 @@ public abstract class GirlConfiguratorBase : IGirlConfigurator
         mod.GirlDefinitionID = GirlId;
         mod.StoreCost = 4;
         mod.ItemDescription = mod.ItemDescription.Replace(" Earn an additional +50% [[Hunie]hunie] while talking with her.", "") + " +1 [[passion]@Passion] EXP.";
+        mod.CategoryPrefix = "Unique Gift";
         mod.CategoryDescription = UniqueCategoryDescription;
         mod.StoreSectionPreference = true;
         mod.AffectionId = _mod.FavoriteAffectionId;
@@ -237,6 +239,7 @@ public abstract class GirlConfiguratorBase : IGirlConfigurator
         mod.AilmentDefinitionID = mod.Id;
         mod.ItemName = name;
         mod.ItemDescription = description;
+        mod.CategoryPrefix = "Baggage";
 
         _mod.BaggageItemDefIDs.Add(mod.Id);
     }

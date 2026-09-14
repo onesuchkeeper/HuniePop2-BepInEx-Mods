@@ -2,8 +2,8 @@
 
 using System;
 
-namespace Hp2BaseMod
-{
+namespace Hp2BaseModTweaks;
+
     public static class Art
     {
         public static string Random()
@@ -1072,5 +1072,4 @@ namespace Hp2BaseMod
 + Environment.NewLine + "              G@@@@@@@@@@&&&&&###@PJ?!^............:::..........:::::::^^^^^^^^^^^:::~##B&@@#:::::..!??JY.              "
 + Environment.NewLine + "             J@@@@@@@@@@@&&&&&##GYJY!!^:..........................:::::::^^^^^^^:::::P&&#@@@~.:::::.!JJJ5.              "
 + Environment.NewLine + "            ^@@@@@@@@@@@&&&&&###JJP5!^:.....................::::::::::^^^^^^^^:::::.!&&&&@@5:::::::.7JJY5^              ";
-    }
 }

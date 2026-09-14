@@ -4,6 +4,8 @@ using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
 using Hp2BaseMod;
+using Hp2BaseMod.GameDataInfo;
+using Hp2BaseMod.Utility;
 
 namespace Cheat;
 
@@ -12,6 +14,9 @@ namespace Cheat;
 public partial class Plugin : Hp2BaseModPlugin
 {
     private const string GENERAL_CONFIG_CAT = "general";
+
+    public static RelativeId CheatAilmentId => _cheatAilmentId;
+    private static RelativeId _cheatAilmentId;
 
     public static ConfigEntry<bool> UnlockAllStyles => _unlockAllStyles;
     private static ConfigEntry<bool> _unlockAllStyles;
@@ -49,7 +54,6 @@ public partial class Plugin : Hp2BaseModPlugin
     public static ConfigEntry<bool> TalkStamina => _talkStamina;
     private static ConfigEntry<bool> _talkStamina;
 
-    private static readonly FieldInfo f_testMode = AccessTools.Field(typeof(GameManager), "_testMode");
     private static readonly FieldInfo f_learnedBaggage = AccessTools.Field(typeof(PlayerFileGirl), "_learnedBaggage");
 
     public Plugin() : base(MyPluginInfo.PLUGIN_GUID) { }
@@ -71,19 +75,26 @@ public partial class Plugin : Hp2BaseModPlugin
         _dateSentiment = Config.Bind(GENERAL_CONFIG_CAT, nameof(DateSentiment), 0, "Sentiment added to every token match during dates.");
         _datePassion = Config.Bind(GENERAL_CONFIG_CAT, nameof(DatePassion), 0, "Passion added to every token match during dates.");
 
-        _bonusRoundAffection = Config.Bind(GENERAL_CONFIG_CAT, nameof(BonusRoundAffection), 0, "If true during bonus rounds every token match earns 50 additional affection.");
+        _bonusRoundAffection = Config.Bind(GENERAL_CONFIG_CAT, nameof(BonusRoundAffection), 0, "If true during bonus rounds every token match earns additional affection.");
 
         _talkStamina = Config.Bind(GENERAL_CONFIG_CAT, nameof(TalkStamina), false, "If true talking will set stamina to max.");
 
         ModInterface.Log.ShowDebug = true;
         ModInterface.Events.PreLoadPlayerFile += On_PreLoadPlayerFile;
+
+        // Register custom scripted cheat ailment
+        _cheatAilmentId = new RelativeId(this.ModId, 0);
+        ModInterface.DataMod.AddDataMod(new AilmentDataMod(_cheatAilmentId, InsertStyle.append)
+        {
+            ScriptedAilmentFactory = (ailment) => new CheatAilment()
+        });
+
         new Harmony(MyPluginInfo.PLUGIN_GUID).PatchAll();
     }
 
     [InteropMethod]
     private void Test()
     {
-        
     }
 
     private void On_PreLoadPlayerFile(PlayerFile file)
@@ -148,7 +159,6 @@ public partial class Plugin : Hp2BaseModPlugin
             {
                 ModInterface.Log.Message(nameof(FruitCount));
 
-                // we're setting them all so we don't care which ones they actually are
                 var fruitTypeCount = ModInterface.Data.GetIds(GameDataType.Fruit).Count();
                 for (int i = 0; i < fruitTypeCount; i++)
                 {
@@ -159,38 +169,35 @@ public partial class Plugin : Hp2BaseModPlugin
     }
 }
 
-[HarmonyPatch(typeof(PuzzleStatus), "AddPuzzleReward")]
-public static class PuzzleSetGetMatchRewards_Patch
+/// <summary>
+/// Adds the cheat ailment as a global ailment whenever a puzzle starts.
+/// </summary>
+[HarmonyPatch(typeof(UiPuzzleGrid))]
+internal static class UiPuzzleGrid_StartPuzzlePatch
 {
-    public static void Prefix(PuzzleStatus __instance)
+    [HarmonyPatch(nameof(UiPuzzleGrid.StartPuzzle))]
+    [HarmonyPrefix]
+    private static void StartPuzzle_Prefix()
     {
-        if (__instance.bonusRound)
-        {
-            __instance.AddResourceValue(PuzzleResourceType.AFFECTION, Plugin.BonusRoundAffection.Value, false);
-        }
-        else
-        {
-            __instance.AddResourceValue(PuzzleResourceType.MOVES, Plugin.DateMoves.Value, false);
-            __instance.AddResourceValue(PuzzleResourceType.AFFECTION, Plugin.DateAffection.Value, false);
-            __instance.AddResourceValue(PuzzleResourceType.STAMINA, Plugin.DateStamina.Value, false);
-            __instance.AddResourceValue(PuzzleResourceType.PASSION, Plugin.DatePassion.Value, false);
-            __instance.AddResourceValue(PuzzleResourceType.SENTIMENT, Plugin.DateSentiment.Value, false);
-        }
+        Game.Session.Ailment.GetExpansion().AddGlobal(Plugin.CheatAilmentId);
     }
 }
 
-[HarmonyPatch(typeof(UiWindowActionBubbles))]
-internal static class UiWindowActionBubbles_Patch
+/// <summary>
+/// Ensures talk stamina is restored when a talk action is initiated.
+/// </summary>
+[HarmonyPatch(typeof(TalkManager))]
+internal static class TalkManager_Patch
 {
-    [HarmonyPatch("OnActionBubblePressed")]
+    [HarmonyPatch(nameof(TalkManager.TalkWith))]
     [HarmonyPrefix]
-    private static void OnActionBubblePressed(UiWindowActionBubbles __instance, UiActionBubble actionBubble)
+    private static void TalkWith_Prefix()
     {
-        if (Plugin.TalkStamina.Value
-            && actionBubble.actionBubbleType == ActionBubbleType.TALK)
+        if (Plugin.TalkStamina.Value && Game.Session.Puzzle.puzzleStatus != null)
         {
-            Game.Session.Puzzle.puzzleStatus.girlStatusLeft.stamina = 6;
-            Game.Session.Puzzle.puzzleStatus.girlStatusRight.stamina = 6;
+            var status = Game.Session.Puzzle.puzzleStatus;
+            if (status.girlStatusLeft != null) status.girlStatusLeft.stamina = 6;
+            if (status.girlStatusRight != null) status.girlStatusRight.stamina = 6;
         }
     }
 }

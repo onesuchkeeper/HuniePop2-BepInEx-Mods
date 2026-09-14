@@ -59,6 +59,7 @@ public partial class ExpandedGiftManager
         }
         else
         {
+            itemExp.GiftHandler.OnGiveFailed(itemExp, girlExp, doll);
             Game.Manager.Audio.Play(AudioCategory.SOUND, _core.sfxGiftFailure, doll.pauseDefinition);
 		    __result = false;
         }

@@ -1,6 +1,3 @@
-using Hp2BaseMod.Extension;
-using UnityEngine;
-
 namespace Hp2BaseMod;
 
 public class NormalGirlState : IPuzzleStatusGirlState
@@ -28,4 +25,5 @@ public class NormalGirlState : IPuzzleStatusGirlState
     }
 
     public RelativeId OnMoveCompleted(PuzzleStatusGirl statusGirl, ExpandedPuzzleStatusGirl expansion) => Id;
+    public RelativeId OnRevive(PuzzleStatusGirl statusGirl, ExpandedPuzzleStatusGirl expansion) => Id;
 }

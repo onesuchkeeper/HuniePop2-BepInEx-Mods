@@ -5,7 +5,7 @@ using System.Reflection;
 using HarmonyLib;
 using UnityEngine.UI;
 
-namespace Hp2BaseMod.Commands;
+namespace Hp2BaseMod;
 
 /// <summary>
 /// Handles codes starting with '/' as commands. See <see cref="ICommand"/>

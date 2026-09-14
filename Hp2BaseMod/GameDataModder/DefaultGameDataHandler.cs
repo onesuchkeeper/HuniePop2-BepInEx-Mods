@@ -357,6 +357,8 @@ internal static class DefaultGameDataHandler
                             expansion.StoreHandler = itemStoreHandlers[ItemTypes.DateGift];
                             expansion.GiftHandler = itemGiftHandlers[ItemGiftHandlerId.DateGift];
                             item.storeCost = 6;
+                            expansion.CategoryPrefix = "Date Gift";
+                            expansion.IsPerishable = false;
                             break;
                         case ItemType.SMOOTHIE:
                             expansion.StoreHandler = itemStoreHandlers[ItemTypes.Smoothie];
@@ -382,24 +384,32 @@ internal static class DefaultGameDataHandler
                             
                             item.storeCost = 5;
                             item.storeSectionPreference = true;
+                            expansion.CategoryPrefix = "Smoothie";
+                            expansion.IsPerishable = true;
                             break;
                         case ItemType.SHOES:
                             expansion.StoreHandler = itemStoreHandlers[ItemTypes.Shoe];
                             expansion.GiftHandler = itemGiftHandlers[ItemGiftHandlerId.Shoes];
                             item.storeCost = 4;
                             item.storeSectionPreference = true;
+                            expansion.CategoryPrefix = "Shoes";
+                            expansion.IsPerishable = false;
                             break;
                         case ItemType.UNIQUE_GIFT:
                             expansion.StoreHandler = itemStoreHandlers[ItemTypes.Unique];
                             expansion.GiftHandler = itemGiftHandlers[ItemGiftHandlerId.Uniques];
                             item.storeCost = 4;
                             item.storeSectionPreference = true;
+                            expansion.CategoryPrefix = "Unique Gift";
+                            expansion.IsPerishable = false;
                             break;
                         case ItemType.FOOD:
                             expansion.StoreHandler = itemStoreHandlers[ItemTypes.Food];
                             expansion.GiftHandler = item.noStaminaCost 
                                 ? itemGiftHandlers[ItemGiftHandlerId.Food]
                                 : itemGiftHandlers[ItemGiftHandlerId.StaminaFood];
+                            expansion.CategoryPrefix = "Food";
+                            expansion.IsPerishable = false;
                             break;
                     }
                 }
@@ -407,31 +417,31 @@ internal static class DefaultGameDataHandler
 
             using (ModInterface.Log.MakeIndent("Puzzle Resources"))
             {
-                var flirtation = gameDefinitionProvider.GetToken(TokenTypes.AffectionFlirtation);
+                var flirtation = gameDefinitionProvider.GetToken(TokenId.AffectionFlirtation);
                 puzzleResources[PuzzleResourceId.AffectionFlirtation] = new PuzzleResourceAffection(flirtation.resourceName, flirtation.resourceSign, PuzzleResourceId.AffectionFlirtation, PuzzleAffectionId.Flirtation);
 
-                var romance = gameDefinitionProvider.GetToken(TokenTypes.AffectionRomance);
+                var romance = gameDefinitionProvider.GetToken(TokenId.AffectionRomance);
                 puzzleResources[PuzzleResourceId.AffectionRomance] = new PuzzleResourceAffection(romance.resourceName, romance.resourceSign, PuzzleResourceId.AffectionRomance, PuzzleAffectionId.Romance);
 
-                var sexuality = gameDefinitionProvider.GetToken(TokenTypes.AffectionSexuality);
+                var sexuality = gameDefinitionProvider.GetToken(TokenId.AffectionSexuality);
                 puzzleResources[PuzzleResourceId.AffectionSexuality] = new PuzzleResourceAffection(sexuality.resourceName, sexuality.resourceSign, PuzzleResourceId.AffectionSexuality, PuzzleAffectionId.Sexuality);
 
-                var talent = gameDefinitionProvider.GetToken(TokenTypes.AffectionTalent);
+                var talent = gameDefinitionProvider.GetToken(TokenId.AffectionTalent);
                 puzzleResources[PuzzleResourceId.AffectionTalent] = new PuzzleResourceAffection(talent.resourceName, talent.resourceSign, PuzzleResourceId.AffectionTalent, PuzzleAffectionId.Talent);
                 
-                var joy = gameDefinitionProvider.GetToken(TokenTypes.Joy);
+                var joy = gameDefinitionProvider.GetToken(TokenId.Joy);
                 puzzleResources[PuzzleResourceId.Moves] = new PuzzleResourceMoves(joy.resourceName, joy.resourceSign);
 
-                var stamina = gameDefinitionProvider.GetToken(TokenTypes.Stamina);
+                var stamina = gameDefinitionProvider.GetToken(TokenId.Stamina);
                 puzzleResources[PuzzleResourceId.Stamina] = new PuzzleResourceStamina(stamina.resourceName, stamina.resourceSign);
 
-                var passion = gameDefinitionProvider.GetToken(TokenTypes.Passion);
+                var passion = gameDefinitionProvider.GetToken(TokenId.Passion);
                 puzzleResources[PuzzleResourceId.Passion] = new PuzzleResourcePassion(passion.resourceName, passion.resourceSign);
 
-                var sentiment = gameDefinitionProvider.GetToken(TokenTypes.Sentiment);
+                var sentiment = gameDefinitionProvider.GetToken(TokenId.Sentiment);
                 puzzleResources[PuzzleResourceId.Sentiment] = new PuzzleResourceSentiment(sentiment.resourceName, sentiment.resourceSign);
 
-                var broken = gameDefinitionProvider.GetToken(TokenTypes.Broken);
+                var broken = gameDefinitionProvider.GetToken(TokenId.Broken);
                 puzzleResources[PuzzleResourceId.Broken] = new PuzzleResourceBroken(broken.resourceName, broken.resourceSign);
             }
 

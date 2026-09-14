@@ -1,6 +1,5 @@
 using System.Linq;
 using Hp2BaseMod;
-using Hp2BaseMod.Extension;
 using UnityEngine;
 
 namespace SingleDate;
@@ -21,7 +20,6 @@ public class SingleDateAilment : IScriptedAilment
         _grid.SuppressStaminaWarning = true;
         _grid.SuppressExhaustionWarning = true;
         _grid.SuppressUpsetWarning = true;
-        _grid.AutoRevertExhaustion = true;
         _grid.SuppressFocusSwitch();
 
         _rightGirl = _grid._status.girlStatusRight;
@@ -49,7 +47,6 @@ public class SingleDateAilment : IScriptedAilment
             _grid.SuppressStaminaWarning = false;
             _grid.SuppressExhaustionWarning = false;
             _grid.SuppressUpsetWarning = false;
-            _grid.AutoRevertExhaustion = false;
             _grid.UnsuppressFocusSwitch();
         }
 

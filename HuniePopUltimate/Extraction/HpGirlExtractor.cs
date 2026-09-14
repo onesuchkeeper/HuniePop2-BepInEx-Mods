@@ -327,8 +327,23 @@ public class HpGirlExtractor
                         break;
                     }
 
+                    var addExpression = true;
+
                     switch (expressionType)
                     {
+                        // From Hp1
+                        // public enum GirlExpressionType
+                        // {
+                        //     HAPPY,    // 0
+                        //     SAD,      // 1
+                        //     ANGRY,    // 2
+                        //     EXCITED,  // 3
+                        //     SHY,      // 4
+                        //     CONFUSED, // 5
+                        //     HORNY,    // 6
+                        //     SICK      // 7
+                        // }
+
                         case 0:
                             happy = expression;
                             expression.ExpressionType = GirlExpressionType.NEUTRAL;
@@ -337,8 +352,7 @@ public class HpGirlExtractor
                             break;
                         case 1:
                             sad = expression;
-                            expression.ExpressionType = GirlExpressionType.EXHAUSTED;
-                            expression.Id = new RelativeId(-1, (int)GirlExpressionType.EXHAUSTED);
+                            addExpression = false;
                             break;
                         case 2:
                             angry = expression;
@@ -371,13 +385,13 @@ public class HpGirlExtractor
                             break;
                         case 7:
                             sick = expression;
-                            expression.ExpressionType = GirlExpressionType.UPSET;
-                            expression.Id = new RelativeId(-1, (int)GirlExpressionType.UPSET);
+                            addExpression = false;
                             break;
                     }
 
                     expression.PartEyesGlow = expression.PartEyes;
-                    body.expressions.Add(expression);
+
+                    if (addExpression) body.expressions.Add(expression);
                     break;
                 }
                 case 1:
@@ -543,18 +557,19 @@ public class HpGirlExtractor
                 PartEyebrows = angry.PartEyebrows,
                 PartEyes = sad.PartEyes,
                 PartEyesGlow = sad.PartEyes,
-                PartMouthClosed = shy.PartMouthClosed,
+                PartMouthClosed = angry.PartMouthClosed,
                 PartMouthOpen = mouthOpen
             });
 
-            body.expressions.Add(new GirlExpressionDataMod(new RelativeId(-1, (int)GirlExpressionType.DISAPPOINTED), InsertStyle.append)
+            body.expressions.Add(new GirlExpressionDataMod(new RelativeId(-1, (int)GirlExpressionType.EXHAUSTED), InsertStyle.append)
             {
-                ExpressionType = GirlExpressionType.DISAPPOINTED,
-                PartEyebrows = sad.PartEyebrows,
-                PartEyes = sad.PartEyes,
-                PartEyesGlow = sad.PartEyes,
-                PartMouthClosed = shy.PartMouthClosed,
-                PartMouthOpen = mouthOpen
+                ExpressionType = GirlExpressionType.EXHAUSTED,
+                PartEyebrows = sick.PartEyebrows,
+                PartEyes = sick.PartEyes,
+                PartEyesGlow = sick.PartEyes,
+                PartMouthClosed = sick.PartMouthClosed,
+                PartMouthOpen = mouthOpen,
+                MouthOpen = true
             });
 
             body.expressions.Add(new GirlExpressionDataMod(new RelativeId(-1, (int)GirlExpressionType.INQUISITIVE), InsertStyle.append)

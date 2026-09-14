@@ -1,5 +1,8 @@
 namespace Hp2BaseMod;
 
+/// <summary>
+/// Common ids for the base game's favorite holiday options
+/// </summary>
 public static class FavHoliday
 {
     public static readonly RelativeId NewYears = new RelativeId(-1, 0);

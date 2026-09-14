@@ -40,13 +40,8 @@ public class StaminaFoodItemHandler : IItemGiftHandler
                 return Game.Persistence.playerFile.GetAffectionLevel(PuzzleAffectionType.SEXUALITY, true) > 0;
         }
 
-        if (item.Core.abilityDefinition == null 
-            || !Game.Session.Ability.PerformAbility(item.Core.abilityDefinition, altGirl, null))
-        {
-            return false;
-        }
-
-        return true;
+        if (item.Core.abilityDefinition == null) return true;
+        return Game.Session.Ability.PerformAbility(item.Core.abilityDefinition, altGirl, null);
     }
 
     public void OnGiveFailed(ExpandedItemDefinition item, ExpandedGirlDefinition girl, UiDoll doll)

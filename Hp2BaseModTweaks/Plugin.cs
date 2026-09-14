@@ -94,6 +94,9 @@ public partial class Plugin : Hp2BaseModPlugin
         ModInterface.Events.RequestUnlockedPhotos += On_RequestUnlockedPhotos;
 
         new Harmony(MyPluginInfo.PLUGIN_GUID).PatchAll();
+
+        ModInterface.AddCommand(new ArtCommand());
+        ModInterface.Log.Message(Art.Random());
     }
 
     /// <summary>

@@ -11,11 +11,8 @@ namespace Hp2BaseMod.GameDataInfo
     /// </summary>
     public class ItemDataMod : DataMod, IGameDataMod<ItemDefinition>
     {
-        // these three are only used to generate the category description,
-        // which we're doing manually for the expansion
-        //public EditorDialogTriggerTab? baggageGirl;
-        //public ItemShoesType? shoesType;
-        //public ItemUniqueType? uniqueType;
+        public string CategoryPrefix;
+        public bool? IsPerishable;
 
         public RelativeId? ItemGiftHandlerId;
         public RelativeId? ItemStoreHandlerId;
@@ -95,12 +92,16 @@ namespace Hp2BaseMod.GameDataInfo
                 case ItemType.DATE_GIFT:
                     ItemStoreHandlerId = Hp2BaseMod.ItemTypes.DateGift;
                     ItemGiftHandlerId = Hp2BaseMod.ItemGiftHandlerId.DateGift;
+                    CategoryPrefix = "Date Gift";
+                    IsPerishable = false;
                     break;
                 case ItemType.FOOD:
                     ItemStoreHandlerId = Hp2BaseMod.ItemTypes.Food;
                     ItemGiftHandlerId = def.noStaminaCost 
                         ? Hp2BaseMod.ItemGiftHandlerId.StaminaFood
                         : Hp2BaseMod.ItemGiftHandlerId.Food;
+                    CategoryPrefix = "Food";
+                    IsPerishable = true;
                     break;
                 case ItemType.SMOOTHIE:
                     ItemStoreHandlerId = Hp2BaseMod.ItemTypes.Smoothie;
@@ -119,19 +120,33 @@ namespace Hp2BaseMod.GameDataInfo
                             ItemGiftHandlerId = Hp2BaseMod.ItemGiftHandlerId.SmoothieSexuality;
                             break;
                     }
+                    CategoryPrefix = "Smoothie";
+                    IsPerishable = true;
                     break;
                 case ItemType.UNIQUE_GIFT:
                     ItemStoreHandlerId = Hp2BaseMod.ItemTypes.Unique;
                     ItemGiftHandlerId = Hp2BaseMod.ItemGiftHandlerId.Uniques;
+                    CategoryPrefix = "Unique Gift";
+                    IsPerishable = false;
                     break;
                 case ItemType.SHOES:
                     ItemStoreHandlerId = Hp2BaseMod.ItemTypes.Shoe;
                     ItemGiftHandlerId = Hp2BaseMod.ItemGiftHandlerId.Shoes;
+                    CategoryPrefix = "Shoes";
+                    IsPerishable = false;
                     break;
                 case ItemType.BAGGAGE:
+                    CategoryPrefix = "Baggage";
+                    IsPerishable = false;
+                    break;
                 case ItemType.FRUIT:
+                    CategoryPrefix = "Fruit";
+                    IsPerishable = false;
+                    break;
                 case ItemType.MISC:
                     ItemGiftHandlerId = Hp2BaseMod.ItemGiftHandlerId.Misc;
+                    CategoryPrefix = "Misc";
+                    IsPerishable = false;
                     break;
             }
 
@@ -211,6 +226,9 @@ namespace Hp2BaseMod.GameDataInfo
         public void SetData(ItemDefinition def, GameDefinitionProvider gameDataProvider, AssetProvider assetProvider)
         {
             var expansion = def.GetExpansion();
+
+            ValidatedSet.SetValue(ref expansion.CategoryPrefix, CategoryPrefix, InsertStyle);
+            ValidatedSet.SetValue(ref expansion.IsPerishable, IsPerishable);
 
             ValidatedSet.SetValue(ref def.notifierHeaderIndex, NotifierHeaderIndex);
 

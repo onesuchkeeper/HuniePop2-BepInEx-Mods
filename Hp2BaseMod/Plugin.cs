@@ -1,7 +1,6 @@
 ﻿using System;
 using BepInEx;
 using HarmonyLib;
-using Hp2BaseMod.Commands;
 using UnityEngine;
 
 namespace Hp2BaseMod;
@@ -124,8 +123,5 @@ public class Plugin : BaseUnityPlugin
 
         ModInterface.AddCommand(new HelpCommand());
         ModInterface.AddCommand(new EchoCommand());
-        ModInterface.AddCommand(new ArtCommand());
-
-        ModInterface.Log.Message(Art.Random());
     }
 }

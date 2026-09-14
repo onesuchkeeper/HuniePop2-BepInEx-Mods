@@ -53,6 +53,12 @@ public partial class ExpandedPuzzleStatusGirl
         if (targetId != _stateId) ChangeState(targetId);
     }
 
+    public void OnRevived()
+    {
+        var targetId = State?.OnRevive(_core, this) ?? _stateId;
+        if (targetId != _stateId) ChangeState(targetId);
+    }
+
     private void OnDestroy()
     {
         _stateId = PuzzleStatusGirlStateId.Normal;

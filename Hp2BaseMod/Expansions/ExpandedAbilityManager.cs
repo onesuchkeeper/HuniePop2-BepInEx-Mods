@@ -56,7 +56,14 @@ public partial class ExpandedAbilityManager
         var ability = new Ability(abilityDef, altGirl);
         if (insertValues != null)
         {
-            ListUtils.DictionaryAddRangeUnique(ability.values, insertValues);
+            var toDict = ability.values;
+            foreach (var key in insertValues.Keys)
+            {
+                if (!toDict.ContainsKey(key))
+                {
+                    toDict.Add(key, insertValues[key]);
+                }
+            }
         }
 
         var scripted = factory(ability);

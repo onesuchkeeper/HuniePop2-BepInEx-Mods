@@ -2,7 +2,7 @@
 
 namespace Hp2BaseMod
 {
-    public static class TokenTypes
+    public static class TokenId
     {
         public readonly static RelativeId AffectionTalent = new RelativeId(-1, 1);
         public readonly static RelativeId AffectionFlirtation = new RelativeId(-1, 2);

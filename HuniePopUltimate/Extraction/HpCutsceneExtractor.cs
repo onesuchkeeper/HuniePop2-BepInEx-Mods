@@ -247,7 +247,7 @@ public class HpCutsceneExtractor
                     }
 
                     var initialShow = altGirlId == UnityAssetPath.NullPath;
-                    stepList.Add(CutsceneStepUtility.MakeDollMoveInfo(DollPositionType.INNER, 1f, initialShow ? CutsceneStepProceedType.INSTANT : CutsceneStepProceedType.INSTANT).TargetOrientation(DollOrientationType.RIGHT));
+                    stepList.Add(CutsceneStepUtility.MakeDollMoveInfo(DollPositionType.INNER, 1f, initialShow ? CutsceneStepProceedType.INSTANT : CutsceneStepProceedType.AUTOMATIC).TargetOrientation(DollOrientationType.RIGHT));
                     stepMods = stepList.ToArray();
                     return true;
                 }

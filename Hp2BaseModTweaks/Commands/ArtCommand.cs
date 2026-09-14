@@ -1,6 +1,8 @@
 // Hp2BaseMod 2025, By OneSuchKeeper
 
-namespace Hp2BaseMod.Commands;
+using Hp2BaseMod;
+
+namespace Hp2BaseModTweaks;
 
 /// <summary>
 /// Prints some ASCII art of Hp1 girls to the log

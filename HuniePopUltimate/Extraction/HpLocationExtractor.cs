@@ -236,7 +236,16 @@ public class HpLocationExtractor
         else
         {
             var blurBg = new SpriteInfoSprite(_assetBundle.LoadAsset<UnityEngine.Sprite>($"{locationName}_blur"));
-            locationMod.Backgrounds = [defaultBg, blurBg];
+
+            if (blurBg == null)
+            {
+                ModInterface.Log.Warning($"Ultimate missing blurBg for {locationName}");
+                locationMod.Backgrounds = [defaultBg, defaultBg];
+            }
+            else
+            {
+                locationMod.Backgrounds = [defaultBg, blurBg];
+            }
         }
     }
 }

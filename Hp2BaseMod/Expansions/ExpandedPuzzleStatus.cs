@@ -55,6 +55,9 @@ public partial class ExpandedPuzzleStatus
 
     private void ReviveGirls_Post()
     {
+        _core.girlStatusLeft?.GetExpansion().OnRevived();
+        _core.girlStatusRight?.GetExpansion().OnRevived();
+
         SuppressStateDialog = false;
     }
 

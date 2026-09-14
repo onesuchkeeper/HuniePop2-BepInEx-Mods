@@ -1,5 +1,8 @@
 namespace Hp2BaseMod;
 
+/// <summary>
+/// Common ids for the base game's favorite drink options
+/// </summary>
 public static class FavDrink
 {
     public static readonly RelativeId Coffee = new RelativeId(-1, 0);

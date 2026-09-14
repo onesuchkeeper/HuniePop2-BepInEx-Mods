@@ -1,5 +1,8 @@
 namespace Hp2BaseMod;
 
+/// <summary>
+/// Common ids for the base game's favorite exercise options
+/// </summary>
 public static class FavExercise
 {
     public static readonly RelativeId Boxing = new RelativeId(-1, 0);

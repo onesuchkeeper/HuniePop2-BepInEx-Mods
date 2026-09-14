@@ -8,7 +8,6 @@ namespace Hp2BaseMod;
 /// Base class for Hp2BaseMod plugins.
 /// 
 /// Provides automatic registration for:
-/// - Config properties (via [ConfigProperty] on fields)
 /// - Interop methods (via [InteropMethod] on methods)
 /// 
 /// Your plugin class must be declared as 'partial' to use these features.

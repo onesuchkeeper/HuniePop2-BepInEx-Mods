@@ -1,5 +1,8 @@
 namespace Hp2BaseMod;
 
+/// <summary>
+/// Common ids for the base game's favorite friday night activity options
+/// </summary>
 public static class FavFridayNight
 {
     public static readonly RelativeId OutDrinking = new RelativeId(-1, 0);

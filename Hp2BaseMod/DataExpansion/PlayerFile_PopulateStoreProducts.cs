@@ -8,6 +8,10 @@ using Hp2BaseMod.Extension;
 
 namespace Hp2BaseMod;
 
+/// <summary>
+/// overrides the base game's store population to provide hooks
+/// to allow mods to add additional items
+/// </summary>
 [HarmonyPatch(typeof(PlayerFile), nameof(PlayerFile.PopulateStoreProducts))]
 public static class PlayerFile_PopulateStoreProducts
 {
@@ -17,8 +21,17 @@ public static class PlayerFile_PopulateStoreProducts
 
     public static bool Prefix(PlayerFile __instance)
     {
+        // The first time this runs on a save file
+        // the collections have not been initialized.
+        __instance.inventorySlots ??= new();
+        __instance.storeProducts ??= new();
+        __instance.girls ??= new();
+        __instance.girlPairs ??= new();
+        __instance.flags ??= new();
+
         var args = new StoreProductsPopulateArgs();
 
+        // Uses all item store handlers in the runtime to create pools of items
         foreach (var handler in ModInterface.GameData.ItemStoreHandlers.Values)
         {
             foreach (var category in handler.CreateStoreCategories(__instance))
@@ -63,7 +76,7 @@ public static class PlayerFile_PopulateStoreProducts
 
             foreach (var entry in weightedCategories)
             {
-                ListUtils.ShuffleList(entry.Value.Pool);
+                entry.Value.Pool.Shuffle();
             }
 
             while (weightedCategories.Any())

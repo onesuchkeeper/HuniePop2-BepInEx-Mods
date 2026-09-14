@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using DG.Tweening;
 using HarmonyLib;
 using UnityEngine;
@@ -47,11 +46,6 @@ public partial class ExpandedUiPuzzleGrid
         [HarmonyPrefix]
         private static bool CheckRoundOver(UiPuzzleGrid __instance)
             => ExpandedUiPuzzleGrid.Get(__instance).CheckRoundOver_Prefix();
-
-        [HarmonyPatch("RefreshGirlDolls")]
-        [HarmonyPostfix]
-        private static void RefreshGirlDolls(UiPuzzleGrid __instance)
-            => ExpandedUiPuzzleGrid.Get(__instance).RefreshGirlDolls();
 
         [HarmonyPatch("ConsumePuzzleSet")]
         [HarmonyPrefix]
@@ -109,11 +103,6 @@ public partial class ExpandedUiPuzzleGrid
     /// When true, suppresses the "this move will make her upset" warning tooltip.
     /// </summary>
     public bool SuppressUpsetWarning { get; set; }
-
-    /// <summary>
-    /// When true, after becoming upset or exhausted girls will silently revert.
-    /// </summary>
-    public bool AutoRevertExhaustion { get; set; }
 
     /// <summary>
     /// Fired at the end of every move resolution, regardless of validity or outcome.
@@ -201,16 +190,6 @@ public partial class ExpandedUiPuzzleGrid
         if (args.CheckChanges) status.CheckChanges();
 
         return false;
-    }
-
-    private void RefreshGirlDolls()
-    {
-        if (AutoRevertExhaustion)
-        {
-            _dollLeft.SetExhaustion(false, false, true);
-            _dollRight.SetExhaustion(false, false, true);
-            _status.ReviveGirls();
-        }
     }
 
     /// <summary>
@@ -352,32 +331,49 @@ public partial class ExpandedUiPuzzleGrid
 
     private void OnSlotEnter()
     {
-        if (!SuppressStaminaWarning && !SuppressExhaustionWarning && !SuppressUpsetWarning)
-        {
-            return;
-        }
-
         if (_state != PuzzleGameState.MOVING) return;
 
         var moveMatchSet = _moveMatchSet;
         if (moveMatchSet == null) return;
 
         var status = _status;
+        var focusedGirl = status.girlStatusFocused;
+        var staminaCost = moveMatchSet.GetStaminaCost(false, false);
 
-        if (SuppressStaminaWarning
-            && status.girlStatusFocused.stamina < moveMatchSet.GetStaminaCost(false, false))
+        // Calculate raw baseline warning states
+        bool rawInsufficientStamina = focusedGirl.stamina < staminaCost;
+        bool rawWillExhaust = focusedGirl.stamina == staminaCost;
+        bool rawWillMakeUpset = (moveMatchSet.HasMatchWithTokenDef(focusedGirl.noSpawnMatchTokenDef)
+                || moveMatchSet.HasMatchWithTokenDef(focusedGirl.extraNoSpawnMatchTokenDefs))
+            && !focusedGirl.HasAilment(Game.Session.Puzzle.brokenProtectionAilmentDefinition, true);
+
+        // Build args and dispatch non-mutating query event
+        var args = new AilmentTriggerArgs.MoveWarningArgs(
+            moveMatchSet,
+            focusedGirl,
+            this,
+            rawWillMakeUpset,
+            rawWillExhaust,
+            rawInsufficientStamina);
+
+        Game.Session.Ailment.GetExpansion().NotifyQueryMoveWarning(args);
+
+        // Respect grid-level suppression flags first
+        if (SuppressStaminaWarning) args.InsufficientStamina = false;
+        if (SuppressExhaustionWarning) args.WillExhaust = false;
+        if (SuppressUpsetWarning) args.WillMakeUpset = false;
+
+        // Update UI warning status
+        if (args.InsufficientStamina || args.WillMakeUpset || args.WillExhaust)
         {
-            _warningCheck = false;
+            _warningCheck = true;
+
+            if (!string.IsNullOrEmpty(args.OverrideWarningText))
+            {
+                WarningTooltip(args.OverrideWarningText);
+            }
         }
-        else if (SuppressUpsetWarning
-            && (moveMatchSet.HasMatchWithTokenDef(status.girlStatusFocused.noSpawnMatchTokenDef)
-                || moveMatchSet.HasMatchWithTokenDef(status.girlStatusFocused.extraNoSpawnMatchTokenDefs))
-            && !status.girlStatusFocused.HasAilment(Game.Session.Puzzle.brokenProtectionAilmentDefinition, true))
-        {
-            _warningCheck = false;
-        }
-        else if (SuppressExhaustionWarning
-            && status.girlStatusFocused.stamina == moveMatchSet.GetStaminaCost(false, false))
+        else
         {
             _warningCheck = false;
         }

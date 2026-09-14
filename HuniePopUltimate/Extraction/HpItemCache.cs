@@ -41,15 +41,17 @@ public class HpItemCache
                     ModInterface.Log.Warning($"Skipping Duplicate HpUltimate item extraction {id}");
                     continue;
                 }
-                
-                var mod = ExtractItem(def, id, itemIconSpriteLookup, textureInfoRaw);
-                _itemMods[id] = mod;
-                ModInterface.DataMod.AddDataMod(mod);
+
+                if (TryExtractItem(def, id, itemIconSpriteLookup, textureInfoRaw, out var mod))
+                {
+                    _itemMods[id] = mod;
+                    ModInterface.DataMod.AddDataMod(mod);
+                }
             }
         } 
     }
 
-    private ItemDataMod ExtractItem(OrderedDictionary def, RelativeId id, Dictionary<string, OrderedDictionary> spriteLookup, TextureInfoRaw textureInfo)
+    private bool TryExtractItem(OrderedDictionary def, RelativeId id, Dictionary<string, OrderedDictionary> spriteLookup, TextureInfoRaw textureInfo, out ItemDataMod mod)
     {
         if (def.TryGetValue("iconName", out string iconName)
             && def.TryGetValue("description", out string description)
@@ -57,14 +59,17 @@ public class HpItemCache
             && _spriteCache.TryMakeSpriteInfo(iconSpriteDef, textureInfo, out var spriteInfo)
             && def.TryGetValue("name", out string name))
         {
-            return new ItemDataMod(id, Hp2BaseMod.Utility.InsertStyle.append, 0)
+            mod = new ItemDataMod(id, Hp2BaseMod.Utility.InsertStyle.append, 0)
             {
                 ItemSpriteInfo = spriteInfo,
                 ItemName = name,
                 ItemDescription = description,
             };
+            return true;
         }
 
-        throw new Exception();
+        ModInterface.Log.Error($"Hp Ultimate Failed to extract item with id: {id} and IconName: {iconName}");
+        mod = null;
+        return false;
     }
 }

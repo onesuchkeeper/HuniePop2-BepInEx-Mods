@@ -5,7 +5,6 @@ using System.Linq;
 using Hp2BaseMod.Commands;
 using Hp2BaseMod.Elements;
 using Hp2BaseMod.Extension;
-using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Save;
 using Newtonsoft.Json;
 using UnityEngine;

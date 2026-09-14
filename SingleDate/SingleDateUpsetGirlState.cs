@@ -1,6 +1,4 @@
 using Hp2BaseMod;
-using Hp2BaseMod.Extension;
-using UnityEngine;
 
 namespace SingleDate;
 
@@ -74,4 +72,9 @@ public class SingleDateUpsetGirlState : IPuzzleStatusGirlState
 
     public bool SatisfiesCondition(GirlConditionType girlConditionType) 
         => girlConditionType == GirlConditionType.UPSET || girlConditionType == GirlConditionType.EXHAUSTED_OR_UPSET;
+
+    public RelativeId OnRevive(PuzzleStatusGirl statusGirl, ExpandedPuzzleStatusGirl expansion)
+    {
+        return Hp2BaseMod.PuzzleStatusGirlStateId.Normal;
+    }
 }

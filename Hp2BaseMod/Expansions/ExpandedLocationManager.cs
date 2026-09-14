@@ -32,6 +32,11 @@ public partial class ExpandedLocationManager
         private static void PostArrive(LocationManager __instance)
             => ExpandedLocationManager.Get(__instance).Arrive_Postfix();
 
+        [HarmonyPatch(nameof(LocationManager.Depart))]
+        [HarmonyPrefix]
+        private static bool PreDepart(LocationManager __instance, ref LocationDefinition locationDef, ref GirlPairDefinition girlPairDef, ref bool sidesFlipped)
+            => ExpandedLocationManager.Get(__instance).Depart_Prefix(ref locationDef, ref girlPairDef, ref sidesFlipped);
+
         [HarmonyPatch("OnLocationSettled")]
         [HarmonyPrefix]
         private static bool OnLocationSettled(LocationManager __instance)
@@ -73,23 +78,20 @@ public partial class ExpandedLocationManager
         _baseCutsceneMeeting = _core.cutsceneMeeting; 
     }
 
-    /// <summary>
-    /// Notifies and allows the overriding of arrival parameters
-    /// </summary>
-    /// <param name="locationDef">The location to arrive to</param>
-    /// <param name="girlPairDef">The pair at the location</param>
-    /// <param name="sidesFlipped">If the pairs have their sides flipped</param>
-    /// <param name="initialArrive">If this is the session's first arrival</param>
-    private void Arrive_Prefix(ref LocationDefinition locationDef,
+    private bool Arrive_Prefix(ref LocationDefinition locationDef,
         ref GirlPairDefinition girlPairDef,
         ref bool sidesFlipped,
         ref bool initialArrive)
     {
-        // set here so the AtLocationType is working with the correct location
-        // if it changes it'll overwrite later on
-        _currentLocation = locationDef;
+        var previousLocation = _currentLocation;
 
-        ModInterface.State.CellphoneOnLeft = _core.AtLocationType(LocationType.HUB);
+        // Fallback if locationDef is null before checking its type
+        if (locationDef == null)
+        {
+            ModInterface.Log.Error("Location def was set to null pre arrival, defaulting to hub");
+            locationDef = ModInterface.GameData.GetLocation(Locations.HotelRoom);
+            girlPairDef = null;
+        }
 
         var args = new LocationArriveArgs()
         {
@@ -97,11 +99,21 @@ public partial class ExpandedLocationManager
             girlPairDef = girlPairDef,
             sidesFlipped = sidesFlipped,
             initialArrive = initialArrive,
-            cellphoneOnLeft = ModInterface.State.CellphoneOnLeft,
-            meetingCutscene = _baseCutsceneMeeting
+            cellphoneOnLeft = locationDef.locationType == LocationType.HUB,
+            meetingCutscene = _baseCutsceneMeeting,
+            previousLocationDef = previousLocation,
+            Canceled = false
         };
+
         ModInterface.Events.NotifyPreLocationArrive(args);
 
+        if (args.Canceled)
+        {
+            ModInterface.Log.Message("Arrive canceled");
+            return false; // Skips base LocationManager.Arrive
+        }
+
+        _currentLocation = args.locationDef;
         _core.cutsceneMeeting = args.meetingCutscene ?? _baseCutsceneMeeting;
 
         locationDef = args.locationDef;
@@ -110,17 +122,12 @@ public partial class ExpandedLocationManager
         initialArrive = args.initialArrive;
         ModInterface.State.CellphoneOnLeft = args.cellphoneOnLeft;
 
-        if (locationDef == null)
-        {
-            ModInterface.Log.Error("Location def was set to null pre arrival, defaulting to hub");
-            locationDef = ModInterface.GameData.GetLocation(Locations.HotelRoom);
-            girlPairDef = null;
-        }
-
         var strBuilder = new StringBuilder($"Arriving at {locationDef.locationName}");
         if (girlPairDef == null) strBuilder.Append(" with no pair.");
         else strBuilder.Append($" with {girlPairDef.girlDefinitionOne.girlName} and {girlPairDef.girlDefinitionTwo.girlName}");
         ModInterface.Log.Message(strBuilder.ToString());
+
+        return true;
     }
 
     /// <summary>
@@ -176,6 +183,30 @@ public partial class ExpandedLocationManager
                     _defaultPuzzleGridPosition.Value;
             }
         }
+    }
+
+    private bool Depart_Prefix(ref LocationDefinition locationDef, ref GirlPairDefinition girlPairDef, ref bool sidesFlipped)
+    {
+        var args = new LocationDepartArgs()
+        {
+            from = _currentLocation,
+            to = locationDef,
+            girlPairDef = girlPairDef,
+            sidesFlipped = sidesFlipped,
+            Canceled = false
+        };
+
+        ModInterface.Events.NotifyPreLocationDepart(args);
+
+        if (args.Canceled)
+        {
+            return false; // Skips base LocationManager.Depart entirely
+        }
+
+        locationDef = args.to;
+        girlPairDef = args.girlPairDef;
+        sidesFlipped = args.sidesFlipped;
+        return true; // Proceed with normal departure
     }
 
     /// <summary>

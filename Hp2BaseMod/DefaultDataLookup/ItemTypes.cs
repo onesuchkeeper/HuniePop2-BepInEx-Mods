@@ -1,7 +1,5 @@
 // Hp2BaseMod 2025, By OneSuchKeeper
 
-using System;
-
 namespace Hp2BaseMod;
 
 public static class ItemTypes

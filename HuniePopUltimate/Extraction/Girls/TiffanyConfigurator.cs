@@ -96,7 +96,7 @@ public class TiffanyConfigurator : GirlConfiguratorBase
         (Locations.Aquarium, LocationIds.OutdoorLounge),//chill
         (Locations.SecludedCabana, LocationIds.OutdoorLounge),//chill
         (Locations.PoolsideBar, LocationIds.HotSprings),//water nice
-        (Locations.GolfCourse, LocationIds.OutdoorLounge),//chill
+        (Locations.GolfCourse, LocationIds.HikingTrail),//chill
         (Locations.CruiseShip, LocationIds.HotSprings),//water nice
         (Locations.RooftopLounge, LocationIds.ScenicOverlook),//beautiful
         (Locations.Casino, LocationIds.Casino),//nikki would love

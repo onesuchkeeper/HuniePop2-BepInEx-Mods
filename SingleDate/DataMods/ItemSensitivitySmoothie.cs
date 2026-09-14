@@ -33,11 +33,13 @@ internal static class ItemSensitivitySmoothie
             ItemDescription = "+1 [[broken]@Sensitivity] EXP.",
             TooltipColorIndex = 6,
             StoreCost = 5,
+            CategoryPrefix = "Smoothie",
             CategoryDescription = "Sensitivity",
+            IsPerishable = true,
             EnergyDefinitionID = new RelativeId(-1, 6),
             StoreSectionPreference = false,
             ItemGiftHandlerId = ItemGiftHandlers.SensitivitySmoothie,
-            ItemStoreHandlerId = ItemTypes.Smoothie
+            ItemStoreHandlerId = ItemTypes.Smoothie,
         });
 
         ModInterface.DataMod.AddDataMod(new ItemDataMod(_expId, InsertStyle.replace)
@@ -54,7 +56,8 @@ internal static class ItemSensitivitySmoothie
             ItemName = "Sensitivity Level (LEVEL)",
             ItemDescription = "[[broken]@Broken Heart] token matches will yield [[broken]-(13-(NUM0))%] Affection.",
             TooltipColorIndex = 6,
-            CategoryDescription = "Affection Level • Sensitivity"
+            CategoryPrefix = "Affection Level",
+            CategoryDescription = "Sensitivity"
         });
     }
 
@@ -71,7 +74,8 @@ internal static class ItemSensitivitySmoothie
             bool altGirl)
         {
             if (!Game.Session.Location.AtLocationType(LocationType.SIM)
-                || State.SaveFile.SensitivityExp < 24)
+                || State.SaveFile.SensitivityExp >= 24
+                || statusGirl.stamina <= 0)
             {
                 return false;
             }
@@ -86,7 +90,7 @@ internal static class ItemSensitivitySmoothie
             PlayerFileGirl playerFileGirl, 
             bool isAltGirl)
         {
-            var text = $"+1 Sensitivity EXP";
+            var text = "+1 Sensitivity EXP";
 
             var affectionLevel = State.GetSensitivityLevel();
 
@@ -103,12 +107,17 @@ internal static class ItemSensitivitySmoothie
             Game.Persistence.playerFile.relationshipPoints++;
             playerFileGirl.relationshipPoints++;
 
+            if (!item.Core.noStaminaCost)
+            {
+                Game.Session.Puzzle.puzzleStatus.GetExpansion().AddResourceValue(PuzzleResourceId.Stamina, -1, isAltGirl);
+            }
+
             return text;
         }
 
         public void OnGiveFailed(ExpandedItemDefinition item, ExpandedGirlDefinition girl, UiDoll doll)
         {
-            if (State.SaveFile.SensitivityExp < 24)
+            if (State.SaveFile.SensitivityExp >= 24)
             {
                 doll.ReadDialogTrigger(ModInterface.GameData.GetDialogTrigger(DT_SMOOTHIE_FULL), DialogLineFormat.PASSIVE, -1);
                 return;

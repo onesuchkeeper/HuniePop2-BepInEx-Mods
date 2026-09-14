@@ -310,7 +310,7 @@ public partial class ExpandedTalkManager
             ModInterface.Log.Message($"Target girl questions: {string.Join(", ", targetGirlQuestions.Select(x => x.questionName))}");
         }
 
-        ListUtils.ShuffleList(questionPool);
+        questionPool.Shuffle();
         ModInterface.Log.Message("final question pool: " + string.Join(", ", questionPool.Select(x => x.id)));
 
         if (!commonQuestions.Any())

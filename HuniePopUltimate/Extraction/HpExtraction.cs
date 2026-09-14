@@ -196,6 +196,7 @@ public class HpExtraction : BaseExtraction
         mod.StoreCost = 30;
         mod.AffectionId = PuzzleAffectionId.Talent;
         mod.CategoryDescription = "Special Item";
+        mod.CategoryPrefix = "Misc";
         mod.TooltipColorIndex = 0;
         mod.StoreSectionPreference = true;
         ModInterface.DataMod.AddDataMod(mod);

@@ -361,6 +361,19 @@ public class HpDialogExtractor
 
         if (expressionDef.TryGetValue("expression", out int expressionType))
         {
+            // From Hp1
+            // public enum GirlExpressionType
+            // {
+            //     HAPPY,    // 0
+            //     SAD,      // 1
+            //     ANGRY,    // 2
+            //     EXCITED,  // 3
+            //     SHY,      // 4
+            //     CONFUSED, // 5
+            //     HORNY,    // 6
+            //     SICK      // 7
+            // }
+
             switch (expressionType)
             {
                 case 0: expression.expressionType = GirlExpressionType.NEUTRAL; break;

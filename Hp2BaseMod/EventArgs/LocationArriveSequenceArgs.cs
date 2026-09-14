@@ -21,7 +21,7 @@ public class LocationArriveSequenceArgs : EventArgs
     public DollPositionType LeftDollPosition;
 
     /// <summary>
-    /// Position left doll should move to on arrival.
+    /// Position right doll should move to on arrival.
     /// </summary>
     public DollPositionType RightDollPosition;
 }

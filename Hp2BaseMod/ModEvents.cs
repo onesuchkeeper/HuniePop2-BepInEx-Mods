@@ -8,6 +8,13 @@ namespace Hp2BaseMod
     /// </summary>
     public class ModEvents
     {
+        /// <summary>
+        /// Notifies before LocationManager.Depart begins.
+        /// Set args.Canceled = true to abort standard departure.
+        /// </summary>
+        public event Action<LocationDepartArgs> PreLocationDepart;
+        internal void NotifyPreLocationDepart(LocationDepartArgs args) => PreLocationDepart?.Invoke(args);
+
         public event Action<GirlStateTransitionArgs> RequestGirlStateTransition;
 
         internal GirlStateTransitionArgs NotifyRequestGirlStateTransition(PuzzleStatusGirl statusGirl, RelativeId currentStateId, RelativeId targetStateId)

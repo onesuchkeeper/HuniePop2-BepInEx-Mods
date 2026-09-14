@@ -1,5 +1,3 @@
-using UnityEngine;
-
 namespace Hp2BaseMod;
 
     public class TokenStamina : BaseToken

@@ -1,4 +1,3 @@
-using System;
 using HarmonyLib;
 
 namespace Hp2BaseMod;
@@ -46,6 +45,7 @@ public partial class ExpandedUiAppStoreSlot
 				_core.itemSlot.itemIcon.color = ColorUtils.ColorAlpha(_core.itemSlot.itemIcon.color, 1f);
 				_core.countLabelPro.alpha = 1f;
 			}
+            //Keeping this here just in case, but item type has been depreciated. All items should have a custom category and description string
 			else if (highlightedItemType == ItemType.MISC || highlightedItemType == _playerFileStoreProduct.itemDefinition.itemType)
 			{
 				_core.button.Enable();

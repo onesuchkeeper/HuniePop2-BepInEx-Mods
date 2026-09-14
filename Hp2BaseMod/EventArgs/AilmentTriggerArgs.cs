@@ -10,6 +10,49 @@ public abstract class AilmentTriggerArgs(ExpandedUiPuzzleGrid uiPuzzleGrid, Puzz
     public PuzzleStatusGirl StatusGirl {get;} = statusGirl;
     public ExpandedUiPuzzleGrid UiPuzzleGrid {get;} = uiPuzzleGrid;
 
+    public class MoveWarningArgs : AilmentTriggerArgs
+    {
+        /// <summary>
+        /// The candidate PuzzleSet being hovered over during PuzzleGameState.MOVING.
+        /// </summary>
+        public PuzzleSet ProposedMove { get; }
+
+        /// <summary>
+        /// Whether executing this move is predicted to make the girl upset.
+        /// </summary>
+        public bool WillMakeUpset { get; set; }
+
+        /// <summary>
+        /// Whether executing this move is predicted to exhaust the girl.
+        /// </summary>
+        public bool WillExhaust { get; set; }
+
+        /// <summary>
+        /// Whether the girl currently lacks sufficient stamina to execute the move.
+        /// </summary>
+        public bool InsufficientStamina { get; set; }
+
+        /// <summary>
+        /// Optional override string for custom warning tooltip text.
+        /// </summary>
+        public string OverrideWarningText { get; set; }
+
+        public MoveWarningArgs(
+            PuzzleSet proposedMove, 
+            PuzzleStatusGirl statusGirl, 
+            ExpandedUiPuzzleGrid uiPuzzleGrid,
+            bool willMakeUpset,
+            bool willExhaust,
+            bool insufficientStamina) 
+            : base(uiPuzzleGrid, statusGirl)
+        {
+            ProposedMove = proposedMove;
+            WillMakeUpset = willMakeUpset;
+            WillExhaust = willExhaust;
+            InsufficientStamina = insufficientStamina;
+        }
+    }
+
     public class PreMatch(PuzzleMatch match, MatchModifier matchModifier, ExpandedUiPuzzleGrid uiPuzzleGrid, PuzzleStatusGirl statusGirl) 
         : AilmentTriggerArgs(uiPuzzleGrid, statusGirl)
     {

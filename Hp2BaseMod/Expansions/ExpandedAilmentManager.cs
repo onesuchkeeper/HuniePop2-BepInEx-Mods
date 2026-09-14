@@ -80,6 +80,8 @@ namespace Hp2BaseMod
         public event Action<AilmentTriggerArgs.PostAilmentDisable> PostAilmentDisable;
         public event Action<AilmentTriggerArgs.CheckRoundOver> CheckRoundOver;
 
+        public event Action<AilmentTriggerArgs.MoveWarningArgs> QueryMoveWarning;
+
         private readonly List<AilmentDefinition> _pendingGlobals = new List<AilmentDefinition>();
         private readonly Dictionary<AilmentDefinition, Ailment> _activeGlobals = new Dictionary<AilmentDefinition, Ailment>();
 
@@ -479,20 +481,12 @@ namespace Hp2BaseMod
             }
         }
 
-        internal void OnPreMatchReward(AilmentTriggerArgs.PreMatchReward args)
-        {
-            PreMatchReward?.Invoke(args);
-        }
+        internal void OnPreMatchReward(AilmentTriggerArgs.PreMatchReward args) => PreMatchReward?.Invoke(args);
 
-        public void OnPreAffectionMatchReward(AilmentTriggerArgs.PreAffectionMatchReward args)
-        {
-            PreAffectionMatchReward?.Invoke(args);
-        }
+        public void OnPreAffectionMatchReward(AilmentTriggerArgs.PreAffectionMatchReward args) => PreAffectionMatchReward?.Invoke(args);
 
-        internal void OnPostMatchReward(AilmentTriggerArgs.PostMatchReward args)
-        {
-            PostMatchReward?.Invoke(args);
-        }
+        internal void OnPostMatchReward(AilmentTriggerArgs.PostMatchReward args) => PostMatchReward?.Invoke(args);
+        internal void NotifyQueryMoveWarning(AilmentTriggerArgs.MoveWarningArgs args) => QueryMoveWarning?.Invoke(args);
 
         private bool IsGirlConditionListMet_Prefix(Ailment ailment, List<GirlCondition> girlConditions, bool orCheck, ref bool __result)
         {

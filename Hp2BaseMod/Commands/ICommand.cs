@@ -1,6 +1,6 @@
 // Hp2BaseMod 2025, By OneSuchKeeper
 
-namespace Hp2BaseMod.Commands;
+namespace Hp2BaseMod;
 
 /// <summary>
 /// Defines a command able to be called by the user via the code ui.
