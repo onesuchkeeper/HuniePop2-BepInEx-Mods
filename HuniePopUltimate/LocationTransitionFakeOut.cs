@@ -1,31 +1,23 @@
-using System.Reflection;
 using DG.Tweening;
-using HarmonyLib;
 using Hp2BaseMod;
-using Hp2BaseMod.Extension;
-using UnityEngine;
 
 namespace HuniePopUltimate;
 
-public class LocationTransitionFakeOut
+/// <summary>
+/// A transition that begins moving to a fake location, then abruptly returns to
+/// the next location
+/// </summary>
+public class LocationTransitionFakeOut : LocationTransition
 {
-    // location transition
-    public delegate void LocationTransitionDelegate();
+    private int _stepIndex;
+    private Sequence _sequence;
+    private LocationDefinition _fakeLoc;
+    private readonly RelativeId _nextStateId;
 
-    protected bool _arriveWithGirls;
-
-    // protected bool _gameSaved;
-
-    public void Arrive(bool arriveWithGirls)
+    public LocationTransitionFakeOut(LocationDefinition fakeLoc, RelativeId gameStateId)
     {
-        _arriveWithGirls = arriveWithGirls;
-        ArriveStart();
-    }
-
-    protected void ArrivalComplete()
-    {
-        _arriveWithGirls = false;
-        OnArrivalComplete();
+        _fakeLoc = fakeLoc;
+        _nextStateId = gameStateId;
     }
 
     private void Reset()
@@ -33,7 +25,7 @@ public class LocationTransitionFakeOut
         _stepIndex = -1;
     }
 
-    public void DepartStart()
+    public override void DepartStart()
     {
         Reset();
         Game.Persistence.playerFile.daytimeElapsed--;
@@ -45,81 +37,40 @@ public class LocationTransitionFakeOut
     private void DepartStep()
     {
         _stepIndex++;
+        ModInterface.Log.Message($"Fakeout Depart {_stepIndex}");
         switch (_stepIndex)
         {
+            //Close Cellphone
             case 0:
                 if (Game.Session.gameCanvas.cellphone.isOpen)
                 {
-                    Game.Session.gameCanvas.cellphone.ClosedEvent += OnCellphoneClosed;
+                    Game.Session.gameCanvas.cellphone.ClosedEvent += OnDepartCellphoneClosed;
                     Game.Session.gameCanvas.cellphone.Close();
                     return;
                 }
                 DepartStep();
                 return;
+            //Close Window
             case 1:
+                if (Game.Manager.Windows.IsWindowActive(null, true, true))
                 {
-                    // don't use AtLocationType to avoid the override for the depart
-                    var currentLocType = Game.Session.Location.currentLocation.locationType;
-                    if (!(currentLocType == LocationType.SIM || currentLocType == LocationType.HUB))
-                    {
-                        DepartStep();
-                        DepartStep();
-                        return;
-                    }
-
-                    if (Game.Manager.Windows.IsWindowActive(null, true, true))
-                    {
-                        Game.Manager.Windows.WindowHiddenEvent += OnWindowHidden;
-                        Game.Manager.Windows.HideWindow();
-                    }
-                    else
-                    {
-                        DepartStep();
-                    }
-
-                    var dollChoice = MathUtils.RandomBool();
-                    UiDoll uiDoll = Game.Session.gameCanvas.GetDoll(dollChoice);
-                    if (uiDoll.girlDefinition.specialCharacter)
-                    {
-                        uiDoll = Game.Session.gameCanvas.GetDoll(!dollChoice);
-                    }
-
-                    if (Game.Session.Location.AtLocationType([LocationType.HUB]))
-                    {
-                        uiDoll = Game.Session.gameCanvas.GetDoll(DollOrientationType.RIGHT);
-                    }
-
-                    DialogTriggerDefinition dialogTriggerDefinition;
-                    if (Game.Session.Location.AtLocationType([LocationType.HUB]))
-                    {
-                        dialogTriggerDefinition = Game.Session.Hub.GetValediction();
-                    }
-                    else if (_fakeLoc.locationType == LocationType.DATE)
-                    {
-                        dialogTriggerDefinition = Game.Session.Location.dtAskDate;
-                    }
-                    else
-                    {
-                        dialogTriggerDefinition = Game.Session.Location.dtValediction;
-                    }
-
-                    if (dialogTriggerDefinition != null)
-                    {
-                        uiDoll.DialogBoxHiddenEvent += OnValedictionDialogRead;
-                        uiDoll.ReadDialogTrigger(dialogTriggerDefinition, DialogLineFormat.ACTIVE, -1);
-                        return;
-                    }
-
-                    DepartStep();
-                    return;
+                    Game.Manager.Windows.WindowHiddenEvent += OnDepartWindowHidden;
+                    Game.Manager.Windows.HideWindow();
+                    break;
                 }
+                DepartStep();
+                return;
+            //Depart State
             case 2:
+                ModInterface.GameState.CurrentState.DepartTransition(_nextStateId, DepartStep);
                 break;
+            //Animate
             case 3:
                 Game.Session.Location.isTraveling = true;
                 Game.Session.gameCanvas.dollMiddle.notificationBox.Hide(false);
                 Game.Session.gameCanvas.dollLeft.notificationBox.Hide(false);
                 Game.Session.gameCanvas.dollRight.notificationBox.Hide(false);
+
                 if (Game.Session.Location.bgMusicLink != null)
                 {
                     if (!Game.Manager.testMode)
@@ -131,6 +82,7 @@ public class LocationTransitionFakeOut
                         Game.Session.Location.bgMusicLink.FadeOut(0f);
                     }
                 }
+
                 TweenUtils.KillTween(_sequence, false, true);
                 _sequence = DOTween.Sequence();
                 var time = 0f;
@@ -150,6 +102,7 @@ public class LocationTransitionFakeOut
                 {
                     Game.Session.gameCanvas.bgLocations.currentBg.art.uiEffect.effectFactor = x;
                 }, 1f, 0.875f).SetEase(Ease.InOutSine));
+
                 _sequence.Insert(time, Game.Session.gameCanvas.bgLocations.overlaysCanvasGroup.DOFade(1f, 1.75f).SetEase(Ease.InOutSine));
                 _sequence.Insert(time, Game.Session.gameCanvas.bgLocations.shadowsCanvasGroup.DOFade(1f, 1.75f).SetEase(Ease.InOutSine));
                 time += 1f;
@@ -171,9 +124,10 @@ public class LocationTransitionFakeOut
                 time += 0.25f;
                 _sequence.Insert(time, Game.Session.gameCanvas.bgLocations.rectTransform.DOAnchorPosY(Game.Session.gameCanvas.bgLocations.origPos.y, 0.375f, false).SetEase(Ease.InOutCubic));
 
+                //Play
                 if (!Game.Manager.testMode)
                 {
-                    _sequence.OnComplete(new TweenCallback(OnDepartAnimationsComplete));
+                    _sequence.OnComplete(new TweenCallback(DepartStep));
                     if (Game.Persistence.playerData.unlockedCodes.Contains(Game.Session.Location.codeDefQuickTransitions))
                     {
                         _sequence.timeScale = 3f;
@@ -181,53 +135,25 @@ public class LocationTransitionFakeOut
                     _sequence.Play();
                     return;
                 }
+
                 _sequence.Complete(false);
                 DepartStep();
                 return;
             case 4:
-                OnDepartureComplete();
+                DepartureComplete();
                 break;
             default:
                 return;
         }
     }
 
-    private void OnCellphoneClosed()
-    {
-        Game.Session.gameCanvas.cellphone.ClosedEvent -= OnCellphoneClosed;
-        DepartStep();
-    }
-
-    private void OnWindowHidden()
-    {
-        Game.Manager.Windows.WindowHiddenEvent -= OnWindowHidden;
-        DepartStep();
-    }
-
-    private void OnValedictionDialogRead(UiDoll doll)
-    {
-        doll.DialogBoxHiddenEvent -= OnValedictionDialogRead;
-        DepartStep();
-    }
-
-    private void OnDialogBoxHidden(UiDoll doll)
-    {
-        doll.DialogBoxHiddenEvent -= OnDialogBoxHidden;
-        DepartStep();
-    }
-
-    private void OnDepartAnimationsComplete()
-    {
-        DepartStep();
-    }
-
-    public void ArrivePrep()
+    public override void ArrivePrep()
     {
         Reset();
         Game.Session.gameCanvas.bgLocations.rectTransform.anchoredPosition = Game.Session.gameCanvas.bgLocations.origPos;
     }
 
-    public void ArriveStart()
+    public override void ArriveStart()
     {
         Game.Session.Location.bgMusicLink = Game.Manager.Audio.Play(AudioCategory.MUSIC, (Game.Session.Location.bgMusicOverride != null) ? Game.Session.Location.bgMusicOverride : Game.Persistence.playerFile.locationDefinition.bgMusic, null);
         ArriveStep();
@@ -275,7 +201,7 @@ public class LocationTransitionFakeOut
                     }
                     else
                     {
-                        _sequence.OnComplete(new TweenCallback(OnArriveAnimationsComplete));
+                        _sequence.OnComplete(new TweenCallback(ArriveStep));
                         if (Game.Persistence.playerData.unlockedCodes.Contains(Game.Session.Location.codeDefQuickTransitions))
                         {
                             _sequence.timeScale = 3f;
@@ -290,171 +216,15 @@ public class LocationTransitionFakeOut
         }
     }
 
-    private void OnArriveAnimationsComplete()
+    private void OnDepartCellphoneClosed()
     {
-        ArriveStep();
+        Game.Session.gameCanvas.cellphone.ClosedEvent -= OnDepartCellphoneClosed;
+        DepartStep();
     }
 
-    private void OnGreetingQueueEmpty()
+    private void OnDepartWindowHidden()
     {
-        Game.Session.Dialog.DialogQueueEmptyEvent -= OnGreetingQueueEmpty;
-        ArriveStep();
-    }
-
-    private int _stepIndex;
-
-    private Sequence _sequence;
-
-    private static FieldInfo f_isTraveling = AccessTools.Field(typeof(LocationManager), "_isTraveling");
-    private static FieldInfo f_bgMusicOverride = AccessTools.Field(typeof(LocationManager), "_bgMusicOverride");
-    private static FieldInfo f_arrivalCutscene = AccessTools.Field(typeof(LocationManager), "_arrivalCutscene");
-    private static FieldInfo f_isLocked = AccessTools.Field(typeof(LocationManager), "_isLocked");
-    private static FieldInfo f_currentLocation = AccessTools.Field(typeof(LocationManager), "_currentLocation");
-    private static FieldInfo f_currentGirlPair = AccessTools.Field(typeof(LocationManager), "_currentGirlPair");
-    private static FieldInfo f_currentSidesFlipped = AccessTools.Field(typeof(LocationManager), "_currentSidesFlipped");
-
-    private static MethodInfo m_OnLocationSettled = AccessTools.Method(typeof(LocationManager), "OnLocationSettled");
-
-    private void OnDepartureComplete()
-    {
-        Game.Session.Location.ResetDolls(true);
-        Arrive(Game.Persistence.playerFile.locationDefinition, Game.Persistence.playerFile.girlPairDefinition, Game.Persistence.playerFile.sidesFlipped);
-    }
-
-    private void OnArrivalComplete()
-    {
-        var locationManager = Game.Session.Location;
-
-        f_isTraveling.SetValue(locationManager, false);
-        f_bgMusicOverride.SetValue(locationManager, null);
-        Game.Session.gameCanvas.overlayCanvasGroup.blocksRaycasts = false;
-        var arrivalCutscene = f_arrivalCutscene.GetValue<CutsceneDefinition>(locationManager);
-
-        if (arrivalCutscene != null)
-        {
-            ModInterface.Log.Message($"has arrival cutscene {arrivalCutscene.name}");
-            Game.Session.Cutscenes.CutsceneCompleteEvent += OnCutsceneComplete;
-            Game.Session.Cutscenes.StartCutscene(arrivalCutscene, null);
-            return;
-        }
-
-        m_OnLocationSettled.Invoke(Game.Session.Location);
-    }
-
-    private void OnCutsceneComplete()
-    {
-        Game.Session.Cutscenes.CutsceneCompleteEvent -= OnCutsceneComplete;
-        ModInterface.Log.Message("Settling Via Fakeout");
-        m_OnLocationSettled.Invoke(Game.Session.Location);
-    }
-
-    private LocationDefinition _fakeLoc;
-
-    public void Depart(LocationDefinition locationDef, GirlPairDefinition girlPairDef, bool sidesFlipped = false)
-    {
-        Game.Session.Puzzle.puzzleGrid.ailmentsContainer.Deactivate();
-        Game.Session.gameCanvas.overlayCanvasGroup.blocksRaycasts = true;
-        f_isLocked.SetValue(Game.Session.Location, true);
-        _fakeLoc = locationDef;
-        if (girlPairDef != null)
-        {
-            Game.Persistence.playerFile.girlPairDefinition = girlPairDef;
-            Game.Persistence.playerFile.sidesFlipped = sidesFlipped;
-        }
-        else
-        {
-            Game.Persistence.playerFile.girlPairDefinition = null;
-            Game.Persistence.playerFile.sidesFlipped = false;
-        }
-
-        DepartStart();
-    }
-
-    public void Arrive(LocationDefinition locationDef, GirlPairDefinition girlPairDef, bool sidesFlipped)
-    {
-        var locationManager = Game.Session.Location;
-
-        Game.Persistence.playerFile.locationDefinition = locationDef;
-        Game.Persistence.playerFile.girlPairDefinition = girlPairDef;
-        Game.Persistence.playerFile.sidesFlipped = sidesFlipped;
-
-        var currentLocation = Game.Persistence.playerFile.locationDefinition;
-
-        // Make a fake sim location if the current loc isn't already one.
-        if (currentLocation.locationType != LocationType.SIM)
-        {
-            currentLocation = GameObject.Instantiate(currentLocation);
-            currentLocation.locationType = LocationType.SIM;
-        }
-
-        f_currentLocation.SetValue(locationManager, currentLocation);
-
-        var currentGirlPair = Game.Persistence.playerFile.girlPairDefinition;
-        f_currentGirlPair.SetValue(locationManager, currentGirlPair);
-
-        f_currentSidesFlipped.SetValue(locationManager, Game.Persistence.playerFile.sidesFlipped);
-        ArrivePrep();
-
-        if (currentGirlPair != null)
-        {
-            Game.Session.Puzzle.puzzleStatus.Reset(Game.Session.Location.currentGirlLeft, Game.Session.Location.currentGirlRight);
-            Game.Session.Puzzle.puzzleStatus.girlStatusLeft.playerFileGirl.staminaFreeze = -1;
-            Game.Session.Puzzle.puzzleStatus.girlStatusRight.playerFileGirl.staminaFreeze = -1;
-        }
-        else
-        {
-            Game.Session.Puzzle.puzzleStatus.Clear();
-        }
-
-        Game.Session.Location.ResetDolls(currentGirlPair == Game.Session.Puzzle.bossGirlPairDefinition);
-        Game.Session.Hub.PrepHub();
-
-        Game.Session.gameCanvas.header.rectTransform.anchoredPosition = new Vector2(
-            ModInterface.State.CellphoneOnLeft
-                ? Game.Session.gameCanvas.header.xValues.y
-                : Game.Session.gameCanvas.header.xValues.x,
-            Game.Session.gameCanvas.header.rectTransform.anchoredPosition.y);
-
-        Game.Session.gameCanvas.cellphone.rectTransform.anchoredPosition = new Vector2(
-            ModInterface.State.CellphoneOnLeft
-                ? Game.Session.gameCanvas.cellphone.xValues.y
-                : Game.Session.gameCanvas.cellphone.xValues.x,
-            Game.Session.gameCanvas.cellphone.rectTransform.anchoredPosition.y);
-
-        Game.Session.gameCanvas.header.Refresh(true);
-        Game.Session.gameCanvas.cellphone.Refresh(true);
-
-        CutsceneDefinition arrivalCutscene = null;
-        f_arrivalCutscene.SetValue(locationManager, arrivalCutscene);
-
-        if (currentGirlPair != null && !currentGirlPair.specialPair)
-        {
-            PlayerFileGirl playerFileGirl = Game.Persistence.playerFile.GetPlayerFileGirl(currentGirlPair.girlDefinitionOne);
-            if (!playerFileGirl.playerMet)
-            {
-                playerFileGirl.playerMet = true;
-            }
-            PlayerFileGirl playerFileGirl2 = Game.Persistence.playerFile.GetPlayerFileGirl(currentGirlPair.girlDefinitionTwo);
-            if (!playerFileGirl2.playerMet)
-            {
-                playerFileGirl2.playerMet = true;
-            }
-            PlayerFileGirlPair playerFileGirlPair = Game.Persistence.playerFile.GetPlayerFileGirlPair(currentGirlPair);
-            if (playerFileGirlPair.relationshipType == GirlPairRelationshipType.UNKNOWN)
-            {
-                playerFileGirlPair.RelationshipLevelUp();
-                if (currentGirlPair.introductionPair)
-                {
-                    arrivalCutscene = locationManager.cutsceneMeetingIntro;
-                }
-                else
-                {
-                    arrivalCutscene = locationManager.cutsceneMeeting;
-                }
-                f_arrivalCutscene.SetValue(locationManager, arrivalCutscene);
-            }
-        }
-
-        Arrive((currentGirlPair != null || !Game.Session.Puzzle.puzzleStatus.isEmpty) && arrivalCutscene == null);
+        Game.Manager.Windows.WindowHiddenEvent -= OnDepartWindowHidden;
+        DepartStep();
     }
 }

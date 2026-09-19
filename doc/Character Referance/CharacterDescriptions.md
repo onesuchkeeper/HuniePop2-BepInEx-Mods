@@ -1,5 +1,5 @@
 # HuniePop Character Reference
-**Games:** HP1 = HuniePop | HP2 = HuniePop 2: Double Date | HCS = HunieCam Studio (non-canon)
+**Games:** Hp1 = HuniePop | HP2 = HuniePop 2: Double Date | HCS = HunieCam Studio (non-canon)
 
 ---
 
@@ -15,7 +15,7 @@
 ---
 
 ### Aiko Yumi
-`[HP1, HCS]` | **Role:** Main dateable girl
+`[Hp1, HCS]` | **Role:** Main dateable girl
 **Summary:** Unmotivated, easygoing physics professor who gambles and drinks to cope with her regrets.
 - **Personality:** Laid back, open-minded, uninspired, non-judgmental
 - **Speech:** Casual, relaxed; exclaims "Goodbye problems!" when offered a drink
@@ -37,7 +37,7 @@
 ---
 
 ### Audrey Belrose
-`[HP1, HCS]` | **Role:** Main dateable girl; scrapped HP2 candidate
+`[Hp1, HCS]` | **Role:** Main dateable girl; scrapped HP2 candidate
 **Summary:** Loud, brash party girl who uses her looks to exploit men and looks down on most people, but mellows slightly with the protagonist.
 - **Personality:** Crass, confrontational, arrogant, skeptical at first; gradually more relaxed with protagonist
 - **Speech:** Blunt, loud, occasional outbursts even on mundane topics (e.g. favorite color)
@@ -48,7 +48,7 @@
 ---
 
 ### Beli Lapran
-`[HP1, HCS]` | **Role:** Main dateable girl
+`[Hp1, HCS]` | **Role:** Main dateable girl
 **Summary:** Grounded, nature-loving yoga instructor who is thoughtful, sincere, and self-conscious about her body.
 - **Personality:** Down to earth, sincere, appreciative, motivating toward others
 - **Speech:** Measured and thoughtful; tries to phrase things carefully
@@ -81,7 +81,7 @@
 ---
 
 ### Celeste Luvendass
-`[HP1]` | **Role:** Secret unlockable girl
+`[Hp1]` | **Role:** Secret unlockable girl
 **Summary:** Stranded alien — initially demanding, then flustered and endearing once she warms up.
 - **Personality:** Intelligent, demanding at first, then easily flustered and curious
 - **Speech:** Formal and knowledge-focused; all date questions relate to astronomy and space facts
@@ -92,10 +92,10 @@
 ---
 
 ### Jessie Maye
-`[HP1, HP2, HCS]` | **Role:** Main dateable girl in both titles
-**Summary:** Carefree adult actress and single mother in HP1; depressed and aging in HP2 as her career fades and estrangement from Tiffany deepens.
+`[Hp1, HP2, HCS]` | **Role:** Main dateable girl in both titles
+**Summary:** Carefree adult actress and single mother in Hp1; depressed and aging in HP2 as her career fades and estrangement from Tiffany deepens.
 
-**HP1 version:**
+**Hp1 version:**
 - **Personality:** Carefree, flirtatious, nostalgic, wants to be pampered; prefers open relationships
 - **Speech:** Relaxed and warm; expressive about her needs
 
@@ -120,7 +120,7 @@
 ---
 
 ### Kyanna Delrio
-`[HP1, HCS]` | **Role:** Main dateable girl
+`[Hp1, HCS]` | **Role:** Main dateable girl
 **Summary:** Upbeat, fitness-obsessed hairdresser and single mom who approaches the protagonist first and is openly emotional.
 - **Personality:** Upbeat, friendly, emotionally expressive, motivated
 - **Speech:** Enthusiastic, loud when excited; curses openly during conflict (e.g. argument with Audrey)
@@ -131,9 +131,9 @@
 ---
 
 ### Kyu Sugardust
-`[HP1, HP2]` | **Role:** Guide/tutorial fairy; secret dateable girl in HP1
+`[Hp1, HP2]` | **Role:** Guide/tutorial fairy; secret dateable girl in Hp1
 **Summary:** The witty, smug love fairy mascot who acts as the protagonist's wingman with a mix of bro energy and cutesy magical girl.
-- **Personality (HP1):** Playful, bossy, smug, supportive, finds most of the girls attractive herself
+- **Personality (Hp1):** Playful, bossy, smug, supportive, finds most of the girls attractive herself
 - **Personality (HP2):** More intense, more assertive, more judgmental toward protagonist and the girls; dialogue centers heavily on sex
 - **Speech:** Witty, teasing, commentary-heavy; straddles "bro wingman" and "magical fairy" registers
 - **Quirks:** Provides advice and gossip on every girl; sees herself as the protagonist's guide and client manager
@@ -165,17 +165,17 @@
 ---
 
 ### Lola Rembrite
-`[HP1, HP2, HCS]` | **Role:** Main dateable girl in both titles
-**Summary:** Confident, ambitious flight attendant in HP1; stressed, caffeine-dependent workaholic fashion designer in HP2.
+`[Hp1, HP2, HCS]` | **Role:** Main dateable girl in both titles
+**Summary:** Confident, ambitious flight attendant in Hp1; stressed, caffeine-dependent workaholic fashion designer in HP2.
 
-**HP1 version:**
+**Hp1 version:**
 - **Personality:** Self-assured, goal-driven, proud of her independence; loves sports and travel
 
 **HP2 version:**
 - **Personality:** Workaholic, more stressed beneath confident exterior; sexually more open and flirtatious; "grind now, enjoy later" mindset
 - **Speech:** Confident and motivational in both versions; HP2 adds more flirtation
 - **Quirks (HP2):** Relies heavily on caffeine; more sexually forward; designing a fashion line and seeking inspiration
-- **Occupation:** Flight stewardess (HP1); fashion designer (HP2)
+- **Occupation:** Flight stewardess (Hp1); fashion designer (HP2)
 
 ---
 
@@ -190,7 +190,7 @@
 ---
 
 ### Momo
-`[HP1]` | **Role:** Secret unlockable girl
+`[Hp1]` | **Role:** Secret unlockable girl
 **Summary:** Naive, energetic cat girl with childlike grammar but encyclopedic cat knowledge.
 - **Personality:** Bubbly, energetic, naive, sleepy, playful
 - **Speech:** Poor grammar; childlike phrasing; cat fact trivia is her primary conversation topic
@@ -221,7 +221,7 @@
 ---
 
 ### Nikki Ann-Marie
-`[HP1, HCS]` | **Role:** Main dateable girl
+`[Hp1, HCS]` | **Role:** Main dateable girl
 **Summary:** Introverted, pessimistic gamer girl who sees through charm at first but gradually warms up when treated kindly.
 - **Personality:** Introverted, pessimistic, guarded, quietly appreciative of genuine kindness
 - **Speech:** Skeptical and dry; low expectations stated plainly; softens noticeably in later dialogue
@@ -274,7 +274,7 @@
 ---
 
 ### Theiatena Venus
-`[HP1]` | **Role:** Secret unlockable girl (Goddess of Love)
+`[Hp1]` | **Role:** Secret unlockable girl (Goddess of Love)
 **Summary:** Cool, prideful Goddess of Love who considers herself the ultimate challenge for the protagonist.
 - **Personality:** Composed, prideful, self-elevated, challenges the protagonist
 - **Speech:** Cool and collected; all date questions test the protagonist's knowledge of the other girls (eye color, accessories, details)
@@ -284,7 +284,7 @@
 ---
 
 ### Tiffany Maye
-`[HP1, HCS]` | **Role:** Main dateable girl
+`[Hp1, HCS]` | **Role:** Main dateable girl
 **Summary:** Friendly, studious cheerleader — the textbook "girl next door" whose personality deliberately mirrors the opposite of her mother Jessie's.
 - **Personality:** Friendly, bubbly, selfless, academically motivated, socially grounded
 - **Speech:** Warm and upbeat; tries to recruit the protagonist to become a student when first meeting

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Hp2BaseMod.Extension;
 
 namespace Hp2BaseMod;
 
@@ -45,8 +46,8 @@ public partial class ExpandedLocationDefinition
     /// </summary>
     public bool IsValidForNormalDate(ClockDaytimeType time)
         => AllowNormal
-            && (!PostBoss || Game.Persistence.playerFile.storyProgress >= 12)
+            && (!PostBoss || Game.Persistence.playerFile.IsProgressPoolsideEnding())
             && DateTimes.Contains(time);
-
+    
     public RelativeId? DefaultStyle;
 }

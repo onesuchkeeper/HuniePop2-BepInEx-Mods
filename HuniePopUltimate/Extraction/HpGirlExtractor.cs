@@ -352,7 +352,8 @@ public class HpGirlExtractor
                             break;
                         case 1:
                             sad = expression;
-                            addExpression = false;
+                            expression.ExpressionType = GirlExpressionType.DISAPPOINTED;
+                            expression.Id = new RelativeId(-1, (int)GirlExpressionType.DISAPPOINTED);
                             break;
                         case 2:
                             angry = expression;

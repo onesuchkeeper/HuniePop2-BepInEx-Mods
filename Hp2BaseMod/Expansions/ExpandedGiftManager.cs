@@ -64,7 +64,7 @@ public partial class ExpandedGiftManager
 		    __result = false;
         }
         
-		if (Game.Session.Location.AtLocationType(new LocationType[1]))//at sim location
+		if (ModInterface.GameState.CurrentState.Id == GameStateId.Sim)
 		{
 			Game.Session.Puzzle.puzzleStatus.SetGirlFocus(isAltGirl);
 		}

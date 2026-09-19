@@ -159,7 +159,7 @@ namespace Hp2BaseModTweaks
                 }
             }
 
-            var postGame = Game.Persistence.playerFile.storyProgress >= 14;
+            var postGame = Game.Persistence.playerFile.IsProgressComplete();
             var purchaseItems = new List<UiAppSelectListItem>();
             var codeItems = new List<UiAppSelectListItem>();
             var shownItems = new List<UiAppSelectListItem>();

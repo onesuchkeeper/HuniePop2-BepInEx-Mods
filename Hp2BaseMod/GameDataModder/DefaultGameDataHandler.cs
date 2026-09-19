@@ -4,6 +4,7 @@ using System.Linq;
 using HarmonyLib;
 using Hp2BaseMod.GameDataInfo;
 using Hp2BaseMod.ModGameData;
+using Hp2BaseMod.Utility;
 
 namespace Hp2BaseMod;
 #pragma warning disable HP001 // Deprecated member usage
@@ -54,10 +55,20 @@ internal static class DefaultGameDataHandler
         var affections = gameDefinitionProvider._affections;
         var itemGiftHandlers = gameDefinitionProvider._itemGiftHandlers;
         var itemStoreHandlers = gameDefinitionProvider._itemStoreHandlers;
+        var gameStates = gameDefinitionProvider._gameStates;
 
         // register default sub data
         using (ModInterface.Log.MakeIndent("registering default sub data"))
         {
+            using (ModInterface.Log.MakeIndent("Game State"))
+            {
+                gameStates[GameStateId.Hub] = new GameStateHub();
+                gameStates[GameStateId.Puzzle] = new GameStatePuzzle();
+                gameStates[GameStateId.Sim] = new GameStateSim();
+                gameStates[GameStateId.Special] = new GameStateSpecial();
+                gameStates[GameStateId.Title] = new GameStateTitle();
+            }
+
             using (ModInterface.Log.MakeIndent("Affection"))
             {
                 affections[PuzzleAffectionId.Talent] = new Affection(PuzzleAffectionId.Talent, "TALENT", [
@@ -283,6 +294,9 @@ internal static class DefaultGameDataHandler
             {
                 foreach (var def in locationDataDict.Values)
                 {
+                    ProcessLocationBundleList(def.arriveBundleList);
+                    ProcessLocationBundleList(def.departBundleList);
+
                     var expansion = def.GetExpansion();
 
                     if (def.locationType == LocationType.DATE)
@@ -487,8 +501,50 @@ internal static class DefaultGameDataHandler
         };
     }
 
+    private static void ProcessLocationBundleList(List<LogicBundle> bundleList)
+    {
+        if (bundleList == null) return;
+
+        foreach (var bundle in bundleList)
+        {
+            if (bundle?.actions == null) continue;
+
+            for (int i = 0; i < bundle.actions.Count; i++)
+            {
+                var action = bundle.actions[i];
+                if (action == null) continue;
+
+                if (action.type == LogicActionType.TRAVEL_TO)
+                {
+                    // Guard against duplicate insertions
+                    if (i > 0 && bundle.actions[i - 1] is LogicActionChangeState)
+                    {
+                        continue;
+                    }
+
+                    // Resolve target location (falling back to current location if null)
+                    var targetLoc = action.locationDefinition;
+                    var targetStateId = ResolveGameStateId(targetLoc.locationType);
+
+                    var stateAction = new LogicActionChangeState(targetStateId);
+
+                    bundle.actions.Insert(i, stateAction);
+                    i++; // Advance index past the newly inserted action
+                }
+            }
+        }
+    }
+
     private static Dictionary<int, T> GetDataDict<T>(GameData gameData, Type dataType, string dataName)
                 => AccessTools.DeclaredField(dataType, "_definitions")
                               .GetValue(AccessTools.DeclaredField(typeof(GameData), dataName)
                               .GetValue(gameData)) as Dictionary<int, T>;
+
+    private static RelativeId ResolveGameStateId(LocationType locationType) => locationType switch { 
+        LocationType.SIM => GameStateId.Sim, 
+        LocationType.DATE => GameStateId.Puzzle, 
+        LocationType.HUB => GameStateId.Hub, 
+        LocationType.SPECIAL => GameStateId.Special, 
+        _ => throw new Exception($"Unhandled {nameof(LocationType)} - {locationType}")
+    }; 
 }

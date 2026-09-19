@@ -1,7 +1,7 @@
 using System;
 using System.Security.Cryptography;
 using System.Text;
-using Hp2BaseMod.Commands;
+using Hp2BaseMod;
 
 namespace Hp2Randomizer;
 

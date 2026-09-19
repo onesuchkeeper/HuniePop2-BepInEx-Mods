@@ -1,42 +1,34 @@
+using System;
 using System.Collections.Generic;
 
 namespace Hp2BaseMod;
 
 public class GameStateManager
 {
-    private readonly Dictionary<RelativeId, IGameState> _states = new();
+    /// <summary>
+    /// Notifies when the game state changes
+    /// </summary>
+    public event Action<(RelativeId? prevStateId, RelativeId currentStateId)> GameStateChanged;
+
+    /// <summary>
+    /// The game state currently running
+    /// </summary>
+    public IGameState CurrentState => _currentState;
     private IGameState _currentState;
 
-    public IGameState CurrentState => _currentState;
+    private Dictionary<RelativeId, IGameState> _states;
 
-    public bool AllowPause => _currentState?.AllowPause ?? true;
-    public bool AllowSave => _currentState?.AllowSave ?? true;
-    public bool UseLeftCellphone => _currentState?.UseLeftCellphone ?? false;
-
-    /// <summary>
-    /// Registers a game state handler.
-    /// </summary>
-    public void RegisterState(IGameState state)
+    public void Init(Dictionary<RelativeId, IGameState> states)
     {
-        if (state == null) return;
-        _states[state.Id] = state;
+        _states = states;
     }
 
     /// <summary>
-    /// Resolves a state by ID.
-    /// </summary>
-    public IGameState GetState(RelativeId stateId)
-    {
-        return _states.TryGetValue(stateId, out var state) ? state : null;
-    }
-
-    /// <summary>
-    /// Switches the active state to the given state instance or ID.
+    /// Switches the active state to the given Id.
     /// </summary>
     public void ChangeState(RelativeId stateId)
     {
-        var state = GetState(stateId);
-        if (state == null)
+        if (!_states.TryGetValue(stateId, out var state))
         {
             ModInterface.Log.Error($"Attempted to transition to unregistered GameState '{stateId}'.");
             return;
@@ -45,32 +37,18 @@ public class GameStateManager
     }
 
     /// <summary>
-    /// Switches the active state to the given state instance or ID.
+    /// Switches the active state to the given state instance.
     /// </summary>
     public void ChangeState(IGameState nextState)
     {
         if (nextState == null || _currentState == nextState) return;
 
-        var previousState = _currentState;
-        ModInterface.Log.Message($"GameState Transition: {previousState?.Id.ToString() ?? "NONE"} -> {nextState.Id}");
+        var previousStateId = _currentState?.Id;
+        ModInterface.Log.Message($"GameState Transition: {previousStateId.ToString() ?? "NONE"} -> {nextState.Id}");
 
         _currentState?.Exit();
         _currentState = nextState;
         _currentState.Enter();
-    }
-
-    public void NotifyLocationArrive(LocationArriveArgs args)
-    {
-        _currentState?.OnLocationArrive(args);
-    }
-
-    public void NotifyLocationSettled(LocationSettledArgs args)
-    {
-        _currentState?.OnLocationSettled(args);
-    }
-
-    public void ResetDolls(bool unload = false)
-    {
-        _currentState?.ResetDolls(unload);
+        GameStateChanged?.Invoke((previousStateId, _currentState.Id));
     }
 }

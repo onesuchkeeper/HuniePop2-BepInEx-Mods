@@ -1,0 +1,293 @@
+/*
+ * itch.io Markdown Description Styles
+ *
+ * This stylesheet is intended for the itch.io Custom CSS editor.
+ * All rules are scoped to #wrapper and use the custom- prefix required
+ * by itch.io's HTML sanitizer.
+ *
+ * Source: itch.io CSS Customization Guide
+ * - Custom classes must begin with "custom-"
+ * - Custom rules should be scoped to #wrapper
+ * - Project descriptions live in .formatted_description
+ */
+
+/* ============================================================
+   Markdown description root
+   ============================================================ */
+
+#wrapper .formatted_description .custom-markdown {
+    line-height: 1.6;
+    overflow-wrap: break-word;
+}
+
+/* Keep generated content from fighting itch.io's existing layout. */
+#wrapper .formatted_description .custom-markdown> :first-child {
+    margin-top: 0;
+}
+
+#wrapper .formatted_description .custom-markdown> :last-child {
+    margin-bottom: 0;
+}
+
+
+/* ============================================================
+   Headings
+   ============================================================ */
+
+#wrapper .formatted_description .custom-markdown h1,
+#wrapper .formatted_description .custom-markdown h2,
+#wrapper .formatted_description .custom-markdown h3,
+#wrapper .formatted_description .custom-markdown h4,
+#wrapper .formatted_description .custom-markdown h5,
+#wrapper .formatted_description .custom-markdown h6 {
+    line-height: 1.25;
+    margin-top: 1.5em;
+    margin-bottom: 0.6em;
+}
+
+#wrapper .formatted_description .custom-markdown h1 {
+    font-size: 2em;
+}
+
+#wrapper .formatted_description .custom-markdown h2 {
+    font-size: 1.6em;
+}
+
+#wrapper .formatted_description .custom-markdown h3 {
+    font-size: 1.35em;
+}
+
+#wrapper .formatted_description .custom-markdown h4 {
+    font-size: 1.15em;
+}
+
+
+/* ============================================================
+   Paragraphs and inline formatting
+   ============================================================ */
+
+#wrapper .formatted_description .custom-markdown p {
+    margin: 0 0 1em;
+}
+
+#wrapper .formatted_description .custom-markdown strong {
+    font-weight: 700;
+}
+
+#wrapper .formatted_description .custom-markdown em {
+    font-style: italic;
+}
+
+#wrapper .formatted_description .custom-markdown del {
+    text-decoration: line-through;
+}
+
+#wrapper .formatted_description .custom-markdown mark {
+    padding: 0.1em 0.25em;
+    border-radius: var(--itchio_border_radius);
+}
+
+
+/* ============================================================
+   Links
+   ============================================================ */
+
+#wrapper .formatted_description .custom-markdown a {
+    color: var(--itchio_link_color);
+}
+
+
+/* ============================================================
+   Lists
+   ============================================================ */
+
+#wrapper .formatted_description .custom-markdown ul,
+#wrapper .formatted_description .custom-markdown ol {
+    margin-top: 0;
+    margin-bottom: 1em;
+    padding-left: 2em;
+}
+
+#wrapper .formatted_description .custom-markdown li {
+    margin-bottom: 0.25em;
+}
+
+#wrapper .formatted_description .custom-markdown li>ul,
+#wrapper .formatted_description .custom-markdown li>ol {
+    margin-bottom: 0;
+}
+
+
+/* ============================================================
+   Blockquotes
+   ============================================================ */
+
+#wrapper .formatted_description .custom-markdown blockquote {
+    margin: 1em 0;
+    padding: 0.5em 1em;
+    border-left: 4px solid var(--itchio_border_color);
+    opacity: 0.9;
+}
+
+#wrapper .formatted_description .custom-markdown blockquote> :last-child {
+    margin-bottom: 0;
+}
+
+
+/* ============================================================
+   Code
+   ============================================================ */
+
+#wrapper .formatted_description .custom-markdown code {
+    font-family: monospace;
+    font-size: 0.9em;
+}
+
+#wrapper .formatted_description .custom-markdown :not(pre)>code {
+    padding: 0.15em 0.35em;
+    border-radius: var(--itchio_border_radius);
+    background: rgba(127, 127, 127, 0.15);
+}
+
+#wrapper .formatted_description .custom-markdown pre {
+    margin: 1em 0;
+    padding: 1em;
+    overflow-x: auto;
+    border-radius: var(--itchio_border_radius);
+    background: rgba(127, 127, 127, 0.12);
+}
+
+#wrapper .formatted_description .custom-markdown pre code {
+    padding: 0;
+    background: none;
+}
+
+
+/* ============================================================
+   Horizontal rules
+   ============================================================ */
+
+#wrapper .formatted_description .custom-markdown hr {
+    margin: 1.5em 0;
+    border: 0;
+    border-top: 1px solid var(--itchio_border_color);
+}
+
+
+/* ============================================================
+   Tables
+   ============================================================ */
+
+/*
+ * Markdown tables are rendered as actual HTML tables.
+ * Borders are intentionally removed so the grid has the clean,
+ * borderless appearance requested for itch.io descriptions.
+ */
+
+#wrapper .formatted_description .custom-markdown table {
+    width: 100%;
+    margin: 1em 0;
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+
+#wrapper .formatted_description .custom-markdown th,
+#wrapper .formatted_description .custom-markdown td {
+    padding: 0.55em 0.75em;
+    text-align: left;
+    vertical-align: top;
+    border: 0;
+}
+
+#wrapper .formatted_description .custom-markdown th {
+    font-weight: 700;
+}
+
+#wrapper .formatted_description .custom-markdown tr {
+    border: 0;
+}
+
+/* Optional subtle alternating rows without visible grid lines. */
+#wrapper .formatted_description .custom-markdown tbody tr:nth-child(even) {
+    background: rgba(127, 127, 127, 0.06);
+}
+
+/* ============================================================
+   Images
+   ============================================================ */
+
+#wrapper .formatted_description .custom-markdown img {
+    max-width: 100%;
+    height: auto;
+}
+
+#wrapper .formatted_description .custom-markdown figure {
+    margin: 1em 0;
+}
+
+#wrapper .formatted_description .custom-markdown figcaption {
+    margin-top: 0.4em;
+    text-align: center;
+    opacity: 0.8;
+}
+
+
+/* ============================================================
+   Definition / description-style elements
+   ============================================================ */
+
+#wrapper .formatted_description .custom-markdown dl {
+    margin: 1em 0;
+}
+
+#wrapper .formatted_description .custom-markdown dt {
+    font-weight: 700;
+}
+
+#wrapper .formatted_description .custom-markdown dd {
+    margin: 0 0 0.75em 1.5em;
+}
+
+
+/* ============================================================
+   Details / collapsible sections
+   ============================================================ */
+
+#wrapper .formatted_description .custom-markdown details {
+    margin: 1em 0;
+}
+
+#wrapper .formatted_description .custom-markdown summary {
+    cursor: pointer;
+    font-weight: 700;
+}
+
+
+/* ============================================================
+   Task lists
+   ============================================================ */
+
+#wrapper .formatted_description .custom-markdown input[type="checkbox"] {
+    margin-right: 0.5em;
+}
+
+
+/* ============================================================
+   Responsive behavior
+   ============================================================ */
+
+@media (max-width: 600px) {
+    #wrapper .formatted_description .custom-markdown table {
+        display: block;
+        overflow-x: auto;
+    }
+
+    #wrapper .formatted_description .custom-markdown th,
+    #wrapper .formatted_description .custom-markdown td {
+        padding: 0.45em 0.55em;
+    }
+
+    #wrapper .formatted_description .custom-markdown pre {
+        padding: 0.75em;
+    }
+}

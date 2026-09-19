@@ -43,7 +43,6 @@ public partial class ExpandedItemDefinition
                 : ((int)_core.itemType < 0 ? "Misc" : StringUtils.Titleize(_core.itemType.ToString()));
 
             __result = $"{prefix} • {_core.categoryDescription}";
-            ModInterface.Log.Message($"Custom item category description: {__result}");
             return false;
         }
 

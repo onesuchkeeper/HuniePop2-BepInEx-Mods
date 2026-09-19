@@ -53,7 +53,7 @@ public partial class ExpandedCutsceneManager
 
         if (currentStep.skipStep
             || (currentStep.stepType.ToString().ToUpper().Contains("PUZZLE")
-                && !Game.Session.Location.AtLocationType(LocationType.DATE)))
+                && ModInterface.GameState.CurrentState.Id != GameStateId.Puzzle))
         {
             return true;
         }
@@ -167,7 +167,7 @@ public partial class ExpandedCutsceneManager
                 break;
             case CutsceneStepType.DOUBLE_TRIGGER:
                 {
-                    bool flag3 = Game.Session.Location.AtLocationType([LocationType.DATE]) && currentStep.boolValue
+                    bool flag3 = ModInterface.GameState.CurrentState.Id == GameStateId.Puzzle && currentStep.boolValue
                         ? Game.Session.Puzzle.puzzleStatus.altGirlFocused
                         : MathUtils.RandomBool();
 

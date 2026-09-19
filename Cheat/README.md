@@ -18,6 +18,8 @@ Dev tool for temporary test code and gameplay cheats to use while developing mod
   * Add affection to bonus round matches
   * Refill stamina while talking at sim locations
 
+To configure, you must edit the config file `BepInEx/config/OSK.BepInEx.Cheat.cfg`. This can be done in notepad or any other text editor.
+
 ## Important Notes
 
 Cheat is not an officially released or supported mod. It will be changed as needed for development without notice.
@@ -27,10 +29,10 @@ Cheat is not an officially released or supported mod. It will be changed as need
 ### Dependencies
 * [**HuniePop 2 - Double Date**](https://huniepop2doubledate.com/)
 * [**BepInEx**](https://github.com/BepInEx/BepInEx/releases)
-* [**Hp2BaseMod**](../Hp2BaseMod/README.md)
+* [**Hp2BaseMod**](https://onesuchkeeper.itch.io/hp2basemod)
 
 ### Installation
-* Install [**Hp2BaseMod**](../Hp2BaseMod/README.md)
+* Install [**Hp2BaseMod**](https://onesuchkeeper.itch.io/hp2basemod)
 * Build and place OSK.BepInEx.Cheat.dll in `HuniePop 2 - Double Date/BepInEx/plugins/Cheat`
 
 ## Contributions

@@ -11,16 +11,16 @@ public static class UiTitleCanvasPatch_LoadGame
         ModInterface.Events.NotifyPreLoadSaveFile(file);
 
         Game.Persistence.loadedFileIndex = saveFileIndex;
-        foreach (var girl in Game.Data.Girls.GetAll())
+
+        using (ModInterface.Log.MakeIndent("Initializing bodies"))
         {
-            var body = girl.GetExpansion().GetCurrentBody();
+            foreach (var girl in Game.Data.Girls.GetAll())
+            {
+                var body = girl.GetExpansion().GetCurrentBody();
 
-            var bodyName = body == null
-                ? "BODY_NULL"
-                : body.BodyName;
-
-            ModInterface.Log.Message($"Initializing body {bodyName} for {girl.girlName}");
-            body?.Apply(girl);
+                ModInterface.Log.Message($"{girl.girlName} -> {body.BodyName ?? "null"}");
+                body?.Apply(girl);
+            }   
         }
     }
 }

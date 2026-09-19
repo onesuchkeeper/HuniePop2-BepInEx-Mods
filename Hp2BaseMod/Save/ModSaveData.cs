@@ -29,6 +29,16 @@ namespace Hp2BaseMod.Save
             return ModFiles[Game.Persistence.loadedFileIndex];
         }
 
+        public ModSaveFile GetFile(int index)
+        {
+            while (ModFiles.Count < index + 1)
+            {
+                ModFiles.Add(new());
+            }
+
+            return ModFiles[index];
+        }
+
         public Dictionary<string, int> SourceGUID_Id = new Dictionary<string, int>();
         public Dictionary<int, string> SourceSaves = new Dictionary<int, string>();
 

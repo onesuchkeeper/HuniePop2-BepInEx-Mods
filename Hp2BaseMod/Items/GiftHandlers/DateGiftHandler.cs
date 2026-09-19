@@ -9,7 +9,7 @@ public class DateGiftItemHandler : IItemGiftHandler
 
     public bool CanGive(ExpandedItemDefinition item, ExpandedGirlDefinition girl, PuzzleStatusGirl statusGirl, PlayerFileGirl fileGirl, bool altGirl)
     {
-        if (!Game.Session.Location.AtLocationType([LocationType.DATE])
+        if (ModInterface.GameState.CurrentState.Id != GameStateId.Puzzle
             || !Game.Session.Puzzle.TutorialStepCheck(PuzzleTutorialStepType.GIFT)
             || item.Core.difficultyExclusive && item.Core.difficulty != Game.Persistence.playerFile.settingDifficulty
             || Game.Session.Ailment.Trigger(item.Core).blockGift)

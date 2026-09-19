@@ -145,7 +145,7 @@ public static partial class GameDataLogUtility
                     {
                         logger.Message($"GirlDef: {step.girlDefinition.name}");
 
-                        if (step.boolValue)
+                        if (!step.boolValue)
                         {
                             logger.Message($"Default expressions/styles");
                         }

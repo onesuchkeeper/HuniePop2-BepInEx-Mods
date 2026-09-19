@@ -1,0 +1,62 @@
+# HuniePop Ultimate
+
+**Adds characters and locations from HuniePop directly into HuniePop 2 - Double Date**
+
+## Features
+
+* Akio, Audrey, Beli, Celeste, Kyanna, Momo, Nikki, Tiffany and Venus!
+* Hp1 body options for Jessie, Lola and Kyu
+* 9 Sim locations
+* 12 Date locations
+* 1 Bonus round exclusive location
+
+With [Single Date](https://onesuchkeeper.itch.io/huniepop-2-single-date) also installed, you can date Kyu and unlock secret characters in a similar way to Hp1...
+
+<details>
+<summary>Spoiler!</summary>
+
+* To unlock Kyu, complete a bonus round on a single date with any character and leave to a sim location or the hotel room.
+* To unlock Celeste, buy the `Weird Thing` from the shop and leave the beach at evening or night to a sim location or the hotel room.
+* To unlock Momo, throw out the `Goldfish Plushie` at the park and leave to another sim location or the hotel room.
+
+</details>
+
+## Important Notes
+
+This mod only adds HuniePop characters to the game, it does not add any pairings for them, so with just HuniePop Ultimate you will not be able to date any of them. See **Recommended Mods** below for options to make them datable!
+
+This mod does not distribute any assets from the original HuniePop games. Instead, it extracts assets directly from an installation of HuniePop.
+
+**To run HuniePop Ultimate, you must have HuniePop installed.**
+
+By default, the game looks for an installation of HuniePop in the same directory where HuniePop 2 is installed.
+
+If you have it installed at another location, you must edit the config file `BepInEx/config/OSK.BepInEx.HuniePopUltimate.cfg` and set `HuniePopDir` to the correct value. This can be done in notepad or any other text editor.
+
+There are other options in the config file too, so make sure to check them out!
+
+The first time the mod runs, it will take significantly longer to start while it converts and caches audio data from HuniePop. This will create an ~1.6 GB `audio.pcmx` file in the `BepInEx/plugins/HuniePopUltimate` directory.
+
+On subsequent runs the mod still needs to process a lot of data, expect a longer startup time.
+For me it takes about 20 seconds, but your time will vary.
+
+<!-- itch-only -->
+## Installation
+* Install [**Hp2BaseMod**](https://onesuchkeeper.itch.io/hp2basemod)
+* [**Download**](https://onesuchkeeper.itch.io/huniepop-2-huniepop-ultimate/purchase), unzip and place the `HuniePopUltimate` folder in BepInEx/plugins
+
+(The folder must be `HuniePopUltimate`! If it's something like `HuniePopUltimate_v1.x.x`, take the `HuniePopUltimate` folder out of that one!)
+<!-- /itch-only -->
+
+## Recommended Mods
+
+HuniePop Ultimate works best when paired with [Single Date](https://onesuchkeeper.itch.io/huniepop-2-single-date), which will add a single date pairing for all the HuniePop characters, or with [Randomizer](https://onesuchkeeper.itch.io/huniepop-2-randomizer), which will swap the HuniePop characters into random existing pairs.
+
+Or with both!
+
+[![Single Date](../ItchPages/SingleDate/cover.png)](https://onesuchkeeper.itch.io/huniepop-2-single-date)
+[![Randomizer](../ItchPages/Randomizer/cover.png)](https://onesuchkeeper.itch.io/huniepop-2-randomizer)
+
+## Contributions
+
+* **Developer**: OneSuchKeeper ([Linktree](https://linktr.ee/onesuchkeeper))

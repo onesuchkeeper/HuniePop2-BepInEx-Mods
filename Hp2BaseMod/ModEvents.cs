@@ -8,12 +8,11 @@ namespace Hp2BaseMod
     /// </summary>
     public class ModEvents
     {
-        /// <summary>
-        /// Notifies before LocationManager.Depart begins.
-        /// Set args.Canceled = true to abort standard departure.
-        /// </summary>
-        public event Action<LocationDepartArgs> PreLocationDepart;
-        internal void NotifyPreLocationDepart(LocationDepartArgs args) => PreLocationDepart?.Invoke(args);
+        public event Action<UiTitleCanvas> TitleCanvasReady;
+        internal void NotifyTitleCanvasReady(UiTitleCanvas canvas) => TitleCanvasReady?.Invoke(canvas);
+
+        public event Action<GameSession> GameSessionBegan;
+        internal void NotifyGameSessionBegan() => GameSessionBegan?.Invoke(Game.Session);
 
         public event Action<GirlStateTransitionArgs> RequestGirlStateTransition;
 
@@ -93,12 +92,6 @@ namespace Hp2BaseMod
         public event Action<RequestUnlockedPhotosEventArgs> RequestUnlockedPhotos;
         internal void NotifyRequestUnlockedPhotos(RequestUnlockedPhotosEventArgs args) => RequestUnlockedPhotos?.Invoke(args);
 
-        public event Action<LocationArriveSequenceArgs> LocationArriveSequence;
-        internal void NotifyLocationArriveSequence(LocationArriveSequenceArgs sequence) => LocationArriveSequence?.Invoke(sequence);
-
-        public event Action<LocationDepartSequenceArgs> LocationDepartSequence;
-        internal void NotifyLocationDepartSequence(LocationDepartSequenceArgs sequence) => LocationDepartSequence?.Invoke(sequence);
-
         public event Action<RandomDollSelectedArgs> RandomDollSelected;
         internal void NotifyRandomDollSelected(RandomDollSelectedArgs args) => RandomDollSelected?.Invoke(args);
 
@@ -117,10 +110,7 @@ namespace Hp2BaseMod
         public event Action<StoreProductsPopulateArgs> PopulateStoreProducts;
         internal void NotifyPopulateStoreProducts(StoreProductsPopulateArgs args) => PopulateStoreProducts?.Invoke(args);
 
-        public event Action<LocationArriveArgs> PreLocationArrive;
-        internal void NotifyPreLocationArrive(LocationArriveArgs args) => PreLocationArrive?.Invoke(args);
-
-        public event Action<LocationSettledArgs> PreLocationSettled;
-        internal void NotifyPreLocationSettled(LocationSettledArgs args) => PreLocationSettled?.Invoke(args);
+        public event Action<UiAppFinderSlot> FinderSlotSelected;
+        internal void NotifyFinderSlotSelected(UiAppFinderSlot finderSlot) => FinderSlotSelected?.Invoke(finderSlot);
     }
 }

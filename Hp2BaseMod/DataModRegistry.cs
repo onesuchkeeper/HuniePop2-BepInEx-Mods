@@ -8,6 +8,9 @@ public class DataModRegistry
 {
     #region GameDataMods
 
+    internal IEnumerable<IGameDataMod<IGameState>> GameStateDataMods => _gameStateDataMods;
+    private List<IGameDataMod<IGameState>> _gameStateDataMods = new List<IGameDataMod<IGameState>>();
+
     internal IEnumerable<IGameDataMod<AbilityDefinition>> AbilityDataMods => _abilityDataMods;
     private List<IGameDataMod<AbilityDefinition>> _abilityDataMods = new List<IGameDataMod<AbilityDefinition>>();
 
@@ -50,21 +53,15 @@ public class DataModRegistry
     internal IEnumerable<IGameDataMod<TokenDefinition>> TokenDataMods => _tokenDataMods;
     private List<IGameDataMod<TokenDefinition>> _tokenDataMods = new List<IGameDataMod<TokenDefinition>>();
 
+
+    private Dictionary<RelativeId, IGameState> _gameStates = new();
     private Dictionary<RelativeId, UiDollSpecialEffect> _dollSpecialEffects = new();
-
     private Dictionary<RelativeId, IPuzzleResource> _puzzleResources = new();
-
     private Dictionary<RelativeId, ITokenHandler> _tokenHandlers = new();
-
     private Dictionary<RelativeId, IPuzzleStatusGirlState> _puzzleStatusGirlStates = new();
-
     private Dictionary<RelativeId, IAffection> _affections = new();
-
     private Dictionary<RelativeId, IItemGiftHandler> _itemGiftHandlers = new();
-
     private Dictionary<RelativeId, IItemStoreHandler> _itemStoreHandlers = new();
-    
-    public IReadOnlyList<IExpInfo> ExpDisplays => _expDisplays;
     private List<IExpInfo> _expDisplays = new();
 
     #endregion
@@ -91,6 +88,7 @@ public class DataModRegistry
             _tokenHandlers,
             _puzzleStatusGirlStates,
             _dollSpecialEffects,
+            _gameStates,
             _expDisplays);
         GameDataModder.Mod(Game.Data, gameDefinitionProvider);
 
@@ -108,6 +106,8 @@ public class DataModRegistry
         _locationDataMods = null;
         _questionDataMods = null;
         _dialogTriggerDataMods = null;
+        _gameStateDataMods = null;
+
         _dollSpecialEffects = null;
         _puzzleResources = null;
         _tokenHandlers = null;
@@ -116,6 +116,7 @@ public class DataModRegistry
         _itemGiftHandlers = null;
         _itemStoreHandlers = null;
         _expDisplays = null;
+        _gameStates = null;
 
         GC.Collect();
         return true;
@@ -181,72 +182,116 @@ public class DataModRegistry
         _girlDataMods.Add(mod);
         ModInterface.Data.TryRegisterDataId(GameDataType.Girl, mod.Id);
     }
+
     public void AddDataMod(IGirlPairDataMod mod)
     {
         if (mod == null) return;
         _girlPairDataMods.Add(mod);
         ModInterface.Data.TryRegisterDataId(GameDataType.GirlPair, mod.Id);
     }
+
     public void AddDataMod(IGameDataMod<ItemDefinition> mod)
     {
         if (mod == null) return;
         _itemDataMods.Add(mod);
         ModInterface.Data.TryRegisterDataId(GameDataType.Item, mod.Id);
     }
+
     public void AddDataMod(IGameDataMod<LocationDefinition> mod)
     {
         if (mod == null) return;
         _locationDataMods.Add(mod);
         ModInterface.Data.TryRegisterDataId(GameDataType.Location, mod.Id);
     }
+
     public void AddDataMod(IGameDataMod<PhotoDefinition> mod)
     {
         if (mod == null) return;
         _photoDataMods.Add(mod);
         ModInterface.Data.TryRegisterDataId(GameDataType.Photo, mod.Id);
     }
+
     public void AddDataMod(IFavQuestionDataMod mod)
     {
         if (mod == null) return;
         _questionDataMods.Add(mod);
         ModInterface.Data.TryRegisterDataId(GameDataType.Question, mod.Id);
     }
+
     public void AddDataMod(IGameDataMod<TokenDefinition> mod)
     {
         if (mod == null) return;
         _tokenDataMods.Add(mod);
         ModInterface.Data.TryRegisterDataId(GameDataType.Token, mod.Id);
     }
+
     public void AddData(RelativeId id, UiDollSpecialEffect specialEffect)
     {
-        if (specialEffect == null) return;
+        if (specialEffect == null)
+        {
+            ModInterface.Log.Error($"Attempted to add {nameof(UiDollSpecialEffect)} with id {id}, but instance was null.");
+            return;
+        }
         _dollSpecialEffects[id] = specialEffect;
     }
+
     public void AddData(RelativeId id, IPuzzleResource puzzleResource)
     {
-        if (puzzleResource == null) return;
+        if (puzzleResource == null)
+        {
+            ModInterface.Log.Error($"Attempted to add {nameof(IPuzzleResource)} with id {id}, but instance was null.");
+            return;
+        }
         _puzzleResources[id] = puzzleResource;
     }
+
     public void AddData(RelativeId id, ITokenHandler tokenHandler)
     {
-        if (tokenHandler == null) return;
+        if (tokenHandler == null)
+        {
+            ModInterface.Log.Error($"Attempted to add {nameof(ITokenHandler)} with id {id}, but instance was null.");
+            return;
+        }
         _tokenHandlers[id] = tokenHandler;
     }
 
     public void AddData(RelativeId id, IPuzzleStatusGirlState puzzleStatusGirlState)
     {
-        if (puzzleStatusGirlState == null) return;
+        if (puzzleStatusGirlState == null)
+        {
+            ModInterface.Log.Error($"Attempted to add {nameof(IPuzzleStatusGirlState)} with id {id}, but instance was null.");
+            return;
+        }
         _puzzleStatusGirlStates[id] = puzzleStatusGirlState;
     }
 
     public void AddData(RelativeId id, IAffection affection)
     {
-        if (affection == null) return;
+        if (affection == null)
+        {
+            ModInterface.Log.Error($"Attempted to add {nameof(IAffection)} with id {id}, but instance was null.");
+            return;
+        }
         _affections[id] = affection;
     }
+    
     public void AddData(RelativeId id, IItemGiftHandler itemGiftHandler)
     {
-        if (itemGiftHandler == null) return;
+        if (itemGiftHandler == null)
+        {
+            ModInterface.Log.Error($"Attempted to add {nameof(IItemGiftHandler)} with id {id}, but instance was null.");
+            return;
+        }
         _itemGiftHandlers[id] = itemGiftHandler;
+    }
+
+    public void AddData(RelativeId id, IGameState gameState)
+    {
+        if (gameState == null)
+        {
+            ModInterface.Log.Error($"Attempted to add {nameof(IGameState)} with id {id}, but instance was null.");
+            return;
+        }
+        _gameStates[id] = gameState;
     }
 }

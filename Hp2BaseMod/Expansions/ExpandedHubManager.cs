@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using DG.Tweening;
@@ -18,81 +19,118 @@ public partial class ExpandedHubManager
     {
         [HarmonyPatch("HubStep")]
         [HarmonyPrefix]
-        public static bool Prefix(HubManager __instance)
+        public static bool HubStep_Prefix(HubManager __instance)
             => ExpandedHubManager.Get(__instance).HubStep_Prefix();
+
+        [HarmonyPatch(typeof(HubManager), nameof(HubManager.StartHub))]
+        [HarmonyPrefix]
+        public static bool StartHub_Prefix(HubManager __instance)
+            => ExpandedHubManager.Get(__instance).StartHub_Prefix();
     }
+
+    /// <summary>
+    /// Raised when the Hub pipeline determines the next GameState to transition into upon departure.
+    /// </summary>
+    public event Action<RelativeId> StateDeparting;
 
     private LocationDefinition[] _nonStopLocs;
 
     private bool HubStep_Prefix()
     {
-        //replace nonstop step 1 and 4 to expand nonstop location options
+        if (_hubBailed) return true;
 
-        //presteps
-        var nextHubStepIndex = f_hubStepIndex.GetValue<int>(_core) + 1;
+        var nextHubStepIndex = _hubStepIndex;
+        var stepType = _hubStepType;
 
-        if (f_hubBailed.GetValue<bool>(_core)
-            || f_hubStepType.GetValue<HubStepType>(_core) != HubStepType.NONSTOP
-            || (nextHubStepIndex != 1 && nextHubStepIndex != 4))
+        if (stepType == HubStepType.WINGS && nextHubStepIndex == 2)
         {
-            return true;
+            _hubStepIndex = nextHubStepIndex;
+            Game.Manager.Time.KillTween(_hubSequence, true, true);
+            _hubSequence = DOTween.Sequence();
+
+            if (Game.Persistence.playerFile.IsProgressVolcano())
+            {
+                Game.Persistence.playerFile.PushDaytimeTo(ClockDaytimeType.NIGHT);
+
+                var isPreDate = Game.Persistence.playerFile.IsProgressNymphojinnPreDate();
+                var targetLoc = isPreDate ? _core.spaceLocationDefinition : _core.volcanoLocationDefinition;
+                var targetPair = isPreDate ? Game.Session.Puzzle.bossGirlPairDefinition : null;
+
+                StateDeparting?.Invoke(isPreDate ? GameStateId.Special : GameStateId.Puzzle);
+
+                Game.Session.Location.Depart(targetLoc, targetPair);
+            }
+            else
+            {
+                m_ChangeStepType.Invoke(_core, [HubStepType.ROOT]);
+            }
+
+            return false;
         }
 
-        _hubStepIndex = nextHubStepIndex;
-        List<DialogOptionInfo> list = new List<DialogOptionInfo>();
-
-        Game.Manager.Time.KillTween(_hubSequence, true, true);
-        _hubSequence = DOTween.Sequence();
-
-        switch (nextHubStepIndex)
+        // 2. Handle Non-Stop Date Steps
+        if (stepType == HubStepType.NONSTOP && (nextHubStepIndex == 1 || nextHubStepIndex == 4))
         {
-            case 1:
-                var time = (ClockDaytimeType)(Game.Persistence.playerFile.daytimeElapsed % 4);
+            _hubStepIndex = nextHubStepIndex;
+            Game.Manager.Time.KillTween(_hubSequence, true, true);
+            _hubSequence = DOTween.Sequence();
 
-                var locs = Game.Data.Locations.GetAllByLocationType(LocationType.DATE)
-                    .Where(x =>
+            switch (nextHubStepIndex)
+            {
+                case 1:
+                    var time = (ClockDaytimeType)(Game.Persistence.playerFile.daytimeElapsed % 4);
+
+                    var locs = Game.Data.Locations.GetAllByLocationType(LocationType.DATE)
+                        .Where(x =>
+                        {
+                            var expansion = x.GetExpansion();
+                            return expansion.AllowNonStop
+                                && (Game.Persistence.playerFile.IsProgressPoolsideEnding() || !expansion.PostBoss)
+                                && (expansion.DateTimes?.Contains(time) ?? true);
+                        });
+
+                    var locPool = locs.ToList();
+
+                    _nonStopLocs = [
+                        locPool.PopRandom(),
+                        locPool.PopRandom(),
+                        locPool.PopRandom(),
+                    ];
+
+                    int i = 0;
+                    Game.Session.Dialog.ShowDialogOptions(_nonStopLocs.Select(x => new DialogOptionInfo(x.nonStopOptionText, i++)).Append(new DialogOptionInfo(_core.optionNonStop, 3)).ToList(), false, false);
+                    Game.Session.Dialog.DialogOptionSelectedEvent += OnDialogSelected_Hook;
+                    break;
+
+                case 4:
+                    if (Game.Session.Dialog.selectedDialogOptionIndex < 3)
                     {
-                        var expansion = x.GetExpansion();
+                        // Communicate GameStateId.Puzzle for non-stop date departures
+                        StateDeparting?.Invoke(GameStateId.Puzzle);
 
-                        return expansion.AllowNonStop
-                            && (Game.Persistence.playerFile.storyProgress >= 12 || !expansion.PostBoss)
-                            && (expansion.DateTimes?.Contains(time) ?? true);
-                    });
+                        Game.Session.Location.Depart(_nonStopLocs[Game.Session.Dialog.selectedDialogOptionIndex], null, false);
+                    }
+                    else
+                    {
+                        m_ChangeStepType.Invoke(_core, [HubStepType.ROOT]);
+                    }
+                    break;
+            }
 
-                var locPool = locs.ToList();
-
-                _nonStopLocs = [
-                    locPool.PopRandom(),
-                    locPool.PopRandom(),
-                    locPool.PopRandom(),
-                ];
-
-                int i = 0;
-                Game.Session.Dialog.ShowDialogOptions(_nonStopLocs.Select(x => new DialogOptionInfo(x.nonStopOptionText, i++)).Append(new DialogOptionInfo(_core.optionNonStop, 3)).ToList(), false, false);
-                Game.Session.Dialog.DialogOptionSelectedEvent += OnDialogSelected_Hook;
-                break;
-            case 4:
-                if (Game.Session.Dialog.selectedDialogOptionIndex < 3)
-                {
-                    Game.Session.Location.Depart(_nonStopLocs[Game.Session.Dialog.selectedDialogOptionIndex], null, false);
-                }
-                else
-                {
-                    m_ChangeStepType.Invoke(_core, [HubStepType.ROOT]);
-                }
-                break;
-            default:
-                throw new System.Exception("unhandled hubStepIndex");
+            return false;
         }
 
-        //post steps (not currently overriding any steps that modify the sequence)
-        // if (this._hubSequence.Duration(true) > 0f)
-        // {
-        //     this._hubSequence.OnComplete(new TweenCallback(this.OnHubSequenceComplete));
-        //     Game.Manager.Time.Play(this._hubSequence, this.pauseDefinition, 0f);
-        // }
+        return true;
+    }
 
-        return false;
+    private bool StartHub_Prefix()
+    {
+        if (Game.Persistence.playerFile.GetFlagValue(_core.firstLocationFlag) > 0)
+        {
+            // First location from Hub is always a Sim location
+            StateDeparting?.Invoke(GameStateId.Sim);
+        }
+        return true;
     }
 
     private void OnDialogSelected_Hook()

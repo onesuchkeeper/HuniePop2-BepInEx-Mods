@@ -29,7 +29,6 @@ public class SingleDateAilment : IScriptedAilment
             _rightGirl.invalidTokenDefs.Add(_staminaTokenDef);
         }
 
-        // Subscribe to PostMatchReward via Hp2BaseMod's event system
         _ailmentManager.PostMatchReward += OnPostMatchReward;
     }
 
@@ -73,16 +72,13 @@ public class SingleDateAilment : IScriptedAilment
         var puzzleStatus = Game.Session.Puzzle.puzzleStatus;
         var currentAffection = puzzleStatus.affection;
 
-        // 1. Calculate negative affection allotment using the single date sensitivity multiplier
         var allotment = -Mathf.Max(1, Mathf.FloorToInt(currentAffection * State.GetBrokenMult()));
 
-        // 2. Set ResourceValue on the reward so splash text / UI displays "-X Affection"
         foreach (var entry in brokenRewards)
         {
             entry.Reward.ResourceValue = allotment;
         }
 
-        // 3. Deduct affection directly via Hp2BaseMod's public API
         _grid._status.GetExpansion().AddResourceValue(PuzzleResourceId.AffectionTalent, allotment * brokenRewards.Count, true);
     }
 }

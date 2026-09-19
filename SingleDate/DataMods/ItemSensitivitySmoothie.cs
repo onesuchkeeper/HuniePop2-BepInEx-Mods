@@ -73,7 +73,7 @@ internal static class ItemSensitivitySmoothie
             PlayerFileGirl fileGirl, 
             bool altGirl)
         {
-            if (!Game.Session.Location.AtLocationType(LocationType.SIM)
+            if (ModInterface.GameState.CurrentState.Id != GameStateId.Sim
                 || State.SaveFile.SensitivityExp >= 24
                 || statusGirl.stamina <= 0)
             {

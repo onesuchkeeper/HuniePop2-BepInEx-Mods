@@ -1,6 +1,7 @@
 using System.Reflection;
 using DG.Tweening;
 using HarmonyLib;
+using Hp2BaseMod;
 using Hp2BaseMod.Extension;
 using UnityEngine;
 
@@ -42,7 +43,7 @@ internal static class UiAppRelationshipSlotPatch
             if (playerFileGirlPair.relationshipType == GirlPairRelationshipType.ATTRACTED
                 && girlSave?.RelationshipLevel == (maxSingleGirlRelationshipLevel - 1)
                 && (Game.Persistence.playerFile.daytimeElapsed + daytimeOffset) % 4 == (int)playerFileGirlPair.girlPairDefinition.sexDaytime
-                && (!__instance.hornyDelayed || (__instance.hornyDelayed && (!Game.Session.Location.AtLocationType(LocationType.DATE) || Game.Session.Puzzle.isPuzzleActive))))
+                && (!__instance.hornyDelayed || (__instance.hornyDelayed && (ModInterface.GameState.CurrentState.Id != GameStateId.Puzzle || Game.Session.Puzzle.isPuzzleActive))))
             {
                 __instance.itemIcon.sprite = __instance.hornyIcon;
 

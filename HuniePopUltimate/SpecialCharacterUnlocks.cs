@@ -1,122 +1,77 @@
 using System.Linq;
 using Hp2BaseMod;
 using Hp2BaseMod.Extension;
+using HarmonyLib;
 
 namespace HuniePopUltimate;
 
 internal static class SpecialCharacterUnlocks
 {
-    private static readonly LocationTransitionFakeOut _fakeTransition = new();
+    [HarmonyPatch(typeof(UiCellphoneTrashZone))]
+    private static class UiCellphoneTrashZonePatch
+    {
+        private static readonly RelativeId _goldFishPlushId = new RelativeId(-1, 45);
+
+        [HarmonyPatch("OnDrop")]
+        [HarmonyPrefix]
+        public static void OnDrop(UiCellphoneTrashZone __instance, Draggable draggable)
+        {
+            var id = draggable.GetItemDefinition()?.ModId();
+            if (id == _goldFishPlushId)
+            {
+                ModInterface.Log.Message("Threw out the gold fish!");
+                SpecialCharacterUnlocks._threwOutGoldfish = true;
+            }
+        }
+    }
+
+    private static bool _threwOutGoldfish { get; set; }
+
+    internal static void On_FinderSlotSelected(UiAppFinderSlot slot) => _finderPending = true;
+    private static bool _finderPending;
 
     internal static void On_PreLocationDepart(LocationDepartArgs args)
     {
-        if (!Plugin.HasSingleDate) return;
-
-        // Ignore hub-to-hub transition
-        if (args.from?.locationType == LocationType.HUB
-            && args.to?.locationType == LocationType.HUB)
-        {
-            return;
-        }
-
-        // Ignore dates
-        if (args.to?.locationType == LocationType.DATE)
-        {
-            return;
-        }
+        // Only handle finder departures
+        if (!Plugin.HasSingleDate
+            || !_finderPending) return;
 
         var nobodyDef = ModInterface.GameData.GetGirl(Plugin.SingleDateNobodyId);
         var previousLocId = args.from?.ModId();
 
-        if (VenusOverride(nobodyDef, ref args.girlPairDef))
+        if (VenusOverride(nobodyDef, args))
         {
-            //args.cellphoneOnLeft = true;
-            Plugin.ThrewOutGoldfish = false;
+            _threwOutGoldfish = false;
+            _finderPending = false;
             return;
         }
 
-        bool overrideTriggered = KyuOverride(nobodyDef, args.to, args.sidesFlipped)
-            || CelesteOverride(previousLocId, args.to, args.sidesFlipped)
-            || MomoOverride(previousLocId, args.to, args.sidesFlipped);
-
-        if (overrideTriggered)
+        if (KyuOverride(nobodyDef, args)
+            || CelesteOverride(previousLocId, args)
+            || MomoOverride(previousLocId, args))
         {
-            args.Canceled = true;
+            ModInterface.Log.Message("HpUltimate overriding depart");
         }
 
-        Plugin.ThrewOutGoldfish = false;
+        _threwOutGoldfish = false;
+        _finderPending = false;
     }
 
-    // public static bool Depart(LocationManager __instance, LocationDefinition locationDef, ref GirlPairDefinition girlPairDef, bool sidesFlipped)
-    // {
-    //     if (!Plugin.HasSingleDate) return true;
-
-    //     // ignore hub to hub transition (sleep) cuz I don't want to deal with it...
-    //     if (__instance.currentLocation.locationType == LocationType.HUB
-    //         && locationDef.locationType == LocationType.HUB)
-    //     {
-    //         return true;
-    //     }
-
-    //     // and dates
-    //     if (locationDef.locationType == LocationType.DATE)
-    //     {
-    //         return true;
-    //     }
-
-    //     var nobodyDef = ModInterface.GameData.GetGirl(Plugin.SingleDateNobodyId);
-    //     var currentLocId = __instance.currentLocation.ModId();
-
-    //     if (VenusOverride(nobodyDef, ref girlPairDef))
-    //     {
-    //         Plugin.ThrewOutGoldfish = false;
-    //         return true;
-    //     }
-
-    //     var shouldOverride =!(KyuOverride(__instance, nobodyDef, locationDef, sidesFlipped)
-    //         || CelesteOverride(currentLocId, locationDef, sidesFlipped)
-    //         || MomoOverride(currentLocId, locationDef, sidesFlipped));
-
-    //     Plugin.ThrewOutGoldfish = false;
-    //     return shouldOverride;
-    // }
-
-    // private static bool KyuOverride(LocationManager locationManager,
-    //     GirlDefinition nobodyDef,
-    //     LocationDefinition locationDef,
-    //     bool sidesFlipped)
-    // {
-    //     if (Game.Session.Puzzle.puzzleStatus.bonusRound)
-    //     {
-    //         var kyuPair = Game.Persistence.playerFile.GetPlayerFileGirlPair(ModInterface.GameData.GetGirlPair(Pairs.KyuSingleDate));
-
-    //         if (kyuPair.relationshipType == GirlPairRelationshipType.UNKNOWN)
-    //         {
-    //             if (locationManager.currentGirlPair.girlDefinitionOne == nobodyDef)
-    //             {
-    //                 ModInterface.Log.Message("Starting Kyu cutscene");
-    //                 _fakeTransition.Depart(locationDef, ModInterface.GameData.GetGirlPair(Pairs.KyuSingleDate), sidesFlipped);
-    //                 ModInterface.State.CellphoneOnLeft = true;
-    //                 return true;
-    //             }
-    //         }
-    //     }
-
-    //     return false;
-    // }
-
-    private static bool KyuOverride(GirlDefinition nobodyDef, LocationDefinition locationDef, bool sidesFlipped)
+    private static bool KyuOverride(GirlDefinition nobodyDef, LocationDepartArgs args)
     {
         if (Game.Session.Puzzle.puzzleStatus.bonusRound)
         {
-            var kyuPair = Game.Persistence.playerFile.GetPlayerFileGirlPair(ModInterface.GameData.GetGirlPair(Pairs.KyuSingleDate));
+            var pair = ModInterface.GameData.GetGirlPair(Pairs.KyuSingleDate);
+            var pairSave = Game.Persistence.playerFile.GetPlayerFileGirlPair(pair);
 
-            if (kyuPair.relationshipType == GirlPairRelationshipType.UNKNOWN)
+            if (pairSave.relationshipType == GirlPairRelationshipType.UNKNOWN)
             {
                 if (Game.Session.Location.currentGirlPair?.girlDefinitionOne == nobodyDef)
                 {
                     ModInterface.Log.Message("Starting Kyu cutscene");
-                    _fakeTransition.Depart(locationDef, ModInterface.GameData.GetGirlPair(Pairs.KyuSingleDate), sidesFlipped);
+                    args.transition = new LocationTransitionFakeOut(args.to, GameStateId.Sim);
+                    args.to = args.from;
+                    args.girlPairDef = pairSave.girlPairDefinition;
                     ModInterface.State.CellphoneOnLeft = true;
                     return true;
                 }
@@ -125,9 +80,9 @@ internal static class SpecialCharacterUnlocks
         return false;
     }
 
-    private static bool VenusOverride(GirlDefinition nobodyDef, ref GirlPairDefinition girlPairDef)
+    private static bool VenusOverride(GirlDefinition nobodyDef, LocationDepartArgs args)
     {
-        var pairId = girlPairDef?.ModId();
+        var pairId = args.girlPairDef?.ModId();
 
         if (pairId.HasValue && pairId.Value == Pairs.KyuSingleDate)
         {
@@ -147,7 +102,8 @@ internal static class SpecialCharacterUnlocks
                     .All(x => x.relationshipType == GirlPairRelationshipType.LOVERS))
                 {
                     ModInterface.Log.Message("Changing pair to venus");
-                    girlPairDef = pair;
+                    args.girlPairDef = pair;
+                    ModInterface.State.CellphoneOnLeft = true;
                     return true;
                 }
             }
@@ -155,7 +111,7 @@ internal static class SpecialCharacterUnlocks
         return false;
     }
 
-    private static bool CelesteOverride(RelativeId? previousLocId, LocationDefinition locationDef, bool sidesFlipped)
+    private static bool CelesteOverride(RelativeId? previousLocId, LocationDepartArgs args)
     {
         var rawTime = (Game.Persistence.playerFile.daytimeElapsed - 1) % 4;
         var time = (ClockDaytimeType)((rawTime + 4) % 4);
@@ -178,7 +134,9 @@ internal static class SpecialCharacterUnlocks
                         .Where(x => x.itemDefinition == weirdThing)
                         .ForEach(x => x.Clear());
 
-                    _fakeTransition.Depart(locationDef, ModInterface.GameData.GetGirlPair(Girls.Celeste), sidesFlipped);
+                    args.transition = new LocationTransitionFakeOut(args.to, GameStateId.Sim);
+                    args.to = args.from;
+                    args.girlPairDef = pair;
                     ModInterface.State.CellphoneOnLeft = true;
                     return true;
                 }
@@ -187,9 +145,9 @@ internal static class SpecialCharacterUnlocks
         return false;
     }
 
-    private static bool MomoOverride(RelativeId? previousLocId, LocationDefinition locationDef, bool sidesFlipped)
+    private static bool MomoOverride(RelativeId? previousLocId, LocationDepartArgs args)
     {
-        if (previousLocId == LocationIds.Park && Plugin.ThrewOutGoldfish)
+        if (previousLocId == LocationIds.Park && _threwOutGoldfish)
         {
             var pair = ModInterface.GameData.GetGirlPair(Girls.Momo);
             var pairSave = Game.Persistence.playerFile.GetPlayerFileGirlPair(pair);
@@ -197,106 +155,14 @@ internal static class SpecialCharacterUnlocks
             if (pairSave.relationshipType == GirlPairRelationshipType.UNKNOWN)
             {
                 ModInterface.Log.Message("Starting Momo cutscene");
-                _fakeTransition.Depart(locationDef, pair, sidesFlipped);
+
+                args.transition = new LocationTransitionFakeOut(args.to, GameStateId.Sim);
+                args.to = args.from;
+                args.girlPairDef = pair;
                 ModInterface.State.CellphoneOnLeft = true;
                 return true;
             }
         }
         return false;
     }
-
-    // private static bool VenusOverride(GirlDefinition nobodyDef,
-    //     ref GirlPairDefinition girlPairDef)
-    // {
-    //     var pairId = girlPairDef?.ModId();
-
-    //     if (pairId.HasValue
-    //         && pairId.Value == Pairs.KyuSingleDate)
-    //     {
-    //         var pair = ModInterface.GameData.GetGirlPair(Girls.Venus);
-           
-    //         var pairSave = Game.Persistence.playerFile.GetPlayerFileGirlPair(pair);
-    //         if (pairSave.relationshipType == GirlPairRelationshipType.UNKNOWN)
-    //         {
-    //             var venusDef = ModInterface.GameData.GetGirl(Girls.Venus);
-    //             var momoDef = ModInterface.GameData.GetGirl(Girls.Momo);
-    //             var celesteDef = ModInterface.GameData.GetGirl(Girls.Celeste);
-
-    //             if (Game.Persistence.playerFile.girlPairs
-    //                 .Where(x => x.girlPairDefinition.girlDefinitionOne == nobodyDef
-    //                     && x.girlPairDefinition.girlDefinitionTwo != venusDef
-    //                     && x.girlPairDefinition.girlDefinitionTwo != momoDef
-    //                     && x.girlPairDefinition.girlDefinitionTwo != celesteDef)
-    //                 .All(x => x.relationshipType == GirlPairRelationshipType.LOVERS))
-    //             {
-    //                 ModInterface.Log.Message("Changing pair to venus");
-    //                 girlPairDef = pair;
-    //                 ModInterface.State.CellphoneOnLeft = true;
-    //                 return true;
-    //             }
-    //         }
-    //     }
-
-    //     return false;
-    // }
-
-    // private static bool CelesteOverride(RelativeId currentLocId,
-    //     LocationDefinition locationDef,
-    //     bool sidesFlipped)
-    // {
-    //     // time gets updated, so -1 to checks. Not handling data location anymore so 
-    //     // don't have to worry about date transitions not updating time
-    //     var rawTime = (Game.Persistence.playerFile.daytimeElapsed - 1) % 4;
-    //     var time = (ClockDaytimeType)((rawTime + 4) % 4);
-    //     var isTimeValid = time == ClockDaytimeType.EVENING || time == ClockDaytimeType.NIGHT;
-
-    //     if (currentLocId == LocationIds.Beach
-    //         && isTimeValid)
-    //     {
-    //         var weirdThing = ModInterface.GameData.GetItem(Items.WeirdThing);
-
-    //         if (Game.Persistence.playerFile.IsItemInInventory(weirdThing, false))
-    //         {
-    //             var pair = ModInterface.GameData.GetGirlPair(Girls.Celeste);
-    //             var pairSave = Game.Persistence.playerFile.GetPlayerFileGirlPair(pair);
-
-    //             if (pairSave.relationshipType == GirlPairRelationshipType.UNKNOWN)
-    //             {
-    //                 ModInterface.Log.Message("Starting Celeste cutscene");
-
-    //                 Game.Persistence.playerFile.inventorySlots
-    //                     .Where(x => x.itemDefinition == weirdThing)
-    //                     .ForEach(x => x.Clear());
-
-    //                 _fakeTransition.Depart(locationDef, ModInterface.GameData.GetGirlPair(Girls.Celeste), sidesFlipped);
-    //                 ModInterface.State.CellphoneOnLeft = true;
-    //                 return true;
-    //             }
-    //         }
-    //     }
-
-    //     return false;
-    // }
-
-    // private static bool MomoOverride(RelativeId currentLocId,
-    //     LocationDefinition locationDef,
-    //     bool sidesFlipped)
-    // {
-    //     if (currentLocId == LocationIds.Park
-    //         && Plugin.ThrewOutGoldfish)
-    //     {
-    //         var pair = ModInterface.GameData.GetGirlPair(Girls.Momo);
-    //         var pairSave = Game.Persistence.playerFile.GetPlayerFileGirlPair(pair);
-
-    //         if (pairSave.relationshipType == GirlPairRelationshipType.UNKNOWN)
-    //         {
-    //             ModInterface.Log.Message("Starting Momo cutscene");
-    //             _fakeTransition.Depart(locationDef, pair, sidesFlipped);
-    //             ModInterface.State.CellphoneOnLeft = true;
-    //             return true;
-    //         }
-    //     }
-
-    //     return false;
-    // }
 }

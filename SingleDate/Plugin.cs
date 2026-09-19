@@ -53,6 +53,11 @@ internal partial class Plugin : Hp2BaseModPlugin
     public static CharmAnimationRegistry CharmAnimationRegistry => _instance._charmAnimationRegistry;
     private CharmAnimationRegistry _charmAnimationRegistry;
 
+    internal static readonly HashSet<RelativeId> _singleDateDisabledAilments = [
+        new RelativeId(-1, 28),//Ashley - Commitment Issues - disabled because after 4 turns all matches turn negative
+        new RelativeId(-1, 31)//Abia - Self Effacing - disables because doesn't allow gifts at all on single dates
+    ];
+
     public static new int ModId => ((Hp2BaseModPlugin)_instance).ModId;
 
     private Dictionary<RelativeId, SingleDateGirl> _singleDateGirls = new();
@@ -133,18 +138,74 @@ internal partial class Plugin : Hp2BaseModPlugin
 
         ModInterface.Events.PuzzleRoundOver += ModEventHandles.On_PuzzleRoundOver;
         ModInterface.Events.FinderSlotsPopulate += ModEventHandles.On_FinderSlotsPopulate;
-        ModInterface.Events.LocationArriveSequence += ModEventHandles.On_LocationArriveSequence;
         ModInterface.Events.RandomDollSelected += ModEventHandles.On_RandomDollSelected;
         ModInterface.Events.DateLocationSelected += ModEventHandles.On_DateLocationSelected;
         ModInterface.Events.RequestUnlockedPhotos += ModEventHandles.On_RequestUnlockedPhotos;
         ModInterface.Events.PreDateDollReset += ModEventHandles.On_PreDateDollsRefresh;
         ModInterface.Events.FavQuestionResponse += ModEventHandles.On_TalkFavQuestionResponse;
-        ModInterface.Events.PreLocationArrive += ModEventHandles.On_PreLocationArrive;
-        ModInterface.Events.PreLocationSettled += ModEventHandles.On_PreLocationSettled;
         ModInterface.Events.RequestGirlStateTransition += ModEventHandles.On_RequestGirlStateTransition;
+
+        ModInterface.Events.GameSessionBegan += On_GameSessionBegan;
+        ModInterface.GameState.GameStateChanged += On_GameStateChanged;
 
         new Harmony(MyPluginInfo.PLUGIN_GUID).PatchAll();
     }
+
+    private void On_GameStateChanged((RelativeId? prevStateId, RelativeId currentStateId) args)
+    {
+        if (args.prevStateId == GameStateId.Sim)
+        {
+            var locationManager = Game.Session.Location.GetExpansion();
+            locationManager.LocationArriveSequence -= ModEventHandles.On_LocationArriveSequence;
+            locationManager.PreLocationArrive -= ModEventHandles.On_PreLocationArrive;
+            locationManager.PreLocationSettled -= ModEventHandles.On_PreLocationSettled;
+        }
+        else if (args.prevStateId == GameStateId.Puzzle)
+        {
+            var locationManager = Game.Session.Location.GetExpansion();
+            locationManager.LocationArriveSequence -= ModEventHandles.On_LocationArriveSequence;
+            locationManager.PreLocationArrive -= ModEventHandles.On_PreLocationArrive;
+            locationManager.PreLocationSettled -= ModEventHandles.On_PreLocationSettled;
+
+            Game.Session.Ailment.GetExpansion().PreAilmentEnable -=  ModEventHandles.On_PreAilmentEnable;
+        }
+
+        if (args.currentStateId == GameStateId.Sim)
+        {
+            ModInterface.Log.Message("Single Date Set up sim behavior");
+
+            var locationManager = Game.Session.Location.GetExpansion();
+            locationManager.LocationArriveSequence += ModEventHandles.On_LocationArriveSequence;
+            locationManager.PreLocationArrive += ModEventHandles.On_PreLocationArrive;
+            locationManager.PreLocationSettled += ModEventHandles.On_PreLocationSettled;
+        }
+        else if (args.currentStateId == GameStateId.Puzzle)
+        {
+            var locationManager = Game.Session.Location.GetExpansion();
+            locationManager.LocationArriveSequence += ModEventHandles.On_LocationArriveSequence;
+            locationManager.PreLocationArrive += ModEventHandles.On_PreLocationArrive;
+            locationManager.PreLocationSettled += ModEventHandles.On_PreLocationSettled;
+
+            Game.Session.Ailment.GetExpansion().PreAilmentEnable +=  ModEventHandles.On_PreAilmentEnable;
+        }
+    }
+
+    private void On_GameSessionBegan(GameSession gameSession)
+    {
+        Game.Session.Ailment.GetExpansion().PreAilmentEnable += args => { 
+            var ailmentDef = args.Ailment.definition;
+            var id = args.Ailment.definition.ModId();
+            if (State.IsSingleDate && _singleDateDisabledAilments.Contains(id)) 
+            { 
+                ModInterface.Log.Message($"Preventing ailment {id} \"{ailmentDef.name}\" from being enabled during single date");
+                args.Cancel = true; 
+            }
+        };
+    }
+
+    [InteropMethod]
+    public static void AddSingleDateDisabledAilment(RelativeId ailmentId)
+        => _singleDateDisabledAilments.Add(ailmentId);
 
     [InteropMethod]
     public static void AddGirlSexPhotos(RelativeId girlId, IEnumerable<(RelativeId, RelativeId)> photoIds)

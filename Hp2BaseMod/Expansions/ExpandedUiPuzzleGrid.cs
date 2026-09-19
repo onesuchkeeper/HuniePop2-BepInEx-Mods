@@ -202,7 +202,7 @@ public partial class ExpandedUiPuzzleGrid
     {
         if (!SuppressStaminaCost) return true;
 
-        if (!Game.Session.Location.AtLocationType(LocationType.DATE)
+        if (ModInterface.GameState.CurrentState.Id != GameStateId.Puzzle
             || !Game.Session.Puzzle.isPuzzleActive
             || Game.Manager.Time.IsPaused(_core.pauseDefinition)
             || !Input.GetMouseButtonUp(0))

@@ -21,24 +21,96 @@ public static class PlayerFile_PopulateStoreProducts
 
     public static bool Prefix(PlayerFile __instance)
     {
-        // The first time this runs on a save file
-        // the collections have not been initialized.
+        ModInterface.Log.Message("PopulateStoreProducts: START");
+
         __instance.inventorySlots ??= new();
         __instance.storeProducts ??= new();
         __instance.girls ??= new();
         __instance.girlPairs ??= new();
         __instance.flags ??= new();
+        __instance.metGirlPairs ??= new();
+        __instance.completedGirlPairs ??= new();
+        __instance.finderSlots ??= new();
+
+        ModInterface.Log.Message("PopulateStoreProducts: PlayerFile collections initialized");
 
         var args = new StoreProductsPopulateArgs();
 
-        // Uses all item store handlers in the runtime to create pools of items
-        foreach (var handler in ModInterface.GameData.ItemStoreHandlers.Values)
+        ModInterface.Log.Message(
+            $"PopulateStoreProducts: {ModInterface.GameData.ItemStoreHandlers.Count} store handlers");
+
+        foreach (var handlerEntry in ModInterface.GameData.ItemStoreHandlers)
         {
-            foreach (var category in handler.CreateStoreCategories(__instance))
+            var handler = handlerEntry.Value;
+
+            ModInterface.Log.Message(
+                $"PopulateStoreProducts: Creating categories for handler {handlerEntry.Key}");
+
+            var categories = handler.CreateStoreCategories(__instance);
+
+            if (categories == null)
             {
+                ModInterface.Log.Error(
+                    $"PopulateStoreProducts: Handler {handlerEntry.Key} returned NULL categories");
+
+                continue;
+            }
+
+            foreach (var category in categories)
+            {
+                if (category.Value == null)
+                {
+                    ModInterface.Log.Error(
+                        $"PopulateStoreProducts: Handler {handlerEntry.Key} returned NULL category for key {category.Key}");
+
+                    continue;
+                }
+
+                if (category.Value.Pool == null)
+                {
+                    ModInterface.Log.Error(
+                        $"PopulateStoreProducts: Handler {handlerEntry.Key}, category {category.Key} has NULL pool");
+
+                    continue;
+                }
+
+                ModInterface.Log.Message(
+                    $"PopulateStoreProducts: Handler {handlerEntry.Key}, category {category.Key}, " +
+                    $"pool={category.Value.Pool.Count}, target={category.Value.TargetCount}");
+
                 args.ItemCategories.Add(category.Key, category.Value);
             }
         }
+
+        ModInterface.Log.Message("PopulateStoreProducts: Finished creating categories");
+
+
+
+
+
+
+
+        // The first time this runs on a save file
+        // the collections have not been initialized.
+        // __instance.inventorySlots ??= new();
+        // __instance.storeProducts ??= new();
+        // __instance.girls ??= new();
+        // __instance.girlPairs ??= new();
+        // __instance.flags ??= new();
+        // __instance.metGirlPairs ??= new();
+        // __instance.completedGirlPairs ??= new();
+        // __instance.finderSlots ??= new();
+
+        // var args = new StoreProductsPopulateArgs();
+
+        // // Uses all item store handlers in the runtime to create pools of items
+        // foreach (var handler in ModInterface.GameData.ItemStoreHandlers.Values)
+        // {
+        //     foreach (var category in handler.CreateStoreCategories(__instance))
+        //     {
+        //         args.ItemCategories.Add(category.Key, category.Value);
+        //     }
+        // }
         
         ModInterface.Events.NotifyPopulateStoreProducts(args);
         var affectionTypeIndexes = new Dictionary<RelativeId, List<int>>();
@@ -86,7 +158,50 @@ public static class PlayerFile_PopulateStoreProducts
                 var categoryEntry = Category<Category<ExpandedItemDefinition>>.GetWeighted(weightedCategories);
                 var category = categoryEntry.Value;
 
+                ModInterface.Log.Message(
+                    $"PopulateStoreProducts: Selecting from category {category}, " +
+                    $"pool={category.Pool.Count}, target={category.TargetCount}");
+                    
                 var selection = Category<ExpandedItemDefinition>.PopWeighted(category.Pool);
+
+                if (selection == null)
+                {
+                    ModInterface.Log.Error(
+                        $"PopulateStoreProducts: PopWeighted returned NULL for category {category}");
+
+                    continue;
+                }
+
+                if (selection.Value == null)
+                {
+                    ModInterface.Log.Error(
+                        $"PopulateStoreProducts: Selection.Value is NULL for category {category}");
+
+                    continue;
+                }
+
+                if (selection.Value.StoreHandler == null)
+                {
+                    ModInterface.Log.Error(
+                        $"PopulateStoreProducts: Item {selection.Value} has NULL StoreHandler");
+
+                    continue;
+                }
+
+                if (selection.Value.Core == null)
+                {
+                    ModInterface.Log.Error(
+                        $"PopulateStoreProducts: Item {selection.Value} has NULL Core");
+
+                    continue;
+                }
+
+                //var selection = Category<ExpandedItemDefinition>.PopWeighted(category.Pool);
+
+                ModInterface.Log.Message(
+                    $"PopulateStoreProducts: Chosen item {selection.Value.Core.name} " +
+                    $"using handler {selection.Value.StoreHandler.GetType().Name}");
+                
 
                 categoryEntry.Weight -= selection.Weight;
                 if (categoryEntry.Weight <= 0)

@@ -49,7 +49,7 @@ internal static class CutsceneStepSpecialPostRewardsPatch
 
         f_stylesUnlocked.SetValue(__instance, true);
 
-        if (Game.Session.Location.AtLocationType(LocationType.DATE)
+        if (ModInterface.GameState.CurrentState.Id == GameStateId.Puzzle
             && f_puzzleStatus.GetValue(__instance) is PuzzleStatus puzzleStatus
             && puzzleStatus.statusType == PuzzleStatusType.NORMAL
             && !puzzleStatus.IsTutorial(false)

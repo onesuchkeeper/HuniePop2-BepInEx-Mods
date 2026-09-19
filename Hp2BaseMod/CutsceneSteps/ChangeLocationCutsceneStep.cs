@@ -11,7 +11,8 @@ namespace Hp2BaseMod.ModGameData;
 /// <summary>
 /// A cutscene step that changes location without any of the coupling of
 /// <see cref="LocationManager"/>. This changes location visually and in <see cref="Game.Persistence.PlayerFile.locationDefinition"/> 
-/// It does not handle any other transitions like moving dolls, triggering dialogue or toggling menus.
+/// It does not handle any other transitions like moving dolls, triggering dialogue or toggling menus. It does not change game state. You must do that
+/// via other cutscene steps if needed.
 /// </summary>
 public class ChangeLocationCutsceneStep : CutsceneStepSubDefinition, IFunctionalCutsceneStep
 {
@@ -104,7 +105,8 @@ public class ChangeLocationCutsceneStep : CutsceneStepSubDefinition, IFunctional
 
         _sequence.OnComplete(() => OnDepartAnimationsComplete(locationDef));
 
-        ModInterface.Events.NotifyLocationDepartSequence(new LocationDepartSequenceArgs() { Sequence = _sequence });
+        var args = new LocationDepartSequenceArgs() { Sequence = _sequence };
+        Game.Session.Location.GetExpansion().NotifyLocationDepartSequence(args);
 
         _sequence.Play();
     }
@@ -145,7 +147,8 @@ public class ChangeLocationCutsceneStep : CutsceneStepSubDefinition, IFunctional
 
         _sequence.OnComplete(OnArriveComplete);
 
-        ModInterface.Events.NotifyLocationArriveSequence(new LocationArriveSequenceArgs() { Sequence = _sequence });
+        var args = new LocationArriveSequenceArgs() { Sequence = _sequence };
+        Game.Session.Location.GetExpansion().NotifyLocationArriveSequence(args);
 
         _sequence.Play();
     }

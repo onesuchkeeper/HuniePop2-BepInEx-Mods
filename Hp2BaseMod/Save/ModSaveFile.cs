@@ -22,6 +22,7 @@ public class ModSaveFile
 
     public RelativeId? WardrobeGirlId;
     public RelativeId? LocationId;
+    public RelativeId? GameStateId;
     public RelativeId? GirlPairId;
     public RelativeId? FileIconGirlId;
 
@@ -41,6 +42,15 @@ public class ModSaveFile
     /// <param name="saveFile">savefile to strip</param>
     public void Strip(SaveFile saveFile)
     {
+        if (!saveFile.started)
+        {
+            GameStateId = Hp2BaseMod.GameStateId.Special;
+        }
+        else if (ModInterface.GameState.CurrentState.IsSavable)
+        {
+            GameStateId = ModInterface.GameState.CurrentState.Id;
+        }
+
         // wardrobe girl id
         var wardrobeGirlIdFlag = saveFile.flags.FirstOrDefault(x => x.flagName == Flags.WARDROBE_GIRL_ID);
         var wardrobeGirlId = wardrobeGirlIdFlag?.flagValue;
@@ -167,6 +177,18 @@ public class ModSaveFile
 
     public void SetData(SaveFile saveFile)
     {
+        if (!saveFile.started)
+        {
+            GameStateId = Hp2BaseMod.GameStateId.Special;
+        }
+        else if (!GameStateId.HasValue)
+        {
+            ModInterface.Log.Warning($"No game state defined, defaulting to hub");
+            LocationId = Locations.HotelRoom;
+            GirlPairId = null;
+            GameStateId = Hp2BaseMod.GameStateId.Hub;
+        }
+
         var wardrobeFlag = saveFile.flags.FirstOrDefault(x => x.flagName == Flags.WARDROBE_GIRL_ID);
 
         if (WardrobeGirlId.HasValue &&

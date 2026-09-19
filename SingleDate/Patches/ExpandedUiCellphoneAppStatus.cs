@@ -88,7 +88,7 @@ internal class ExpandedUiCellphoneAppStatus : UiPatchController<UiCellphoneAppSt
         _girlId = ModInterface.Data.GetDataId(GameDataType.Girl, Game.Session.Puzzle.puzzleStatus.girlStatusRight.girlDefinition.id);
 
         // Hide stamina on dates
-        if (Game.Session.Location.AtLocationType(LocationType.DATE))
+        if (ModInterface.GameState.CurrentState.Id == GameStateId.Puzzle)
         {
             var staminaRect = _core.staminaMeterRight.GetComponent<RectTransform>();
             _core.staminaMeterRight.transform.SetParent(null);

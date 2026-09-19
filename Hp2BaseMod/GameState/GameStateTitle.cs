@@ -1,44 +1,38 @@
-// namespace Hp2BaseMod;
+using System;
 
-// public class GameStateTitle : IGameState
-// {
-//     public RelativeId Id => GameStateId.Title;
+namespace Hp2BaseMod; 
 
-//     // Title screen cannot be paused or saved [3]
-//     public bool AllowPause => false;
-//     public bool AllowSave => false;
-//     public bool UseLeftCellphone => false;
+public class GameStateTitle : IGameState 
+{ 
+    public RelativeId Id => GameStateId.Title; 
+    
+    public bool IsSavable => false;
 
-//     public void Enter()
-//     {
-//         // Listen for save file selection from the title canvas
-//         ModInterface.Events.PreLoadSaveFile += OnPreLoadSaveFile;
-//     }
+    public void Enter() 
+    { 
+        ModInterface.Events.GameSessionBegan += OnGameSessionBegan;
+    }
+    
+    public void Exit() 
+    {
+        ModInterface.Events.GameSessionBegan -= OnGameSessionBegan; 
+    }
+    
+    private void OnGameSessionBegan(GameSession gameSession) 
+    { 
+        var targetStateId = ModInterface.Save.GetCurrentFile().GameStateId ?? GameStateId.Hub; 
+        ModInterface.GameState.ChangeState(targetStateId);
+    }
+    
+    public string GetProfileString(PlayerFile playerFile) => string.Empty;
 
-//     public void Exit()
-//     {
-//         // Clean up listeners when transitioning away from the title screen
-//         ModInterface.Events.PreLoadSaveFile -= OnPreLoadSaveFile;
-//     }
+    public void DepartTransition(RelativeId? nextStateId, Action continueTransitionCallback)
+    {
+        throw new NotImplementedException();
+    }
 
-//     public void ResetDolls()
-//     {
-//         // Title screen manages its own cover art / canvas elements
-//     }
-
-//     private void OnPreLoadSaveFile(PlayerFile file)
-//     {
-//         if (file == null || file.locationDefinition == null) return;
-
-//         // Determine target game state from the save file's current location
-//         RelativeId targetStateId = GameStateId.From(file.locationDefinition.locationType);
-
-//         ModInterface.Log.Message(
-//             $"Save file selected ({file.locationDefinition.locationName}). " +
-//             $"Transitioning from Title to GameState: {targetStateId}"
-//         );
-
-//         // Switch to destination state (e.g. GameStateSim, GameStateHub, or GameStateDate) [7]
-//         ModInterface.GameState.ChangeState(targetStateId);
-//     }
-// }
+    public void DepartTransition(Action continueTransitionCallback)
+    {
+        throw new NotImplementedException();
+    }
+}

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -16,6 +17,8 @@ internal static class ModEventHandles
 
     internal static void On_LocationArriveSequence(LocationArriveSequenceArgs sequence)
     {
+        //doesn't print
+        ModInterface.Log.Message($"SingleDate On_LocationArriveSequence. IsSingleDate: {State.IsSingleDate}");
         var rightOuter = Game.Session.gameCanvas.dollRight.GetPositionByType(DollPositionType.OUTER);
         var rightInnerPos = Game.Session.gameCanvas.dollRight.GetPositionByType(DollPositionType.INNER);
         var diff = rightInnerPos - rightOuter;
@@ -45,10 +48,7 @@ internal static class ModEventHandles
 
     internal static void On_RandomDollSelected(RandomDollSelectedArgs args)
     {
-        if (!State.IsSingleDate)
-        {
-            return;
-        }
+        if (!State.IsSingleDate) return;
 
         ModInterface.Log.Message("Forcing focus for single date");
 
@@ -278,29 +278,25 @@ internal static class ModEventHandles
 
     internal static void On_TalkFavQuestionResponse(TalkFavQuestionResponseArgs args)
     {
-        if (State.IsSingleDate)
-        {
-            args.OtherGirlResponds = false;
-        }
+        if (!State.IsSingleDate) return;
+
+        args.OtherGirlResponds = false;
     }
 
     internal static void On_PreLocationArrive(LocationArriveArgs args)
     {
-        State.On_LocationManger_Arrive(args.girlPairDef);
+        if (!State.IsSingle(args.girlPairDef)) return;
 
-        if (State.IsSingle(args.girlPairDef))
-        {
-            args.cellphoneOnLeft = true;
-            args.meetingCutscene = UiPrefabs.SingleCutsceneMeeting;
-        }
+        args.sidesFlipped = false;
+        args.cellphoneOnLeft = true;
+        args.arrivalCutscene = UiPrefabs.SingleCutsceneMeeting;
     }
 
     internal static void On_PreLocationSettled(LocationSettledArgs args)
     {
-        if (State.IsSingleDate)
-        {
-            args.actionBubblesWindow = UiPrefabs.SingleDateBubbles;
-        }
+        if (!State.IsSingleDate) return;
+
+        args.actionBubblesWindow = UiPrefabs.SingleDateBubbles;
     }
 
     internal static void On_RequestGirlStateTransition(GirlStateTransitionArgs args)
@@ -311,6 +307,19 @@ internal static class ModEventHandles
         if (args.TargetStateId == Hp2BaseMod.PuzzleStatusGirlStateId.Upset)
         {
             args.TargetStateId = PuzzleStatusGirlStateId.SingleDateUpset;
+        }
+    }
+
+    internal static void On_PreAilmentEnable(AilmentTriggerArgs.PreAilmentEnable args)
+    {
+        if (!State.IsSingleDate) return;
+
+        var ailmentDef = args.Ailment.definition;
+        var id = args.Ailment.definition.ModId();
+        if (Plugin._singleDateDisabledAilments.Contains(id)) 
+        { 
+            ModInterface.Log.Message($"Preventing ailment {id} \"{ailmentDef.name}\" from being enabled during single date");
+            args.Cancel = true; 
         }
     }
 }

@@ -324,7 +324,7 @@ public partial class Plugin : Hp2BaseModPlugin
 
     private void On_RequestUnlockedPhotos(RequestUnlockedPhotosEventArgs args)
     {
-        if (Game.Persistence.playerFile.storyProgress >= 13
+        if (Game.Persistence.playerFile.IsProgressPostGame()
             && ModInterface.GameData.IsCodeUnlocked(ToggleCodeMods.KyuHoleCodeId))
         {
             args.UnlockedPhotos ??= new List<PhotoDefinition>();

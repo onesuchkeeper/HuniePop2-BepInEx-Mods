@@ -9,7 +9,7 @@ using Hp2BaseMod.GameDataInfo.Interface;
 namespace Hp2BaseMod;
 
 /// <summary>
-/// Wrapper of <see cref="GameData"/> to handle nullable and relative ids in looking up game data
+/// Wrapper of <see cref="GameData"/> to handle nullable and relative ids in looking up game data as well as additional gamedata types
 /// </summary>
 public class GameDefinitionProvider
 {
@@ -36,6 +36,9 @@ public class GameDefinitionProvider
     public IReadOnlyDictionary<RelativeId, IPuzzleStatusGirlState> PuzzleStatusGirlStates => _puzzleStatusGirlStates;
     internal readonly Dictionary<RelativeId, IPuzzleStatusGirlState> _puzzleStatusGirlStates;
 
+    public IReadOnlyDictionary<RelativeId, IGameState> GameStates => _gameStates;
+    internal readonly Dictionary<RelativeId, IGameState> _gameStates;
+
     public IReadOnlyList<IExpInfo> ExpDisplays => _expDisplays;
     internal readonly List<IExpInfo> _expDisplays = new List<IExpInfo>();
 
@@ -52,6 +55,7 @@ public class GameDefinitionProvider
         Dictionary<RelativeId, ITokenHandler> tokenHandlers,
         Dictionary<RelativeId, IPuzzleStatusGirlState> puzzleStatusGirlStates,
         Dictionary<RelativeId, UiDollSpecialEffect> dollSpecialEffects,
+        Dictionary<RelativeId, IGameState> gameStates,
         List<IExpInfo> expDisplays)
     {
         _itemStoreHandlers = itemStoreHandlers;
@@ -61,6 +65,7 @@ public class GameDefinitionProvider
         _tokenHandlers = tokenHandlers;
         _puzzleStatusGirlStates = puzzleStatusGirlStates;
         _dollSpecialEffects = dollSpecialEffects;
+        _gameStates = gameStates;
         _expDisplays = expDisplays;
         _gameData = gameData ?? throw new ArgumentNullException(nameof(gameData));
     }

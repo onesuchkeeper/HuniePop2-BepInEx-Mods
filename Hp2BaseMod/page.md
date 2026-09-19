@@ -1,0 +1,59 @@
+# Hp2BaseMod
+
+A modding framework for [HuniePop 2 - Double Date](https://huniepop2doubledate.com).
+
+---
+
+On its own this mod doesn't affect gameplay, but it does provide handling and utility for other mods!
+
+It is highly recommended you also install **Hp2BaseModTweaks**, which provides modded UI support and extra options. You should always use **Hp2BaseModTweaks** unless it conflicts with another mod.
+
+## Installation
+
+The Hp2BaseMod is built on [BepInEx](https://docs.bepinex.dev/articles/user_guide/installation/index.html). You must install BepInEx to run it or any dependent mods. See [the tutorial](https://onesuchkeeper.itch.io/hp2basemod/devlog/1321045/hp2basemod-installation-guide) for more information.
+
+Once [BepInEx](https://docs.bepinex.dev/articles/user_guide/installation/index.html) is installed, unzip and place the `Hp2BaseMod` folder in:
+
+`HuniePop 2 - Double Date\BepInEx\plugins`
+
+(The folder must be `Hp2BaseMod`! If it's something like `Hp2BaseMod_v1.x.x`, take the `Hp2BaseMod` folder out of that one!)
+
+Other mods based on the Hp2BaseMod must also be placed in:
+
+`HuniePop 2 - Double Date\BepInEx\plugins`
+
+## Dependent Mods
+
+[![HuniePop Ultimate](../ItchPages/HuniePopUltimate/cover.png)](https://onesuchkeeper.itch.io/huniepop-2-huniepop-ultimate)
+[![Randomizer](../ItchPages/Randomizer/cover.png)](https://onesuchkeeper.itch.io/huniepop-2-randomizer)
+[![Repeat Threesome](../ItchPages/RepeatThreesome/cover.png)](https://onesuchkeeper.itch.io/repeat-threesome)
+[![Anniversary Title](../ItchPages/AnniversaryTitle/cover.png)](https://onesuchkeeper.itch.io/huniepop-2-anniversary-title)
+[![Xtra Locations](../ItchPages/ExtraLocations/cover.png)](https://onesuchkeeper.itch.io/huniepop-2-xtra-locations)
+[![Single Date](../ItchPages/SingleDate/cover.png)](https://onesuchkeeper.itch.io/huniepop-2-single-date)
+[![Expanded Wardrobe](../ItchPages/ExpandedWardrobe/cover.png)](https://scallycapfan.itch.io/expanded-wardrobe)
+[![Hiragana Logo](../ItchPages/HiraganaLogo/cover.png)](https://onesuchkeeper.itch.io/huniepop-2-hiragana-logo)
+[![Mid Relationship Photos](../ItchPages/MidSingleDatePhotos/cover.png)](https://scallycapfan.itch.io/mid-relationship-photos)
+
+<!-- itch-only -->
+## Development
+
+You can view the source code on [GitHub](https://github.com/onesuchkeeper/HuniePop2-BepInEx-Mods).
+
+If you discover a bug, please check if it has already been reported as an [issue](https://github.com/onesuchkeeper/HuniePop2-BepInEx-Mods/issues), and if not, make an issue for it.
+
+Make sure to:
+
+- Describe the issue as thoroughly as you can.
+- Include your `BepInEx/LogOutput.log` file.
+- Include your `\HuniePot\HuniePop 2 - Double Date\HP2SaveData1.dat` file.
+
+Documentation for developing mods using the Hp2BaseMod can be found on [GitHub](https://github.com/onesuchkeeper/HuniePop2-BepInEx-Mods).
+<!-- /itch-only -->
+
+## Support
+
+All money earned from donations will go towards paying artists and voice actors to make assets for projects like this.
+
+You can donate here on itch, or [donate via Patreon](https://www.patreon.com/onesuchkeeper) to see in-development art/builds and vote on stuff.
+
+All of my fan projects will eventually be published for free. You do not need to donate.

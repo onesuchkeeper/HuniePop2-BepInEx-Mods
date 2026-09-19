@@ -65,8 +65,6 @@ public partial class Plugin : Hp2BaseModPlugin
 
     public static bool HasSingleDate { get; internal set; }
 
-    public static bool ThrewOutGoldfish { get; internal set; }
-
     public static bool GameStarted { get; internal set; }
 
     private static Plugin _instance;
@@ -287,7 +285,24 @@ public partial class Plugin : Hp2BaseModPlugin
         ModInterface.Events.PopulateStoreProducts +=
             ModEventHandles.On_PopulateStoreProducts;
 
-        ModInterface.Events.PreLocationDepart += SpecialCharacterUnlocks.On_PreLocationDepart;
+        ModInterface.GameState.GameStateChanged += On_GameStateChanged;
+    }
+
+    private void On_GameStateChanged((RelativeId? prevStateId, RelativeId currentStateId) tuple)
+    {
+        if (tuple.prevStateId == GameStateId.Sim || tuple.prevStateId == GameStateId.Puzzle)
+        {
+            var locationManager = Game.Session.Location.GetExpansion();
+            locationManager.PreLocationDepart -= SpecialCharacterUnlocks.On_PreLocationDepart;
+            ModInterface.Events.FinderSlotSelected -= SpecialCharacterUnlocks.On_FinderSlotSelected;
+        }
+
+        if (tuple.currentStateId == GameStateId.Sim || tuple.currentStateId == GameStateId.Puzzle)
+        {
+            var locationManager = Game.Session.Location.GetExpansion();
+            locationManager.PreLocationDepart += SpecialCharacterUnlocks.On_PreLocationDepart;
+            ModInterface.Events.FinderSlotSelected += SpecialCharacterUnlocks.On_FinderSlotSelected;
+        }
     }
 
     private void RegisterModCredits()

@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Hp2BaseMod.Commands;
 using Hp2BaseMod.Elements;
 using Hp2BaseMod.Extension;
 using Hp2BaseMod.Save;
@@ -69,6 +68,9 @@ public static class ModInterface
     internal static ModSaveData Save => _modSaveData;
     private static ModSaveData _modSaveData;
 
+    public static GameStateManager GameState => _gameState;
+    private static GameStateManager _gameState;
+
     private static RangeSet<int> _idPool;
     private static Dictionary<int, string> _sourceId_GUID;
 
@@ -76,6 +78,7 @@ public static class ModInterface
 
     internal static void Init()
     {
+        _gameState = new();
         _dataMod = new DataModRegistry();
 
         _jsonSettings = new JsonSerializerSettings
@@ -113,12 +116,15 @@ public static class ModInterface
             _sourceId_GUID[guid_id.Value] = guid_id.Key;
         }
     }
-
+    
     internal static void ApplyDataMods()
     {
         if (_dataMod.TryApplyDataMods(out var gameDefinitionProvider))
         {
             _gameData = gameDefinitionProvider;
+            _gameState.Init(_gameData._gameStates);
+            //TODO, add loading state that transitions into title
+            _gameState.ChangeState(GameStateId.Title);
             ModInterface.Events.NotifyPostDataMods();
         }
     }
@@ -301,12 +307,12 @@ public static class ModInterface
                         .Select(x => x.girlPairDefinition.photoDefinition)
                         .Append(Game.Session.Hub.tutorialPhotoDef);
 
-        if (Game.Persistence.playerFile.storyProgress >= 12)
+        if (Game.Persistence.playerFile.IsProgressPoolsideEnding())
         {
             earnedPhotos = earnedPhotos.Concat(Game.Session.Hub.nymphojinnPhotoDefs);
         }
 
-        if (Game.Persistence.playerFile.storyProgress >= 13)
+        if (Game.Persistence.playerFile.IsProgressPostGame())
         {
             var kyuHole = Game.Persistence.playerFile.GetFlagValue(Flags.KYU_HOLE_SELECTION);
             earnedPhotos = earnedPhotos.Append(Game.Session.Hub.kyuPhotoDefs[Mathf.Clamp(kyuHole, 0, Game.Session.Hub.kyuPhotoDefs.Length - 1)]);

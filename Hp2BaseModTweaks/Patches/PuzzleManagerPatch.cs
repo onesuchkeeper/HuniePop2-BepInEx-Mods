@@ -3,6 +3,7 @@ using System.Linq;
 using System.Reflection;
 using HarmonyLib;
 using Hp2BaseMod;
+using Hp2BaseMod.Extension;
 using Hp2BaseMod.Utility;
 
 namespace Hp2BaseModTweaks;
@@ -23,7 +24,7 @@ internal static class PuzzleManager_OnRoundOver
 
         if (status.statusType == PuzzleStatusType.BOSS
             && status.bonusRound
-            && Game.Persistence.playerFile.storyProgress >= 12)
+            && Game.Persistence.playerFile.IsProgressPoolsideEnding())
         {
             var moxieFile = GetPlayerFileGirl(Game.Persistence.playerFile, ModInterface.GameData.GetGirl(Girls.Moxie));
             moxieFile.playerMet = true;

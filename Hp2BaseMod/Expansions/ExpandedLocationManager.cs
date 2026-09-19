@@ -1,14 +1,15 @@
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using HarmonyLib;
 using Hp2BaseMod.Extension;
-using Hp2BaseMod.GameDataInfo;
 using UnityEngine;
 
 namespace Hp2BaseMod;
 
 [Expansion(typeof(LocationManager))]
+[Deprecates(nameof(LocationManager.AtLocationType), $"Check {nameof(ModInterface)}.{nameof(ModInterface.GameState)}.{nameof(ModInterface.GameState.CurrentState)}.{nameof(ModInterface.GameState.CurrentState.Id)} instead.")]
+//Depreciates _transitions and _currentTransitionType
 public partial class ExpandedLocationManager
 {
     [HarmonyPatch(typeof(LocationManager))]
@@ -16,21 +17,16 @@ public partial class ExpandedLocationManager
     {
         [HarmonyPatch(nameof(LocationManager.Arrive))]
         [HarmonyPrefix]
-        private static void PreArrive(LocationManager __instance,
-            ref LocationDefinition locationDef,
-            ref GirlPairDefinition girlPairDef,
-            ref bool sidesFlipped,
-            ref bool initialArrive)
+        private static bool PreArrive(LocationManager __instance,
+            LocationDefinition locationDef,
+            GirlPairDefinition girlPairDef,
+            bool sidesFlipped,
+            bool initialArrive)
             => ExpandedLocationManager.Get(__instance).Arrive_Prefix(
-                ref locationDef,
-                ref girlPairDef,
-                ref sidesFlipped,
-                ref initialArrive);
-
-        [HarmonyPatch(nameof(LocationManager.Arrive))]
-        [HarmonyPostfix]
-        private static void PostArrive(LocationManager __instance)
-            => ExpandedLocationManager.Get(__instance).Arrive_Postfix();
+                locationDef,
+                girlPairDef,
+                sidesFlipped,
+                initialArrive);
 
         [HarmonyPatch(nameof(LocationManager.Depart))]
         [HarmonyPrefix]
@@ -45,12 +41,24 @@ public partial class ExpandedLocationManager
         [HarmonyPatch(nameof(LocationManager.ResetDolls))]
         [HarmonyPostfix]
         private static void ResetDolls(LocationManager __instance, bool unload = false)
-            => ExpandedLocationManager.Get(__instance).ResetDolls(unload);
+            => ExpandedLocationManager.Get(__instance).ResetDolls_Prefix(unload);
 
         [HarmonyPatch("OnDestroy")]
         [HarmonyPostfix]
         private static void OnDestroy(LocationManager __instance)
             => ExpandedLocationManager.Destroy(__instance);
+
+        [HarmonyPatch(nameof(LocationManager.AtLocationType))]
+        [HarmonyPrefix]
+        private static bool AtLocationType(LocationManager __instance, LocationType[] locationTypes, out bool __result)
+            => ExpandedLocationManager.Get(__instance).AtLocationType_Prefix(locationTypes, out __result);
+
+        [HarmonyPatch("OnArrivalComplete")]
+        [HarmonyPrefix]
+        private static bool OnArrivalComplete(LocationManager __instance)
+            => ExpandedLocationManager.Get(__instance).OnArrivalComplete_Prefix();
+
+        
     }
 
     //TODO, move to expanded ui puzzle grid
@@ -62,6 +70,28 @@ public partial class ExpandedLocationManager
         private static void RefreshGirlDolls(UiPuzzleGrid __instance)
             => ExpandedLocationManager.RefreshGirlDolls();
     }
+
+    public event Action<LocationSettledArgs> PreLocationSettled;
+    public event Action<LocationSettledArgs> PostLocationSettled;
+    
+    public event Action<LocationArriveArgs> PreLocationArrive;
+
+    /// <summary>
+    /// Fires once per arrival, after the transition is committed to playerFile
+    /// and any pending state change (see <see cref="GameStateLocation.ConsumePendingState"/>)
+    /// has already taken effect - so this always reaches the destination state,
+    /// which does its arrival setup here (puzzle status, dolls, cutscenes, etc).
+    /// </summary>
+    public event Action<LocationArriveArgs> LocationArrived;
+    public event Action<LocationDepartArgs> PreLocationDepart;
+    public event Action<ResolveDollStylesArgs> ResolveDollStyles;
+    public event Action<ArrivalCompletedArgs> ArrivalCompleted;
+
+    public event Action<LocationArriveSequenceArgs> LocationArriveSequence;
+    internal void NotifyLocationArriveSequence(LocationArriveSequenceArgs sequence) => LocationArriveSequence?.Invoke(sequence);
+
+    public event Action<LocationDepartSequenceArgs> LocationDepartSequence;
+    internal void NotifyLocationDepartSequence(LocationDepartSequenceArgs sequence) => LocationDepartSequence?.Invoke(sequence);
 
     private CutsceneDefinition _baseCutsceneMeeting;
     private UiWindow _actionBubblesWindow;
@@ -75,14 +105,73 @@ public partial class ExpandedLocationManager
     private void OnInit()
     {
         _actionBubblesWindow = _core.actionBubblesWindow;
-        _baseCutsceneMeeting = _core.cutsceneMeeting; 
+        _baseCutsceneMeeting = _core.cutsceneMeeting;
+
+        // The very first arrival in a session has no preceding Depart() call,
+        // so SetTransition() (normally called from Depart_Prefix) never runs
+        // for it - leaving _transitions[NORMAL] pointed at whatever vanilla
+        // default sits there, which doesn't fire LocationArriveSequence/etc.
+        // Seed it here so even the initial arrival goes through our transition.
+        SetTransition(new ModLocationTransitionNormal());
     }
 
-    private bool Arrive_Prefix(ref LocationDefinition locationDef,
-        ref GirlPairDefinition girlPairDef,
-        ref bool sidesFlipped,
-        ref bool initialArrive)
+    private static RelativeId LogUnhandledAndFallback(LocationType locationType)
     {
+        ModInterface.Log.Error($"No GameState mapped for LocationType.{locationType}; defaulting to Sim.");
+        return GameStateId.Sim;
+    }
+
+    //Treat this as an "IsInStateType" instead so we don't have to
+    //patch all the ui
+    private bool AtLocationType_Prefix(LocationType[] locationTypes, out bool __result)
+    {
+        var stateId = ModInterface.GameState.CurrentState.Id;
+        foreach (var type in locationTypes)
+        {
+            switch(type)
+            {
+                case LocationType.SIM:
+                    if (stateId == GameStateId.Sim)
+                    {
+                        __result = true;
+                        return false;
+                    }
+                    break;
+                case LocationType.DATE:
+                if (stateId == GameStateId.Puzzle)
+                    {
+                        __result = true;
+                        return false;
+                    }
+                    break;
+                case LocationType.SPECIAL:
+                if (stateId == GameStateId.Special)
+                    {
+                        __result = true;
+                        return false;
+                    }
+                    break;
+                case LocationType.HUB:
+                if (stateId == GameStateId.Hub)
+                    {
+                        __result = true;
+                        return false;
+                    }
+                    break;
+            }
+        }
+
+        __result = false;
+        return false;
+    }
+
+    private bool Arrive_Prefix(
+        LocationDefinition locationDef,
+        GirlPairDefinition girlPairDef,
+        bool sidesFlipped,
+        bool initialArrive)
+    {
+        //prefix
         var previousLocation = _currentLocation;
 
         // Fallback if locationDef is null before checking its type
@@ -99,109 +188,175 @@ public partial class ExpandedLocationManager
             girlPairDef = girlPairDef,
             sidesFlipped = sidesFlipped,
             initialArrive = initialArrive,
-            cellphoneOnLeft = locationDef.locationType == LocationType.HUB,
-            meetingCutscene = _baseCutsceneMeeting,
+            cellphoneOnLeft = false,
+            arrivalCutscene = _baseCutsceneMeeting,
             previousLocationDef = previousLocation,
             Canceled = false
         };
 
-        ModInterface.Events.NotifyPreLocationArrive(args);
+        PreLocationArrive?.Invoke(args);
 
         if (args.Canceled)
         {
             ModInterface.Log.Message("Arrive canceled");
-            return false; // Skips base LocationManager.Arrive
+            return false;
         }
 
-        _currentLocation = args.locationDef;
-        _core.cutsceneMeeting = args.meetingCutscene ?? _baseCutsceneMeeting;
+        // A state may have queued a transition (a UI selection, a hub departure
+        // hook, etc). Resolve it now, before anything else, so that by the time
+        // LocationArrived fires below, the *destination* state is the one
+        // subscribed and doing the arrival setup - not the one we're leaving.
+        if (ModInterface.GameState.CurrentState is GameStateLocation currentState)
+        {
+            var pendingState = currentState.ConsumePendingState();
+            if (pendingState.HasValue)
+            {
+                ModInterface.GameState.ChangeState(pendingState.Value);
+            }
+        }
 
-        locationDef = args.locationDef;
-        girlPairDef = args.girlPairDef;
-        sidesFlipped = args.sidesFlipped;
-        initialArrive = args.initialArrive;
+        _core.cutsceneMeeting = args.arrivalCutscene ?? _baseCutsceneMeeting;
         ModInterface.State.CellphoneOnLeft = args.cellphoneOnLeft;
 
-        var strBuilder = new StringBuilder($"Arriving at {locationDef.locationName}");
-        if (girlPairDef == null) strBuilder.Append(" with no pair.");
-        else strBuilder.Append($" with {girlPairDef.girlDefinitionOne.girlName} and {girlPairDef.girlDefinitionTwo.girlName}");
+        var strBuilder = new StringBuilder($"Arriving at {args.locationDef.locationName}");
+        if (args.girlPairDef == null) strBuilder.Append(" with no pair.");
+        else strBuilder.Append($" with {args.girlPairDef.girlDefinitionOne.girlName} and {args.girlPairDef.girlDefinitionTwo.girlName}.");
+        strBuilder.Append($" SidesFlipped: {args.sidesFlipped}, InitialArrive: {args.initialArrive}, CellphoneOnLeft: {ModInterface.State.CellphoneOnLeft}");
         ModInterface.Log.Message(strBuilder.ToString());
 
-        return true;
-    }
+        //base
+        Game.Persistence.playerFile.locationDefinition = args.locationDef;
+        Game.Persistence.playerFile.girlPairDefinition = args.girlPairDef;
+        Game.Persistence.playerFile.sidesFlipped = args.sidesFlipped;
+        _currentLocation = args.locationDef;
+        _currentGirlPair = args.girlPairDef;
+        _currentSidesFlipped = args.sidesFlipped;
+        _transitions[_currentTransitionType].Prep();
+        bool gameSaved = false;
+        if (!args.initialArrive || Game.Persistence.debugMode)
+        {
+            Game.Persistence.playerFile.ClearPerishableInventoryItems();
+            int daytimeElapsed = Game.Persistence.playerFile.daytimeElapsed;
+            int num = Mathf.FloorToInt((float)daytimeElapsed / 4f);
+            if (num > 0)
+            {
+                if (daytimeElapsed != Game.Persistence.playerFile.finderRestockTime)
+                {
+                    Game.Persistence.playerFile.finderRestockTime = daytimeElapsed;
+                    Game.Persistence.playerFile.PopulateFinderSlots();
+                }
 
-    /// <summary>
-    /// Updates the position of the cellphone and puzzle grid based on
-    /// <see cref="ModInterface.State.CellphoneOnLeft"/>.
-    /// When the cellphone moves to the left the header shifts, and the puzzle
-    /// grid must shift right by the same delta to stay on screen.
-    /// </summary>
-    private void Arrive_Postfix()
-    {
+                if (num != Game.Persistence.playerFile.storeRestockDay)
+                {
+                    Game.Persistence.playerFile.storeRestockDay = num;
+                    Game.Persistence.playerFile.PopulateStoreProducts();
+                }
+            }
+
+            if (!args.initialArrive && _currentLocation.locationType != LocationType.DATE)
+            {
+                Game.Persistence.Apply(loadedFile: true);
+                Game.Persistence.SaveGame();
+                gameSaved = true;
+            }
+        }
+
+        // Destination state does its arrival setup here: puzzle status, dolls,
+        // arrive-bundle processing, and any cutscene override.
+        LocationArrived?.Invoke(args);
+
+        // Only an explicit override (e.g. Sim's first-meeting cutscene) should win.
+        // FinishArrival always leaves args.arrivalCutscene null when a state doesn't
+        // set one, and that must NOT erase a cutscene queued before this arrival
+        // started (e.g. via LogicManager's START_CUTSCENE-while-locked path) - hence
+        // the null check, rather than an unconditional write-back.
+        if (args.arrivalCutscene != null)
+        {
+            _arrivalCutscene = args.arrivalCutscene;
+        }
+
+        _transitions[_currentTransitionType].Arrive(args.initialArrive, (_currentGirlPair != null || !Game.Session.Puzzle.puzzleStatus.isEmpty) && _arrivalCutscene == null, gameSaved);
+
+        //postfix
         var header = Game.Session.gameCanvas.header;
         var cellphone = Game.Session.gameCanvas.cellphone;
         var puzzleGrid = Game.Session.Puzzle.puzzleGrid;
+        var puzzleGridRect = puzzleGrid != null ? puzzleGrid.GetComponent<RectTransform>() : null;
 
         // Capture the default grid position the first time we see the grid,
         // before any CellphoneOnLeft offset is applied.
-        if (puzzleGrid != null && _defaultPuzzleGridPosition == null)
+        if (puzzleGridRect != null && _defaultPuzzleGridPosition == null)
         {
-            _defaultPuzzleGridPosition = puzzleGrid.GetComponent<RectTransform>().anchoredPosition;
+            _defaultPuzzleGridPosition = puzzleGridRect.anchoredPosition;
         }
 
-        if (ModInterface.State.CellphoneOnLeft)
+        bool onLeft = ModInterface.State.CellphoneOnLeft;
+
+        header.rectTransform.anchoredPosition = new Vector2(
+            onLeft ? header.xValues.y : header.xValues.x,
+            header.rectTransform.anchoredPosition.y);
+
+        cellphone.rectTransform.anchoredPosition = new Vector2(
+            onLeft ? cellphone.xValues.y : cellphone.xValues.x,
+            cellphone.rectTransform.anchoredPosition.y);
+
+        if (puzzleGridRect != null && _defaultPuzzleGridPosition.HasValue)
         {
-            header.rectTransform.anchoredPosition = new Vector2(
-                header.xValues.y,
-                header.rectTransform.anchoredPosition.y);
-
-            cellphone.rectTransform.anchoredPosition = new Vector2(
-                cellphone.xValues.y,
-                cellphone.rectTransform.anchoredPosition.y);
-
-            if (puzzleGrid != null && _defaultPuzzleGridPosition.HasValue)
-            {
-                var delta = header.xValues.y - header.xValues.x;
-                puzzleGrid.GetComponent<RectTransform>().anchoredPosition = new Vector2(
-                    _defaultPuzzleGridPosition.Value.x + delta,
-                    _defaultPuzzleGridPosition.Value.y);
-            }
+            // Only the "on left" side shifts the grid by the header's x delta; otherwise it sits at its default spot.
+            var delta = onLeft ? header.xValues.y - header.xValues.x : 0f;
+            puzzleGridRect.anchoredPosition = new Vector2(
+                _defaultPuzzleGridPosition.Value.x + delta,
+                _defaultPuzzleGridPosition.Value.y);
         }
-        else
+
+        return false;
+    }
+
+    //Even though there is only 1 transition type in the base game,
+    //and the new arg system doesn't rely on _transitions or LocationTransitionType,
+    //we will still use the _transitions dict. This is because the base
+    //game triggers events and depreciating it would mean we have to
+    //replace all those events and subscriptions to them thought
+    //so it's simpler just to tread the dict as a single instance.
+    //actually nothing subscribes to depart/arrive, I could replace it TODO
+    private void SetTransition(LocationTransition transition)
+    {
+        var currentTransition = _transitions[LocationTransitionType.NORMAL];
+
+        if (transition == null || currentTransition == transition) return;
+
+        if (currentTransition != null)
         {
-            header.rectTransform.anchoredPosition = new Vector2(
-                header.xValues.x,
-                header.rectTransform.anchoredPosition.y);
-
-            cellphone.rectTransform.anchoredPosition = new Vector2(
-                cellphone.xValues.x,
-                cellphone.rectTransform.anchoredPosition.y);
-
-            if (puzzleGrid != null && _defaultPuzzleGridPosition.HasValue)
-            {
-                puzzleGrid.GetComponent<RectTransform>().anchoredPosition =
-                    _defaultPuzzleGridPosition.Value;
-            }
+            currentTransition.DepartureCompleteEvent -= OnDepartureComplete;
+            currentTransition.ArrivalCompleteEvent -= OnArrivalComplete;
         }
+
+        _transitions[LocationTransitionType.NORMAL] = transition;
+
+        transition.DepartureCompleteEvent += OnDepartureComplete;
+        transition.ArrivalCompleteEvent += OnArrivalComplete;
     }
 
     private bool Depart_Prefix(ref LocationDefinition locationDef, ref GirlPairDefinition girlPairDef, ref bool sidesFlipped)
     {
         var args = new LocationDepartArgs()
         {
-            from = _currentLocation,
+            from = Game.Persistence.playerFile.locationDefinition,
             to = locationDef,
             girlPairDef = girlPairDef,
             sidesFlipped = sidesFlipped,
-            Canceled = false
+            Canceled = false,
+            transition = new ModLocationTransitionNormal()
         };
 
-        ModInterface.Events.NotifyPreLocationDepart(args);
+        PreLocationDepart?.Invoke(args);
 
         if (args.Canceled)
         {
             return false; // Skips base LocationManager.Depart entirely
         }
+
+        SetTransition(args.transition);
 
         locationDef = args.to;
         girlPairDef = args.girlPairDef;
@@ -225,435 +380,85 @@ public partial class ExpandedLocationManager
     }
 
     /// <summary>
-    /// Notifies of location settling, allowing location type and ui to be overwritten.
-    /// Notifies of a random doll selection, allowing selection to be overwritten.
+    /// Notifies of location settling, allowing the action-bubble window to be
+    /// overwritten.
     /// </summary>
     private bool LocationSettled_Prefix()
     {
-        var locationSettledArgs = new LocationSettledArgs()
+        var arrivalCutscene = _arrivalCutscene;
+
+        var args = new LocationSettledArgs()
         {
-            locationType = _core.currentLocation.locationType,
-            actionBubblesWindow = _actionBubblesWindow
+            actionBubblesWindow = _actionBubblesWindow,
+            hasArrivalCutscene = arrivalCutscene != null
         };
 
-        ModInterface.Events.NotifyPreLocationSettled(locationSettledArgs);
-        _core.actionBubblesWindow = locationSettledArgs.actionBubblesWindow ?? _actionBubblesWindow;
+        PreLocationSettled?.Invoke(args);
+
+        _core.actionBubblesWindow = args.actionBubblesWindow ?? _actionBubblesWindow;
 
         _isLocked = false;
         Game.Session.Logic.ProcessBundleList(_core.currentLocation.departBundleList, false);
-        var arrivalCutscene = f_arrivalCutscene.GetValue<CutsceneDefinition>(_core);
-        switch (locationSettledArgs.locationType)
-        {
-            case LocationType.SIM:
-                ModInterface.Log.Message("Location settled as sim - Starting sim");
-                Game.Manager.Windows.ShowWindow(_core.actionBubblesWindow, false);
-                if (arrivalCutscene == null)
-                {
-                    var randomDollArgs = new RandomDollSelectedArgs();
-                    ModInterface.Events.NotifyRandomDollSelected(randomDollArgs);
 
-                    var uiDoll = randomDollArgs.SelectedDoll ?? Game.Session.gameCanvas.GetDoll(MathUtils.RandomBool());
-                    var greetingIndex = Mathf.Clamp(Game.Persistence.playerFile.daytimeElapsed % 4, 0, _core.dtGreetings.Length - 1);
-
-                    uiDoll.ReadDialogTrigger(_core.dtGreetings[greetingIndex], DialogLineFormat.PASSIVE, -1);
-                }
-                break;
-            case LocationType.DATE:
-                ModInterface.Log.Message("Location settled as date - Starting puzzle");
-                Game.Session.Puzzle.StartPuzzle();
-                break;
-            case LocationType.HUB:
-                if (arrivalCutscene == null)
-                {
-                    Game.Session.gameCanvas.GetDoll(DollOrientationType.RIGHT).ReadDialogTrigger(Game.Session.Hub.GetGreeting(), DialogLineFormat.PASSIVE, -1);
-                }
-                ModInterface.Log.Message("Location settled as hub - Starting hub");
-                Game.Session.Hub.StartHub();
-                break;
-        }
         _arrivalCutscene = null;
+
+        PostLocationSettled?.Invoke(args);
 
         return false;
     }
 
     /// <summary>
-    /// Resets doll styles based on current location and context.
-    /// 
-    /// HUB:
-    /// - Uses randomized outfit with paired/random hairstyle.
-    /// 
-    /// DATE / OTHER:
-    /// - Resolves styles based on relationship, location, or player file.
-    /// - Allows mod hooks to override styles.
+    /// Doll styling is fully delegated to the active IGameState: this just gathers
+    /// the current arrival context and fires ResolveDollStyles. LocationType is no
+    /// longer read anywhere in this method - see SimGameState / DateGameState /
+    /// HubGameState / SpecialGameState for the actual styling algorithms.
     /// </summary>
-    private void ResetDolls(bool unload)
+    private bool ResetDolls_Prefix(bool unload)
     {
-        // Early exit: nothing to do if unloading
-        if (unload) return;
-
-        var currentLocation = f_currentLocation.GetValue(_core) as LocationDefinition;
-
-        if (_core.AtLocationType(LocationType.HUB))
+        if (unload)
         {
-            ApplyHubStyle(currentLocation);
-            return;
+            Game.Session.gameCanvas.dollLeft.UnloadGirl();
+            Game.Session.gameCanvas.dollRight.UnloadGirl();
+            Game.Session.gameCanvas.dollMiddle.UnloadGirl();
+            return false;
         }
 
-        ApplyNonHubStyles(currentLocation);
-    }
-
-    /// <summary>
-    /// Applies randomized HUB style to the hub girl.
-    /// </summary>
-    private void ApplyHubStyle(LocationDefinition location)
-    {
-        var hubDef = Game.Session.Hub.hubGirlDefinition;
-        var expansion = hubDef.GetExpansion();
-
-        int outfitIndex = GetRandomValidIndex(hubDef.outfits);
-        var outfit = hubDef.outfits[outfitIndex];
-
-        var style = new GirlStyleInfo
+        var args = new ResolveDollStylesArgs
         {
-            OutfitId = expansion.OutfitLookup[outfitIndex],
-            HairstyleId = outfit.pairHairstyleIndex != -1 
-                ? expansion.HairstyleLookup[outfit.pairHairstyleIndex]
-                : expansion.HairstyleLookup[GetRandomValidIndex(hubDef.hairstyles)]
+            Location = f_currentLocation.GetValue(_core) as LocationDefinition,
+            GirlPair = f_currentGirlPair.GetValue(_core) as GirlPairDefinition,
+            SidesFlipped = f_currentSidesFlipped.GetValue<bool>(_core)
         };
 
-        //for the normal kyu randomization don't do nsfw outfits
-        if (outfit.GetExpansion().IsNSFW) return;
-
-        var args = ModInterface.Events.NotifyRequestStyleChange(hubDef, location, 0.1f, style, false);
-
-        if (ShouldApply(args.ApplyChance))
-        {
-            args.Style.Apply(
-                Game.Session.gameCanvas.dollRight,
-                hubDef.defaultOutfitIndex,
-                hubDef.defaultHairstyleIndex
-            );
-        }
+        ResolveDollStyles?.Invoke(args);
+        return false;
     }
 
-    /// <summary>
-    /// Handles all non-HUB doll reset logic (DATE, etc).
-    /// </summary>
-    private void ApplyNonHubStyles(LocationDefinition location)
+    private bool OnArrivalComplete_Prefix()
     {
-        var pair = f_currentGirlPair.GetValue(_core) as GirlPairDefinition;
-        var playerPair = Game.Persistence.playerFile.GetPlayerFileGirlPair(pair);
+        _isTraveling = false;
+        _bgMusicOverride = null;
+        Game.Session.gameCanvas.overlayCanvasGroup.blocksRaycasts = false;
 
-        if (playerPair == null) return;
-
-        ResolveGirlDefinitions(pair, out var leftDef, out var rightDef);
-
-        // Resolve base styles
-        var (leftStyle, rightStyle, isCutsceneStyle) = ResolveBaseStyles(pair, playerPair, location, leftDef, rightDef);
-
-        // Allow mod overrides
-        leftStyle = ApplyStyleOverride(leftDef, location, leftStyle, isCutsceneStyle);
-        rightStyle = ApplyStyleOverride(rightDef, location, rightStyle, isCutsceneStyle);
-
-        // Apply to dolls
-        ApplyStyleToDoll(leftStyle, Game.Session.gameCanvas.dollLeft, leftDef);
-        ApplyStyleToDoll(rightStyle, Game.Session.gameCanvas.dollRight, rightDef);
-    }
-
-    /// <summary>
-    /// Determines initial styles before mod overrides.
-    /// </summary>
-    private (GirlStyleInfo left, GirlStyleInfo right, bool isCutsceneStyle) ResolveBaseStyles(
-        GirlPairDefinition pair,
-        PlayerFileGirlPair playerPair,
-        LocationDefinition location,
-        GirlDefinition leftDef,
-        GirlDefinition rightDef)
-    {
-        var locationExp = location.GetExpansion();
-
-        // UNKNOWN relationship use meeting styles
-        if (playerPair.relationshipType == GirlPairRelationshipType.UNKNOWN)
+        var args = new ArrivalCompletedArgs()
         {
-            return GetPairMeetingStyles(pair);
-        }
-
-        // DATE-specific logic
-        if (_core.AtLocationType(LocationType.DATE))
-        {
-            return ResolveDateStyles(pair, playerPair, location, leftDef, rightDef);
-        }
-
-        // Location default style
-        if (locationExp.DefaultStyle.HasValue)
-        {
-            return (new GirlStyleInfo(locationExp.DefaultStyle.Value),new GirlStyleInfo(locationExp.DefaultStyle.Value), false);
-        }
-
-        return (null, null, false);
-    }
-
-    private (GirlStyleInfo, GirlStyleInfo, bool) ResolveDateStyles(
-        GirlPairDefinition pair,
-        PlayerFileGirlPair playerPair,
-        LocationDefinition location,
-        GirlDefinition leftDef,
-        GirlDefinition rightDef)
-    {
-        var args = BuildPreDateArgs(playerPair, location);
-        ModInterface.Events.NotifyPreDateDollReset(args);
-
-        return args.Style switch
-        {
-            PreDateDollResetArgs.StyleType.Sex =>
-                GetPairSexStyles(pair, location, leftDef, rightDef),
-
-            PreDateDollResetArgs.StyleType.Location =>
-                ResolveLocationStyles(location, leftDef, rightDef),
-
-            _ =>
-                ResolveFileStyles()
+            ArrivalCutscene = _arrivalCutscene
         };
-    }
 
-    /// <summary>
-    /// Resolves pair-based styles (Meeting / Sex).
-    /// </summary>
-    private (GirlStyleInfo, GirlStyleInfo, bool) GetPairSexStyles(
-        GirlPairDefinition pair,
-        LocationDefinition location,
-        GirlDefinition leftDef,
-        GirlDefinition rightDef)
-    {
-        var pairId = ModInterface.Data.GetDataId(GameDataType.GirlPair, pair.id);
-        var pairStyle = pair.GetExpansion().PairStyle;
+        ArrivalCompleted?.Invoke(args);
 
-        if (pairStyle == null) return (null, null, false);
+        _arrivalCutscene = args.ArrivalCutscene;
 
-        bool flipped = f_currentSidesFlipped.GetValue<bool>(_core);
-
-        var left = flipped
-            ? pairStyle.SexGirlTwo
-            : pairStyle.SexGirlOne;
-
-        var right = flipped
-            ? pairStyle.SexGirlOne
-            : pairStyle.SexGirlTwo;
-
-        var locationStyles = ResolveLocationStyles(location, leftDef, rightDef);
-
-        if (left != null &&
-            left.OutfitId == RelativeId.Default &&
-            left.HairstyleId == RelativeId.Default)
+        if (_arrivalCutscene != null)
         {
-            left = locationStyles.left;
+            Game.Session.Cutscenes.CutsceneCompleteEvent += OnCutsceneComplete;
+            Game.Session.Cutscenes.StartCutscene(_arrivalCutscene);
         }
-
-        if (right != null &&
-            right.OutfitId == RelativeId.Default &&
-            right.HairstyleId == RelativeId.Default)
-        {
-            right = locationStyles.right;
-        }
-
-        return (left, right, false);
-    }
-
-    /// <summary>
-    /// Resolves pair-based styles (Meeting / Sex).
-    /// </summary>
-    private (GirlStyleInfo, GirlStyleInfo, bool) GetPairMeetingStyles(GirlPairDefinition pair)
-    {
-        var pairId = ModInterface.Data.GetDataId(GameDataType.GirlPair, pair.id);
-        var pairStyle = pair.GetExpansion().PairStyle;
-
-        if (pairStyle == null) return (null, null, false);
-
-        bool flipped = f_currentSidesFlipped.GetValue<bool>(_core);
-
-        return flipped
-            ? (pairStyle.MeetingGirlTwo, pairStyle.MeetingGirlOne, pair.introductionPair)
-            : (pairStyle.MeetingGirlOne, pairStyle.MeetingGirlTwo, pair.introductionPair);
-    }
-
-    /// <summary>
-    /// Resolves styles based on player file data.
-    /// </summary>
-    private (GirlStyleInfo, GirlStyleInfo, bool) ResolveFileStyles()
-    {
-        var leftFile = Game.Session.Puzzle.puzzleStatus.girlStatusLeft.playerFileGirl;
-        var rightFile = Game.Session.Puzzle.puzzleStatus.girlStatusRight.playerFileGirl;
-
-        return (
-            BuildStyleFromFile(leftFile),
-            BuildStyleFromFile(rightFile),
-            false
-        );
-    }
-
-    /// <summary>
-    /// Builds a GirlStyleInfo from player file indices.
-    /// </summary>
-    private GirlStyleInfo BuildStyleFromFile(PlayerFileGirl file)
-    {
-        var exp = file.girlDefinition.GetExpansion();
-
-        return new GirlStyleInfo(
-            exp.OutfitLookup.GetId(file.outfitIndex),
-            exp.HairstyleLookup.GetId(file.hairstyleIndex)
-        );
-    }
-
-    /// <summary>
-    /// Applies mod override logic.
-    /// </summary>
-    private GirlStyleInfo ApplyStyleOverride(GirlDefinition def, LocationDefinition loc, GirlStyleInfo style, bool isCutsceneStyle)
-    {
-        var args = ModInterface.Events.NotifyRequestStyleChange(def, loc, 0, style, isCutsceneStyle);
-
-        return ShouldApply(args.ApplyChance) ? args.Style : style;
-    }
-
-    /// <summary>
-    /// Determines if a probabilistic style should be applied.
-    /// </summary>
-    private bool ShouldApply(float chance) =>
-        chance >= 1f || (chance > 0f && UnityEngine.Random.Range(0f, 1f) <= chance);
-
-    /// <summary>
-    /// Applies style safely to a doll.
-    /// </summary>
-    private void ApplyStyleToDoll(GirlStyleInfo style, UiDoll doll, GirlDefinition def)
-    {
-        style?.Apply(doll, def.defaultOutfitIndex, def.defaultHairstyleIndex);
-    }
-
-    /// <summary>
-    /// Gets a random valid (non-null) index from a collection.
-    /// </summary>
-    private int GetRandomValidIndex<T>(IReadOnlyList<T> collection) => collection
-        .Select((item, index) => (item, index))
-        .Where(x => x.item != null)
-        .ToArray()
-        .GetRandom()
-        .index;
-
-    /// <summary>
-    /// Resolves left/right definitions accounting for flipped state.
-    /// </summary>
-    private void ResolveGirlDefinitions(
-        GirlPairDefinition pair,
-        out GirlDefinition left,
-        out GirlDefinition right)
-    {
-        bool flipped = (bool)f_currentSidesFlipped.GetValue(_core);
-
-        left = flipped ? pair.girlDefinitionTwo : pair.girlDefinitionOne;
-        right = flipped ? pair.girlDefinitionOne : pair.girlDefinitionTwo;
-    }
-
-    /// <summary>
-    /// Builds PreDateDollResetArgs based on relationship state and gameplay context.
-    /// Mirrors original branching logic.
-    /// </summary>
-    private PreDateDollResetArgs BuildPreDateArgs(
-        PlayerFileGirlPair playerPair,
-        LocationDefinition currentLocation)
-    {
-        var args = new PreDateDollResetArgs();
-
-        // Sex condition:
-        // - Must be ATTRACTED
-        // - Must match the scheduled "sex daytime"
-        if (playerPair.relationshipType == GirlPairRelationshipType.ATTRACTED &&
-            Game.Persistence.playerFile.daytimeElapsed % 4 ==
-            (int)playerPair.girlPairDefinition.sexDaytime)
-        {
-            args.Style = PreDateDollResetArgs.StyleType.Sex;
-        }
-        // Location condition:
-        // - Puzzle is active
-        // - Not at boss location
-        else if (!Game.Session.Puzzle.puzzleStatus.isEmpty &&
-                currentLocation != Game.Session.Puzzle.bossLocationDefinition)
-        {
-            args.Style = PreDateDollResetArgs.StyleType.Location;
-        }
-        // Default fallback
         else
         {
-            args.Style = PreDateDollResetArgs.StyleType.File;
+            OnLocationSettled();
         }
 
-        return args;
-    }
-
-    /// <summary>
-    /// Resolves styles based on location mappings or player file preferences.
-    /// Handles both left and right girls symmetrically.
-    /// </summary>
-    private (GirlStyleInfo left, GirlStyleInfo right, bool) ResolveLocationStyles(
-        LocationDefinition location,
-        GirlDefinition leftDef,
-        GirlDefinition rightDef)
-    {
-        var locationId = ModInterface.Data.GetDataId(GameDataType.Location, location.id);
-
-        var puzzle = Game.Session.Puzzle.puzzleStatus;
-
-        var left = ResolveSingleLocationStyle(
-            puzzle.girlStatusLeft.playerFileGirl,
-            leftDef,
-            locationId,
-            "left");
-
-        var right = ResolveSingleLocationStyle(
-            puzzle.girlStatusRight.playerFileGirl,
-            rightDef,
-            locationId,
-            "right");
-
-        return (left, right, false);
-    }
-
-    /// <summary>
-    /// Resolves a single girl's style using either location mapping or file data.
-    /// </summary>
-    private GirlStyleInfo ResolveSingleLocationStyle(
-        PlayerFileGirl playerFile,
-        GirlDefinition girlDef,
-        RelativeId locationId,
-        string sideLabel)
-    {
-        // If stylesOnDates is disabled use location-based style
-        if (!playerFile.stylesOnDates)
-        {
-            var girlId = ModInterface.Data.GetDataId(GameDataType.Girl, girlDef.id);
-            var expansion = girlDef.GetExpansion();
-
-            if (expansion.GetCurrentBody()
-                .LocationIdToOutfitId
-                .TryGetValue(locationId, out var style))
-            {
-                ModInterface.Log.Message($"Using location style for {sideLabel} girl: {style}");
-                return style;
-            }
-
-            // No mapping found fall through (returns null)
-            ModInterface.Log.Message($"No location style found for {sideLabel} girl");
-            return null;
-        }
-
-        // Otherwise use player file style
-        var exp = playerFile.girlDefinition.GetExpansion();
-
-        var fileStyle = new GirlStyleInfo(
-            exp.OutfitLookup.GetId(playerFile.outfitIndex),
-            exp.HairstyleLookup.GetId(playerFile.hairstyleIndex)
-        );
-
-        ModInterface.Log.Message($"Using file style for {sideLabel} girl: {fileStyle}");
-
-        return fileStyle;
+        return false;
     }
 }

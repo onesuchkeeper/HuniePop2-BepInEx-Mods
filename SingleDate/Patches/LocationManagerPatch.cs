@@ -12,14 +12,4 @@ internal static class LocationManagerPatch
         UiPrefabs.InitActionBubbles(__instance.actionBubblesWindow);
         UiPrefabs.InitCutsceneMeeting(__instance.cutsceneMeeting);
     }
-
-    [HarmonyPatch(nameof(LocationManager.Depart))]
-    [HarmonyPrefix]
-    public static void Depart(LocationManager __instance, LocationDefinition locationDef, GirlPairDefinition girlPairDef, ref bool sidesFlipped)
-    {
-        if (State.IsSingle(girlPairDef))
-        {
-            sidesFlipped = false;
-        }
-    }
 }

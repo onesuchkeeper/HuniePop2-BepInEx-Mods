@@ -195,9 +195,20 @@ public partial class ExpandedPuzzleManager
 
     private PuzzleRoundOverArgs Args;
 
+
+
     private void EndPuzzle_Postfix()
     {
         Game.Session.Ailment.GetExpansion().OnEndPuzzle();
+
+        //For now manually change back to special like how EndPuzzle 
+        //manually returns to the airplane cabin on end of date.
+        //TODO handle in separate Tutorial PuzzleState instance
+        if (_puzzleStatus.IsTutorial())
+        {
+            new LogicActionChangeState(GameStateId.Special).Act();
+            return;
+        }
     }
 
     private void OnDestroy()
