@@ -10,6 +10,7 @@ namespace Hp2BaseMod.GameDataInfo
     /// <summary>
     /// Serializable information to make a Color
     /// </summary>
+    [Serializable]
     public class ColorInfo : IGameDefinitionInfo<Color>
     {
         public float? R;

@@ -6,6 +6,7 @@ using Hp2BaseMod.Elements;
 using Hp2BaseMod.Extension;
 using Hp2BaseMod.Save;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using UnityEngine;
 
 namespace Hp2BaseMod;
@@ -65,53 +66,84 @@ public static class ModInterface
     public static DataModRegistry DataMod => _dataMod;
     private static DataModRegistry _dataMod;
 
-    internal static ModSaveData Save => _modSaveData;
+    public static ModSaveData Save => _modSaveData;
     private static ModSaveData _modSaveData;
+
+    internal static ModSaveMeta SaveMeta => _modSaveMeta;
+    private static ModSaveMeta _modSaveMeta;
 
     public static GameStateManager GameState => _gameState;
     private static GameStateManager _gameState;
 
+    internal static SaveManager SaveManager => _saveManager;
+    private static SaveManager _saveManager;
+
     private static RangeSet<int> _idPool;
     private static Dictionary<int, string> _sourceId_GUID;
 
-    private static JsonSerializerSettings _jsonSettings;
+    private static JsonSerializer _jsonSerializer;
+    private static JToken _saveDataToken;
 
     internal static void Init()
     {
         _gameState = new();
+        _saveManager = new();
         _dataMod = new DataModRegistry();
 
-        _jsonSettings = new JsonSerializerSettings
+        var jsonSettings = new JsonSerializerSettings
         {
             NullValueHandling = NullValueHandling.Ignore
         };
 
-        _jsonSettings.Converters.Add(new OptionalValueJsonConverter());
+        jsonSettings.Converters.Add(new OptionalValueJsonConverter());
+        jsonSettings.Converters.Add(new GameStatePayloadConverter());
+
+        _jsonSerializer = JsonSerializer.Create(jsonSettings);
 
         _log = new ModLog("Hp2BaseMod");
 
         _data = new ModData();
 
-        //load in id cache
-        if (File.Exists(_modSavePath))
+        using (_log.MakeIndent("Loading save meta"))
         {
-            _modSaveData = JsonConvert.DeserializeObject<ModSaveData>(File.ReadAllText(_modSavePath));
-            if (_modSaveData == null)
+            //load in id cache
+            if (File.Exists(_modSavePath))
             {
-                Log.Warning("Failed to load mod save data");
+                _log.Message("Loading Existing save file");
+                var root = JObject.Parse(File.ReadAllText(_modSavePath));
+
+                _modSaveMeta = root["Meta"]?.ToObject<ModSaveMeta>(_jsonSerializer);
+                _saveDataToken = root["Data"];
+
+                if (_modSaveMeta == null)
+                {
+                    _log.Message("No save meta found, converting from old format");
+                    _modSaveData = root.ToObject<ModSaveData>(_jsonSerializer);
+#pragma warning disable CS0618 // Type or member is obsolete
+                    _modSaveMeta = new()
+                    {
+                        SourceGUID_Id = _modSaveData.SourceGUID_Id
+                    };
+#pragma warning restore CS0618 // Type or member is obsolete
+                }
+            }
+            else
+            {
+                _log.Message("No save file found, creating new save");
+                _modSaveMeta = new()
+                {
+                    SourceGUID_Id = new()
+                };
                 _modSaveData = new ModSaveData();
             }
         }
-        else
-        {
-            _modSaveData = new ModSaveData();
-        }
-        _modSaveData.SourceGUID_Id["HP2"] = -1;
 
-        _idPool = new(new IntOperator(), _modSaveData.SourceGUID_Id.Values);
+        _modSaveMeta.SourceGUID_Id["HP2"] = -1;
+
+        _idPool = new(new IntOperator(), _modSaveMeta.SourceGUID_Id.Values);
 
         _sourceId_GUID = new Dictionary<int, string>();
-        foreach (var guid_id in _modSaveData.SourceGUID_Id)
+        foreach (var guid_id in _modSaveMeta.SourceGUID_Id)
         {
             _sourceId_GUID[guid_id.Value] = guid_id.Key;
         }
@@ -122,22 +154,40 @@ public static class ModInterface
         if (_dataMod.TryApplyDataMods(out var gameDefinitionProvider))
         {
             _gameData = gameDefinitionProvider;
-            _gameState.Init(_gameData._gameStates);
+
+            if (_saveDataToken != null)
+            {
+                _modSaveData = _saveDataToken.ToObject<ModSaveData>(_jsonSerializer);
+                _saveDataToken = null;
+                if (_modSaveData == null)
+                {
+                    Log.Warning("Failed to load mod save data");
+                    _modSaveData = new ModSaveData();
+                }
+            }
+
             //TODO, add loading state that transitions into title
-            _gameState.ChangeState(GameStateId.Title);
+            _gameState.ChangeState(new GameStateTitle.Payload());
             ModInterface.Events.NotifyPostDataMods();
         }
     }
 
     /// <summary>
-    /// Strips modded data from the saveData and saves it separately
+    /// Strips modded data from the saveData and saves it separately.
     /// </summary>
     /// <param name="saveData"></param>
     internal static void StripSave(SaveData saveData)
     {
         _modSaveData.Strip(saveData);
-        File.WriteAllText(_modSavePath, JsonConvert.SerializeObject(_modSaveData));
-        Log.Message($"Mod data saved");
+
+        var root = new JObject
+        {
+            ["Meta"] = JObject.FromObject(_modSaveMeta, _jsonSerializer),
+            ["Data"] = JObject.FromObject(_modSaveData, _jsonSerializer)
+        };
+
+        File.WriteAllText(_modSavePath, root.ToString(Formatting.Indented));
+        Log.Message("Mod data saved");
     }
 
     internal static void InjectSave(SaveData saveData) => _modSaveData.SetData(saveData);
@@ -151,14 +201,14 @@ public static class ModInterface
     {
         sourceGUID = sourceGUID.ToUpper();
 
-        if (_modSaveData.SourceGUID_Id.TryGetValue(sourceGUID, out var sourceId))
+        if (_modSaveMeta.SourceGUID_Id.TryGetValue(sourceGUID, out var sourceId))
         {
             return sourceId;
         }
 
         sourceId = _idPool.AddUnused();
         Log.Message($"Added new source id {sourceId} for previously unregistered GUID {sourceGUID}");
-        _modSaveData.SourceGUID_Id.Add(sourceGUID, sourceId);
+        _modSaveMeta.SourceGUID_Id.Add(sourceGUID, sourceId);
         _sourceId_GUID.Add(sourceId, sourceGUID);
         return sourceId;
     }
@@ -181,7 +231,7 @@ public static class ModInterface
             id = -1;
             return true;
         }
-        else if (_modSaveData.SourceGUID_Id.TryGetValue(sourceGUID, out var sourceId))
+        else if (_modSaveMeta.SourceGUID_Id.TryGetValue(sourceGUID, out var sourceId))
         {
             id = sourceId;
             return true;
@@ -322,6 +372,8 @@ public static class ModInterface
             UnlockedPhotos = earnedPhotos.ToList() 
         };
         _events.NotifyRequestUnlockedPhotos(args);
+
+        if (args.UnlockedPhotos == null) return Enumerable.Empty<PhotoDefinition>();
 
         return args.UnlockedPhotos.Distinct().OrderBy(x => x.id);
     }

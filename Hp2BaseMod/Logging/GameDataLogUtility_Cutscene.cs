@@ -5,7 +5,7 @@ namespace Hp2BaseMod.Utility;
 
 public static partial class GameDataLogUtility
 {
-    public static void Log(this CutsceneDefinition cutsceneDefinition) => LogCutscene(cutsceneDefinition);
+    public static void Log(this CutsceneDefinition cutsceneDefinition, ILogger logger = null) => LogCutscene(cutsceneDefinition, logger);
 
     public static void LogCutscene(CutsceneDefinition cutsceneDef, ILogger logger = null)
     {
@@ -19,13 +19,17 @@ public static partial class GameDataLogUtility
 
         logger.Message($"Cutscene {cutsceneDef.ModId()} - {cutsceneDef.name}");
         logger.Message($"Cleanup Type: {Enum.GetName(typeof(CutsceneCleanUpType), cutsceneDef.cleanUpType)}");
-        int i = 0;
-        foreach (var step in cutsceneDef.steps)
+        
+        using (logger.MakeIndent("Steps:"))
         {
-            logger.Message($"Step {i++}");
-            logger.IncreaseIndent();
-            LogCutsceneStep(step, logger);
-            logger.DecreaseIndent();
+            int i = 0;
+            foreach (var step in cutsceneDef.steps)
+            {
+                logger.Message($"Step {i++}");
+                logger.IncreaseIndent();
+                LogCutsceneStep(step, logger);
+                logger.DecreaseIndent();
+            }
         }
     }
 
@@ -195,7 +199,7 @@ public static partial class GameDataLogUtility
                     switch (step.subCutsceneType)
                     {
                         case CutsceneStepSubCutsceneType.STRAIGHT:
-                            LogCutscene(step.subCutsceneDefinition);
+                            LogCutscene(step.subCutsceneDefinition, logger);
                             break;
                         case CutsceneStepSubCutsceneType.GIRL_PAIR:
                             logger.Message($"girlPairRelationshipType: {Enum.GetName(typeof(GirlPairRelationshipType), step.girlPairRelationshipType)}");
@@ -278,7 +282,7 @@ public static partial class GameDataLogUtility
         {
             using (logger.MakeIndent($"Condition {i++}:"))
             {
-                LogLogicCondition(condition);
+                LogLogicCondition(condition, logger);
             }
         }
 

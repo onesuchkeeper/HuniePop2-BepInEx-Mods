@@ -1,3 +1,5 @@
+// Hp2BaseMod 2026, By OneSuchKeeper
+
 using System.Linq;
 
 namespace Hp2BaseMod.Save;

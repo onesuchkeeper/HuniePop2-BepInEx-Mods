@@ -1,3 +1,5 @@
+// Hp2BaseMod 2026, By OneSuchKeeper
+
 namespace Hp2BaseMod;
 
 public class NormalGirlState : IPuzzleStatusGirlState
@@ -12,7 +14,7 @@ public class NormalGirlState : IPuzzleStatusGirlState
 
     public RelativeId OnStaminaChanged(PuzzleStatusGirl statusGirl, ExpandedPuzzleStatusGirl expansion, int newStamina)
     {
-        if (newStamina <= 0)
+        if (newStamina <= 0 && Game.Session.Puzzle.isPuzzleActive)
         {
             return PuzzleStatusGirlStateId.Exhausted;
         }

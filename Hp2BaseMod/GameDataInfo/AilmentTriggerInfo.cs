@@ -9,7 +9,7 @@ using Hp2BaseMod.Utility;
 namespace Hp2BaseMod.GameDataInfo
 {
     /// <summary>
-    /// Serializable information to make an ailment trigger
+    /// Serializable information to make an AilmentTrigger
     /// </summary>
     public class AilmentTriggerInfo : IGameDefinitionInfo<AilmentTriggerSubDefinition>
     {

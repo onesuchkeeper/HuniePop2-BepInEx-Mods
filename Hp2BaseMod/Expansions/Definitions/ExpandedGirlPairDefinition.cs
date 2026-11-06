@@ -1,3 +1,4 @@
+using System;
 using Hp2BaseMod.GameDataInfo;
 
 namespace Hp2BaseMod;
@@ -39,4 +40,14 @@ public partial class ExpandedGirlPairDefinition
     /// Custom bonus new round cutscene
     /// </summary>
     public RelativeId CutsceneNormalBonusSuccessId = RelativeId.Default;
+
+    public string GetNames(bool sidesFlipped)
+    {
+        var girlName = _core.girlDefinitionOne.girlName;
+        var girlName2 = _core.girlDefinitionTwo.girlName;
+
+        return sidesFlipped
+            ? girlName + " & " + girlName2
+            : girlName2 + " & " + girlName;
+    }
 }

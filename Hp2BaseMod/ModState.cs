@@ -14,4 +14,9 @@ public class ModState
     /// If the cellphone ui should appear on the left, same position as in the hub.
     /// </summary>
     public bool CellphoneOnLeft;
+
+    /// <summary>
+    /// Multiplies the speed at which you get rewards after the date (the fruit)
+    /// </summary>
+    public float RewardSpeedMult = 1f;
 }

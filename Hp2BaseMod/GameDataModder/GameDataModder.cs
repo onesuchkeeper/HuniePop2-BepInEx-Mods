@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Hp2BaseMod.Extension;
 using Hp2BaseMod.GameDataInfo.Interface;
+using Hp2BaseMod.Utility;
 using UnityEngine;
 
 namespace Hp2BaseMod
@@ -13,7 +14,7 @@ namespace Hp2BaseMod
     {
         public static void Mod(GameData gameData, GameDefinitionProvider gameDataProvider)
         {
-            ModInterface.Log.Message($"Loaded data sources: [{string.Join(", ", ModInterface.Save.SourceGUID_Id.Select(x => $"{x.Key} - {x.Value}"))}]");
+            ModInterface.Log.Message($"Loaded data sources: [{string.Join(", ", ModInterface.SaveMeta.SourceGUID_Id.Select(x => $"{x.Key} - {x.Value}"))}]");
 
             try
             {

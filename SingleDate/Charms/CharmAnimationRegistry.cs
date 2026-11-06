@@ -8,8 +8,13 @@ using System;
 
 namespace SingleDate;
 
+/// <summary>
+/// The pool of idle animations for the charm shown on single dates, and the logic to string a random selection of
+/// them together into one sequence.
+/// </summary>
 public class CharmAnimationRegistry
 {
+    // Every registered animation, the built in ones first.
     private readonly List<CharmAnimationDefinition> _animations = new();
 
     public CharmAnimationRegistry()
@@ -17,11 +22,18 @@ public class CharmAnimationRegistry
         RegisterAll();
     }
 
+    /// <summary>
+    /// Builds a sequence of random animations that fits a time budget. Repeatedly picks a valid animation (weighted
+    /// random, affordable with the remaining budget and allowed for the girl) and appends it, until the budget is spent.
+    /// </summary>
+    /// <param name="context">The charm, which animations read and may change the direction of.</param>
+    /// <param name="budget">The total cost to spend. Costs are tuned by hand to roughly match animation lengths in seconds.</param>
     public Sequence CreateSequence(CharmAnimationContext context, float budget)
     {
         var seq = DOTween.Sequence();
         float remaining = budget;
 
+        // Hard stop so a zero cost animation can't loop forever.
         int safety = 0;
 
         while (remaining > 0.01f && safety++ < 20)
@@ -30,6 +42,7 @@ public class CharmAnimationRegistry
 
             if (pool.Count == 0)
             {
+                // Nothing affordable is left, pad with a short pause and finish.
                 seq.AppendInterval(0.5f);
                 break;
             }
@@ -44,6 +57,7 @@ public class CharmAnimationRegistry
         return seq;
     }
 
+    /// <summary>The animations that cost no more than the budget and are allowed for the girl.</summary>
     private List<CharmAnimationDefinition> GetValidAnimations(RelativeId id, float budget)
     {
         var result = new List<CharmAnimationDefinition>();
@@ -62,6 +76,7 @@ public class CharmAnimationRegistry
         return result;
     }
 
+    /// <summary>Picks randomly, with each animation's chance proportional to its weight.</summary>
     private CharmAnimationDefinition WeightedPick(List<CharmAnimationDefinition> list)
     {
         float total = 0f;
@@ -79,6 +94,10 @@ public class CharmAnimationRegistry
         return list[list.Count - 1];
     }
 
+    /// <summary>
+    /// Adds an animation to the pool. Used by the interop method <see cref="Plugin.RegisterCharmAnimation"/>.
+    /// If <paramref name="build"/> returns true the charm's direction is flipped afterwards.
+    /// </summary>
     public void Register(
         float weight, 
         float cost,
@@ -102,152 +121,136 @@ public class CharmAnimationRegistry
 
     private void RegisterAll()
     {
-        _animations.Add(new CharmAnimationDefinition
+        void AddAnimation(float weight, Action<Sequence, CharmAnimationContext> build, HashSet<RelativeId> allowedCharacters = null)
         {
-            Weight = 1.4f,
-            Cost = 1.0f,
-            AllowedCharacters = null,
-            Build = (seq, c) =>
+            _animations.Add(new CharmAnimationDefinition
             {
-                seq.Append(c.Transform.DOLocalJump(
-                    c.Transform.localPosition + new Vector3(UnityEngine.Random.Range(-60f, 60f), 0),
-                    UnityEngine.Random.Range(10f, 20f),
-                    UnityEngine.Random.Range(1, 2),
-                    1.2f).SetEase(Ease.Linear));
-            }
+                Weight = weight,
+                Cost = 1,
+                AllowedCharacters = allowedCharacters,
+                Build = build
+            });
+        }
+    
+        // hop sideways a short random distance.
+        AddAnimation(2f, (seq, c) =>
+        {
+            seq.Append(c.Transform.DOLocalJump(
+                c.Transform.localPosition + new Vector3(UnityEngine.Random.Range(-60f, 60f), 0),
+                UnityEngine.Random.Range(10f, 20f),
+                UnityEngine.Random.Range(1, 2),
+                1.2f).SetEase(Ease.Linear));
+        });
+    
+        // flip the facing direction, no tween.
+        AddAnimation(2f, (seq, c) =>
+        {
+            c.Dir *= -1;
+        });
+    
+        // squash, joined to the previous tween.
+        AddAnimation(1f, (seq, c) =>
+        {
+            seq.Join(c.Transform.DOScaleY(0.95f, 1f).SetEase(Ease.InOutElastic));
+            seq.Join(c.Transform.DOScaleX(1.05f * c.Dir, 1f).SetEase(Ease.InOutElastic));
+        });
+    
+        // stretch, joined to the previous tween.
+        AddAnimation(1f, (seq, c) =>
+        {
+            seq.Join(c.Transform.DOScaleY(1.05f, 1f).SetEase(Ease.InOutElastic));
+            seq.Join(c.Transform.DOScaleX(0.95f * c.Dir, 1.2f).SetEase(Ease.InOutElastic));
+        });
+    
+        // flip around and back.
+        AddAnimation(2f, (seq, c) =>
+        {
+            seq.Append(c.Transform.DOScaleX(-1f * c.Dir, 1).SetEase(Ease.InSine));
+            seq.Append(c.Transform.DOScaleX(1f * c.Dir, 1).SetEase(Ease.OutSine));
+        });
+    
+        // build up, big jump, and a squash + spin that plays alongside the jump.
+        AddAnimation(1f, (seq, c) =>
+        {
+            // build up
+            seq.Append(c.Transform.DOScaleX(1.4f * c.Dir, 1.2f).SetEase(Ease.InOutSine));
+            seq.Join(c.Transform.DOScaleY(0.75f, 1.2f).SetEase(Ease.InOutSine));
+            seq.AppendInterval(0.45f);
+    
+            // jump
+            seq.Append(c.Transform.DOLocalJump(c.Transform.localPosition, 200f, 1, 3.5f).SetEase(Ease.OutBack));
+    
+            // spin
+            var squashNSpin = DOTween.Sequence().SetLoops(1, LoopType.Incremental);
+    
+            squashNSpin.Append(c.Transform.DOScaleX(0.85f * c.Dir, 0.25f).SetEase(Ease.OutSine));
+            squashNSpin.Join(c.Transform.DOScaleY(1.1f, 0.25f).SetEase(Ease.OutSine));
+    
+            squashNSpin.Append(c.Transform.DORotate(new Vector3(0f, 0f, c.Dir * 360f), 2.3f, RotateMode.FastBeyond360).SetEase(Ease.OutBack));
+    
+            squashNSpin.Append(c.Transform.DOScaleX(c.Dir, 1f).SetEase(Ease.OutElastic));
+            squashNSpin.Join(c.Transform.DOScaleY(1f, 1f).SetEase(Ease.OutElastic));
+    
+            // The old code chained two OnComplete calls on squashNSpin (pivot 0.5,0.5 after the squash, then 0.5,0 after
+            // the spin). Both set the sequence's own callback, so the second replaced the first and only this one ever ran.
+            squashNSpin.OnComplete(() =>
+            {
+                c.Transform.pivot = new Vector2(0.5f, 0f);
+            });
+    
+            seq.Join(squashNSpin);
         });
 
-        _animations.Add(new CharmAnimationDefinition
+        // just wait.
+        AddAnimation(5f, (seq, c) =>
         {
-            Weight = 0.8f,
-            Cost = 0.15f,
-            AllowedCharacters = null,
-            Build = (seq, c) =>
-            {
-                c.Dir *= -1;
-            }
+            seq.AppendInterval(2f);
         });
-
-        _animations.Add(new CharmAnimationDefinition
-        {
-            Weight = 1.0f,
-            Cost = 0.6f,
-            AllowedCharacters = null,
-            Build = (seq, c) =>
-            {
-                seq.Join(c.Transform.DOScaleY(0.95f, 1f).SetEase(Ease.InOutElastic));
-                seq.Join(c.Transform.DOScaleX(1.05f * c.Dir, 1f).SetEase(Ease.InOutElastic));
-            }
-        });
-
-        _animations.Add(new CharmAnimationDefinition
-        {
-            Weight = 1.0f,
-            Cost = 0.6f,
-            AllowedCharacters = null,
-            Build = (seq, c) =>
-            {
-                seq.Join(c.Transform.DOScaleY(1.05f, 1f).SetEase(Ease.InOutElastic));
-                seq.Join(c.Transform.DOScaleX(0.95f * c.Dir, 1.2f).SetEase(Ease.InOutElastic));
-            }
-        });
-
-        _animations.Add(new CharmAnimationDefinition
-        {
-            Weight = 1.1f,
-            Cost = 0.8f,
-            AllowedCharacters = null,
-            Build = (seq, c) =>
-            {
-                seq.Append(c.Transform.DOScaleX(-1f * c.Dir, 1).SetEase(Ease.InSine));
-                seq.Append(c.Transform.DOScaleX(1f * c.Dir, 1).SetEase(Ease.OutSine));
-            }
-        });
-
-        _animations.Add(new CharmAnimationDefinition
-        {
-            Weight = 0.5f,
-            Cost = 3.5f,
-            AllowedCharacters = null,
-            Build = (seq, c) =>
-            {
-                // full impulse buildup
-                seq.Append(c.Transform.DOScaleX(1.4f * c.Dir, 1.2f));
-                seq.Join(c.Transform.DOScaleY(0.75f, 1.2f));
-                seq.AppendInterval(0.45f);
-
-                // jump impulse
-                seq.Append(c.Transform.DOLocalJump(c.Transform.localPosition, 200f, 1, 3.5f));
-
-                // spin decay
-                seq.Append(c.Transform.DORotate(new Vector3(0, 0, c.Dir * 360f), 2.3f, RotateMode.FastBeyond360));
-
-                seq.Append(c.Transform.DOScale(1f, 1f));
-            }
-        });
-
+    
         // Sarah
-        _animations.Add(new CharmAnimationDefinition
+        AddAnimation(1f, (seq, c) =>
         {
-            Weight = 1.35f,
-            Cost = 1.2f,
-            AllowedCharacters = new HashSet<RelativeId> { Hp2BaseMod.Girls.Sarah },
-            Build = (seq, c) =>
-            {
-                seq.Append(c.Transform.DOScale(1.25f, 0.15f));
-                seq.Append(c.Transform.DOScale(0.9f, 0.15f));
-                seq.Append(c.Transform.DOScale(1.15f, 0.2f));
-
-                seq.Append(c.Transform.DOLocalMoveX(c.Transform.localPosition.x + (30f * c.Dir), 0.25f));
-                seq.Append(c.Transform.DOLocalMoveX(c.Transform.localPosition.x, 0.35f));
-
-                seq.Append(c.Transform.DOShakeAnchorPos(0.8f, 12f, 14));
-            }
-        });
-
+            seq.Append(c.Transform.DOScaleX(c.Dir * 1.3f, 0.4f).SetEase(Ease.OutElastic));
+            seq.Join(c.Transform.DOScaleY(0.5f, 0.4f).SetEase(Ease.OutElastic));
+    
+            seq.Append(c.Transform.DOScaleX(c.Dir * 0.5f, 0.4f).SetEase(Ease.OutElastic));
+            seq.Join(c.Transform.DOScaleY(1.3f, 0.4f).SetEase(Ease.OutElastic));
+    
+            seq.Append(c.Transform.DOScaleX(c.Dir * 1.3f, 0.4f).SetEase(Ease.OutElastic));
+            seq.Join(c.Transform.DOScaleY(0.5f, 0.4f).SetEase(Ease.OutElastic));
+    
+            seq.Append(c.Transform.DOScaleX(c.Dir * 0.5f, 0.4f).SetEase(Ease.OutElastic));
+            seq.Join(c.Transform.DOScaleY(1.3f, 0.4f).SetEase(Ease.OutElastic));
+        }, new HashSet<RelativeId> { Hp2BaseMod.Girls.Sarah });
+    
         // Lillian
-        _animations.Add(new CharmAnimationDefinition
+        AddAnimation(1f, (seq, c) =>
         {
-            Weight = 0.85f,
-            Cost = 1.2f,
-            AllowedCharacters = new HashSet<RelativeId> { Hp2BaseMod.Girls.Lillian },
-            Build = (seq, c) =>
-            {
-                seq.Append(c.Transform.DOLocalMoveY(c.Transform.localPosition.y - 16f, 1.4f));
-                seq.AppendInterval(2.5f);
-                seq.Append(c.Transform.DOLocalMoveY(c.Transform.localPosition.y - 6f, 1.6f));
-                seq.Join(c.Transform.DOScale(0.98f, 1.6f));
-            }
-        });
-
+            seq.Append(c.Transform.DOLocalMoveX(c.Transform.localPosition.x + (90 * c.Dir), 1.2f));
+            seq.Join(c.Transform.DOLocalMoveY(c.Transform.localPosition.y + 48, 1.2f));
+            seq.Join(c.Transform.DOScaleY(0.9f, 1.2f));
+            seq.Join(c.Transform.DOScaleX(1.1f * c.Dir, 1.2f));
+            seq.Join(c.Transform.DORotate(new Vector3(0f, 0f, c.Dir * 90), 1.2f));
+    
+            seq.Append(c.Transform.DOScaleY(1.1f, 1.2f).SetEase(Ease.InOutElastic));
+            seq.Join(c.Transform.DOScaleX(0.9f * c.Dir, 1.2f).SetEase(Ease.InOutElastic));
+    
+            seq.AppendInterval(UnityEngine.Random.Range(8f, 30f));
+    
+            seq.Append(c.Transform.DOScaleY(0.9f, 1.2f).SetEase(Ease.InOutSine));
+            seq.Join(c.Transform.DOScaleX(1.1f * c.Dir, 1.2f).SetEase(Ease.InOutSine));
+            seq.Join(c.Transform.DORotate(new Vector3(0f, 0f, 0), 1.2f));
+            seq.Join(c.Transform.DOLocalMoveX(c.Transform.localPosition.x, 1.2f));
+            seq.Join(c.Transform.DOLocalMoveY(c.Transform.localPosition.y, 1.2f));
+    
+            seq.Append(c.Transform.DOScaleY(1f, 1.2f).SetEase(Ease.InOutElastic));
+            seq.Join(c.Transform.DOScaleX(1f * c.Dir, 1.2f).SetEase(Ease.InOutElastic));
+        }, new HashSet<RelativeId> { Hp2BaseMod.Girls.Lillian });
+    
         // Abia
-        _animations.Add(new CharmAnimationDefinition
+        AddAnimation(1f, (seq, c) =>
         {
-            Weight = 0.8f,
-            Cost = 1.5f,
-            AllowedCharacters = new HashSet<RelativeId> { Hp2BaseMod.Girls.Abia },
-            Build = (seq, c) =>
-            {
-                seq.Append(c.Transform.DOShakeAnchorPos(4f, 30f));
-
-                seq.Append(c.Transform.DOScale(1.1f, 0.2f));
-                seq.Append(c.Transform.DOScale(1f, 0.4f));
-
-                seq.Append(c.Transform.DOShakePosition(0.8f, 6f, 20));
-            }
-        });
-
-        // Ashley
-        // Brooke
-        // Candace
-        // Jessie
-        // Jewn
-        // Kyu
-        // Lailani
-        // Lola
-        // Moxie
-        // Nora
-        // Polly
-        // Zoey
+            seq.Append(c.Transform.DOShakeAnchorPos(4f, 30));
+        }, new HashSet<RelativeId> { Hp2BaseMod.Girls.Abia });
     }
 }

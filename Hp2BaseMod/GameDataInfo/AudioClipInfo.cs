@@ -12,6 +12,7 @@ namespace Hp2BaseMod.GameDataInfo
     /// <summary>
     /// Serializable information to make an AudioClip
     /// </summary>
+    [Serializable]
     public class AudioClipInfo : IGameDefinitionInfo<AudioClip>
     {
         public string Path;

@@ -16,7 +16,8 @@ namespace HuniePopUltimate;
 /// Depends on <see cref="HpDialogExtractor"/> for individual line extraction.
 /// The meeting cutscene style sequence for each girl is sourced from
 /// <see cref="IGirlConfigurator.MeetingCutsceneStyleSequence"/> rather than
-/// a hardcoded lookup table.
+/// a hardcoded lookup table. A null sequence, or a scene that loads more
+/// characters than the sequence has entries, falls back to the Activity style.
 /// </summary>
 public class HpCutsceneExtractor
 {
@@ -38,6 +39,8 @@ public class HpCutsceneExtractor
             && _extractor.TryExtractMonoBehavior(file, introScenePath, out var introSceneDef)
             && TryExtractDialogScene(introSceneDef, file, girlId, out var introSceneMod))
         {
+            // If we leave them dangling it can cause issues for later cutscenes that target by definition
+            introSceneMod.Steps.Add(CutsceneStepUtility.MakeUnloadGirlInfo().TargetOrientation(DollOrientationType.LEFT));
             pair.MeetingCutscene = introSceneMod;
         }
         else
@@ -59,9 +62,7 @@ public class HpCutsceneExtractor
         cutsceneMod.Steps = new();
 
         var girlConfig = _configs.Values.FirstOrDefault(c => c.Mod.Id == girlId);
-        var styleSequence = girlConfig?.MeetingCutsceneStyleSequence
-            ?? System.Array.Empty<(RelativeId, RelativeId)>();
-        var styleEnum = ((IEnumerable<(RelativeId outfit, RelativeId hairstyle)>)styleSequence).GetEnumerator();
+        var styleEnum = MakeStyleEnumerator(girlId, girlConfig?.MeetingCutsceneStyleSequence);
 
         UnityAssetPath currentAltGirl = UnityAssetPath.NullPath;
         foreach (var step in steps.OfType<OrderedDictionary>())
@@ -93,6 +94,31 @@ public class HpCutsceneExtractor
         if (lastLine != null) lastLine.BoolValue = false;
 
         return true;
+    }
+
+    /// <summary>
+    /// Yields the configured styles in order, then Activity indefinitely, so callers
+    /// can always take another style. A null sequence is Activity throughout.
+    /// </summary>
+    private static IEnumerator<(RelativeId outfit, RelativeId hairstyle)> MakeStyleEnumerator(
+        RelativeId girlId,
+        (RelativeId outfit, RelativeId hairstyle)[] sequence)
+    {
+        if (sequence != null)
+        {
+            foreach (var style in sequence)
+            {
+                yield return style;
+            }
+
+            // Running out of a configured sequence means it doesn't match the scene
+            ModInterface.Log.Warning($"Meeting cutscene for {girlId} loads more characters than its style sequence covers, using Activity");
+        }
+
+        while (true)
+        {
+            yield return (Hp2BaseMod.Styles.Activity, Hp2BaseMod.Styles.Activity);
+        }
     }
 
     private bool TryExtractDialogSceneStep(

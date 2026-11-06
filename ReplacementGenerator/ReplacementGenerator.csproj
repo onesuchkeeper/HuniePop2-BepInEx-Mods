@@ -1,0 +1,64 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <AssemblyName>ReplacementGenerator</AssemblyName>
+    <RootNamespace>ReplacementGenerator</RootNamespace>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DebugType>embedded</DebugType>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+
+    <!-- SET THESE for your game (or pass with -p:GameDir=... -p:GameDataDir=...) -->
+    <GameDir Condition="'$(GameDir)' == ''">C:\Program Files (x86)\Steam\steamapps\common\HuniePop 2 - Double Date</GameDir>
+    <GameDataDir Condition="'$(GameDataDir)' == ''">HuniePop 2 - Double Date_Data</GameDataDir>
+    <ManagedDir>$(GameDir)\$(GameDataDir)\Managed</ManagedDir>
+
+    <RestoreAdditionalProjectSources>https://nuget.bepinex.dev/v3/index.json</RestoreAdditionalProjectSources>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BepInEx.Core" Version="5.4.21" IncludeAssets="compile" />
+    <PackageReference Include="ICSharpCode.Decompiler" Version="7.2.1.6856" />
+    <!-- compile-only: BepInEx\core already ships Mono.Cecil at runtime -->
+    <PackageReference Include="Mono.Cecil" Version="0.11.4" IncludeAssets="compile" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="UnityEngine">
+      <HintPath>$(ManagedDir)\UnityEngine.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>$(ManagedDir)\UnityEngine.CoreModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <!--
+    Deploy to BepInEx\plugins\ReplacementGenerator\.
+    Only NuGet-supplied dependency DLLs that actually exist (ReferenceCopyLocalPaths) are considered, and any DLL the
+    game's Managed folder or BepInEx\core already provides is skipped, so we never ship a duplicate.
+  -->
+  <Target Name="DeployToGame" AfterTargets="Build" Condition="Exists('$(GameDir)\BepInEx\plugins')">
+    <PropertyGroup>
+      <DeployDir>$(GameDir)\BepInEx\plugins\ReplacementGenerator</DeployDir>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <_Dep Include="@(ReferenceCopyLocalPaths)" Condition="'%(Extension)' == '.dll'" />
+      <_DepCopy Include="@(_Dep)"
+                Condition="!Exists('$(ManagedDir)\%(Filename)%(Extension)') And !Exists('$(GameDir)\BepInEx\core\%(Filename)%(Extension)')" />
+      <_DepSkip Include="@(_Dep)" Exclude="@(_DepCopy)" />
+    </ItemGroup>
+
+    <Message Importance="high" Text="Deploying to $(DeployDir)" />
+    <Message Importance="high" Text="  skip (game/BepInEx already provides): %(_DepSkip.Filename)%(_DepSkip.Extension)" Condition="'@(_DepSkip)' != ''" />
+    <Message Importance="high" Text="  copy dependency: %(_DepCopy.Filename)%(_DepCopy.Extension)" Condition="'@(_DepCopy)' != ''" />
+
+    <Copy SourceFiles="$(OutDir)$(AssemblyName).dll" DestinationFolder="$(DeployDir)" />
+    <Copy SourceFiles="@(_DepCopy)" DestinationFolder="$(DeployDir)" Condition="'@(_DepCopy)' != ''" />
+  </Target>
+
+</Project>

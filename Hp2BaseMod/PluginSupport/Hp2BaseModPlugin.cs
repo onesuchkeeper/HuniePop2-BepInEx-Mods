@@ -1,3 +1,5 @@
+// Hp2BaseMod 2026, By OneSuchKeeper
+
 using BepInEx;
 
 #pragma warning disable BepInEx001
@@ -8,7 +10,7 @@ namespace Hp2BaseMod;
 /// Base class for Hp2BaseMod plugins.
 /// 
 /// Provides automatic registration for:
-/// - Interop methods (via [InteropMethod] on methods)
+/// Interop methods (via [InteropMethod] on methods)
 /// 
 /// Your plugin class must be declared as 'partial' to use these features.
 /// </summary>

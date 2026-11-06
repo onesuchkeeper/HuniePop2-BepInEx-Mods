@@ -1,3 +1,5 @@
+// Hp2BaseMod 2026, By OneSuchKeeper
+
 using System.Collections.Generic;
 
 namespace Hp2BaseMod;
@@ -18,10 +20,8 @@ public class PuzzleResourceStamina : BasePuzzleResource
         return true;
     }
 
-    public override int GetResourceValue(ExpandedPuzzleStatus puzzleStatus, PuzzleStatusGirl puzzleStatusGirl, bool maxVal = false)
-    {
-        return maxVal ? 6 : puzzleStatusGirl.stamina;
-    }
+    public override int GetResourceValue(ExpandedPuzzleStatus puzzleStatus, PuzzleStatusGirl puzzleStatusGirl, bool maxVal = false) 
+        => maxVal ? 6 : puzzleStatusGirl.stamina;
 
     public override int CalculateMatchReward(ExpandedUiPuzzleGrid uiPuzzleGrid, ExpandedAilmentManager ailmentManager, ExpandedPuzzleSet puzzleSet, PlayerFile playerFile, PuzzleMatch match, MatchModifier matchModifier, PuzzleStatusGirl statusGirl, List<UiPuzzleSlot> orderedMatchSlots)
     {

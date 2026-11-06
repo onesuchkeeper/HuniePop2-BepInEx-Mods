@@ -54,10 +54,42 @@ public partial class ExpandedUiDoll
             return __instance.girlDefinition != null;
         }
 
+        private static readonly AccessTools.FieldRef<UiDoll, DialogLine> CurrentDialogLine = AccessTools.FieldRefAccess<UiDoll, DialogLine>("_currentDialogLine");
+        private static readonly AccessTools.FieldRef<UiDoll, int> CurrentDialogPriority = AccessTools.FieldRefAccess<UiDoll, int>("_currentDialogPriority");
+
+        /// <summary>
+        /// Replaces the base game's ReadDialogTrigger, which picks a date greeting from the location type. The line is picked by
+        /// <see cref="ExpandedUiDoll.ReadDialogTrigger"/> and the rest is the base game's.
+        /// </summary>
         [HarmonyPatch(nameof(UiDoll.ReadDialogTrigger))]
         [HarmonyPrefix()]
-        private static void ReadDialogTrigger(UiDoll __instance, DialogTriggerDefinition dialogTriggerDef, DialogLineFormat format, ref int lineIndex)
-            => ExpandedUiDoll.Get(__instance).ReadDialogTrigger(dialogTriggerDef, format, ref lineIndex);
+        private static bool ReadDialogTrigger(UiDoll __instance, DialogTriggerDefinition dialogTriggerDef, DialogLineFormat format, ref int lineIndex)
+        {
+            // an unloaded doll has nothing to say, and the puzzle state may hold the girls back (the tutorial's cutscenes do the talking)
+            if (__instance.girlDefinition == null
+                || (ModInterface.GameState.CurrentState as IPuzzleState)?.SuppressesDollDialog == true)
+            {
+                return false;
+            }
+
+            // a line already being said is only interrupted by one of at least the same priority
+            if (CurrentDialogLine(__instance) != null
+                && dialogTriggerDef.priority < CurrentDialogPriority(__instance)
+                && format == DialogLineFormat.UNCHECKED)
+            {
+                return false;
+            }
+
+            ExpandedUiDoll.Get(__instance).ReadDialogTrigger(dialogTriggerDef, format, ref lineIndex);
+
+            var lineSet = dialogTriggerDef.GetLineSetByGirl(__instance.soulGirlDefinition);
+            lineIndex = Mathf.Clamp(lineIndex, 0, lineSet.dialogLines.Count - 1);
+
+            Game.Session.Dialog.SetLastDialogTriggerIndex(__instance.girlDefinition, dialogTriggerDef, lineIndex);
+            __instance.ReadDialogLine(lineSet.dialogLines[lineIndex], format, dialogTriggerDef.priority);
+
+            return false;
+        }
 
         [HarmonyPatch(nameof(UiDoll.SetExhaustion))]
         [HarmonyPrefix]
@@ -91,20 +123,44 @@ public partial class ExpandedUiDoll
 
         ModInterface.Log.Message($"Loading special effect {_core.soulGirlDefinition.specialEffectPrefab.name} for {_core.soulGirlDefinition.girlName}");
 
-        var specialEffectPrefab = _core.soulGirlDefinition.specialEffectPrefab;
+        var soul = _core.soulGirlDefinition;
+        var prefab = soul.specialEffectPrefab;
 
-        if (specialEffectPrefab.GetType() == typeof(UiDollSpecialEffectFairyWings))
+        Vector2? offset = null;
+        if (prefab.GetType() == typeof(UiDollSpecialEffectFairyWings))
         {
-            _core.soulGirlDefinition.specialEffectOffset = body.BackPos;
+            offset = body?.BackPos;
         }
-        else if (specialEffectPrefab.GetType() == typeof(UiDollSpecialEffectGloWings))
+        else if (prefab.GetType() == typeof(UiDollSpecialEffectGloWings))
         {
-            _core.soulGirlDefinition.specialEffectOffset = body.HeadPos;
+            offset = body?.HeadPos;
         }
-        else if (specialEffectPrefab is IUiDollSpecialEffect uiDollSpecialEffect)
+        else if (prefab is IUiDollSpecialEffect uiDollSpecialEffect)
         {
-            _core.soulGirlDefinition.specialEffectOffset = uiDollSpecialEffect.GetSpecialEffectOffset(girlDef);
+            offset = uiDollSpecialEffect.GetSpecialEffectOffset(girlDef);
         }
+
+        if (offset.HasValue)
+        {
+            soul.specialEffectOffset = offset.Value;
+            // the wings read the offset from the doll's girlDefinition, not the soul
+            _core.girlDefinition.specialEffectOffset = offset.Value;
+        }
+
+        // var specialEffectPrefab = _core.soulGirlDefinition.specialEffectPrefab;
+
+        // if (specialEffectPrefab.GetType() == typeof(UiDollSpecialEffectFairyWings))
+        // {
+        //     _core.soulGirlDefinition.specialEffectOffset = body.BackPos;
+        // }
+        // else if (specialEffectPrefab.GetType() == typeof(UiDollSpecialEffectGloWings))
+        // {
+        //     _core.soulGirlDefinition.specialEffectOffset = body.HeadPos;
+        // }
+        // else if (specialEffectPrefab is IUiDollSpecialEffect uiDollSpecialEffect)
+        // {
+        //     _core.soulGirlDefinition.specialEffectOffset = uiDollSpecialEffect.GetSpecialEffectOffset(girlDef);
+        // }
 
         if (_core.soulGirlDefinition.specialCharacter) return;
 

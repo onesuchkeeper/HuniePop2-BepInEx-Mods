@@ -7,6 +7,7 @@ public static class Flags
     public const string NOTIFICATION_ITEM_ID = "notification_item_id";
     public const string TUTORIAL_PROGRESS = "tutorial_progress";
     public const string NYMPHOJINN_FAILURE = "nymphojinn_failure";
+    public const string SKIP_TUTORIAL = "skip_tutorial";
     public const string POLLYS_JUNK = "pollys_junk";
     public const string ALPHA_MODE = "alpha_mode";
     public const string STORE_FILTER_BUTTON = "store_filter_button";

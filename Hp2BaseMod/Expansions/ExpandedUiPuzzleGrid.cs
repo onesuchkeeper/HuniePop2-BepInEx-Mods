@@ -54,8 +54,18 @@ public partial class ExpandedUiPuzzleGrid
 
         [HarmonyPatch("CreateToken")]
         [HarmonyPrefix]
-        public static void CreateToken_Prefix(UiPuzzleGrid __instance, int col, bool noMatch)
+        public static bool CreateToken_Prefix(UiPuzzleGrid __instance, int col, bool noMatch)
             => ExpandedUiPuzzleGrid.Get(__instance).CreateToken_Prefix(col, noMatch);
+
+        [HarmonyPatch("OnTokenDown")]
+        [HarmonyPrefix]
+        private static bool OnTokenDown(UiPuzzleGrid __instance, UiPuzzleSlot slot)
+        {
+            ExpandedUiPuzzleGrid.Get(__instance).OnTokenDown_Prefix(slot);
+            return false;
+        }
+
+        
     }
 
     public static ExpandedUiPuzzleGrid Get() => Get(Game.Session.Puzzle.puzzleGrid);
@@ -111,8 +121,49 @@ public partial class ExpandedUiPuzzleGrid
     /// </summary>
     public event Action MoveCompleteEvent;
 
+    private IPuzzleState _puzzleState;
+
+    /// <summary>
+    /// Picking up a token starts a move, when the puzzle state lets the player (the tutorial only lets them pick up what its script asks for).
+    /// </summary>
+    private void OnTokenDown_Prefix(UiPuzzleSlot slot)
+    {
+        if (_state != PuzzleGameState.WAITING) return;
+
+        var puzzleState = ModInterface.GameState.CurrentState as IPuzzleState
+            ?? throw new Exception("Token picked up outside a puzzle state");
+
+        if (!puzzleState.AllowsTokenPickup(slot)) return;
+
+        _moveSlotFrom = slot;
+        slot.token.Hide();
+        Game.Session.gameCanvas.effectsContainerLow.dragCursor.Activate(slot.token.GetTokenSprite(true));
+        _core.guideContainer.ShowMovementGuides(slot);
+        Game.Manager.Audio.Play(AudioCategory.SOUND, _core.sfxTokenSelect, _core.pauseDefinition);
+        _core.ChangeState(PuzzleGameState.MOVING);
+    }
+
+    private bool AttemptGirlFocusSwitch_Prefix(ref bool __result)
+    {
+        if ((ModInterface.GameState.CurrentState as IPuzzleStatusRules)?.LockedAltGirlFocus != null)
+        {
+            __result = false;
+            return false;
+        }
+
+        __result = Game.Session.Ailment.GetExpansion().OnPreFocusSwitch();
+        return __result;
+    }
+
     private void StartPuzzle()
     {
+        _puzzleState = ModInterface.GameState.CurrentState as IPuzzleState;
+
+        if (_puzzleState == null)
+        {
+            throw new Exception("Puzzle started outside a puzzle state");
+        }
+
         var statusExp = _status.GetExpansion();
         statusExp.SuppressStateDialog = false;
 
@@ -134,16 +185,20 @@ public partial class ExpandedUiPuzzleGrid
         statusExp.SuppressStateDialog = true;
 
         _core.MoveCompleteEvent -= RaiseMoveCompleteEvent;
-    }
 
-    private bool AttemptGirlFocusSwitch_Prefix(ref bool __result)
-    {
-        __result = Game.Session.Ailment.GetExpansion().OnPreFocusSwitch();
-        return __result;
+        _puzzleState = null;
     }
 
     private bool CheckRoundOver_Prefix()
     {
+        // The round has been decided and is being presented. A match that settles in the meantime (the board clearing, a late
+        // match filling the meter) does not decide it again. The board stays inactive until the next round starts.
+        if (Game.Session.Puzzle.GetExpansion().IsRoundOverPending)
+        {
+            _roundOver = true;
+            return false;
+        }
+
         var args = new AilmentTriggerArgs.CheckRoundOver(this, null);
         var status = _status;
 
@@ -159,7 +214,7 @@ public partial class ExpandedUiPuzzleGrid
                 )
             )
         {
-            if (!Game.Session.Puzzle.puzzleStatus.IsTutorial(false))
+            if (_puzzleState.FailsWhenOutOfMoves)
             {
                 args.RoundState = PuzzleRoundState.FAILURE;
                 args.RoundOver = true;
@@ -193,26 +248,108 @@ public partial class ExpandedUiPuzzleGrid
     }
 
     /// <summary>
-    /// When SuppressStaminaCost is active and the game is in MOVING state on mouse-up,
-    /// reproduces the original move processing loop without stamina deduction,
-    /// stamina sufficiency check, or unfocused stamina recovery.
-    /// Returns false to skip the original Update only when we handle the move.
+    /// Replaces the base game's Update, which asked the location manager what kind of place it was. The grid only runs while a
+    /// puzzle is being played, which is a state that is an <see cref="IPuzzleState"/>.
     /// </summary>
+    /// <remarks>
+    /// The same loop as the base game's. The only differences are the puzzle state's say over a move
+    /// (<see cref="IPuzzleState.AllowsMove"/>) and that while <see cref="SuppressStaminaCost"/> is on a move needs no stamina and
+    /// neither takes any from the focused girl nor gives any to the other one.
+    /// </remarks>
     private bool Update_Prefix()
     {
-        if (!SuppressStaminaCost) return true;
+        var puzzleState = ModInterface.GameState.CurrentState as IPuzzleState;
 
-        if (ModInterface.GameState.CurrentState.Id != GameStateId.Puzzle
+        if (puzzleState == null
             || !Game.Session.Puzzle.isPuzzleActive
-            || Game.Manager.Time.IsPaused(_core.pauseDefinition)
-            || !Input.GetMouseButtonUp(0))
+            || Game.Manager.Time.IsPaused(_core.pauseDefinition))
         {
-            return true;
+            return false;
         }
 
-        var state = _state;
-        if (state != PuzzleGameState.MOVING) return true;
+        var status = _status;
 
+        switch (_state)
+        {
+            case PuzzleGameState.INACTIVE:
+                if (_roundOver
+                    && _unsettledSlots.Count == 0
+                    && _energyTrails.Count == 0
+                    && !Game.Session.Dialog.IsAnyDollTalking(false))
+                {
+                    status.DisableAilments();
+                    UiPatchUtil.Raise(_core, nameof(UiPuzzleGrid.RoundOverEvent));
+                    _roundOver = false;
+                }
+
+                break;
+
+            case PuzzleGameState.MOVING:
+                if (Input.GetMouseButtonUp(0))
+                {
+                    Update_ReleaseMove(puzzleState);
+                }
+
+                break;
+
+            case PuzzleGameState.RESETTING:
+                if (!_isResetting)
+                {
+                    Game.Manager.Time.KillTween(_resetTweener, false, true);
+                    Game.Session.gameCanvas.effectsContainerLow.dragCursor.Deactivate(null);
+                    _moveSlotFrom.token.Show();
+                    _moveSlotFrom = null;
+                    _core.ChangeState(PuzzleGameState.WAITING);
+                }
+
+                break;
+        }
+
+        // Update UI warning status
+        if (_warningCheck)
+        {
+            _warningCheck = false;
+
+            if (!StringUtils.IsEmpty(_warningText) && (!_warningTooltip.isShowing || _warningText != _warningTooltip.textLabel.text))
+            {
+                _warningTooltip.Populate(_warningText, 1, 0.8f, 1920f);
+                _warningTooltip.Show(Vector3.up * 74f, false);
+            }
+            else if (StringUtils.IsEmpty(_warningText) && _warningTooltip.isShowing)
+            {
+                _warningTooltip.Hide(false);
+            }
+        }
+
+        // The bonus round drains affection while the player waits
+        if (status.bonusRound
+            && _state != PuzzleGameState.INACTIVE
+            && !_roundOver
+            && status.affection < status.affectionGoal
+            && Game.Manager.Time.Lifetime(_core.pauseDefinition) - status.bounsDrainTimestap >= status.bonusDrainDelay)
+        {
+            status.bounsDrainTimestap = Game.Manager.Time.Lifetime(_core.pauseDefinition);
+            status.GetExpansion().AddResourceValue(PuzzleResourceId.AffectionTalent, -1, status.altGirlFocused);
+            status.CheckChanges();
+        }
+
+        if ((Input.GetKeyDown(KeyCode.Tab) || Input.GetMouseButtonDown(1))
+            && !status.bonusRound
+            && !Game.Manager.DragDrop.isDragging
+            && (_state == PuzzleGameState.DROPPING || _state == PuzzleGameState.WAITING)
+            && !Game.Session.gameCanvas.dollLeft.isFocusAnimationActive
+            && !Game.Session.gameCanvas.dollRight.isFocusAnimationActive)
+        {
+            _core.AttemptGirlFocusSwitch();
+        }
+
+        _newTokenCount = 0;
+        return false;
+    }
+
+    /// <summary>The player let go of a token they were moving: the move is made, or the token goes back.</summary>
+    private void Update_ReleaseMove(IPuzzleState puzzleState)
+    {
         WarningTooltip(null);
 
         _core.guideContainer.HideMovementGuides();
@@ -225,15 +362,16 @@ public partial class ExpandedUiPuzzleGrid
         var girlStatusFocused = status.girlStatusFocused;
         var girlStatusUnfocused = status.girlStatusUnfocused;
 
-        // Stamina sufficiency check is skipped, any move is valid.
-        bool validMove = moveMatchSet != null
-            && Game.Session.Puzzle.TutorialStepCheck(moveSlotFrom, moveSlotTo);
+        // a grid that suppresses stamina cost never lacks the stamina
+        var enoughStamina = moveMatchSet != null
+            && (SuppressStaminaCost || girlStatusFocused.stamina >= moveMatchSet.GetStaminaCost(false, false));
 
-        if (validMove)
+        if (moveMatchSet != null && enoughStamina && puzzleState.AllowsMove(moveSlotFrom, moveSlotTo))
         {
             var moveMatchSetExp = moveMatchSet.GetExpansion();
             var statusExp = status.GetExpansion();
             int movesCost = moveMatchSet.GetMovesCost();
+            int staminaCost = moveMatchSet.GetStaminaCost(false, false);
             int staminaCostRawFull = moveMatchSet.GetStaminaCost(true, true);
 
             Game.Session.gameCanvas.effectsContainerLow.dragCursor.Deactivate(null);
@@ -242,7 +380,7 @@ public partial class ExpandedUiPuzzleGrid
 
             _moveSlotFrom = null;
 
-            foreach(var slot in _moveSlots)
+            foreach (var slot in _moveSlots)
             {
                 slot.ApplyTempToken();
             }
@@ -254,13 +392,39 @@ public partial class ExpandedUiPuzzleGrid
 
             if (!status.bonusRound)
             {
-                // Apply move cost, still respected even without stamina cost.
                 if (movesCost > 0 && !moveModifier.blockMoveCost)
                 {
                     statusExp.AddResourceValue(PuzzleResourceId.Moves, -movesCost, girlStatusFocused.altGirl);
                 }
 
-                // Stamina deduction and unfocused stamina recovery are skipped entirely.
+                if (!SuppressStaminaCost)
+                {
+                    if (!girlStatusFocused.exhausted && staminaCost > 0 && !moveModifier.blockStaminaCost)
+                    {
+                        statusExp.AddResourceValue(PuzzleResourceId.Stamina, -staminaCost, girlStatusFocused.altGirl);
+                    }
+
+                    // the girl who isn't being played recovers
+                    if (girlStatusUnfocused.stamina < 6 && !moveModifier.blockStaminaRecover)
+                    {
+                        var recovered = 1;
+
+                        if (girlStatusUnfocused.exhausted)
+                        {
+                            recovered += Game.Session.Puzzle.GetPuzzleOffset(PuzzleOffsetId.ExhaustedRecoveryRate);
+                        }
+
+                        recovered = Mathf.Clamp(recovered, 1, 6 - girlStatusUnfocused.stamina);
+                        statusExp.AddResourceValue(PuzzleResourceId.Stamina, recovered, girlStatusUnfocused.altGirl);
+
+                        UnityEngine.Object.Instantiate(_core.energyTrailPrefab).Init(
+                            EnergyTrailFormat.START_AND_END,
+                            _core.staminaEnergyDefinition,
+                            null,
+                            Game.Session.gameCanvas.GetDoll(girlStatusUnfocused.altGirl),
+                            "+" + recovered.ToString() + " Stamina");
+                    }
+                }
             }
 
             Game.Session.Ailment.Trigger(AilmentTriggerType.POST_MOVE, null);
@@ -293,10 +457,16 @@ public partial class ExpandedUiPuzzleGrid
         }
         else
         {
-            // Invalid move, mirror original reset path exactly.
+            // The move isn't allowed, the token goes back
             if (moveMatchSet != null)
             {
                 moveMatchSet.DimTokens();
+
+                if (!enoughStamina)
+                {
+                    Game.Session.gameCanvas.GetDoll(girlStatusFocused.altGirl)
+                        .ReadDialogTrigger(Game.Session.Puzzle.dtStaminaInsufficient, DialogLineFormat.UNCHECKED, -1);
+                }
             }
 
             if (moveSlotTo != null && moveSlotTo != moveSlotFrom)
@@ -325,8 +495,8 @@ public partial class ExpandedUiPuzzleGrid
             _core.ChangeState(PuzzleGameState.RESETTING);
         }
 
-        RaiseMoveCompleteEvent();
-        return false;
+        // the base game's event, which the expansion forwards (RaiseMoveCompleteEvent) as well as anything else listening
+        UiPatchUtil.Raise(_core, nameof(UiPuzzleGrid.MoveCompleteEvent));
     }
 
     private void OnSlotEnter()
@@ -463,7 +633,7 @@ public partial class ExpandedUiPuzzleGrid
             }
 		}
 
-		if (_status.bonusRound && !Game.Session.Puzzle.puzzleStatus.IsTutorial(false))
+		if (_status.bonusRound && _puzzleState.SwitchesFocusInBonusRound)
 		{
 			_core.AttemptGirlFocusSwitch();
 		}

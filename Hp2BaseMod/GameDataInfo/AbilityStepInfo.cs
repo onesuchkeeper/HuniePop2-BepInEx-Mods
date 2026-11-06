@@ -9,7 +9,7 @@ using Hp2BaseMod.Utility;
 namespace Hp2BaseMod.GameDataInfo
 {
     /// <summary>
-    /// Serializable information to make a sprite
+    /// Serializable information to make an AbilityStep
     /// </summary>
     public class AbilityStepInfo : IGameDefinitionInfo<AbilityStepSubDefinition>
     {

@@ -83,9 +83,9 @@ public class MomoConfigurator : GirlConfiguratorBase
 
     private static readonly (RelativeId, int, string name, string description)[] _baggageItemIds =
     [
-        //(Items.Momo.Baggage1, 9256), // Laser Pointer (Distracted, 50% chance for repeated moves to fail)
-        //(Items.Momo.Baggage2, 9257), // Scratch Post
-        //(Items.Momo.Baggage3, ), // TODO
+        (Items.Momo.Baggage1, 9256, "Baggage A", "Placeholder"), // Laser Pointer
+        (Items.Momo.Baggage2, 9257, "Baggage B", "Placeholder"), // Scratch Post
+        (Items.Momo.Baggage3, 9257, "Baggage C", "Placeholder"), // TODO
     ];
 
     protected override IEnumerable<(RelativeId to, RelativeId from)> LocationGreetingMap
@@ -154,4 +154,10 @@ public class MomoConfigurator : GirlConfiguratorBase
     }
 
     public override bool IsTextPhotoIndexNsfw(int photoIndex) => photoIndex.InInclusiveRange(2,3);
+
+    /// <inheritdoc/>
+    public override void ConfigureGirl(GirlBodyDataMod hpBody, AssetBundle assetBundle, HpSpriteCache sprites, HpAudioCache audio, HpItemCache items)
+    {
+        ConfigureGirlDefault(hpBody, assetBundle, sprites, audio, items, Items.Momo);
+    }
 }

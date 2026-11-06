@@ -83,10 +83,11 @@ public class CelesteConfigurator : GirlConfiguratorBase
 
     private static readonly (RelativeId, int, string name, string description)[] _baggageItemIds =
     [
-        //(Items.Celeste.Baggage1, 9262), // Space Helmet
-        //(Items.Celeste.Baggage2, 9263), // Moonrock
-        //(Items.Celeste.Baggage3, ), // TODO
+        (Items.Celeste.Baggage1, 9262, "Baggage A", "Placeholder"), // Space Helmet
+        (Items.Celeste.Baggage2, 9263, "Baggage B", "Placeholder"), // Moonrock
+        (Items.Celeste.Baggage3, 9263, "Baggage C", "Placeholder"), // TODO
     ];
+
 
     protected override IEnumerable<(RelativeId to, RelativeId from)> LocationGreetingMap
         => _locationGreetingMap;
@@ -155,4 +156,10 @@ public class CelesteConfigurator : GirlConfiguratorBase
     }
 
     public override bool IsTextPhotoIndexNsfw(int photoIndex) => photoIndex.InInclusiveRange(2,3);
+
+    /// <inheritdoc/>
+    public override void ConfigureGirl(GirlBodyDataMod hpBody, AssetBundle assetBundle, HpSpriteCache sprites, HpAudioCache audio, HpItemCache items)
+    {
+        ConfigureGirlDefault(hpBody, assetBundle, sprites, audio, items, Items.Celeste);
+    }
 }

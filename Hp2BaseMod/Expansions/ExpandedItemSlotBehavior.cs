@@ -5,7 +5,8 @@ using Hp2BaseMod.Extension;
 namespace Hp2BaseMod;
 
 /// <summary>
-/// Allows tooltips to be displayed when ui is offset outside the hub.
+/// Allows tooltips to be displayed when ui is offset outside the hub, and replaces the base game's tooltip so it never asks the
+/// location for its type.
 /// Use <see cref="ModInterface.State.CellphoneOnLeft"/> to control ui position
 /// </summary>
 [Expansion(typeof(ItemSlotBehavior))]
@@ -27,31 +28,35 @@ public partial class ExpandedItemSlotBehavior
 
     public event Action PreShowEvent;
 
+    /// <summary>
+    /// Replaces the base game's tooltip, which asked LocationManager.AtLocationType whether it was at the hub. That throws,
+    /// and the base method must never run, so every case is handled here: the tooltip goes east when the slot asks for it
+    /// on the hub and the ui is offset like it is there, otherwise it uses the slot's own direction.
+    /// </summary>
     private bool ShowTooltip()
     {
-        if (_core.showTooltip
-            && _core.eastOnHub
-            && ModInterface.State.CellphoneOnLeft)
+        var itemDef = f_itemDefinition.GetValue<ItemDefinition>(_core);
+
+        if (!_core.showTooltip || itemDef == null)
         {
-            var itemDef = f_itemDefinition.GetValue<ItemDefinition>(_core);
-
-            if (itemDef != null)
-            {
-                var tooltip = f_tooltip.GetValue<UiTooltipItem>(_core);
-                tooltip.Populate(itemDef, CardinalDirection.EAST);
-                PreShowEvent?.Invoke();
-
-                tooltip.Show(_core.transform.position,
-                    MathUtils.DirectionToVector(CardinalDirection.EAST)
-                    * (f_offsetOverride.GetValue<bool>(_core)
-                        ? f_tooltipOffset.GetValue<int>(_core)
-                        : 20f),
-                    false);
-
-                return false;
-            }
+            return false;
         }
 
-        return true;
+        var direction = _core.eastOnHub && ModInterface.State.CellphoneOnLeft
+            ? CardinalDirection.EAST
+            : _core.direction;
+
+        var tooltip = f_tooltip.GetValue<UiTooltipItem>(_core);
+        tooltip.Populate(itemDef, direction);
+        PreShowEvent?.Invoke();
+
+        tooltip.Show(_core.transform.position,
+            MathUtils.DirectionToVector(direction)
+                * (f_offsetOverride.GetValue<bool>(_core)
+                    ? f_tooltipOffset.GetValue<int>(_core)
+                    : 20f),
+            false);
+
+        return false;
     }
 }

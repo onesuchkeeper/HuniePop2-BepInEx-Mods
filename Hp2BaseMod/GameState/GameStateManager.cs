@@ -16,39 +16,38 @@ public class GameStateManager
     public IGameState CurrentState => _currentState;
     private IGameState _currentState;
 
-    private Dictionary<RelativeId, IGameState> _states;
-
-    public void Init(Dictionary<RelativeId, IGameState> states)
-    {
-        _states = states;
-    }
-
-    /// <summary>
-    /// Switches the active state to the given Id.
-    /// </summary>
-    public void ChangeState(RelativeId stateId)
-    {
-        if (!_states.TryGetValue(stateId, out var state))
-        {
-            ModInterface.Log.Error($"Attempted to transition to unregistered GameState '{stateId}'.");
-            return;
-        }
-        ChangeState(state);
-    }
-
     /// <summary>
     /// Switches the active state to the given state instance.
     /// </summary>
-    public void ChangeState(IGameState nextState)
+    public void ChangeState(IGameStatePayload payload)
     {
-        if (nextState == null || _currentState == nextState) return;
+        var args = new ModEvents.ResolveStatePayloadArgs() 
+        { 
+            Payload = payload 
+        };
 
-        var previousStateId = _currentState?.Id;
-        ModInterface.Log.Message($"GameState Transition: {previousStateId.ToString() ?? "NONE"} -> {nextState.Id}");
+        ModInterface.Events.NotifyResolveStatePayload(args);
 
-        _currentState?.Exit();
-        _currentState = nextState;
-        _currentState.Enter();
-        GameStateChanged?.Invoke((previousStateId, _currentState.Id));
+        payload = args.Payload;
+
+        if (payload == null) return;
+
+        var prevStateId = _currentState?.Id;
+        var previousStateName = prevStateId?.ToString() ?? "NONE";
+        _currentState?.Dispose();
+
+        _currentState = ModInterface.GameData.GameStates.Create(payload);
+
+        if (_currentState == null)
+        {
+            ModInterface.Log.Error("Failed to create state, defaulting to hub");
+            _currentState = ModInterface.GameData.GameStates.Create(new GameStateHub.Payload());
+
+            if (_currentState == null) throw new Exception("Failed to create hub state!");
+        }
+
+        ModInterface.Log.Message($"GameState Transition: {previousStateName} -> {_currentState.Id}");
+
+        GameStateChanged?.Invoke((prevStateId, _currentState.Id));
     }
 }

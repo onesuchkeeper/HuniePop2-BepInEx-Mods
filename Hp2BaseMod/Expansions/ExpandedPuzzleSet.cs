@@ -158,8 +158,11 @@ namespace Hp2BaseMod
                     ZeroedValue = absoluteRewardAmount == 0
                 };
 
+                
+
                 if (!Game.Session.Puzzle.puzzleStatus.bonusRound 
-                    && !Game.Session.Puzzle.puzzleStatus.IsTutorial() 
+                    && ModInterface.GameState.CurrentState is IPuzzleState asPuzzleState
+                    && asPuzzleState.CreatesReplacementTokens
                     && !match.flatMatch && i == 0)
                 {
                     if (matchModifier.replaceDefinition != null && matchModifier.replacePriority)

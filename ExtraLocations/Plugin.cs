@@ -127,7 +127,9 @@ public class Plugin : BaseUnityPlugin
             {
                 DefaultStyle = Styles.Water,
                 LocationName = "Hidden Waterfall",
-                LocationType = LocationType.SIM,
+                AllowSim = true,
+                AllowNonStop = false,
+                AllowNormal = false,
                 BgMusic = new AudioKlipInfo()
                 {
                     AudioClipInfo = waterfallBgMusic,
@@ -169,7 +171,6 @@ public class Plugin : BaseUnityPlugin
         {
             DefaultStyle = Styles.Activity,
             LocationName = "Volcano",
-            LocationType = LocationType.DATE,
             NonStopOptionText = "Kyu. The [[highlight]VOLCANO]. IT'S A VOLCANO KYU. FUCKING FUCKIN' IN A FUCKING VOLCANO.",
             BgMusic = new AudioKlipInfo()
             {
@@ -182,6 +183,7 @@ public class Plugin : BaseUnityPlugin
             },
             AllowNonStop = true,
             AllowNormal = true,
+            AllowSim = false,
             PostBoss = true,
             DateTimes = new List<ClockDaytimeType>() {
                 ClockDaytimeType.NIGHT
@@ -192,7 +194,6 @@ public class Plugin : BaseUnityPlugin
         {
             DefaultStyle = Styles.Relaxing,
             LocationName = "Hotel Room",
-            LocationType = LocationType.DATE,
             NonStopOptionText = "I dunno, I guess [[highlight]HERE] is good.",
             BgMusic = new AudioKlipInfo()
             {
@@ -205,6 +206,7 @@ public class Plugin : BaseUnityPlugin
             },
             AllowNonStop = true,
             AllowNormal = true,
+            AllowSim = false,
             PostBoss = true,
             DateTimes = new List<ClockDaytimeType>() {
                 ClockDaytimeType.NIGHT
@@ -215,7 +217,6 @@ public class Plugin : BaseUnityPlugin
         {
             DefaultStyle = Styles.Activity,
             LocationName = "Space",
-            LocationType = LocationType.DATE,
             NonStopOptionText = "Hey, is [[highlight]SPACE] on the table? How the hell did we get there anyways?",
             BgMusic = new AudioKlipInfo()
             {
@@ -232,6 +233,7 @@ public class Plugin : BaseUnityPlugin
             },
             AllowNormal = false,
             AllowNonStop = true,
+            AllowSim = false,
             PostBoss = true,
             DateTimes = new List<ClockDaytimeType>() {
                 ClockDaytimeType.MORNING,
@@ -245,7 +247,6 @@ public class Plugin : BaseUnityPlugin
         {
             DefaultStyle = Styles.Activity,
             LocationName = "Airplane Bathroom",
-            LocationType = LocationType.DATE,
             NonStopOptionText = "I think the [[highlight]AIRPLANE BATHROOM] may have awoken something in me... Not sure how I feel about that...",
             BgMusic = new AudioKlipInfo()
             {
@@ -262,6 +263,7 @@ public class Plugin : BaseUnityPlugin
             },
             AllowNormal = false,
             AllowNonStop = true,
+            AllowSim = false,
             PostBoss = false,
             DateTimes = new List<ClockDaytimeType>() {
                 ClockDaytimeType.MORNING,
@@ -276,7 +278,6 @@ public class Plugin : BaseUnityPlugin
         {
             DefaultStyle = Styles.Activity,
             LocationName = "Airplane Cabin",
-            LocationType = LocationType.DATE,
             NonStopOptionText = "Something about the cramped quarters and needless expense of a date in an [[highlight]AIRPLANE CABIN] just gets me going.",
             BgMusic = new AudioKlipInfo()
             {
@@ -293,6 +294,7 @@ public class Plugin : BaseUnityPlugin
             },
             AllowNormal = false,
             AllowNonStop = true,
+            AllowSim = false,
             PostBoss = false,
             DateTimes = new List<ClockDaytimeType>() {
                 ClockDaytimeType.MORNING,
@@ -307,7 +309,6 @@ public class Plugin : BaseUnityPlugin
         {
             DefaultStyle = Styles.Water,
             LocationName = "Poolside",
-            LocationType = LocationType.DATE,
             NonStopOptionText = "Maybe a trip to the [[highlight]POOLSIDE]?",
             BgMusic = new AudioKlipInfo()
             {
@@ -325,6 +326,7 @@ public class Plugin : BaseUnityPlugin
             PostBoss = false,
             AllowNormal = true,
             AllowNonStop = true,
+            AllowSim = false,
             DateTimes = new List<ClockDaytimeType>(){
                 ClockDaytimeType.NIGHT
             }
@@ -335,7 +337,6 @@ public class Plugin : BaseUnityPlugin
         {
             DefaultStyle = Styles.Romantic,
             LocationName = "Your Apartment",
-            LocationType = LocationType.DATE,
             NonStopOptionText = "I'm starting to get a little homesick, with some fairy magic we could pop on over to [[highlight]MY APARTMENT] right?",
             BgMusic = new AudioKlipInfo()
             {
@@ -353,6 +354,7 @@ public class Plugin : BaseUnityPlugin
             PostBoss = false,
             AllowNormal = false,
             AllowNonStop = true,
+            AllowSim = false,
             DateTimes = new List<ClockDaytimeType>() {
                 ClockDaytimeType.EVENING,
                 ClockDaytimeType.NIGHT

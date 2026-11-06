@@ -88,7 +88,7 @@ public class HpExtraction : BaseExtraction
         if (itemFile != null
             && collectionData.TryGetValue("ItemIconsSpriteCollection", out var itemIconSpriteCollection))
         {
-            itemCache.Extract(itemFile, _hpGirlConfigs.Values.SelectMany(x => x.ExtractItemIds).Concat([(Items.WeirdThing, 9167)]), itemIconSpriteCollection);
+            itemCache.Extract(itemFile, _hpGirlConfigs.Values.SelectMany(x => x.ExtractItemIds).Concat([(Items.WeirdThing, 9184)]), itemIconSpriteCollection);
         }
         else
         {
@@ -199,6 +199,7 @@ public class HpExtraction : BaseExtraction
         mod.CategoryPrefix = "Misc";
         mod.TooltipColorIndex = 0;
         mod.StoreSectionPreference = true;
+        mod.ItemStoreHandlerId = ItemTypes.Misc;
         ModInterface.DataMod.AddDataMod(mod);
     }
 }

@@ -1,8 +1,13 @@
+// Hp2BaseMod 2026, By OneSuchKeeper
+
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace Hp2BaseMod;
 
+/// <summary>
+/// Base abstract implementation of <see cref="IPuzzleResource"/>
+/// </summary>
 public abstract class BasePuzzleResource : IPuzzleResource
 {
     protected readonly string _name;
@@ -14,13 +19,16 @@ public abstract class BasePuzzleResource : IPuzzleResource
         _sign = sign;
     }
 
+    ///<inheritdoc/>
     public abstract RelativeId Id { get; }
 
+    ///<inheritdoc/>
     public abstract bool AddResourceValue(
         int value, 
         ExpandedPuzzleStatus puzzleStatus, 
         PuzzleStatusGirl puzzleStatusGirl);
 
+    ///<inheritdoc/>
     public abstract int CalculateMatchReward(
         ExpandedUiPuzzleGrid uiPuzzleGrid, 
         ExpandedAilmentManager ailmentManager, 
@@ -31,22 +39,26 @@ public abstract class BasePuzzleResource : IPuzzleResource
         PuzzleStatusGirl statusGirl, 
         List<UiPuzzleSlot> orderedMatchSlots);
 
+    ///<inheritdoc/>
     public virtual int GetResourceValue(
         ExpandedPuzzleStatus puzzleStatus, 
         PuzzleStatusGirl puzzleStatusGirl, 
         bool maxVal = false) => 0;
 
+    ///<inheritdoc/>
     public virtual bool IsMostFav(PuzzleStatusGirl statusGirl) => false;
 
+    ///<inheritdoc/>
     public virtual bool IsLeastFav(PuzzleStatusGirl statusGirl) => false;
 
+    ///<inheritdoc/>
     public virtual EnergyDefinition GetEnergyDefinition(PuzzleStatusGirl statusGirl) => null;
 
-    public virtual int CalculateRewardPortion(int totalRewardAmount, int count, int tokenIndex)
-    {
-        return Mathf.CeilToInt(totalRewardAmount / (float)(count - tokenIndex));
-    }
+    ///<inheritdoc/>
+    public virtual int CalculateRewardPortion(int totalRewardAmount, int count, int tokenIndex) 
+        => Mathf.CeilToInt(totalRewardAmount / (float)(count - tokenIndex));
 
+    ///<inheritdoc/>
     public virtual void HandleReplaceDefinition(
         int absoluteRewardAmount, 
         PuzzleMatch match, 
@@ -63,6 +75,7 @@ public abstract class BasePuzzleResource : IPuzzleResource
         }
     }
 
+    ///<inheritdoc/>
     public AilmentTriggerArgs.PreMatchReward NotifyPreMatch(
         ExpandedUiPuzzleGrid uiPuzzleGrid, 
         ExpandedAilmentManager ailmentManager, 
@@ -90,6 +103,7 @@ public abstract class BasePuzzleResource : IPuzzleResource
         return args;
     }
 
+    ///<inheritdoc/>
     public virtual (string splashText, string burstText) GetLabelText(
         int resourceValue,
         bool bonusRound = false)

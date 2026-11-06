@@ -2,8 +2,12 @@ using Hp2BaseMod;
 
 namespace SingleDate;
 
+/// <summary>
+/// Ids of the photos this mod adds. The default sex photo is used by single pairs, and some girls have their own sex photo. All ids are local to this mod.
+/// </summary>
 public static class Photos
 {
+    /// <summary>Sex photo for pairs whose girl has none of her own. (Local id -1.)</summary>
     public static RelativeId DefaultSex => _defaultSex;
     private static readonly RelativeId _defaultSex = new RelativeId(Plugin.ModId, -1);
 

@@ -6,10 +6,17 @@ using Hp2BaseMod.Utility;
 
 namespace SingleDate;
 
+/// <summary>
+/// Defines "Nobody", the empty girl used as girl one of every single pair. She is a special character with every
+/// sprite empty, so she is never visible, and she is skipped by things like save data (see
+/// <see cref="SingleSaveFile.GetGirl(RelativeId)"/>).
+/// </summary>
 internal static class GirlNobody
 {
+    /// <summary>Adds the Nobody girl with one body, expression, hairstyle and outfit that are all empty.</summary>
     internal static void AddDataMods()
     {
+        // One empty part reused for every slot of the girl, with local id 0.
         var emptyPartId = new RelativeId(State.ModId, 0);
         var emptySpriteInfo = new SpriteInfoInternal("EmptySprite");
 
@@ -22,13 +29,16 @@ internal static class GirlNobody
             SpriteInfo = emptySpriteInfo
         };
 
+        // Base game's neutral expression id, used as Nobody's only expression.
         var neutralExpressionId = new RelativeId(-1, (int)GirlExpressionType.NEUTRAL);
 
         ModInterface.DataMod.AddDataMod(new GirlDataMod(Girls.Nobody, InsertStyle.replace)
         {
             GirlName = "Nobody",
+            // Marks her as a special character, this mod's save data skips these (see SingleSaveFile.GetGirl).
             SpecialCharacter = true,
 
+            // Favorite and least favorite have to be something, Talent is arbitrary.
             FavoriteAffectionId = Hp2BaseMod.PuzzleAffectionId.Talent,
             LeastFavoriteAffectionId = Hp2BaseMod.PuzzleAffectionId.Talent,
 
@@ -77,6 +87,7 @@ internal static class GirlNobody
 
             HasAltStyles = false,
 
+            // Empty sprites everywhere she could be shown in the cellphone.
             CellphoneHead = emptySpriteInfo,
             CellphoneHeadAlt = emptySpriteInfo,
             CellphoneMiniHead = emptySpriteInfo,

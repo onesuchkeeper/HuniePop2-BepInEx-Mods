@@ -54,7 +54,8 @@ public class DataModRegistry
     private List<IGameDataMod<TokenDefinition>> _tokenDataMods = new List<IGameDataMod<TokenDefinition>>();
 
 
-    private Dictionary<RelativeId, IGameState> _gameStates = new();
+    private GameStateFactoryRegistry _gameStates = new();
+    private Dictionary<RelativeId, IPuzzleStateFactory> _puzzleStates = new();
     private Dictionary<RelativeId, UiDollSpecialEffect> _dollSpecialEffects = new();
     private Dictionary<RelativeId, IPuzzleResource> _puzzleResources = new();
     private Dictionary<RelativeId, ITokenHandler> _tokenHandlers = new();
@@ -79,6 +80,7 @@ public class DataModRegistry
         _dataModsApplied = true;
 
         ModInterface.Events.NotifyPreDataMods();
+
         gameDefinitionProvider = new GameDefinitionProvider(
             Game.Data, 
             _itemStoreHandlers, 
@@ -89,6 +91,7 @@ public class DataModRegistry
             _puzzleStatusGirlStates,
             _dollSpecialEffects,
             _gameStates,
+            _puzzleStates,
             _expDisplays);
         GameDataModder.Mod(Game.Data, gameDefinitionProvider);
 
@@ -117,6 +120,7 @@ public class DataModRegistry
         _itemStoreHandlers = null;
         _expDisplays = null;
         _gameStates = null;
+        _puzzleStates = null;
 
         GC.Collect();
         return true;
@@ -285,13 +289,25 @@ public class DataModRegistry
         _itemGiftHandlers[id] = itemGiftHandler;
     }
 
-    public void AddData(RelativeId id, IGameState gameState)
+    public void AddData<T>(RelativeId id, IGameStateFactory<T> gameStateFactory)
+        where T : IGameStatePayload
     {
-        if (gameState == null)
+        if (gameStateFactory == null)
         {
             ModInterface.Log.Error($"Attempted to add {nameof(IGameState)} with id {id}, but instance was null.");
             return;
         }
-        _gameStates[id] = gameState;
+
+        _gameStates.Register(id, gameStateFactory);
+    }
+
+    public void AddData(RelativeId id, IPuzzleStateFactory puzzleState)
+    {
+        if (puzzleState == null)
+        {
+            ModInterface.Log.Error($"Attempted to add {nameof(IPuzzleStateFactory)} with id {id}, but instance was null.");
+            return;
+        }
+        _puzzleStates[id] = puzzleState;
     }
 }

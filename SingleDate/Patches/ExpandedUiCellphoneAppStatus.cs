@@ -10,6 +10,7 @@ using UnityEngine.UI;
 
 namespace SingleDate;
 
+/// <summary>Hooks the cellphone's status app so it can be rebuilt for single dates when it starts.</summary>
 [HarmonyPatch(typeof(UiCellphoneAppStatus))]
 internal static class UiCellphoneAppStatusPatch
 {
@@ -28,17 +29,30 @@ internal static class UiCellphoneAppStatusPatch
     }
 }
 
+/// <summary>
+/// Rebuilds the cellphone's status app (the two portraits with their stamina, baggage and relationship) for a single
+/// date. The left portrait, relationship slot and left side are removed. In their place go a ring of hearts showing
+/// the girl's single date level (a row of hearts that fill as she levels up) around where the left portrait was,
+/// and an animated charm picture of the girl below them. Nothing changes on double dates.
+/// </summary>
 internal class ExpandedUiCellphoneAppStatus : UiPatchController<UiCellphoneAppStatus>
 {
+    // How far from the center of the left portrait the hearts are placed, in UI pixels. The hearts form a half circle above it.
     private const float HEART_DIST = 96;
+    // Size of each heart image.
     private static readonly Vector3 HEART_SIZE = new Vector3(100, 100);
-    private static readonly Vector3 HEART_OFFSET = new Vector3(37.5f, -20 + 16, 0);
-    private static readonly Vector3 CHARM_OFFSET = new Vector3(37.5f, -30 - 110, 0);
+    // Where the center of the heart half circle is, relative to the left portrait. 37.5 pixels right, 4 down.
+    private static readonly Vector3 HEART_OFFSET = new Vector3(37.5f, -4, 0);
+    // Where the charm's pivot is, relative to the left portrait: 37.5 pixels right (centered on the heart ring) and 140 down.
+    private static readonly Vector3 CHARM_OFFSET = new Vector3(37.5f, -140, 0);
+    // Size of the charm image.
     private static readonly Vector2 CHARM_SIZE = new Vector2(220, 220);
 
+    // One expansion per status app instance.
     private static Dictionary<UiCellphoneAppStatus, ExpandedUiCellphoneAppStatus> _expansions
         = new Dictionary<UiCellphoneAppStatus, ExpandedUiCellphoneAppStatus>();
 
+    /// <summary>Gets the expansion for the status app, creating it the first time.</summary>
     public static ExpandedUiCellphoneAppStatus Get(UiCellphoneAppStatus uiCellphoneAppPair)
     {
         if (!_expansions.TryGetValue(uiCellphoneAppPair, out var expansion))
@@ -50,9 +64,12 @@ internal class ExpandedUiCellphoneAppStatus : UiPatchController<UiCellphoneAppSt
         return expansion;
     }
 
+    // ButtonBehavior._image (private), the portrait's image.
     private static readonly FieldInfo f_image = AccessTools.Field(typeof(ButtonBehavior), "_image");
 
+    // The girl being displayed (the right girl).
     private RelativeId _girlId;
+    // The charm image, the sequence that animates it, and the context passed to its animations. The hearts have a looping sequence each.
     private RectTransform _charmTransform;
     private List<Sequence> _heartSequences = new List<Sequence>();
     private Sequence _charmSequence;
@@ -60,11 +77,15 @@ internal class ExpandedUiCellphoneAppStatus : UiPatchController<UiCellphoneAppSt
 
     public ExpandedUiCellphoneAppStatus(UiCellphoneAppStatus uiCellphoneAppStatus) : base(uiCellphoneAppStatus) {}
 
+    /// <summary>
+    /// Rebuilds the status app for a single date, if this is one. Does nothing otherwise.
+    /// </summary>
     protected override void Apply()
     {
         if (!State.IsSingleDate) return;
         ModInterface.Log.Message("Using single date UiCellphoneAppStatus");
 
+        // Baggage: bring each right baggage slot halfway to the matching left slot, so the right slots are in the middle with the left side gone.
         // move right things more to the center
         foreach (var left_right in _core.baggageSlotsLeft
             .Reverse()
@@ -79,14 +100,17 @@ internal class ExpandedUiCellphoneAppStatus : UiPatchController<UiCellphoneAppSt
         var rightPortraitRect = _core.statusPortraitRight.GetComponent<RectTransform>();
         var relationshipSlotRect = _core.relationshipSlot.GetComponent<RectTransform>();
 
+        // Put the right sentiment roller at the left passion roller's position.
         // Align sentiment roller to passion roller
         var sentimentRect = _core.sentimentRollerRight.GetComponent<RectTransform>();
         var passionRect = _core.passionRollerLeft.GetComponent<RectTransform>();
         sentimentRect.anchoredPosition = passionRect.anchoredPosition;
 
+        // The girl is the right girl. (The left and relationship slots are removed at the end of this method.)
         // Remove left and relationship slot
         _girlId = ModInterface.Data.GetDataId(GameDataType.Girl, Game.Session.Puzzle.puzzleStatus.girlStatusRight.girlDefinition.id);
 
+        // Stamina isn't used in single date puzzles (see SingleDateAilment), so detach the meter and shift the portrait left by half the meter's width to compensate.
         // Hide stamina on dates
         if (ModInterface.GameState.CurrentState.Id == GameStateId.Puzzle)
         {
@@ -95,6 +119,8 @@ internal class ExpandedUiCellphoneAppStatus : UiPatchController<UiCellphoneAppSt
             rightPortraitRect.anchoredPosition -= new Vector2(staminaRect.sizeDelta.x / 2, 0);
         }
 
+        // A copy of the portrait art is put where the left portrait was, as a backdrop for the charm.
+        // The charm, with its pivot at the bottom so animations squash and jump from its base.
         // Charm background
         var charmBG_go = new GameObject("CharmBG");
         var charmBG_transform = charmBG_go.AddComponent<RectTransform>();
@@ -107,6 +133,11 @@ internal class ExpandedUiCellphoneAppStatus : UiPatchController<UiCellphoneAppSt
         charmBG_transform.SetParent(canvasRect, false);
         charmBG_transform.anchoredPosition = leftPortraitRect.anchoredPosition + new Vector2(37.5f, 0);
 
+        // Hearts: one per single date level, laid out in a half circle (see MakeHeart).
+        // - Bonus round: all hearts are the horny icon.
+        // - At max level (lovers): all hearts are the lovers icon (relationshipIcons[3]).
+        // - Otherwise: the levels not yet earned are the first, empty hearts (relationshipIcons[0]), then the earned ones
+        //   (relationshipIcons[2], the attracted icon) fill the rest.
         // Build hearts
         var saveGirl = State.SaveFile.GetGirl(_girlId);
 
@@ -153,11 +184,17 @@ internal class ExpandedUiCellphoneAppStatus : UiPatchController<UiCellphoneAppSt
 
         MakeCharmSequence();
 
+        // Finally detach the left side (its canvas group, portrait and the relationship slot) so it's no longer displayed.
         _core.canvasGroupLeft.transform.SetParent(null);
         _core.statusPortraitLeft.transform.SetParent(null);
         _core.relationshipSlot.transform.SetParent(null);
     }
 
+    /// <summary>
+    /// Starts a new random charm animation sequence. Called once to begin, and again every time a sequence completes so
+    /// the charm keeps animating. Sequences are built to fill a 10 point budget (see <see cref="CharmAnimationRegistry"/>)
+    /// and end with a bounce back to rest, facing the current direction.
+    /// </summary>
     public void MakeCharmSequence()
     {
         if (_charmSequence != null)
@@ -174,7 +211,7 @@ internal class ExpandedUiCellphoneAppStatus : UiPatchController<UiCellphoneAppSt
             };
         }
 
-        _charmSequence = Plugin.CharmAnimationRegistry.CreateSequence(_charmContext, 10f);
+        _charmSequence = Plugin.CharmAnimationRegistry.CreateSequence(_charmContext, 15f);
         _charmSequence.OnComplete(MakeCharmSequence);
 
         _charmSequence.Append(_charmTransform.DOLocalJump(_charmTransform.localPosition, 20f, 2, 3f).SetEase(Ease.OutBounce));
@@ -185,6 +222,7 @@ internal class ExpandedUiCellphoneAppStatus : UiPatchController<UiCellphoneAppSt
         Game.Manager.Time.Play(_charmSequence, _core.relationshipSlot.pauseDefinition, 0f);
     }
 
+    /// <summary>Stops every animation and forgets the expansion when the status app is destroyed.</summary>
     protected override void OnCleanup()
     {
         foreach (var sequence in _heartSequences)
@@ -200,6 +238,15 @@ internal class ExpandedUiCellphoneAppStatus : UiPatchController<UiCellphoneAppSt
         _expansions.Remove(_core);
     }
 
+    /// <summary>
+    /// Creates one heart on the half circle above the left portrait and starts its bobbing animation (up 8 pixels, then
+    /// elastic back, then wait). Each heart starts a little later (0.8 seconds each) than the one before so they bob in a wave.
+    /// </summary>
+    /// <param name="sprite">The heart's icon.</param>
+    /// <param name="index">Which heart this is, left to right.</param>
+    /// <param name="radAllotment">The angle each heart gets of the half circle (pi divided by the number of hearts).</param>
+    /// <param name="pauseDefinition">What the animation pauses with.</param>
+    /// <param name="parentRect">The portrait the half circle is centered on.</param>
     private void MakeHeart(Sprite sprite, int index, float radAllotment, PauseDefinition pauseDefinition, RectTransform parentRect)
     {
         var heart_go = new GameObject($"heart_{index}");
@@ -210,6 +257,7 @@ internal class ExpandedUiCellphoneAppStatus : UiPatchController<UiCellphoneAppSt
 
         heart_rectTransform.SetParent(parentRect.parent, false); // same canvas as portraits
 
+        // Place the heart in the middle of its slice of the half circle.
         var rads = radAllotment * (index + 0.5f);
         heart_rectTransform.anchoredPosition = parentRect.anchoredPosition
             + (Vector2)HEART_OFFSET

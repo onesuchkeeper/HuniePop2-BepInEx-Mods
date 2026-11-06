@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using HarmonyLib;
 using Hp2BaseMod.Extension;
@@ -8,7 +9,7 @@ using UnityEngine;
 namespace Hp2BaseMod;
 
 [Expansion(typeof(LocationManager))]
-[Deprecates(nameof(LocationManager.AtLocationType), $"Check {nameof(ModInterface)}.{nameof(ModInterface.GameState)}.{nameof(ModInterface.GameState.CurrentState)}.{nameof(ModInterface.GameState.CurrentState.Id)} instead.")]
+[Deprecates(nameof(LocationManager.AtLocationType), $"Removed, and it throws. There is no location type: ask {nameof(ModInterface)}.{nameof(ModInterface.GameState)}.{nameof(ModInterface.GameState.CurrentState)} what you need to know (see {nameof(IGameState)}).")]
 //Depreciates _transitions and _currentTransitionType
 public partial class ExpandedLocationManager
 {
@@ -38,9 +39,10 @@ public partial class ExpandedLocationManager
         private static bool OnLocationSettled(LocationManager __instance)
             => ExpandedLocationManager.Get(__instance).LocationSettled_Prefix();
 
+        // Replaces the base game's ResetDolls, which styles the dolls from the location's type.
         [HarmonyPatch(nameof(LocationManager.ResetDolls))]
-        [HarmonyPostfix]
-        private static void ResetDolls(LocationManager __instance, bool unload = false)
+        [HarmonyPrefix]
+        private static bool ResetDolls(LocationManager __instance, bool unload = false)
             => ExpandedLocationManager.Get(__instance).ResetDolls_Prefix(unload);
 
         [HarmonyPatch("OnDestroy")]
@@ -50,8 +52,8 @@ public partial class ExpandedLocationManager
 
         [HarmonyPatch(nameof(LocationManager.AtLocationType))]
         [HarmonyPrefix]
-        private static bool AtLocationType(LocationManager __instance, LocationType[] locationTypes, out bool __result)
-            => ExpandedLocationManager.Get(__instance).AtLocationType_Prefix(locationTypes, out __result);
+        private static bool AtLocationType(LocationManager __instance)
+            => ExpandedLocationManager.Get(__instance).AtLocationType_Prefix();
 
         [HarmonyPatch("OnArrivalComplete")]
         [HarmonyPrefix]
@@ -74,18 +76,13 @@ public partial class ExpandedLocationManager
     public event Action<LocationSettledArgs> PreLocationSettled;
     public event Action<LocationSettledArgs> PostLocationSettled;
     
+    public event Action<LocationArriveCancelArgs> TryLocationArrive;
     public event Action<LocationArriveArgs> PreLocationArrive;
-
-    /// <summary>
-    /// Fires once per arrival, after the transition is committed to playerFile
-    /// and any pending state change (see <see cref="GameStateLocation.ConsumePendingState"/>)
-    /// has already taken effect - so this always reaches the destination state,
-    /// which does its arrival setup here (puzzle status, dolls, cutscenes, etc).
-    /// </summary>
     public event Action<LocationArriveArgs> LocationArrived;
+    public event Action<ArrivalCompletedArgs> ArrivalCompleted;
+
     public event Action<LocationDepartArgs> PreLocationDepart;
     public event Action<ResolveDollStylesArgs> ResolveDollStyles;
-    public event Action<ArrivalCompletedArgs> ArrivalCompleted;
 
     public event Action<LocationArriveSequenceArgs> LocationArriveSequence;
     internal void NotifyLocationArriveSequence(LocationArriveSequenceArgs sequence) => LocationArriveSequence?.Invoke(sequence);
@@ -93,8 +90,36 @@ public partial class ExpandedLocationManager
     public event Action<LocationDepartSequenceArgs> LocationDepartSequence;
     internal void NotifyLocationDepartSequence(LocationDepartSequenceArgs sequence) => LocationDepartSequence?.Invoke(sequence);
 
+    /// <summary>
+    /// Sets the location manager's current location without raising any event, changing game state, running a transition or
+    /// processing any bundle (settling keeps using <see cref="_arrivedLocation"/>).
+    /// For callers that fake a location change visually (see <see cref="ModGameData.ChangeLocationCutsceneStep"/>) and need the
+    /// manager to agree with what the player sees.
+    /// </summary>
+    internal void SetCurrentLocationSilently(LocationDefinition locationDef)
+    {
+        _currentLocation = locationDef;
+    }
+
+    /// <summary>
+    /// The travel-flag cleanup that <see cref="OnArrivalComplete_Prefix"/> performs, for callers that run their own transition.
+    /// </summary>
+    internal void EndTransitionlessTravel()
+    {
+        _isTraveling = false;
+        _bgMusicOverride = null;
+    }
+
     private CutsceneDefinition _baseCutsceneMeeting;
     private UiWindow _actionBubblesWindow;
+
+    /// <summary>
+    /// The location the most recent real arrival (<see cref="Arrive_Prefix"/>) was for. Settling processes THIS location's depart
+    /// bundles rather than whatever location is current when the settle happens: a visual-only location change during the arrival
+    /// cutscene (<see cref="ModGameData.ChangeLocationCutsceneStep"/>) updates the current location, but must not cause the new
+    /// location's bundles to run.
+    /// </summary>
+    private LocationDefinition _arrivedLocation;
 
     /// <summary>
     /// The default anchored position of the puzzle grid, captured on first arrival
@@ -115,54 +140,18 @@ public partial class ExpandedLocationManager
         SetTransition(new ModLocationTransitionNormal());
     }
 
-    private static RelativeId LogUnhandledAndFallback(LocationType locationType)
+    /// <summary>
+    /// Nothing may ask the location manager what kind of place it is: there is no location type, only game states. Everything
+    /// the base game decided from it is asked of the current <see cref="IGameState"/> instead. This is patched in only so that
+    /// a caller that was missed fails loudly, with the stack that made the call.
+    /// </summary>
+    private bool AtLocationType_Prefix()
     {
-        ModInterface.Log.Error($"No GameState mapped for LocationType.{locationType}; defaulting to Sim.");
-        return GameStateId.Sim;
-    }
+        var message = "LocationManager.AtLocationType must not be used, there is no location type. "
+            + "Ask ModInterface.GameState.CurrentState (see IGameState) for what you need instead.";
 
-    //Treat this as an "IsInStateType" instead so we don't have to
-    //patch all the ui
-    private bool AtLocationType_Prefix(LocationType[] locationTypes, out bool __result)
-    {
-        var stateId = ModInterface.GameState.CurrentState.Id;
-        foreach (var type in locationTypes)
-        {
-            switch(type)
-            {
-                case LocationType.SIM:
-                    if (stateId == GameStateId.Sim)
-                    {
-                        __result = true;
-                        return false;
-                    }
-                    break;
-                case LocationType.DATE:
-                if (stateId == GameStateId.Puzzle)
-                    {
-                        __result = true;
-                        return false;
-                    }
-                    break;
-                case LocationType.SPECIAL:
-                if (stateId == GameStateId.Special)
-                    {
-                        __result = true;
-                        return false;
-                    }
-                    break;
-                case LocationType.HUB:
-                if (stateId == GameStateId.Hub)
-                    {
-                        __result = true;
-                        return false;
-                    }
-                    break;
-            }
-        }
-
-        __result = false;
-        return false;
+        ModInterface.Log.Error(message + "\n" + new System.Diagnostics.StackTrace());
+        throw new NotSupportedException(message);
     }
 
     private bool Arrive_Prefix(
@@ -191,12 +180,12 @@ public partial class ExpandedLocationManager
             cellphoneOnLeft = false,
             arrivalCutscene = _baseCutsceneMeeting,
             previousLocationDef = previousLocation,
-            Canceled = false
         };
 
-        PreLocationArrive?.Invoke(args);
+        var cancelArgs = new LocationArriveCancelArgs(args);
+        TryLocationArrive?.Invoke(cancelArgs);
 
-        if (args.Canceled)
+        if (cancelArgs.Canceled)
         {
             ModInterface.Log.Message("Arrive canceled");
             return false;
@@ -206,13 +195,22 @@ public partial class ExpandedLocationManager
         // hook, etc). Resolve it now, before anything else, so that by the time
         // LocationArrived fires below, the *destination* state is the one
         // subscribed and doing the arrival setup - not the one we're leaving.
-        if (ModInterface.GameState.CurrentState is GameStateLocation currentState)
+        if (ModInterface.GameState.CurrentState is GameStateLocation currentState
+            && currentState.TryConsumePendingState(out var payload))
         {
-            var pendingState = currentState.ConsumePendingState();
-            if (pendingState.HasValue)
-            {
-                ModInterface.GameState.ChangeState(pendingState.Value);
-            }
+            ModInterface.GameState.ChangeState(payload);
+        }
+
+        var stateBeforeEvent = ModInterface.GameState.CurrentState;
+        PreLocationArrive?.Invoke(args);
+
+        // Events are raised against a snapshot of their handlers: a state entered by a handler does not receive this PreLocationArrive,
+        // and the state it replaced still did. Transitions belong in GameStateLocation.QueueTransition, which is applied above.
+        if (!ReferenceEquals(stateBeforeEvent, ModInterface.GameState.CurrentState))
+        {
+            ModInterface.Log.Warning(
+                $"The game state changed from {stateBeforeEvent?.Id} to {ModInterface.GameState.CurrentState?.Id} while PreLocationArrive was being raised. " +
+                "The new state's PreLocationArrive handlers did not receive this arrival. Queue the transition with GameStateLocation.QueueTransition instead.");
         }
 
         _core.cutsceneMeeting = args.arrivalCutscene ?? _baseCutsceneMeeting;
@@ -229,6 +227,7 @@ public partial class ExpandedLocationManager
         Game.Persistence.playerFile.girlPairDefinition = args.girlPairDef;
         Game.Persistence.playerFile.sidesFlipped = args.sidesFlipped;
         _currentLocation = args.locationDef;
+        _arrivedLocation = args.locationDef;
         _currentGirlPair = args.girlPairDef;
         _currentSidesFlipped = args.sidesFlipped;
         _transitions[_currentTransitionType].Prep();
@@ -253,7 +252,7 @@ public partial class ExpandedLocationManager
                 }
             }
 
-            if (!args.initialArrive && _currentLocation.locationType != LocationType.DATE)
+            if (!args.initialArrive && ModInterface.GameState.CurrentState.AutosavesOnArrival)
             {
                 Game.Persistence.Apply(loadedFile: true);
                 Game.Persistence.SaveGame();
@@ -317,8 +316,8 @@ public partial class ExpandedLocationManager
     //we will still use the _transitions dict. This is because the base
     //game triggers events and depreciating it would mean we have to
     //replace all those events and subscriptions to them thought
-    //so it's simpler just to tread the dict as a single instance.
-    //actually nothing subscribes to depart/arrive, I could replace it TODO
+    //so it's simpler just to treat the dict as a single instance.
+    //actually nothing subscribes to depart/arrive, I could replace it... TODO
     private void SetTransition(LocationTransition transition)
     {
         var currentTransition = _transitions[LocationTransitionType.NORMAL];
@@ -385,6 +384,7 @@ public partial class ExpandedLocationManager
     /// </summary>
     private bool LocationSettled_Prefix()
     {
+        ModInterface.Log.Message("ExpandedLocationManager - LocationSettledPrefix");
         var arrivalCutscene = _arrivalCutscene;
 
         var args = new LocationSettledArgs()
@@ -398,7 +398,7 @@ public partial class ExpandedLocationManager
         _core.actionBubblesWindow = args.actionBubblesWindow ?? _actionBubblesWindow;
 
         _isLocked = false;
-        Game.Session.Logic.ProcessBundleList(_core.currentLocation.departBundleList, false);
+        Game.Session.Logic.ProcessBundleList((_arrivedLocation ?? _core.currentLocation).departBundleList, false);
 
         _arrivalCutscene = null;
 
@@ -409,9 +409,8 @@ public partial class ExpandedLocationManager
 
     /// <summary>
     /// Doll styling is fully delegated to the active IGameState: this just gathers
-    /// the current arrival context and fires ResolveDollStyles. LocationType is no
-    /// longer read anywhere in this method - see SimGameState / DateGameState /
-    /// HubGameState / SpecialGameState for the actual styling algorithms.
+    /// the current arrival context and fires ResolveDollStyles. See the game states
+    /// (GameStateSim, GameStatePuzzle, GameStateHub, GameStateSpecial) for the actual styling algorithms.
     /// </summary>
     private bool ResetDolls_Prefix(bool unload)
     {
@@ -423,10 +422,37 @@ public partial class ExpandedLocationManager
             return false;
         }
 
+        var girlPair = f_currentGirlPair.GetValue(_core) as GirlPairDefinition;
+        var puzzleStatus = Game.Session.Puzzle.puzzleStatus;
+
+        // Who is in the dolls. The base game's ResetDolls did this (and styled them from the location's type), and it no longer runs,
+        // so it is done here and the states style the dolls. A state that wants a girl nobody here loads (the hub) loads her when
+        // ResolveDollStyles is raised.
+        if (!puzzleStatus.isEmpty)
+        {
+            var bossPair = Game.Session.Puzzle.bossGirlPairDefinition;
+            var isBoss = girlPair == bossPair;
+
+            Game.Session.gameCanvas.dollLeft.LoadGirl(puzzleStatus.girlStatusLeft.girlDefinition, -1, -1, -1, isBoss ? bossPair.girlDefinitionOne : null);
+            Game.Session.gameCanvas.dollRight.LoadGirl(puzzleStatus.girlStatusRight.girlDefinition, -1, -1, -1, isBoss ? bossPair.girlDefinitionTwo : null);
+        }
+        else if (girlPair != null)
+        {
+            Game.Session.gameCanvas.dollLeft.LoadGirl(_core.currentGirlLeft, -1, -1, -1, null);
+            Game.Session.gameCanvas.dollRight.LoadGirl(_core.currentGirlRight, -1, -1, -1, null);
+        }
+        else
+        {
+            Game.Session.gameCanvas.dollLeft.UnloadGirl();
+            Game.Session.gameCanvas.dollRight.UnloadGirl();
+        }
+
+        Game.Session.gameCanvas.dollMiddle.UnloadGirl();
+
         var args = new ResolveDollStylesArgs
         {
             Location = f_currentLocation.GetValue(_core) as LocationDefinition,
-            GirlPair = f_currentGirlPair.GetValue(_core) as GirlPairDefinition,
+            GirlPair = girlPair,
             SidesFlipped = f_currentSidesFlipped.GetValue<bool>(_core)
         };
 
@@ -451,7 +477,7 @@ public partial class ExpandedLocationManager
 
         if (_arrivalCutscene != null)
         {
-            Game.Session.Cutscenes.CutsceneCompleteEvent += OnCutsceneComplete;
+            Game.Session.Cutscenes.CutsceneCompleteEvent += OnCutsceneComplete_Hook;
             Game.Session.Cutscenes.StartCutscene(_arrivalCutscene);
         }
         else
@@ -460,5 +486,13 @@ public partial class ExpandedLocationManager
         }
 
         return false;
+    }
+
+    // OnCutsceneComplete forwards to the core's method, which only unsubscribes the core's own delegate. Without unsubscribing this
+    // hook here, every arrival cutscene leaves one more subscription behind and every later cutscene settles the location once per leak.
+    private void OnCutsceneComplete_Hook()
+    {
+        Game.Session.Cutscenes.CutsceneCompleteEvent -= OnCutsceneComplete_Hook;
+        OnCutsceneComplete();
     }
 }

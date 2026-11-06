@@ -3,11 +3,13 @@ using HarmonyLib;
 
 namespace SingleDate;
 
+/// <summary>Fixes the pair name shown for a save file whose current pair is a single pair.</summary>
 [HarmonyPatch(typeof(UiAppSaveFile))]
 internal static class UiAppSaveFilePatch
 {
     private static readonly FieldInfo f_playerFile = AccessTools.Field(typeof(UiAppSaveFile), "_playerFile");
 
+    /// <summary>The label is the names of both girls in the pair, for single pairs it's replaced with just the real girl's name.</summary>
     [HarmonyPatch(nameof(UiAppSaveFile.Refresh))]
     [HarmonyPostfix]
     public static void Refresh(UiAppSaveFile __instance)

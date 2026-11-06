@@ -9,6 +9,7 @@ using UnityEngine.UI;
 
 namespace SingleDate;
 
+/// <summary>Hooks the pairs app's slot so single pairs get their own look and tooltip.</summary>
 [HarmonyPatch(typeof(UiAppPairSlot))]
 internal static class UiAppPairSlotPatch
 {
@@ -33,22 +34,32 @@ internal static class UiAppPairSlotPatch
         => ExpandedUiAppPairSlot.Destroy(__instance);
 }
 
+/// <summary>
+/// Extends a slot in the cellphone's pairs app. Single pairs get a different background (and mouse over background),
+/// the girl's head shifted over to fill the single slot, and a tooltip with her relationship and single date level.
+/// </summary>
 [Expansion(typeof(UiAppPairSlot))]
 public partial class ExpandedUiAppPairSlot
 {
+    // Private fields of the base game's button classes, used to swap the mouse over sprite and restore it.
     private static readonly FieldInfo f_transitionDef = AccessTools.Field(typeof(ButtonStateTransition), "_transitionDef");
     private static readonly FieldInfo f_origSprite = AccessTools.Field(typeof(ButtonStateTransition), "_origSprite");
     private static readonly FieldInfo f_overTransitions = AccessTools.Field(typeof(ButtonBehavior), "_overTransitions");
 
+    // The mouse over transition for single pairs (a copy of the default but with the single sprite), the default one, and the transition that is switched between them.
     private ButtonStateTransitionDef _singleOverDef;
     private ButtonStateTransitionDef _defaultOverDef;
     private ButtonStateTransition _overSpriteTransition;
+    // What the slot looked like for double pairs, so it can be put back when the slot is reused for one.
     private bool _defaultProfileLinked;
     private Sprite _defaultBackgroundSprite;
     private Image _background;
+    // An object put between the second head and its parent, so the head can be moved as a whole.
     private Transform _headWrapper;
+    // Set once the postfix has captured the defaults, Refresh does nothing before then.
     private bool _started;
 
+    /// <summary>Captures the slot's default look, creates the wrapper for the head and does the first refresh.</summary>
     internal void Start_Postfix()
     {
         _overSpriteTransition = f_overTransitions.GetValue<List<ButtonStateTransition>>(_core.button)
@@ -91,6 +102,11 @@ public partial class ExpandedUiAppPairSlot
         Refresh();
     }
 
+    /// <summary>
+    /// Switches the slot between its single and double look based on its pair. Single: single backgrounds, the head moved
+    /// 32 pixels left (to where the girl is drawn in the single background), and the link to the girl's profile removed.
+    /// Double: everything restored to the default.
+    /// </summary>
     internal void Refresh()
     {
         if (!_started) return;
@@ -121,6 +137,10 @@ public partial class ExpandedUiAppPairSlot
         _core.profileLinked = false;
     }
 
+    /// <summary>
+    /// For single pairs adds the girl's name, relationship and, while compatible or attracted, her single date level
+    /// to the tooltip.
+    /// </summary>
     internal void ShowTooltip()
     {
         var playerFileGirlPair = f_playerFileGirlPair.GetValue<PlayerFileGirlPair>(_core);

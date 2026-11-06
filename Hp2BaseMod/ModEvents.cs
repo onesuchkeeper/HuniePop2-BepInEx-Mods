@@ -8,6 +8,18 @@ namespace Hp2BaseMod
     /// </summary>
     public class ModEvents
     {
+        public event Action<ResolveStatePayloadArgs> ResolveStatePayload;
+
+        public class ResolveStatePayloadArgs : EventArgs
+        {
+            public IGameStatePayload Payload;
+            public GirlPairDefinition GirlPair;
+            public LocationDefinition Location;
+        }
+
+        internal void NotifyResolveStatePayload(ResolveStatePayloadArgs args) 
+            => ResolveStatePayload?.Invoke(args);
+
         public event Action<UiTitleCanvas> TitleCanvasReady;
         internal void NotifyTitleCanvasReady(UiTitleCanvas canvas) => TitleCanvasReady?.Invoke(canvas);
 
@@ -112,5 +124,8 @@ namespace Hp2BaseMod
 
         public event Action<UiAppFinderSlot> FinderSlotSelected;
         internal void NotifyFinderSlotSelected(UiAppFinderSlot finderSlot) => FinderSlotSelected?.Invoke(finderSlot);
+
+        public event Action<int> SaveFileReset;
+        internal void NotifySaveFileReset(int index) => SaveFileReset?.Invoke(index);
     }
 }

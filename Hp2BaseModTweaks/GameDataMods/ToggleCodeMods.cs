@@ -57,7 +57,7 @@ public static class ToggleCodeMods
         {
             CodeHash = MD5Utility.Encrypt("PINK BITCH!"),
             CodeType = CodeType.TOGGLE,
-            OnMessage = "Awh yeah! She's unstoppable! [The game must be restarted in order to take effect]",
+            OnMessage = "Awh yeah! She's unstoppable!",
             OffMessage = "Lack of hunies rivets us firmly to the ground, ones wings are clipped."
         });
     }

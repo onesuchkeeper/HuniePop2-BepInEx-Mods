@@ -14,8 +14,6 @@ namespace Hp2BaseMod.GameDataInfo
     {
         public string LocationName;
 
-        public LocationType? LocationType;
-
         public string NonStopOptionText;
 
         public List<LocationSpecialLabelSubDefinition> SpecialLabels;
@@ -33,6 +31,13 @@ namespace Hp2BaseMod.GameDataInfo
         public List<IGameDefinitionInfo<LogicBundle>> DepartBundleList;
 
         public List<ClockDaytimeType> DateTimes;
+        public bool? AllowSim;
+
+        /// <summary>
+        /// If the backgrounds are the two of a date (normal, blurred) instead of one for each time of day. Locations that allow
+        /// normal or non-stop dates are static unless this says otherwise.
+        /// </summary>
+        public bool? StaticBackground;
         public bool? AllowNonStop;
         public bool? AllowNormal;
         public bool? PostBoss;
@@ -56,7 +61,6 @@ namespace Hp2BaseMod.GameDataInfo
         public void SetData(LocationDefinition def, GameDefinitionProvider gameDataProvider, AssetProvider assetProvider)
         {
             ValidatedSet.SetValue(ref def.bgYOffset, BgYOffset);
-            ValidatedSet.SetValue(ref def.locationType, LocationType);
 
             ValidatedSet.SetValue(ref def.locationName, LocationName, InsertStyle);
             ValidatedSet.SetValue(ref def.nonStopOptionText, NonStopOptionText, InsertStyle);
@@ -71,9 +75,11 @@ namespace Hp2BaseMod.GameDataInfo
 
             var expansion = def.GetExpansion();
 
+            ValidatedSet.SetValue(ref expansion.AllowSim, AllowSim);
             ValidatedSet.SetValue(ref expansion.AllowNormal, AllowNormal);
             ValidatedSet.SetValue(ref expansion.AllowNonStop, AllowNonStop);
             ValidatedSet.SetValue(ref expansion.PostBoss, PostBoss);
+            ValidatedSet.SetValue(ref expansion.StaticBackground, StaticBackground ?? (AllowNormal == true || AllowNonStop == true ? true : (bool?)null));
             ValidatedSet.SetListValue(ref expansion.DateTimes, DateTimes, InsertStyle);
 
             if (DefaultStyle.HasValue) expansion.DefaultStyle = DefaultStyle;

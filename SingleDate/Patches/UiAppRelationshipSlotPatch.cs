@@ -7,15 +7,23 @@ using UnityEngine;
 
 namespace SingleDate;
 
+/// <summary>Changes the relationship icon (and its tooltip) in the cellphone for single pairs.</summary>
 [HarmonyPatch(typeof(UiAppRelationshipSlot))]
 internal static class UiAppRelationshipSlotPatch
 {
+    // Private fields of UiAppRelationshipSlot needed to rebuild its Refresh. The horny sequence is the icon's pulse animation.
     private static readonly FieldInfo f_hornySequence = AccessTools.Field(typeof(UiAppRelationshipSlot), "_hornySequence");
     private static readonly FieldInfo f_playerFileGirlPair = AccessTools.Field(typeof(UiAppRelationshipSlot), "_playerFileGirlPair");
     private static readonly FieldInfo f_daytimeOffset = AccessTools.Field(typeof(UiAppRelationshipSlot), "_daytimeOffset");
     private static readonly FieldInfo f_mainGirlDefinition = AccessTools.Field(typeof(UiAppRelationshipSlot), "_mainGirlDefinition");
     private static readonly FieldInfo f_tooltip = AccessTools.Field(typeof(UiAppRelationshipSlot), "_tooltip");
 
+    /// <summary>
+    /// Replacement for the slot's Refresh on single pairs, which is the base game's version adapted for a pair that has
+    /// only one real girl. The icon pulses (the "horny" icon) when the sex date is available at the slot's time of day,
+    /// otherwise it shows the icon for the relationship type. Double pairs use the original.
+    /// </summary>
+    /// <returns>True to run the original (double pairs), false for single pairs.</returns>
     [HarmonyPatch(nameof(UiAppRelationshipSlot.Refresh))]
     [HarmonyPrefix]
     public static bool Refresh(UiAppRelationshipSlot __instance)
@@ -31,6 +39,7 @@ internal static class UiAppRelationshipSlotPatch
         var daytimeOffset = f_daytimeOffset.GetValue<int>(__instance);
         //var mainGirlDefinition = _mainGirlDefinition.GetValue<GirlDefinition>(__instance);
 
+        // Single pairs keep their progress under the real girl, girl two.
         var girlSave = State.SaveFile.GetGirl(playerFileGirlPair.girlPairDefinition.girlDefinitionTwo.id);
 
         Game.Manager.Time.KillTween(hornySequence);
@@ -40,6 +49,7 @@ internal static class UiAppRelationshipSlotPatch
         {
             var maxSingleGirlRelationshipLevel = Plugin.MaxSingleGirlRelationshipLevel.Value;
 
+            // Sex date ready: attracted, one level below max, and the slot's time of day (current time plus the slot's offset) is the pair's sex time.
             if (playerFileGirlPair.relationshipType == GirlPairRelationshipType.ATTRACTED
                 && girlSave?.RelationshipLevel == (maxSingleGirlRelationshipLevel - 1)
                 && (Game.Persistence.playerFile.daytimeElapsed + daytimeOffset) % 4 == (int)playerFileGirlPair.girlPairDefinition.sexDaytime
@@ -50,6 +60,7 @@ internal static class UiAppRelationshipSlotPatch
                 hornySequence = DOTween.Sequence().SetLoops(-1, LoopType.Restart);
                 f_hornySequence.SetValue(__instance, hornySequence);
 
+                // Two quick pulses, then a pause (0.25s before and after) before it repeats.
                 hornySequence.Insert(0f, __instance.itemIcon.rectTransform.DOScale(1.15f, 0.2f).SetEase(Ease.InOutSine));
                 hornySequence.Insert(0.2f, __instance.itemIcon.rectTransform.DOScale(1f, 0.2f).SetEase(Ease.InOutSine));
                 hornySequence.Insert(0.4f, __instance.itemIcon.rectTransform.DOScale(1.15f, 0.2f).SetEase(Ease.InOutSine));
@@ -66,6 +77,8 @@ internal static class UiAppRelationshipSlotPatch
             __instance.itemIcon.SetNativeSize();
             if (__instance.headIcon != null)
             {
+                // Disabled: the base game shows the other girl's head here, which can't be resolved for single pairs
+                // (see the note in the block below), so no head icon is shown. Kept for reference.
                 // if (_mainGirlDefinition != null)
                 // {
                 //     // this code is copied straight from the decomp, but GetOtherGirlDef returns null here and throws where it doesn't
@@ -105,6 +118,7 @@ internal static class UiAppRelationshipSlotPatch
         return false;
     }
 
+    /// <summary>For single pairs that aren't ready for the sex date, shows the relationship and single date level in the tooltip.</summary>
     [HarmonyPatch(nameof(UiAppRelationshipSlot.ShowTooltip))]
     [HarmonyPostfix]
     public static void ShowTooltip(UiAppRelationshipSlot __instance)

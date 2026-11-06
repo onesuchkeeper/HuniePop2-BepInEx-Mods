@@ -46,7 +46,10 @@ public partial class Plugin : Hp2BaseModPlugin
     private RelativeId[] _sexLocs;
 
     public static RelativeId SingleDateNobodyId => _instance._singleDateNobodyId;
-    private RelativeId _singleDateNobodyId;
+    private RelativeId _singleDateNobodyId = RelativeId.Default;
+
+    public static RelativeId SingleDateSimId => _instance._singleDateSimId;
+    private RelativeId _singleDateSimId = RelativeId.Default;
 
     public static AssetBundle AssetBundle => _instance._assetBundle;
     private AssetBundle _assetBundle;
@@ -101,7 +104,9 @@ public partial class Plugin : Hp2BaseModPlugin
 
     private void InitializeCompatibility()
     {
-        _singleDateNobodyId = new RelativeId(ModInterface.GetSourceId(SINGLE_DATE_GUID), 0);
+        var singleDateSourceId = ModInterface.GetSourceId(SINGLE_DATE_GUID);
+        _singleDateNobodyId = new RelativeId(singleDateSourceId, 0);
+        _singleDateSimId = new RelativeId(singleDateSourceId, 0);
 
         AssetStudio.Logger.Default = new Logger();
 
@@ -290,14 +295,23 @@ public partial class Plugin : Hp2BaseModPlugin
 
     private void On_GameStateChanged((RelativeId? prevStateId, RelativeId currentStateId) tuple)
     {
-        if (tuple.prevStateId == GameStateId.Sim || tuple.prevStateId == GameStateId.Puzzle)
+        bool isValidState(RelativeId? stateId)
+        {
+            return stateId == GameStateId.Sim 
+                || stateId == GameStateId.Puzzle
+                || stateId == SingleDateSimId;
+        }
+
+        var isSingleDateSim = SingleDateNobodyId;
+
+        if (isValidState(tuple.prevStateId))
         {
             var locationManager = Game.Session.Location.GetExpansion();
             locationManager.PreLocationDepart -= SpecialCharacterUnlocks.On_PreLocationDepart;
             ModInterface.Events.FinderSlotSelected -= SpecialCharacterUnlocks.On_FinderSlotSelected;
         }
 
-        if (tuple.currentStateId == GameStateId.Sim || tuple.currentStateId == GameStateId.Puzzle)
+        if (isValidState(tuple.currentStateId))
         {
             var locationManager = Game.Session.Location.GetExpansion();
             locationManager.PreLocationDepart += SpecialCharacterUnlocks.On_PreLocationDepart;

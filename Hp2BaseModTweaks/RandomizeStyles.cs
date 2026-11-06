@@ -20,7 +20,7 @@ public static class RandomizeStyles
 
         var playerFileGirl = Game.Persistence.playerFile.GetPlayerFileGirl(args.Def);
 
-        if (args.Loc.locationType == LocationType.DATE
+        if (ModInterface.GameState.CurrentState.UseStylesOnDatesFlag
             && (playerFileGirl == null || !playerFileGirl.stylesOnDates))
         {
             return;

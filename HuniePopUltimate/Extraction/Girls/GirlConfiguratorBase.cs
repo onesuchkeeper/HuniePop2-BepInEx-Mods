@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Hp2BaseMod;
 using Hp2BaseMod.GameDataInfo;
+using Hp2BaseMod.GameDataInfo.Interface;
 using Hp2BaseMod.Utility;
 using UnityEngine;
 
@@ -48,7 +49,7 @@ public abstract class GirlConfiguratorBase : IGirlConfigurator
     public virtual string UnderwearName => "Underwear";
 
     /// <inheritdoc/>
-    public virtual (RelativeId outfit, RelativeId hairstyle)[] MeetingCutsceneStyleSequence => null;
+    public virtual (RelativeId outfit, RelativeId hairstyle)[] MeetingCutsceneStyleSequence => _meetingCutsceneStyleSequence;
     private static readonly (RelativeId outfit, RelativeId hairstyle)[] _meetingCutsceneStyleSequence = [
         (Hp2BaseMod.Styles.Activity, Hp2BaseMod.Styles.Activity),
         (Hp2BaseMod.Styles.Activity, Hp2BaseMod.Styles.Activity),
@@ -98,12 +99,13 @@ public abstract class GirlConfiguratorBase : IGirlConfigurator
     }
 
     /// <inheritdoc/>
-    public virtual void ConfigureGirl(
+    protected void ConfigureGirlDefault(
         GirlBodyDataMod hpBody,
         AssetBundle assetBundle,
         HpSpriteCache sprites,
         HpAudioCache audio,
-        HpItemCache items)
+        HpItemCache items,
+        Items.GirlItemIds itemIds)
     {
         Mod.GirlAge = Age;
 
@@ -166,6 +168,24 @@ public abstract class GirlConfiguratorBase : IGirlConfigurator
         {
             AddShoeMod(assetBundle, modId, name, description, i++);
         }
+
+        DummyBaggage(itemIds.Baggage1);
+        DummyBaggage(itemIds.Baggage2);
+        DummyBaggage(itemIds.Baggage3);
+    }
+    
+    private void DummyBaggage(RelativeId id)
+    {
+        ModInterface.DataMod.AddDataMod(new AilmentDataMod(id, InsertStyle.append)
+        {
+            ItemDefinitionID = id,
+            ScriptedAilmentFactory = (Ailment) => new DummyAilment(),
+        });
+
+        ModInterface.DataMod.AddDataMod(new CutsceneDataMod(id, InsertStyle.append)
+        {
+            Steps = new List<IGameDefinitionInfo<CutsceneStepSubDefinition>>()
+        });
     }
 
     /// <summary>
@@ -240,6 +260,7 @@ public abstract class GirlConfiguratorBase : IGirlConfigurator
         mod.ItemName = name;
         mod.ItemDescription = description;
         mod.CategoryPrefix = "Baggage";
+        
 
         _mod.BaggageItemDefIDs.Add(mod.Id);
     }
@@ -260,4 +281,6 @@ public abstract class GirlConfiguratorBase : IGirlConfigurator
         rejectSmoothie.Clear();
         rejectSmoothie.AddRange(rejectFood);
     }
+
+    public abstract void ConfigureGirl(GirlBodyDataMod hpBody, AssetBundle assetBundle, HpSpriteCache sprites, HpAudioCache audio, HpItemCache items);
 }

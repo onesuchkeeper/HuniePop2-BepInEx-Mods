@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Hp2BaseMod 2026, By OneSuchKeeper
+
+using System;
 using Hp2BaseMod.Utility;
 
 namespace Hp2BaseMod.Save

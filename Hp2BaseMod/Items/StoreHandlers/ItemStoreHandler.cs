@@ -12,8 +12,9 @@ public abstract class ItemStoreHandler : IItemStoreHandler
         //noop
     }
 
-    public virtual RelativeId? GetPreferredStoreSection(ExpandedItemDefinition item) => item.Core.storeSectionPreference 
-        ? item.Affection.Id 
+    // Affection is null for items that never had one assigned, which would throw here
+    public virtual RelativeId? GetPreferredStoreSection(ExpandedItemDefinition item) => item.Core.storeSectionPreference
+        ? item.Affection?.Id
         : null;
 
     public abstract bool ShowWithStoreFilter(ItemType highlightedItemType);

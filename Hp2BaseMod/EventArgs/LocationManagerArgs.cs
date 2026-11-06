@@ -56,11 +56,65 @@ public class LocationArriveArgs
     /// The location the player is arriving from.
     /// </summary>
     public LocationDefinition previousLocationDef;
+}
 
+public class LocationArriveReadonlyArgs
+{
+    /// <summary>
+    /// The location to arrive at.
+    /// </summary>
+    public LocationDefinition locationDef => _arriveArgs.locationDef;
+
+    /// <summary>
+    /// The pair to be at the location we arrive at
+    /// </summary>
+    public GirlPairDefinition girlPairDef => _arriveArgs.girlPairDef;
+
+    /// <summary>
+    /// If the sides of the pair should be flipped
+    /// </summary>
+    public bool sidesFlipped => _arriveArgs.sidesFlipped;
+
+    /// <summary>
+    /// If this is the first arrival in the game session
+    /// </summary>
+    public bool initialArrive => _arriveArgs.initialArrive;
+
+    /// <summary>
+    /// If the cellphone should be placed on the left when arriving
+    /// </summary>
+    public bool cellphoneOnLeft => _arriveArgs.cellphoneOnLeft;
+
+    /// <summary>
+    /// Cutscene to play when arriving
+    /// </summary>
+    public CutsceneDefinition arrivalCutscene => _arriveArgs.arrivalCutscene;
+
+    /// <summary>
+    /// The location the player is arriving from.
+    /// </summary>
+    public LocationDefinition previousLocationDef => _arriveArgs.previousLocationDef;
+
+    private LocationArriveArgs _arriveArgs;
+
+    public LocationArriveReadonlyArgs(LocationArriveArgs arriveArgs)
+    {
+        _arriveArgs = arriveArgs;
+    }
+}
+
+public class LocationArriveCancelArgs : LocationArriveReadonlyArgs
+{ 
     /// <summary>
     /// If set to true, aborts the arrival transition.
     /// </summary>
     public bool Canceled;
+
+    public LocationArriveCancelArgs(LocationArriveArgs arriveArgs) 
+        : base(arriveArgs)
+    {
+
+    }
 }
 
 /// <summary>

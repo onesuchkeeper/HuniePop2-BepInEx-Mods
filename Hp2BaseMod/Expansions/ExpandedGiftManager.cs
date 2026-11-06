@@ -28,7 +28,8 @@ public partial class ExpandedGiftManager
 		PuzzleStatusGirl statusGirl = Game.Session.Puzzle.puzzleStatus.GetStatusGirl(isAltGirl);
         var itemExp = itemDef.GetExpansion();
 
-        var canGive = itemExp.GiftHandler.CanGive(itemExp, girlExp, statusGirl, playerFileGirl, isAltGirl);
+        var canGive = ModInterface.GameState.CurrentState.AllowGifts
+            && itemExp.GiftHandler.CanGive(itemExp, girlExp, statusGirl, playerFileGirl, isAltGirl);
 
         //notify
 

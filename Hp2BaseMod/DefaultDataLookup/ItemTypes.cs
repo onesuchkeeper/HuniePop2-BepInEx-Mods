@@ -10,4 +10,5 @@ public static class ItemTypes
     public readonly static RelativeId Food = new RelativeId(-1, 3);
     public readonly static RelativeId StaminaFood = new RelativeId(-1, 4);
     public readonly static RelativeId Smoothie = new RelativeId(-1, 5);
+    public readonly static RelativeId Misc = new RelativeId(-1, 6);
 }

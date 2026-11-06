@@ -84,9 +84,9 @@ public class KyuConfigurator : GirlConfiguratorBase
 
     private static readonly (RelativeId, int, string name, string description)[] _baggageItemIds =
     [
-        //(Items.Kyu.Baggage1, 9250), // Magic Wand
-        //(Items.Kyu.Baggage2, 9251), // Royal Scepter
-        //(Items.Kyu.Baggage3, ), // TODO
+        (Items.Kyu.Baggage1, 9250, "Baggage A", "Placeholder"), // Magic Wand
+        (Items.Kyu.Baggage2, 9251, "Baggage B", "Placeholder"), // Royal Scepter
+        (Items.Kyu.Baggage3, 9251, "Baggage C", "Placeholder"), // TODO
     ];
 
     protected override IEnumerable<(RelativeId to, RelativeId from)> LocationGreetingMap
@@ -156,7 +156,7 @@ public class KyuConfigurator : GirlConfiguratorBase
 
     public override void ConfigureGirl(GirlBodyDataMod hpBody, AssetBundle assetBundle, HpSpriteCache sprites, HpAudioCache audio, HpItemCache items)
     {
-        base.ConfigureGirl(hpBody, assetBundle, sprites, audio, items);
+        ConfigureGirlDefault(hpBody, assetBundle, sprites, audio, items, Items.Kyu);
         if (Plugin.HasKyuOldPhoto) AddSexPhotos([(Photos.KyuOld, RelativeId.Default)]);
         Mod.SpecialCharacter = false;
         hpBody.SpecialEffect = SpecialParts.KyuWingId;

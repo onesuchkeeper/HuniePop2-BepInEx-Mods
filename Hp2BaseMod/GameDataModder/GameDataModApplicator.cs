@@ -118,7 +118,12 @@ internal class GameDataModApplicator
                 {
                     foreach (var pairMod in context.girlPairDataMods)
                     {
-                        var expansion = context.girlPairDataDict[ModInterface.Data.GetRuntimeDataId(GameDataType.GirlPair, pairMod.Id)].GetExpansion();
+                        if (!ModInterface.Data.TryGetRuntimeDataId(GameDataType.GirlPair, pairMod.Id, out var pairRuntimeId))
+                        {
+                            throw new Exception($"Failed to find runtime id for pair {pairMod.Id}");
+                        }
+                        
+                        var expansion = context.girlPairDataDict[pairRuntimeId].GetExpansion();
                         expansion.PairStyle = pairMod.GetStyles();
                     }
                 }
@@ -152,10 +157,10 @@ internal class GameDataModApplicator
     }
 
     private static void SetData<T>(Dictionary<int, T> data,
-                                       IEnumerable<IGameDataMod<T>> mods,
-                                       GameDefinitionProvider gameDataProvider,
-                                       AssetProvider prefabProvider,
-                                       GameDataType type)
+        IEnumerable<IGameDataMod<T>> mods,
+        GameDefinitionProvider gameDataProvider,
+        AssetProvider prefabProvider,
+        GameDataType type)
     {
         //first split into groups of the same id
         var modsByRuntimeId = new Dictionary<int, List<IGameDataMod<T>>>();
@@ -175,10 +180,15 @@ internal class GameDataModApplicator
         // then set the data
         foreach (var entry in modsByRuntimeId)
         {
+            if (!data.TryGetValue(entry.Key, out var def))
+            {
+                throw new Exception($"Definition with runtime id {entry.Key} not found in {type} data dictionary");
+            }
+
             // order by the load priority
             foreach (var mod in entry.Value.OrderBy(x => x.LoadPriority))
             {
-                mod.SetData(data[entry.Key], gameDataProvider, prefabProvider);
+                mod.SetData(def, gameDataProvider, prefabProvider);
             }
         }
     }

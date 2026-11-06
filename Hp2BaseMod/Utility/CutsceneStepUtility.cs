@@ -921,9 +921,4 @@ public static class CutsceneStepUtility
     {
         return new ChangeLocationCutsceneStep.Info(locationIdPool);
     }
-
-    public static CutsceneStepSubDefinition MakeChangeGameState(RelativeId targetStateId) 
-    { 
-        return new ChangeGameStateCutsceneStep(targetStateId); 
-    }
 }

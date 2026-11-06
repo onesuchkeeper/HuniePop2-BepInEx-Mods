@@ -69,7 +69,7 @@ internal static class SpecialCharacterUnlocks
                 if (Game.Session.Location.currentGirlPair?.girlDefinitionOne == nobodyDef)
                 {
                     ModInterface.Log.Message("Starting Kyu cutscene");
-                    args.transition = new LocationTransitionFakeOut(args.to, GameStateId.Sim);
+                    args.transition = new LocationTransitionFakeOut(args.to, new GameStateSim.Payload(Pairs.KyuSingleDate));
                     args.to = args.from;
                     args.girlPairDef = pairSave.girlPairDefinition;
                     ModInterface.State.CellphoneOnLeft = true;
@@ -113,9 +113,11 @@ internal static class SpecialCharacterUnlocks
 
     private static bool CelesteOverride(RelativeId? previousLocId, LocationDepartArgs args)
     {
+        
         var rawTime = (Game.Persistence.playerFile.daytimeElapsed - 1) % 4;
         var time = (ClockDaytimeType)((rawTime + 4) % 4);
         var isTimeValid = time == ClockDaytimeType.EVENING || time == ClockDaytimeType.NIGHT;
+        ModInterface.Log.Message($"CelseteOverride: {time}, IsValid: {isTimeValid}");
 
         if (previousLocId == LocationIds.Beach && isTimeValid)
         {
@@ -134,7 +136,7 @@ internal static class SpecialCharacterUnlocks
                         .Where(x => x.itemDefinition == weirdThing)
                         .ForEach(x => x.Clear());
 
-                    args.transition = new LocationTransitionFakeOut(args.to, GameStateId.Sim);
+                    args.transition = new LocationTransitionFakeOut(args.to, new GameStateSim.Payload(Girls.Celeste));
                     args.to = args.from;
                     args.girlPairDef = pair;
                     ModInterface.State.CellphoneOnLeft = true;
@@ -156,7 +158,7 @@ internal static class SpecialCharacterUnlocks
             {
                 ModInterface.Log.Message("Starting Momo cutscene");
 
-                args.transition = new LocationTransitionFakeOut(args.to, GameStateId.Sim);
+                args.transition = new LocationTransitionFakeOut(args.to, new GameStateSim.Payload(Girls.Momo));
                 args.to = args.from;
                 args.girlPairDef = pair;
                 ModInterface.State.CellphoneOnLeft = true;

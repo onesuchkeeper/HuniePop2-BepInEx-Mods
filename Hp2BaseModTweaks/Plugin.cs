@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using BepInEx;
@@ -27,6 +28,9 @@ public partial class Plugin : Hp2BaseModPlugin
     public static ConfigEntry<bool> UseModLogo => _useModLogo;
     private static ConfigEntry<bool> _useModLogo;
 
+    public static ConfigEntry<float> RewardSpeedMult => _rewardSpeedMult;
+    private static ConfigEntry<float> _rewardSpeedMult;
+
     internal static TweaksSaveData Save => _instance._save;
     private TweaksSaveData _save;
 
@@ -51,6 +55,9 @@ public partial class Plugin : Hp2BaseModPlugin
 
         _useModLogo = Config.Bind(Hp2BaseModPlugin.CONFIG_GENERAL, nameof(UseModLogo), true, "If the \"HuneiePop 2: Modded\" logo should be included in logo rotation. You may want to disable this if you've installed a mod with another custom logo.");
         _digitalArtCollectionDir = Config.Bind(Hp2BaseModPlugin.CONFIG_GENERAL, nameof(DigitalArtCollectionDir), Path.Combine(Paths.PluginPath, "..", "..", "Digital Art Collection"), "Directory containing the HuniePop 2 Digital Art Collection Dlc");
+        _rewardSpeedMult = Config.Bind(Hp2BaseModPlugin.CONFIG_GENERAL, nameof(RewardSpeedMult), 1f, "Multiplies the speed at which you get rewards after a date (the fruit).");
+        
+        ModInterface.State.RewardSpeedMult = _rewardSpeedMult.Value;
 
         _modCredits = new List<CreditEntry>()
         {
@@ -79,6 +86,7 @@ public partial class Plugin : Hp2BaseModPlugin
 
         ModInterface.DataMod.AddDataMod(new PostGameCutsceneMod());
         ModInterface.AddCommand(new SetIconCommand());
+        ModInterface.AddCommand(new HubCommand());
 
         ModInterface.Events.RequestStyleChange += RandomizeStyles.On_RequestStyleChange;
         ModInterface.Events.PostCodeSubmitted += On_PostCodeSubmitted;
@@ -89,6 +97,7 @@ public partial class Plugin : Hp2BaseModPlugin
         ModInterface.Events.PreDataMods += On_PreDataMods;
         ModInterface.Events.PostDataMods += On_PostDataMods;
         ModInterface.Events.PreGameSave += On_PreGameSave;
+        ModInterface.Events.SaveFileReset += On_SaveFileReset;
         ModInterface.Events.PrePersistenceReset += On_PrePersistenceReset;
         ModInterface.Events.PostPersistenceReset += On_PostPersistenceReset;
         ModInterface.Events.RequestUnlockedPhotos += On_RequestUnlockedPhotos;
@@ -173,28 +182,72 @@ public partial class Plugin : Hp2BaseModPlugin
         _save ??= new TweaksSaveData();
         _save.Clean();
 
+        UpdatePinkBitch();
+    }
+
+    private List<(RelativeId, List<UiDollSpecialEffect>)> _replacedSpecialEffects;
+
+    private void UpdatePinkBitch()
+    {
         if (ModInterface.GameData.IsCodeUnlocked(ToggleCodeMods.FairyWingsCodeId))
         {
             var kyu = ModInterface.GameData.GetGirl(Girls.Kyu);
+            var kyuWings = kyu?.GetExpansion().GetCurrentBody()?.SpecialEffectPrefab
+                ?? kyu?.specialEffectPrefab;
 
             ModInterface.Log.Message("Applying wings");
-            if (kyu == null)
+            if (kyuWings == null)
             {
-                ModInterface.Log.Warning("Unable to find Kyu, \"PINK BITCH!\" wings not applied D:");
+                ModInterface.Log.Warning("Unable to find Kyu's wings, \"PINK BITCH!\" wings not applied D:");
                 return;
             }
 
+            _replacedSpecialEffects = new();
+
             foreach (var girl in Game.Data.Girls.GetAllBySpecial(false))
             {
-                girl.specialEffectPrefab = kyu.specialEffectPrefab;
-                girl.specialEffectOffset = kyu.specialEffectOffset;
+                girl.specialEffectPrefab = kyuWings;
+
+                var bodySpecialEffectPairs = new List<UiDollSpecialEffect>();
+
+                foreach (var body in girl.GetExpansion().Bodies.Values)
+                {
+                    bodySpecialEffectPairs.Add(body.SpecialEffectPrefab);
+                    body.SpecialEffectPrefab = kyuWings;
+                }
+
+                _replacedSpecialEffects.Add((girl.ModId(), bodySpecialEffectPairs));
             }
+        }
+        else if (_replacedSpecialEffects != null)
+        {
+            foreach ((var girlId, var specialEffects) in _replacedSpecialEffects)
+            {
+                var girl = ModInterface.GameData.GetGirl(girlId);
+
+                foreach ((var body, var specialEffect) in girl.GetExpansion().Bodies.Values.Zip(specialEffects, (x,y) => (x,y)))
+                {
+                    body.SpecialEffectPrefab = specialEffect;
+                }
+            }
+
+            _replacedSpecialEffects = null;
         }
     }
 
     private void On_PreGameSave()
     {
         ModInterface.SetSourceSave(ModId, JsonConvert.SerializeObject(_save));
+    }
+
+    private void On_SaveFileReset(int fileIndex)
+    {
+        if (_save?.Files != null && fileIndex >= 0 && fileIndex < _save.Files.Count)
+        {
+            var cleanFile = new TweaksSaveFile();
+            cleanFile.Clean();
+            _save.Files[fileIndex] = cleanFile;
+        }
     }
 
     /// <summary>
@@ -365,6 +418,10 @@ public partial class Plugin : Hp2BaseModPlugin
         if (id == ToggleCodeMods.RunInBackgroundCodeId)
         {
             Application.runInBackground = ModInterface.GameData.IsCodeUnlocked(ToggleCodeMods.RunInBackgroundCodeId);
+        }
+        else if (id == ToggleCodeMods.FairyWingsCodeId)
+        {
+            UpdatePinkBitch();
         }
     }
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using HarmonyLib;
@@ -39,7 +40,7 @@ public partial class ExpandedTalkManager
         }
 
         var affection = randomFruit.GetExpansion().Affection;
-		Game.Persistence.playerFile.AddFruitCount(affection.Id, 1);
+        Game.Persistence.playerFile.AddFruitCount(affection.Id, 1);
 
         if (affection == null)
         {
@@ -47,36 +48,36 @@ public partial class ExpandedTalkManager
             return false;
         }
 
-		Object.Instantiate(_core.energyTrailPrefab).Init(EnergyTrailFormat.START_AND_END, randomFruit.energyDefinition, randomFruit, fruitDoll, "+1 " + StringUtils.Titleize(affection.Name) + " Seed");
-		if (!silent)
-		{
-			Game.Manager.Audio.Play(AudioCategory.SOUND, Game.Session.Gift.sfxFruitReward, fruitDoll.pauseDefinition).audioSource.pitch = 1.2f;
-			Game.Manager.Audio.Play(AudioCategory.SOUND, Game.Session.Gift.sfxFruitPop, fruitDoll.pauseDefinition).audioSource.pitch = Random.Range(0.75f, 1.5f);
-			Game.Manager.Audio.Play(AudioCategory.SOUND, Game.Session.Gift.sfxResourceFlourish, fruitDoll.pauseDefinition);
-		}
+        UnityEngine.Object.Instantiate(_core.energyTrailPrefab).Init(EnergyTrailFormat.START_AND_END, randomFruit.energyDefinition, randomFruit, fruitDoll, "+1 " + StringUtils.Titleize(affection.Name) + " Seed");
+        if (!silent)
+        {
+            Game.Manager.Audio.Play(AudioCategory.SOUND, Game.Session.Gift.sfxFruitReward, fruitDoll.pauseDefinition).audioSource.pitch = 1.2f;
+            Game.Manager.Audio.Play(AudioCategory.SOUND, Game.Session.Gift.sfxFruitPop, fruitDoll.pauseDefinition).audioSource.pitch = UnityEngine.Random.Range(0.75f, 1.5f);
+            Game.Manager.Audio.Play(AudioCategory.SOUND, Game.Session.Gift.sfxResourceFlourish, fruitDoll.pauseDefinition);
+        }
         return false;
     }
 
     private bool TalkWith_Prefix(int dollIndex)
-	{
-		if (Game.Session.Location.currentGirlPair == null) return false;
+    {
+        if (Game.Session.Location.currentGirlPair == null) return false;
 
-		_girlPair = Game.Session.Location.currentGirlPair;
-		_fileGirlPair = Game.Persistence.playerFile.GetPlayerFileGirlPair(Game.Session.Location.currentGirlPair);
+        _girlPair = Game.Session.Location.currentGirlPair;
+        _fileGirlPair = Game.Persistence.playerFile.GetPlayerFileGirlPair(Game.Session.Location.currentGirlPair);
         var altGirl = dollIndex > 0;
-		_altGirl = altGirl;
+        _altGirl = altGirl;
         var statusGirl = Game.Session.Puzzle.puzzleStatus.GetStatusGirl(altGirl);
-		_statusGirl = statusGirl;
-		_oppositeStatusGirl = Game.Session.Puzzle.puzzleStatus.GetStatusGirl(!altGirl);
-		var targetDoll = Game.Session.gameCanvas.GetDoll(altGirl);
-		_targetDoll = targetDoll;
-		_oppositeDoll = Game.Session.gameCanvas.GetDoll(!altGirl);
+        _statusGirl = statusGirl;
+        _oppositeStatusGirl = Game.Session.Puzzle.puzzleStatus.GetStatusGirl(!altGirl);
+        var targetDoll = Game.Session.gameCanvas.GetDoll(altGirl);
+        _targetDoll = targetDoll;
+        _oppositeDoll = Game.Session.gameCanvas.GetDoll(!altGirl);
         var targetDef = targetDoll.girlDefinition;
         var targetDefExp = targetDef.GetExpansion();
         var fileGirl = Game.Persistence.playerFile.GetPlayerFileGirl(targetDef);
-		_fileGirl = fileGirl;
-		_oppositeFileGirl = Game.Persistence.playerFile.GetPlayerFileGirl(_oppositeDoll.girlDefinition);
-		Game.Session.Puzzle.puzzleStatus.SetGirlFocus(altGirl);
+        _fileGirl = fileGirl;
+        _oppositeFileGirl = Game.Persistence.playerFile.GetPlayerFileGirl(_oppositeDoll.girlDefinition);
+        Game.Session.Puzzle.puzzleStatus.SetGirlFocus(altGirl);
 
         if (statusGirl.stamina < 2)
         {
@@ -123,7 +124,7 @@ public partial class ExpandedTalkManager
         
         TalkStep();
         return false;
-	}
+    }
 
     private bool TalkStep_Prefix()
     {
@@ -173,32 +174,74 @@ public partial class ExpandedTalkManager
         if (itemDefinition != null)
         {
             _statusGirl.playerFileGirl.LearnBaggage(itemDefinition);
+
+            // [FIX] Subscribe to CutsceneCompleteEvent before starting cutscene.
+            // When a baggage cutscene has 0 steps (or completes synchronously in 0 frames),
+            // StartCutscene fires CutsceneCompleteEvent IMMEDIATELY inside the StartCutscene call stack.
+            // OnCutsceneComplete_Hook will handle deferring TalkStep until window animations conclude.
             Game.Session.Cutscenes.CutsceneCompleteEvent += OnCutsceneComplete_Hook;
             Game.Session.Cutscenes.StartCutscene(_core.baggageWrapCutsceneDef, itemDefinition.cutsceneDefinition);
             return;
         }
 
-		TalkStep();
+        TalkStep();
     }
 
     private void BaggageConvoCleanup()
     {
         _oppositeDoll.SetFocus(true, 0.5f);
-        TalkEnd();
+
+        // [FIX] Prevent WindowManager re-entrancy / desync.
+        // If actionBubblesWindow is currently in the middle of hiding from TalkWith(),
+        // calling TalkEnd() immediately would trigger WindowManager.ShowWindow(actionBubblesWindow, true),
+        // adding actionBubblesWindow to _windowQueue while it is still assigned to _currentWindow.
+        // This causes actionBubblesWindow to re-open automatically on hide completion and corrupts window state.
+        // By waiting for WindowHiddenEvent, we ensure actionBubblesWindow finishes hiding before TalkEnd re-opens it.
+        // Only wait when that window is actually mid-hide. A window that is showing or fully shown must NOT
+        // delay us (the base game continues immediately and ShowWindow(..., true) simply queues).
+        if (IsWindowHiding(Game.Session.Location.actionBubblesWindow))
+        {
+            ModInterface.Log.Message("[TalkDbg] BaggageConvoCleanup: actionBubblesWindow is hiding, deferring TalkEnd");
+            WindowManager.WindowManagerDelegate onWindowHidden = null;
+            onWindowHidden = () =>
+            {
+                Game.Manager.Windows.WindowHiddenEvent -= onWindowHidden;
+                TalkEnd();
+            };
+            Game.Manager.Windows.WindowHiddenEvent += onWindowHidden;
+        }
+        else
+        {
+            TalkEnd();
+        }
+    }
+
+    /// <summary>
+    /// The opposite girl's answer to a favorite question. A single date has one real girl, the other side is a girl with no data
+    /// (Nobody) whose doll has no girl loaded, so the girl is read from the puzzle status, which is built from the pair. That girl has
+    /// no answers, so she neither reacts nor gives a seed.
+    /// </summary>
+    private bool TryGetOppositeFavAnswer(RelativeId questionId, out RelativeId answerId)
+    {
+        answerId = default;
+
+        var oppositeDef = _oppositeStatusGirl?.girlDefinition ?? _oppositeDoll.girlDefinition;
+        if (oppositeDef == null) return false;
+
+        var favAnswers = oppositeDef.GetExpansion().FavQuestionIdToAnswerId;
+        return favAnswers != null && favAnswers.TryGetValue(questionId, out answerId);
     }
 
     private void FavoriteQuestionResponse()
     {
         var girl = _fileGirl.girlDefinition;
         var oppositeDoll = _oppositeDoll;
-        var oppositeDef = oppositeDoll.girlDefinition.GetExpansion().FavQuestionIdToAnswerId;
-
         var selectedQuestionId = ModInterface.Data.GetDataId(GameDataType.Question, Game.Session.Dialog.selectedDialogOptionIndex);
         var selectedQuestion = ModInterface.GameData.GetQuestion(selectedQuestionId);
 
         var args = new TalkFavQuestionResponseArgs()
         {
-            OtherGirlResponds = oppositeDef.TryGetValue(selectedQuestionId, out var oppositeAnswer)
+            OtherGirlResponds = TryGetOppositeFavAnswer(selectedQuestionId, out var oppositeAnswer)
                 && oppositeAnswer == girl.GetExpansion().FavQuestionIdToAnswerId[selectedQuestionId]
         };
 
@@ -232,7 +275,7 @@ public partial class ExpandedTalkManager
 
         fileGirl.LearnFavAnswer(selectedQuestion);
 
-        if (_oppositeDoll.girlDefinition.GetExpansion().FavQuestionIdToAnswerId.TryGetValue(selectedQuestionId, out var oppositeAnswer)
+        if (TryGetOppositeFavAnswer(selectedQuestionId, out var oppositeAnswer)
             && oppositeAnswer == girl.GetExpansion().FavQuestionIdToAnswerId[selectedQuestionId])
         {
             m_ReceiveFruitFromGirl.Invoke(_core, [targetDoll, false]);
@@ -382,9 +425,38 @@ public partial class ExpandedTalkManager
         TalkStep();
     }
 
+    // [FIX] Guard cutscene completion hook against WindowManager animation desync.
+    // When a cutscene finishes (synchronously or asynchronously), check if a window hide animation is in progress.
+    // If so, wait for WindowHiddenEvent to fire before triggering TalkStep(), ensuring actionBubblesWindow is fully hidden.
     private void OnCutsceneComplete_Hook()
     {
         Game.Session.Cutscenes.CutsceneCompleteEvent -= OnCutsceneComplete_Hook;
-        TalkStep();
+
+        // Only wait when actionBubblesWindow is actually mid-hide (see IsWindowHiding).
+        if (IsWindowHiding(Game.Session.Location.actionBubblesWindow))
+        {
+            ModInterface.Log.Message("[TalkDbg] OnCutsceneComplete_Hook: actionBubblesWindow is hiding, deferring TalkStep");
+            WindowManager.WindowManagerDelegate onWindowHidden = null;
+            onWindowHidden = () =>
+            {
+                Game.Manager.Windows.WindowHiddenEvent -= onWindowHidden;
+                TalkStep();
+            };
+            Game.Manager.Windows.WindowHiddenEvent += onWindowHidden;
+        }
+        else
+        {
+            TalkStep();
+        }
     }
+
+    /// <summary>
+    /// True only while the given window (or, with null, any window) is in its hide animation.
+    /// IsWindowActive(null, true, true) means "a window exists in ANY state" and IsWindowActive(null, true, false)
+    /// means "a window exists and is not hiding", so "exists but is not 'exists and not hiding'" is "is hiding".
+    /// A window that is showing or fully shown returns false.
+    /// </summary>
+    private static bool IsWindowHiding(UiWindow window = null)
+        => Game.Manager.Windows.IsWindowActive(window, true, true)
+           && !Game.Manager.Windows.IsWindowActive(window, true, false);
 }

@@ -22,7 +22,7 @@ public class ModSaveFile
 
     public RelativeId? WardrobeGirlId;
     public RelativeId? LocationId;
-    public RelativeId? GameStateId;
+    public IGameStatePayload GameStatePayload;
     public RelativeId? GirlPairId;
     public RelativeId? FileIconGirlId;
 
@@ -44,11 +44,24 @@ public class ModSaveFile
     {
         if (!saveFile.started)
         {
-            GameStateId = Hp2BaseMod.GameStateId.Special;
+            GameStatePayload = new GameStateSpecial.Payload();
+        }
+        else if (ModInterface.GameState.CurrentState is GameStateTitle)
+        {
+            // There is no session at the title, so no state was played since the payload was set. A new game is saved
+            // from here with the special state its pipeline gave it, which the session then begins in.
         }
         else if (ModInterface.GameState.CurrentState.IsSavable)
         {
-            GameStateId = ModInterface.GameState.CurrentState.Id;
+            GameStatePayload = ModInterface.GameState.CurrentState.GeneratePayload();
+        }
+        else
+        {
+            // A state that can't be loaded back into (a date, an event that must be played through) has no payload. Keeping the last
+            // one would pair it with a location and pair it was never saved with, so the save is of the hub.
+            GameStatePayload = new GameStateHub.Payload();
+            saveFile.locationId = HOTEL_ROOM_LOC_ID;
+            saveFile.girlPairId = -1;
         }
 
         // wardrobe girl id
@@ -175,20 +188,59 @@ public class ModSaveFile
         saveFile.storeProducts = saveFile.storeProducts.Take(DEFAULT_SHOP_SLOT_COUNT).ToList();
     }
 
-    public void SetData(SaveFile saveFile)
+    private IGameStateFactory DefaultToHub(SaveFile saveFile, string reason)
+    {
+        ModInterface.Log.Warning($"{reason}, defaulting to hub");
+
+        if (!ModInterface.GameData.GameStates.TryGetFactory(Hp2BaseMod.GameStateId.Hub, out var gameState))
+        {
+            throw new Exception($"Cannot default to hub, no \"hub\" game state found!");
+        }
+
+        LocationId = Locations.HotelRoom;
+        GirlPairId = null;
+
+        GameStatePayload = new GameStateHub.Payload();
+
+        saveFile.girlPairId = -1;
+        saveFile.locationId = HOTEL_ROOM_LOC_ID;
+        return gameState;
+    }
+
+    private IGameStateFactory DetermineGamestate(SaveFile saveFile)
     {
         if (!saveFile.started)
         {
-            GameStateId = Hp2BaseMod.GameStateId.Special;
-        }
-        else if (!GameStateId.HasValue)
-        {
-            ModInterface.Log.Warning($"No game state defined, defaulting to hub");
-            LocationId = Locations.HotelRoom;
-            GirlPairId = null;
-            GameStateId = Hp2BaseMod.GameStateId.Hub;
+            ModInterface.Log.Message("DEBUG, new save file should be starting in special state!");
+            if (!ModInterface.GameData.GameStates.TryGetFactory(GameStateId.Special, out var specialGameState))
+            {
+                throw new Exception($"Cannot start new save, no \"Special\" game state found!");
+            }
+
+            GameStatePayload = new GameStateSpecial.Payload(true);
+            return specialGameState;
         }
 
+        if (GameStatePayload == null)
+        {
+            return DefaultToHub(saveFile, "No game state defined");
+        }
+
+        var payloadType = GameStatePayload.GetType();
+        if (!ModInterface.GameData.GameStates.TryGetFactory(payloadType, out var gameState))
+        {
+            return DefaultToHub(saveFile, $"Game state for payload type {payloadType.FullName} not present in the runtime");
+        }
+
+        return gameState;
+    }
+
+    /// <summary>
+    /// Writes the mod data into the save file. Does not validate the result, <see cref="SavePipeline"/> runs
+    /// the cleaning and <see cref="ResolveGameState"/> after this.
+    /// </summary>
+    public void SetData(SaveFile saveFile)
+    {
         var wardrobeFlag = saveFile.flags.FirstOrDefault(x => x.flagName == Flags.WARDROBE_GIRL_ID);
 
         if (WardrobeGirlId.HasValue &&
@@ -206,30 +258,6 @@ public class ModSaveFile
         ValidatedSet.TrySetFromRelativeId(ref saveFile.fileIconGirlId, GameDataType.Girl, FileIconGirlId);
         ValidatedSet.TrySetFromRelativeId(ref saveFile.locationId, GameDataType.Location, LocationId);
         ValidatedSet.TrySetFromRelativeId(ref saveFile.girlPairId, GameDataType.GirlPair, GirlPairId);
-
-        if (!ModInterface.Data.TryGetDataId(GameDataType.GirlPair, saveFile.girlPairId, out var _))
-        {
-            ModInterface.Log.Warning($"Pair with runtime {saveFile.girlPairId} not present, defaulting to no pair");
-            saveFile.girlPairId = -1;
-        }
-
-        if (!ModInterface.Data.TryGetDataId(GameDataType.Location, saveFile.locationId, out var _))
-        {
-            ModInterface.Log.Warning($"Location with runtime {saveFile.girlPairId} not present, defaulting to hub and no pair");
-            saveFile.girlPairId = -1;
-            saveFile.locationId = HOTEL_ROOM_LOC_ID;
-        }
-
-        if (saveFile.girlPairId == -1)
-        {
-            var location = ModInterface.GameData.GetLocation(ModInterface.Data.GetDataId(GameDataType.Location, saveFile.locationId));
-
-            if (!location.GetExpansion().AllowNoPair)
-            {
-                ModInterface.Log.Warning("No pair at a location that does not allow it, defaulting to the hub");
-                saveFile.locationId = HOTEL_ROOM_LOC_ID;
-            }
-        }
 
         ValidatedSet.SetModIds(ref saveFile.metGirlPairs, MetGirlPairs, GameDataType.GirlPair);
         ValidatedSet.SetModIds(ref saveFile.completedGirlPairs, CompletedGirlPairs, GameDataType.GirlPair);
@@ -264,6 +292,42 @@ public class ModSaveFile
         while (storeProductEnum.MoveNext())
         {
             saveFile.storeProducts.Add(storeProductEnum.Current.Convert(i++));
+        }
+
+    }
+
+    /// <summary>
+    /// Picks the game state the save file loads into and makes sure the file is valid for it, falling back to the hub
+    /// when it isn't. Runs last in <see cref="SavePipeline"/>, after the file was cleaned, so it only
+    /// ever sees ids that exist in the runtime.
+    /// </summary>
+    public void ResolveGameState(SaveFile saveFile)
+    {
+        var gameState = DetermineGamestate(saveFile);
+
+        // An unstarted file has no location or pair to validate, it loads into the special state
+        if (!saveFile.started) return;
+
+        if (!ModInterface.Data.TryGetDataId(GameDataType.GirlPair, saveFile.girlPairId, out var _))
+        {
+            ModInterface.Log.Warning($"Pair with runtime {saveFile.girlPairId} not present, defaulting to no pair");
+            saveFile.girlPairId = -1;
+        }
+
+        if (!ModInterface.Data.TryGetDataId(GameDataType.Location, saveFile.locationId, out var _))
+        {
+            // the game state has to go with the location, a sim or an event can't be at the hub
+            gameState = DefaultToHub(saveFile, $"Location with runtime {saveFile.locationId} not present");
+        }
+
+        if (!gameState.ValidateSave(saveFile, out var error))
+        {
+            gameState = DefaultToHub(saveFile, error);
+
+            if (!gameState.ValidateSave(saveFile, out var hubError))
+            {
+                throw new Exception($"Hub state invalid after being defaulted to! {hubError}");
+            }
         }
     }
 

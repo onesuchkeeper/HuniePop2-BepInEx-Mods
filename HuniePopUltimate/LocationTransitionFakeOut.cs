@@ -12,12 +12,12 @@ public class LocationTransitionFakeOut : LocationTransition
     private int _stepIndex;
     private Sequence _sequence;
     private LocationDefinition _fakeLoc;
-    private readonly RelativeId _nextStateId;
+    private readonly IGameStatePayload _nextState;
 
-    public LocationTransitionFakeOut(LocationDefinition fakeLoc, RelativeId gameStateId)
+    public LocationTransitionFakeOut(LocationDefinition fakeLoc, IGameStatePayload nextState)
     {
         _fakeLoc = fakeLoc;
-        _nextStateId = gameStateId;
+        _nextState = nextState;
     }
 
     private void Reset()
@@ -62,7 +62,7 @@ public class LocationTransitionFakeOut : LocationTransition
                 return;
             //Depart State
             case 2:
-                ModInterface.GameState.CurrentState.DepartTransition(_nextStateId, DepartStep);
+                ModInterface.GameState.CurrentState.DepartTransition(_nextState, DepartStep);
                 break;
             //Animate
             case 3:

@@ -10,83 +10,155 @@ namespace Hp2BaseMod;
 [Expansion(typeof(CutsceneManager))]
 public partial class ExpandedCutsceneManager
 {
+    // Re-entrancy guard to prevent recursive NextStep calls during step transitions
+    private bool _isAdvancingStep = false;
+
     [HarmonyPatch(typeof(CutsceneManager))]
     private static class Patch
     {
         [HarmonyPatch("NextStep")]
         [HarmonyPrefix]
-        private static bool NextStep(CutsceneManager __instance, bool resetSequence = true)
-            => ExpandedCutsceneManager.Get(__instance).NextStep_Prefix(resetSequence);
+        private static bool NextStep(CutsceneManager __instance, bool resetSequence = true) => ExpandedCutsceneManager.Get(__instance).NextStep_Prefix(resetSequence);
+    }
+
+    /// <summary>
+    /// Unsubscribes any temporary event listeners attached during previous steps.
+    /// Prevents dangling/orphaned callbacks from firing in the background when a cutscene step is skipped or forcibly advanced.
+    /// </summary>
+    private void CleanupPendingStepHooks()
+    {
+        if (Game.Session?.gameCanvas?.dolls != null)
+        {
+            foreach (var doll in Game.Session.gameCanvas.dolls)
+            {
+                if (doll != null)
+                {
+                    doll.DialogLineCompleteEvent -= OnDialogLineComplete_Hook;
+                    doll.DialogBoxHiddenEvent -= OnDialogBoxHidden_Hook;
+                }
+            }
+        }
+
+        if (Game.Session?.Dialog != null)
+        {
+            Game.Session.Dialog.DialogQueueEmptyEvent -= OnDialogQueueEmpty_Hook;
+            Game.Session.Dialog.DialogOptionSelectedEvent -= OnDialogOptionSelected_Hook;
+        }
+
+        if (Game.Manager?.Windows != null)
+        {
+            Game.Manager.Windows.WindowHiddenEvent -= OnWindowHidden_Hook;
+            Game.Manager.Windows.WindowQueueCompleteEvent -= OnWindowQueueComplete_Hook;
+            Game.Manager.Windows.WindowShownEvent -= OnWindowShown_Hook;
+        }
+
+        if (Game.Session?.gameCanvas?.cellphone != null)
+        {
+            Game.Session.gameCanvas.cellphone.ClosedEvent -= OnCellphoneClosed_Hook;
+        }
     }
 
     private bool NextStep_Prefix(bool resetSequence)
     {
-        var branchStepIndices = f_branchStepIndices.GetValue<List<int>>(_core);
-        var branches = f_branches.GetValue<List<List<CutsceneStepSubDefinition>>>(_core);
+        // prevents nested NextStep execution within the same call stack.
+        if (_isAdvancingStep) return false;
 
-        //don't actually change the index yet in case we don't end up processing
-        var currentBranchStepIndex = branchStepIndices[_core.currentBranchIndex] + 1;
+        _isAdvancingStep = true;
 
-        if (currentBranchStepIndex >= branches[_core.currentBranchIndex].Count)
+        try
         {
-            return true;
-        }
+            // Always clean up orphaned listeners before processing a step advancement.
+            CleanupPendingStepHooks();
 
-        var currentStep = branches[_core.currentBranchIndex][currentBranchStepIndex];
-        var stepSequence = f_stepSequence.GetValue<Sequence>(_core);
+            var branchStepIndices = f_branchStepIndices.GetValue<List<int>>(_core);
+            var branches = f_branches.GetValue<List<List<CutsceneStepSubDefinition>>>(_core);
 
-        if (currentStep is IFunctionalCutsceneStep functional)
-        {
-            branchStepIndices[_core.currentBranchIndex] = currentBranchStepIndex;
-            functional.Complete += On_FunctionStep_Complete;
+            // don't actually change the index yet in case we don't end up processing
+            var currentBranchStepIndex = branchStepIndices[_core.currentBranchIndex] + 1;
+
+            if (currentBranchStepIndex >= branches[_core.currentBranchIndex].Count)
+            {
+                return true;
+            }
+
+            var currentStep = branches[_core.currentBranchIndex][currentBranchStepIndex];
+            var stepSequence = f_stepSequence.GetValue<Sequence>(_core);
+
+            if (currentStep is IFunctionalCutsceneStep functional)
+            {
+                branchStepIndices[_core.currentBranchIndex] = currentBranchStepIndex;
+                functional.Complete += On_FunctionStep_Complete;
+
+                if (resetSequence)
+                {
+                    // Changed withCallbacks from true to false.
+                    // Passing withCallbacks = true caused DOTween to synchronously invoke OnStepSequenceComplete_Hook,
+                    // which called NextStep(true) a second time inside the same call stack and skipped cutscene steps.
+                    Game.Manager.Time.KillTween(stepSequence, true, false);
+                    _stepSequence = stepSequence = DOTween.Sequence();
+                }
+
+                // all NextStep bookkeeping is done. Complete may fire synchronously inside Act(),
+                // which calls NextStep(false); that nested call must not be swallowed by the guard.
+                _isAdvancingStep = false;
+                functional.Act();
+
+                return false;
+            }
+
+            if (currentStep.skipStep
+                || (currentStep.stepType.ToString().ToUpper().Contains("PUZZLE")
+                    && !(ModInterface.GameState.CurrentState is IPuzzleState)))
+            {
+                // Skipped. Move past it and on to the next step, as the base game's method does: it moves the index, then calls itself.
+                // (Handing this to the base game's method isn't possible, it asks the location manager what kind of place it is.)
+                branchStepIndices[_core.currentBranchIndex] = currentBranchStepIndex;
+                _currentStep = currentStep;
+                _isAdvancingStep = false;
+                return NextStep_Prefix(true);
+            }
+
+            // the doll the step targets, or a random one when the step has none (or says random)
+            var uiDoll = GetTargetedDoll(currentStep);
+
+            if (uiDoll == null)
+            {
+                var args = new RandomDollSelectedArgs();
+                ModInterface.Events.NotifyRandomDollSelected(args);
+                uiDoll = args.SelectedDoll ?? Game.Session.gameCanvas.GetDoll(MathUtils.RandomBool());
+            }
+
+            // we're committed, no more return trues, apply changes to the actual branchStepIndices and use that from now on
+            // and set the other values
 
             if (resetSequence)
             {
-                Game.Manager.Time.KillTween(stepSequence, true, true);
+                // Changed withCallbacks from true to false here as well.
+                // Prevents KillTween from synchronously triggering OnStepSequenceComplete_Hook callbacks during step resets.
+                Game.Manager.Time.KillTween(stepSequence, true, false);
                 _stepSequence = stepSequence = DOTween.Sequence();
             }
 
-            functional.Act();
+            branchStepIndices[_core.currentBranchIndex] = currentBranchStepIndex;
+            _audioLink = null;
+            _currentStep = currentStep;
+
+            // HandleStepType advances synchronously for many step types (BRANCH, GAME_ACTION,
+            // SUB_CUTSCENE, INSTANT proceeds...). Those NextStep(true) calls are legitimate and must run.
+            _isAdvancingStep = false;
+
+            HandleStepType(currentStep,
+                branches,
+                branchStepIndices,
+                uiDoll,
+                stepSequence);
 
             return false;
         }
-
-        if (currentStep.skipStep
-            || (currentStep.stepType.ToString().ToUpper().Contains("PUZZLE")
-                && ModInterface.GameState.CurrentState.Id != GameStateId.Puzzle))
+        finally
         {
-            return true;
+            _isAdvancingStep = false;
         }
-
-        if (!WillDollBeRandomized(currentStep))
-        {
-            return true;
-        }
-
-        var args = new RandomDollSelectedArgs();
-        ModInterface.Events.NotifyRandomDollSelected(args);
-        var uiDoll = args.SelectedDoll ?? Game.Session.gameCanvas.GetDoll(MathUtils.RandomBool());
-
-        //we're committed, no more return trues, apply changes to the actual branchStepIndices and use that from now on
-        //and set the other values
-
-        if (resetSequence)
-        {
-            Game.Manager.Time.KillTween(stepSequence, true, true);
-            _stepSequence = stepSequence = DOTween.Sequence();
-        }
-
-        branchStepIndices[_core.currentBranchIndex] = currentBranchStepIndex;
-        _audioLink = null;
-        _currentStep = currentStep;
-
-        HandleStepType(currentStep,
-            branches,
-            branchStepIndices,
-            uiDoll,
-            stepSequence);
-
-        return false;
     }
 
     /// <summary>
@@ -96,11 +168,6 @@ public partial class ExpandedCutsceneManager
     /// 
     /// If using this make sure the branch step indices are updated properly
     /// </summary>
-    /// <param name="currentStep"></param>
-    /// <param name="branches"></param>
-    /// <param name="branchStepIndices"></param>
-    /// <param name="uiDoll"></param>
-    /// <param name="stepSequence"></param>
     public void HandleStepType(CutsceneStepSubDefinition currentStep,
         List<List<CutsceneStepSubDefinition>> branches,
         List<int> branchStepIndices,
@@ -552,21 +619,41 @@ public partial class ExpandedCutsceneManager
     }
 
     /// <summary>
+    /// The doll a step targets the way the base game's NextStep does it, null when it is random or the target isn't on screen.
+    /// </summary>
+    private static UiDoll GetTargetedDoll(CutsceneStepSubDefinition step)
+    {
+        UiDoll uiDoll = null;
+
+        switch (step.dollTargetType)
+        {
+            case CutsceneStepDollTargetType.GIRL_DEFINITION:
+                uiDoll = Game.Session.gameCanvas.GetDoll(step.targetGirlDefinition);
+                if (step.targetAlt && uiDoll != null && uiDoll.orientation != DollOrientationType.MIDDLE)
+                {
+                    uiDoll = Game.Session.gameCanvas.GetDoll(uiDoll.mirrored);
+                }
+                break;
+            case CutsceneStepDollTargetType.ORIENTATION_TYPE:
+                uiDoll = Game.Session.gameCanvas.GetDoll(step.targetDollOrientation);
+                break;
+            case CutsceneStepDollTargetType.FOCUSED:
+                uiDoll = Game.Session.gameCanvas.GetDoll(Game.Session.Puzzle.puzzleStatus.altGirlFocused != step.targetAlt);
+                break;
+        }
+
+        return uiDoll;
+    }
+
+    /// <summary>
     /// If the step will cause the doll selected for the step to be randomized
     /// </summary>
-    /// <param name="currentStep"></param>
-    /// <returns></returns>
     public bool WillDollBeRandomized(CutsceneStepSubDefinition currentStep)
         => WillDollBeRandomized(currentStep.dollTargetType, currentStep.targetGirlDefinition, currentStep.targetDollOrientation, currentStep.targetAlt);
 
     /// <summary>
     /// If the step properties will cause the doll selected for the step to be randomized
     /// </summary>
-    /// <param name="dollTargetType"></param>
-    /// <param name="targetGirlDef"></param>
-    /// <param name="targetDollOrientation"></param>
-    /// <param name="targetAlt"></param>
-    /// <returns></returns>
     public bool WillDollBeRandomized(CutsceneStepDollTargetType dollTargetType, GirlDefinition targetGirlDef, DollOrientationType targetDollOrientation, bool targetAlt)
     {
         UiDoll uiDoll = null;
@@ -649,7 +736,7 @@ public partial class ExpandedCutsceneManager
 
     private void OnStepSequenceComplete_Hook()
     {
-        //no unsub because it's used in a tween callback instead of an event
+        // no unsub because it's used in a tween callback instead of an event
         var currentStep = f_currentStep.GetValue<CutsceneStepSubDefinition>(Game.Session.Cutscenes);
         var bannerText = f_bannerText.GetValue<BannerTextBehavior>(Game.Session.Cutscenes);
 

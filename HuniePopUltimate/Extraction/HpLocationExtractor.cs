@@ -143,20 +143,27 @@ public class HpLocationExtractor
         {
             if (locationDef.TryGetValue("type", out int locationType))
             {
-                locationMod.LocationType = locationType == 0 ? LocationType.SIM : LocationType.DATE;
+                locationMod.AllowSim = locationType == 0;
+                locationMod.AllowNormal = locationType != 0;
+                locationMod.AllowNonStop = locationType != 0;
+            }
+            else
+            {
+                ModInterface.Log.Warning("Failed to determine location type");
+                return;
             }
 
-            if (!Plugin.PConfig.AddSimLocations.Value && locationMod.LocationType == LocationType.SIM)
+            if (!Plugin.PConfig.AddSimLocations.Value && locationMod.AllowSim.Value)
             {
                 return;
             }
 
-            if (!Plugin.PConfig.AddDateLocations.Value && locationMod.LocationType == LocationType.DATE)
+            if (!Plugin.PConfig.AddDateLocations.Value && locationMod.AllowNormal.Value)
             {
                 return;
             }
 
-            HpDebugLog.LocationMessage($"{hp1Id} {locationName} - type {locationType} ({locationMod.LocationType})");
+            HpDebugLog.LocationMessage($"{hp1Id} {locationName} - type {locationType}");
 
             if (locationDef.TryGetValue("spriteCollectionName", out string spriteCollectionName)
                 && collectionData.TryGetValue(spriteCollectionName, out var spriteCollection)
@@ -166,7 +173,7 @@ public class HpLocationExtractor
                 ExtractBackgrounds(file, locationMod, locationName, backgrounds, spriteLookup, spriteTextureInfo);
             }
 
-            if (locationMod.LocationType == LocationType.DATE && LOCATION_DATETIME.TryGetValue(id, out var dateTime))
+            if (locationMod.AllowNormal.Value && LOCATION_DATETIME.TryGetValue(id, out var dateTime))
             {
                 locationMod.DateTimes = [dateTime];
             }
@@ -224,7 +231,7 @@ public class HpLocationExtractor
 
         var defaultBg = backgroundSprites.Values.First();
 
-        if (locationMod.LocationType == LocationType.SIM)
+        if (locationMod.AllowSim.Value)
         {
             locationMod.Backgrounds = [
                 backgroundSprites.TryGetValue(ClockDaytimeType.MORNING, out var morningBg) ? morningBg : defaultBg,

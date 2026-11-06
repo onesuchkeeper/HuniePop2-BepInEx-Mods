@@ -13,8 +13,27 @@ using Hp2BaseMod.Utility;
 
 namespace HuniePopUltimate;
 
+/// <summary>
+/// Builds HuniePop 2 girl data from the girl definitions in the HuniePop 1 (HP1) assets.
+/// </summary>
+/// <remarks>
+/// For each HP1 girl it extracts her metadata (name, favorite traits, dialog, questions
+/// and intro cutscene), her body (parts, outfits, hairstyles, expressions and mouth
+/// shapes) and her photos. Whatever can't be read from the HP1 data is supplied by the
+/// girl's <see cref="IGirlConfigurator"/>.
+/// </remarks>
 public class HpGirlExtractor
 {
+    /// <summary>
+    /// Position of the photo shown after a bonus round in a girl's HP1 photo list.
+    /// It has no censored version, so it is always treated as NSFW.
+    /// </summary>
+    private const int BonusRoundPhotoIndex = 3;
+
+    /// <summary>
+    /// The HP2 affection that matches each HP1 affection (trait) asset. Used to read
+    /// which affection a girl likes most and least.
+    /// </summary>
     private static readonly Dictionary<UnityAssetPath, RelativeId> AFFECTION_TYPES = new()
     {
         {new UnityAssetPath() { FileId = 0, PathId = 9371 }, PuzzleAffectionId.Talent},
@@ -71,6 +90,16 @@ public class HpGirlExtractor
         _thumbnailCollection = thumbnailCollection;
     }
 
+    /// <summary>
+    /// Extracts a single HP1 girl definition: metadata, body and photos.
+    /// </summary>
+    /// <remarks>
+    /// The girl is skipped if the definition has no id or no configurator is registered
+    /// for that id.
+    /// </remarks>
+    /// <param name="file">The asset file the definition came from.</param>
+    /// <param name="girlDef">The HP1 girl definition.</param>
+    /// <param name="collectionData">The HP1 sprite collections, by name.</param>
     public void ExtractGirl(SerializedFile file, OrderedDictionary girlDef, Dictionary<string, (SerializedFile, OrderedDictionary)> collectionData)
     {
         if (!girlDef.TryGetValue("id", out int nativeId))
@@ -90,6 +119,11 @@ public class HpGirlExtractor
         ExtractGirlPhotos(nativeId, girlDef, collectionData, girlConfig);
     }
 
+    /// <summary>
+    /// Extracts the girl's name, favorite and least favorite affections, the lines she
+    /// says about her favorites, the questions she asks the player, and where and how
+    /// she is first met.
+    /// </summary>
     private void ExtractGirlMetadata(int nativeId, OrderedDictionary girlDef, SerializedFile file, IGirlConfigurator girlConfig)
     {
         var id = Girls.FromHp1Id(nativeId);
@@ -128,6 +162,7 @@ public class HpGirlExtractor
 
         using (ModInterface.Log.MakeIndent("Intro Scene"))
         {
+            // The meeting location and cutscene are kept so the girl's single date pair can use them
             var pair = _singleDatePairData.GetOrNew(id);
 
             using (ModInterface.Log.MakeIndent("intro loc"))
@@ -143,12 +178,21 @@ public class HpGirlExtractor
         }
     }
 
+    /// <summary>
+    /// Builds the girl's HP1 body and adds it to her mod, then lets her configurator
+    /// finish it.
+    /// </summary>
+    /// <remarks>
+    /// If the girl's sprite collection can't be found, the body is left empty and
+    /// <see cref="IGirlConfigurator.ConfigureGirl"/> is not called.
+    /// </remarks>
     private void ExtractGirlBody(int nativeId, OrderedDictionary girlDef, SerializedFile file, Dictionary<string, (SerializedFile, OrderedDictionary)> collectionData, IGirlConfigurator girlConfig)
     {
         using (ModInterface.Log.MakeIndent("body"))
         {
             var body = new GirlBodyDataMod(new RelativeId(Plugin.ModId, 0), InsertStyle.append)
             {
+                // HP1 bodies are smaller than HP2 bodies, so they are scaled up to match
                 Scale = 1.32f,
                 bodyName = "HuniePop",
             };
@@ -169,6 +213,7 @@ public class HpGirlExtractor
             ExtractMiscPieces(girlDef, body, spriteLookup, spriteTextureInfo);
             ExtractUnderwearAndNude(girlDef, nativeId, body, spriteLookup, spriteTextureInfo, girlConfig);
 
+            // The first extracted outfit and hairstyle are the defaults. UPSET is built in ExtractMiscPieces.
             body.DefaultOutfitId = body.outfits.First().Id;
             body.DefaultHairstyleId = body.hairstyles.First().Id;
             body.DefaultExpressionId = new RelativeId(-1, (int)GirlExpressionType.NEUTRAL);
@@ -181,6 +226,9 @@ public class HpGirlExtractor
         }
     }
 
+    /// <summary>
+    /// Extracts the body sprite and the head piece.
+    /// </summary>
     private void ExtractBodyParts(OrderedDictionary girlDef, GirlBodyDataMod body, Dictionary<string, OrderedDictionary> spriteLookup, TextureInfoRaw spriteTextureInfo)
     {
         if (girlDef.TryGetValue("bodyPiece", out OrderedDictionary bodyPiece)
@@ -189,7 +237,8 @@ public class HpGirlExtractor
             body.PartBody = bodyPartMod;
         }
 
-        // HP1 has no head layer so head piece goes into the teeth slot
+        // Some HP1 models use a head piece so their outfit or hair layers correctly. On
+        // the rest it is an empty placeholder. It's added as a special part sorted with the outfit.
         if (girlDef.TryGetValue("headPiece", out OrderedDictionary headPiece)
             && _parts.TryMakePartDataMod(GirlPartType.OUTFIT, headPiece, spriteLookup, spriteTextureInfo, out var headPartMod, out var headSprite)
             && !(headSprite._rect.Value.width == 64 && headSprite._rect.Value.height == 64)) // skip empty 64x64 placeholders
@@ -205,6 +254,15 @@ public class HpGirlExtractor
         }
     }
 
+    /// <summary>
+    /// Extracts the girl's HP1 outfits.
+    /// </summary>
+    /// <remarks>
+    /// Each outfit refers to a piece in the girl's piece list by index, and the first
+    /// art entry of that piece is the outfit sprite. Outfits are given HP2 style ids in
+    /// the order of <see cref="HpPartsExtractor.StyleSequence"/>, so the first HP1 outfit
+    /// becomes Activity, the second Relaxing, and so on.
+    /// </remarks>
     private void ExtractOutfits(OrderedDictionary girlDef, GirlBodyDataMod body, Dictionary<string, OrderedDictionary> spriteLookup, TextureInfoRaw spriteTextureInfo)
     {
         body.outfits ??= new();
@@ -244,6 +302,15 @@ public class HpGirlExtractor
         }
     }
 
+    /// <summary>
+    /// Extracts the girl's HP1 hairstyles.
+    /// </summary>
+    /// <remarks>
+    /// Like outfits, each hairstyle refers to a piece by index and takes its HP2 style id
+    /// from <see cref="HpPartsExtractor.StyleSequence"/> by position. The first art entry
+    /// is the front hair and the second is the back hair. A hairstyle without both
+    /// entries is skipped.
+    /// </remarks>
     private void ExtractHairstyles(OrderedDictionary girlDef, GirlBodyDataMod body, Dictionary<string, OrderedDictionary> spriteLookup, TextureInfoRaw spriteTextureInfo)
     {
         body.hairstyles ??= new();
@@ -289,6 +356,15 @@ public class HpGirlExtractor
         }
     }
 
+    /// <summary>
+    /// Extracts the remaining HP1 pieces: expressions, mouth shapes (phonemes), extras
+    /// such as glasses, and the blink.
+    /// </summary>
+    /// <remarks>
+    /// Each HP1 expression becomes the closest HP2 expression. HP2 expressions with no
+    /// good HP1 candidate are built from the parts of others once all eight HP1
+    /// expressions have been found.
+    /// </remarks>
     private void ExtractMiscPieces(OrderedDictionary girlDef, GirlBodyDataMod body, Dictionary<string, OrderedDictionary> spriteLookup, TextureInfoRaw spriteTextureInfo)
     {
         if (!girlDef.TryGetValue("pieces", out List<object> pieces))
@@ -329,6 +405,7 @@ public class HpGirlExtractor
 
                     var addExpression = true;
 
+                    // Each HP1 expression is mapped to the closest HP2 expression
                     switch (expressionType)
                     {
                         // From Hp1
@@ -369,6 +446,7 @@ public class HpGirlExtractor
                             shy = expression;
                             expression.ExpressionType = GirlExpressionType.SHY;
                             expression.Id = new RelativeId(-1, (int)GirlExpressionType.SHY);
+                            // The face overlay becomes the light blush
                             face.PartType = GirlPartType.BLUSHLIGHT;
                             body.PartBlushLight = face;
                             break;
@@ -381,15 +459,18 @@ public class HpGirlExtractor
                             horny = expression;
                             expression.ExpressionType = GirlExpressionType.HORNY;
                             expression.Id = new RelativeId(-1, (int)GirlExpressionType.HORNY);
+                            // The face overlay becomes the heavy blush
                             face.PartType = GirlPartType.BLUSHHEAVY;
                             body.PartBlushHeavy = face;
                             break;
                         case 7:
+                            // HP2 has no equivalent. The parts are used to build EXHAUSTED instead
                             sick = expression;
                             addExpression = false;
                             break;
                     }
 
+                    // HP1 has no glow eye parts, so the eyes are used for the glow
                     expression.PartEyesGlow = expression.PartEyes;
 
                     if (addExpression) body.expressions.Add(expression);
@@ -397,10 +478,12 @@ public class HpGirlExtractor
                 }
                 case 1:
                 case 2:
-                case 3: // footwear
+                case 3: // footwear, which HP2 doesn't have
                     break;
                 case 4: // phoneme
                 {
+                    // HP1 names each mouth shape by the letters that use it. HP1 has no teeth
+                    // layer, so each shape is used for both the phoneme and its teeth slot.
                     if (piece.TryGetValue("name", out string phomeneName)
                         && piece.TryGetValue("art", out List<object> phonemeArt)
                         && _parts.TryMakePartDataMod(GirlPartType.PHONEMES, phonemeArt.OfType<OrderedDictionary>().First(), spriteLookup, spriteTextureInfo, out var phonemePart, out _))
@@ -410,6 +493,7 @@ public class HpGirlExtractor
                             case "a,e,i,l":
                                 body.Phonemes_aeil = phonemePart;
                                 body.PhonemesTeeth_aeil = phonemePart;
+                                // HP1 has no open mouths of its own, so this shape stands in for every expression
                                 mouthOpen = phonemePart;
                                 break;
                             case "b,m,p":
@@ -441,6 +525,8 @@ public class HpGirlExtractor
                         break;
                     }
 
+                    // TODO: limitToOutfits isn't applied yet, so extras aren't restricted to those outfits.
+                    // For now it's only logged.
                     if (!string.IsNullOrWhiteSpace(limitToOutfits))
                     {
                         ModInterface.Log.Warning($"{extraName} {limitToOutfits}");
@@ -448,6 +534,7 @@ public class HpGirlExtractor
 
                     body.specialParts ??= new();
 
+                    // Each extra is sorted with the layer that gives it the right draw order
                     switch (extraName.ToLower())
                     {
                         case "glasses":
@@ -489,6 +576,7 @@ public class HpGirlExtractor
                             }
                             break;
                         }
+                        // Kyu's human disguise is stored as two extras, collected into one hairstyle below
                         case "disguise front hair":
                         {
                             if (_parts.TryMakePartDataMod(GirlPartType.FRONTHAIR, art.OfType<OrderedDictionary>().First(), spriteLookup, spriteTextureInfo, out var disguiseFrontHair, out _))
@@ -534,12 +622,15 @@ public class HpGirlExtractor
             }
         }
 
+        // Added after the loop because the front and back hair arrive as separate pieces
         if (kyuDisguise != null)
         {
             kyuDisguise.Name = "Human Disguise";
             body.hairstyles.Add(kyuDisguise);
         }
 
+        // HP1 has no unique open mouths, so every expression gets the shared one. HP2
+        // expressions that HP1 lacks are combined from the parts of the ones it has.
         if (happy != null && sad != null && angry != null && excited != null
             && shy != null && confused != null && horny != null && sick != null)
         {
@@ -601,6 +692,17 @@ public class HpGirlExtractor
         }
     }
 
+    /// <summary>
+    /// Adds the outfits HP1 stores separately from the named outfits: underwear, topless
+    /// and nude.
+    /// </summary>
+    /// <remarks>
+    /// Underwear merges the bra and panties pieces into one outfit, cached as
+    /// <c>{nativeId}_underwear.png</c> in the images folder so it doesn't have to be regenerated. Topless is the panties alone.
+    /// They take the HP2 styles that follow the named outfits in
+    /// <see cref="HpPartsExtractor.StyleSequence"/>. Nude is only added when a nude
+    /// outfit part was supplied.
+    /// </remarks>
     private void ExtractUnderwearAndNude(OrderedDictionary girlDef, int nativeId, GirlBodyDataMod body, Dictionary<string, OrderedDictionary> spriteLookup, TextureInfoRaw spriteTextureInfo, IGirlConfigurator config)
     {
         var outfitSequence = HpPartsExtractor.StyleSequence.GetEnumerator();
@@ -659,6 +761,26 @@ public class HpGirlExtractor
         }
     }
 
+    /// <summary>
+    /// Extracts the girl's HP1 photos.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The photo at <c>BonusRoundPhotoIndex</c> is shown after a bonus round. All the
+    /// others are date photos, shown as the relationship progresses: each needs another
+    /// quarter of the relationship to be reached than the one before.
+    /// </para>
+    /// <para>
+    /// A photo can have several image variants (censored, nude, wet), found using
+    /// <see cref="IGirlConfigurator.PhotoIndexes"/>. A photo with a single variant is
+    /// stored as uncensored if it is NSFW and as censored otherwise. NSFW photos don't
+    /// import a censored variant.
+    /// </para>
+    /// <para>
+    /// HP1 stores each image as tiles. The tiles are stitched together and cached as
+    /// <c>{name}.png</c> in the images folder so they don't have to be regenerated.
+    /// </para>
+    /// </remarks>
     private void ExtractGirlPhotos(int nativeId, OrderedDictionary girlDef, Dictionary<string, (SerializedFile, OrderedDictionary)> collectionData, IGirlConfigurator girlConfig)
     {
         if (!girlDef.TryGetValue("photosSpriteCollectionName", out string photosSpriteCollectionName)
@@ -679,7 +801,7 @@ public class HpGirlExtractor
             j++;
             var photoMod = new PhotoDataMod(new RelativeId(Plugin.ModId, Photos.Count++), InsertStyle.replace);
 
-            if (j == 3)
+            if (j == BonusRoundPhotoIndex)
             {
                 _addGirlSexPhotos?.Invoke(girlConfig.Mod.Id, [(photoMod.Id, RelativeId.Default)]);
             }
@@ -694,6 +816,7 @@ public class HpGirlExtractor
                 continue;
             }
 
+            // HP1 lists the uncensored thumbnail first and the censored one second
             var thumbnailInfo = new IGameDefinitionInfo<UnityEngine.Sprite>[thumbnailSpriteName.Count];
             int i = 0;
             foreach (var thumbName in thumbnailSpriteName.OfType<string>())
@@ -713,7 +836,7 @@ public class HpGirlExtractor
             foreach (var name in fullSpriteName.OfType<string>())
             {
                 nameIndex++;
-                var isNsfw = girlConfig.IsTextPhotoIndexNsfw(j);
+                var isNsfw = j == BonusRoundPhotoIndex || girlConfig.IsTextPhotoIndexNsfw(j);
 
                 if (string.IsNullOrEmpty(name)
                     || !photoLookup.TryGetValue(name, out var photoDef)
@@ -763,6 +886,15 @@ public class HpGirlExtractor
         _addGirlDatePhotos?.Invoke(girlConfig.Mod.Id, datePhotos.Select(x => (x, datePhotoIndex++ / 4f)));
     }
 
+    /// <summary>
+    /// Extracts the questions the girl asks the player, with their answers.
+    /// </summary>
+    /// <remarks>
+    /// Each HP1 question is a scene with a line for the question and a step listing the
+    /// possible answers. The first answer is taken as the correct one and the rest as
+    /// incorrect. A question is only added if it has a dialog line and a correct answer.
+    /// </remarks>
+    /// <param name="questions">Receives the questions, keyed by an id local to the girl.</param>
     private void ExtractQuestions(OrderedDictionary girlDef, SerializedFile file, Dictionary<RelativeId, IHerQuestionDataInfo> questions)
     {
         if (!girlDef.TryGetValue("talkQuestions", out List<object> talkQuestions))
@@ -775,7 +907,6 @@ public class HpGirlExtractor
         {
             var questionId = new RelativeId(Plugin.ModId, questionCount++);
             var question = new HerQuestionInfo() { IncorrectAnswers = new() };
-            questions[questionId] = question;
 
             if (!UnityAssetPath.TryExtract(talkQ, out var talkQPath)
                 || !_extractor.TryExtractMonoBehavior(file, talkQPath, out var talkQuery)
@@ -844,10 +975,27 @@ public class HpGirlExtractor
             else
             {
                 ModInterface.Log.Error("Failed to find answer step");
+                continue;
             }
+
+            if (question.CorrectAnswer == null)
+            {
+                ModInterface.Log.Error("Failed to extract a correct answer");
+                continue;
+            }
+
+            questions[questionId] = question;
         }
     }
 
+    /// <summary>
+    /// Extracts one answer option and the girl's response to it.
+    /// </summary>
+    /// <remarks>
+    /// An answer whose first step is a dialog trigger rather than a line of dialog has no
+    /// response line of its own, but is still kept.
+    /// </remarks>
+    /// <returns>False if the option is malformed.</returns>
     private bool TryExtractAnswer(OrderedDictionary answerDef, SerializedFile file, out HerQuestionAnswerInfo answer)
     {
         if (!answerDef.TryGetValue("text", out string text)
@@ -886,6 +1034,14 @@ public class HpGirlExtractor
         return false;
     }
 
+    /// <summary>
+    /// Extracts the girl's response lines for being asked about each of her favorites.
+    /// </summary>
+    /// <remarks>
+    /// The lines are assigned to favorite questions by position, following
+    /// <see cref="IGirlConfigurator.FavQuestionOrder"/>. Lines left over once the order
+    /// runs out are dropped. Nothing is extracted if the configurator has no order.
+    /// </remarks>
     private void ExtractQueries(RelativeId girlId, IGirlConfigurator config, OrderedDictionary girlDef, SerializedFile file, Dictionary<RelativeId, IDialogLineDataMod> favoriteDialogLines)
     {
         if (!girlDef.TryGetValue("talkQueries", out List<object> talkQueries))
@@ -925,6 +1081,10 @@ public class HpGirlExtractor
         }
     }
 
+    /// <summary>
+    /// Yields the dialog lines found in the conditional branches under each answer
+    /// option of a query step.
+    /// </summary>
     private IEnumerable<DialogLineDataMod> ExtractQueryLines(OrderedDictionary dialogSceneStep, SerializedFile file)
     {
         if (!dialogSceneStep.TryGetValue("responseOptions", out List<object> responseOptions))
@@ -969,6 +1129,10 @@ public class HpGirlExtractor
         }
     }
 
+    /// <summary>
+    /// Starts the hairstyle Kyu uses as her human disguise. Its hair parts are filled
+    /// in as the matching extras are found.
+    /// </summary>
     private static HairstyleDataMod MakeKyuDisguise()
         => new HairstyleDataMod(Styles.KyuDisguise, InsertStyle.append) { HideSpecial = true };
 }

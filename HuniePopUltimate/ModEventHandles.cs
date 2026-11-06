@@ -149,37 +149,6 @@ public static class ModEventHandles
             AddPairMod(ClockDaytimeType.NIGHT, Hp2BaseMod.Girls.Jessie, Pairs.JessieSingleDate);
             AddPairMod(ClockDaytimeType.NIGHT, Hp2BaseMod.Girls.Kyu, Pairs.KyuSingleDate);
         }
-
-        // ModInterface.DataMod.AddDataMod(new PhotoDataMod(Photos.TiffanyAudrey, InsertStyle.append)
-        // {
-             
-        // });
-
-        TiffanyAudreyCutscenes.AddDataMods();
-
-        ModInterface.DataMod.AddDataMod(new GirlPairDataMod(Pairs.TiffanyAudrey, InsertStyle.append)
-        {
-            GirlDefinitionOneID = Girls.Tiffany,
-            GirlDefinitionTwoID = Girls.Audrey,
-            HasMeetingStyleOne = true,
-            HasMeetingStyleTwo = true,
-            MeetingLocationDefinitionID = Hp2BaseMod.Locations.Airport,
-            SexLocationDefinitionID = Hp2BaseMod.Locations.SecludedCabana,
-            Styles = new PairStyleInfo()
-            {
-                MeetingGirlOne = new GirlStyleInfo(Hp2BaseMod.Styles.Activity),
-                MeetingGirlTwo = new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing, Hp2BaseMod.Styles.Activity),
-                SexGirlOne = new GirlStyleInfo(Hp2BaseMod.Styles.Activity),
-                SexGirlTwo = new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing),
-            },
-            PhotoDefinitionID = Photos.Audrey10th, // Photos.TiffanyAudrey
-            IntroRelationshipCutsceneDefinitionID = Cutscenes.TiffanyAudrey.Compatible,
-            AttractRelationshipCutsceneDefinitionID = Cutscenes.TiffanyAudrey.Attracted,
-            PreSexRelationshipCutsceneDefinitionID = Cutscenes.TiffanyAudrey.Lovers,
-            PostSexRelationshipCutsceneDefinitionID = Cutscenes.TiffanyAudrey.PostBonusRound,
-            SexDayTime = ClockDaytimeType.EVENING,
-            IntroductionPair = true
-        });
     }
 
     /// <summary>
@@ -256,19 +225,6 @@ public static class ModEventHandles
                 break;
             case ClockDaytimeType.NIGHT:
                 break;
-        }
-
-        var tiffSingleDate = Game.Persistence.playerFile.girlPairs.FirstOrDefault(x => x.girlPairDefinition.ModId() == Girls.Tiffany);
-        var audreySingleDate = Game.Persistence.playerFile.girlPairs.FirstOrDefault(x => x.girlPairDefinition.ModId() == Girls.Audrey);
-
-        if (tiffSingleDate != null
-            && audreySingleDate != null
-            && (tiffSingleDate.relationshipType == GirlPairRelationshipType.UNKNOWN
-                || tiffSingleDate.relationshipType == GirlPairRelationshipType.COMPATIBLE
-                || audreySingleDate.relationshipType != GirlPairRelationshipType.LOVERS))
-        {
-            ModInterface.Log.Message("Removing Tiffany X Audrey from finder pools");
-            args.RemovePairFromAllPools(Pairs.TiffanyAudrey);
         }
     }
 

@@ -5,17 +5,96 @@ using Hp2BaseMod.GameDataInfo;
 namespace Hp2BaseMod;
 
 /// <summary>
-/// Active for LocationType.DATE locations.
+/// Active while the player is on a date.
+/// What every puzzle shares lives here; what differs between kinds of puzzle (normal, boss, ...) lives in the <see cref="IPuzzleState"/>
+/// chosen at each arrival.
 /// </summary>
-public sealed class GameStatePuzzle : GameStateLocation
+public sealed class GameStatePuzzle : GameStateLocation, IPuzzleState
 {
+    public class Factory : IGameStateFactory<Payload>
+    {
+        public IGameState Create(Payload payload) => new GameStatePuzzle(payload.InitialPuzzleStateId);
+
+        public string GetProfileString(PlayerFile playerFile)
+        {
+            var pair = playerFile.girlPairDefinition;
+
+            return pair == null
+                ? "On a date"
+                : $"On a date with {pair.GetExpansion().GetNames(playerFile.sidesFlipped)}";
+        }
+
+        public bool ValidateSave(SaveFile saveFile, out string error)
+        {
+            error = "Cannot load directly into puzzle state";
+            return false;
+        }
+    }
+
+    [Serializable]
+    public class Payload(RelativeId initialPuzzleStateId) : IGameStatePayload
+    {
+        public RelativeId InitialPuzzleStateId = initialPuzzleStateId;
+    }
+
+    private RelativeId _puzzleStateId;
+    private IFullPuzzleState _puzzleState;
+
     public override RelativeId Id => GameStateId.Puzzle;
 
     public override bool IsSavable => false;
 
-    public override void Enter()
+    public override bool AllowGifts => _puzzleState.AllowsGift;
+
+    public bool UnlocksStylesAfterRewards => _puzzleState.UnlocksStylesAfterRewards;
+
+    public bool CreatesReplacementTokens => _puzzleState.CreatesReplacementTokens;
+
+    public bool FailsWhenOutOfMoves => _puzzleState.FailsWhenOutOfMoves;
+
+    public bool AllowsGift => _puzzleState.AllowsGift;
+
+    public bool SwitchesFocusInBonusRound => _puzzleState.SwitchesFocusInBonusRound;
+
+    // ---- what the player can use here ----
+    //
+    // Every kind of puzzle answers these the same way, except where the puzzle state has a say: the focus buttons (see
+    // DollFocusIsInteractive). A kind of puzzle that needs more can be given its own members on IPuzzleState and forwarded here.
+
+    public override bool HidesCellphone(UiCellphone cellphone) => false;
+
+    // the slots are ready once the date is over
+    public override FinderStatus GetFinderStatus()
+        => FinderStatus.Present(Game.Session.Puzzle.puzzleStatus.gameOver, 1);
+
+    public override bool OnFinderSlotChosen(UiCellphoneAppFinder app, UiAppFinderSlot slot) => false;
+
+    // the store can be browsed, and says so
+    public override bool AllowsStore => true;
+    public override bool StoreShowsNotice => true;
+
+    public override bool AllowsPairApp => true;
+    public override bool HasGirlsPresent => true;
+
+    public override string GetGiftError(ItemDefinition item) => DateGiftError;
+
+    public override bool DialogIgnoresCellphone => false;
+
+    // A puzzle whose focus is locked has no focus button to press: the player would be offered a button that does nothing.
+    public override bool DollFocusIsInteractive => _puzzleState.LockedAltGirlFocus == null;
+
+    public override bool HintsSimStaminaCost => false;
+
+    // the puzzle manager has its own say (PuzzleManager.CanPause), this state adds nothing
+    public override bool AllowsPause => true;
+
+    private bool _disposed;
+
+    public GameStatePuzzle(RelativeId initialPuzzleState)
+        :base()
     {
-        base.Enter();
+        SetPuzzleState(initialPuzzleState);
+
         var locationManager = Game.Session.Location.GetExpansion();
         locationManager.PreLocationSettled += OnPreLocationSettled;
         locationManager.ResolveDollStyles += OnResolveDollStyles;
@@ -25,71 +104,34 @@ public sealed class GameStatePuzzle : GameStateLocation
         ModInterface.Events.FinderSlotSelected += On_FinderSlotSelected;
     }
 
-    public override void Exit()
+    protected override void Dispose(bool disposing)
     {
-        base.Exit();
-        _pendingState = null;
-        var locationManager = Game.Session.Location.GetExpansion();
-        locationManager.PreLocationSettled -= OnPreLocationSettled;
-        locationManager.ResolveDollStyles -= OnResolveDollStyles;
-        locationManager.ArrivalCompleted -= On_ArrivalCompleted;
-        locationManager.LocationArrived -= On_LocationArrived;
+        if (_disposed) return;
+        _disposed = true;
 
-        ModInterface.Events.FinderSlotSelected -= On_FinderSlotSelected;
-    }
+        if (disposing)
+        {
+            _pendingState = null;
+            var locationManager = Game.Session.Location.GetExpansion();
+            locationManager.PreLocationSettled -= OnPreLocationSettled;
+            locationManager.ResolveDollStyles -= OnResolveDollStyles;
+            locationManager.ArrivalCompleted -= On_ArrivalCompleted;
+            locationManager.LocationArrived -= On_LocationArrived;
 
-    public override string GetProfileString(PlayerFile playerFile)
-    {
-        var pair = Game.Persistence.playerFile.girlPairDefinition;
-        return pair == null
-            ? "On a date"
-            : $"On a date with {pair.girlDefinitionOne.girlName} & {pair.girlDefinitionTwo.girlName}";
+            ModInterface.Events.FinderSlotSelected -= On_FinderSlotSelected;
+
+            _puzzleState.Dispose();
+            _puzzleState = null;
+        }
+
+        base.Dispose(disposing);
     }
 
     private void OnPreLocationSettled(LocationSettledArgs args)
-    {
-        ModInterface.Log.Message("GameState.Puzzle: settled - starting puzzle");
-        Game.Session.Puzzle.StartPuzzle();
-    }
+        => _puzzleState.OnLocationSettled(args);
 
     private void OnResolveDollStyles(ResolveDollStylesArgs args)
-    {
-        if (args.GirlPair == null) return;
-
-        var playerPair = Game.Persistence.playerFile.GetPlayerFileGirlPair(args.GirlPair);
-        if (playerPair == null) return;
-
-        ResolveGirlDefinitions(args.GirlPair, args.SidesFlipped, out var leftDef, out var rightDef);
-
-        (GirlStyleInfo left, GirlStyleInfo right, bool isCutsceneStyle) result;
-
-        if (playerPair.relationshipType == GirlPairRelationshipType.UNKNOWN)
-        {
-            result = ResolveMeetingStyles(args.GirlPair, args.SidesFlipped);
-        }
-        else
-        {
-            var preDateArgs = BuildPreDateArgs(playerPair, args.Location);
-            ModInterface.Events.NotifyPreDateDollReset(preDateArgs);
-
-            result = preDateArgs.Style switch
-            {
-                PreDateDollResetArgs.StyleType.Sex =>
-                    ResolveSexStyles(args.GirlPair, args.Location, leftDef, rightDef, args.SidesFlipped),
-
-                PreDateDollResetArgs.StyleType.Location =>
-                    ResolveLocationStyles(args.Location, leftDef, rightDef),
-
-                _ => ResolveFileStyles()
-            };
-        }
-
-        var leftStyle = ApplyStyleOverride(leftDef, args.Location, result.left, result.isCutsceneStyle);
-        var rightStyle = ApplyStyleOverride(rightDef, args.Location, result.right, result.isCutsceneStyle);
-
-        ApplyStyleToDoll(leftStyle, Game.Session.gameCanvas.dollLeft, leftDef);
-        ApplyStyleToDoll(rightStyle, Game.Session.gameCanvas.dollRight, rightDef);
-    }
+        => _puzzleState.TryResolveDollStyles(args);
 
     private void On_FinderSlotSelected(UiAppFinderSlot slot)
     {
@@ -97,116 +139,19 @@ public sealed class GameStatePuzzle : GameStateLocation
         // a flag to the hub slot itself?
         if (slot.locationDefinition?.ModId() == Locations.HotelRoom)
         {
-            _pendingState = GameStateId.Hub;
+            _pendingState = new GameStateHub.Payload();
         }
         else
         {
-            _pendingState = GameStateId.Sim;
+            _pendingState = new GameStateSim.Payload(slot.playerFileFinderSlot.girlPairDefinition.ModId());
         }
     }
 
-    /// <summary>
-    /// Determines which style bucket a date should use. Mirrors the original
-    /// branching: sex styles on the scheduled sex daytime, else location styles
-    /// mid-puzzle (off the boss location), else the player's saved file style.
-    /// </summary>
-    private PreDateDollResetArgs BuildPreDateArgs(PlayerFileGirlPair playerPair, LocationDefinition currentLocation)
+    public override void DepartTransition(IGameStatePayload payload, Action continueTransitionCallback)
     {
-        var args = new PreDateDollResetArgs();
-
-        if (playerPair.relationshipType == GirlPairRelationshipType.ATTRACTED &&
-            Game.Persistence.playerFile.daytimeElapsed % 4 == (int)playerPair.girlPairDefinition.sexDaytime)
+        if (payload != null)
         {
-            args.Style = PreDateDollResetArgs.StyleType.Sex;
-        }
-        else if (!Game.Session.Puzzle.puzzleStatus.isEmpty &&
-                 currentLocation != Game.Session.Puzzle.bossLocationDefinition)
-        {
-            args.Style = PreDateDollResetArgs.StyleType.Location;
-        }
-        else
-        {
-            args.Style = PreDateDollResetArgs.StyleType.File;
-        }
-
-        return args;
-    }
-
-    private (GirlStyleInfo, GirlStyleInfo, bool) ResolveSexStyles(
-        GirlPairDefinition pair,
-        LocationDefinition location,
-        GirlDefinition leftDef,
-        GirlDefinition rightDef,
-        bool sidesFlipped)
-    {
-        var pairStyle = pair.GetExpansion().PairStyle;
-        if (pairStyle == null) return (null, null, false);
-
-        var left = sidesFlipped ? pairStyle.SexGirlTwo : pairStyle.SexGirlOne;
-        var right = sidesFlipped ? pairStyle.SexGirlOne : pairStyle.SexGirlTwo;
-
-        var (locLeft, locRight, _) = ResolveLocationStyles(location, leftDef, rightDef);
-
-        if (left != null && left.OutfitId == RelativeId.Default && left.HairstyleId == RelativeId.Default)
-        {
-            left = locLeft;
-        }
-
-        if (right != null && right.OutfitId == RelativeId.Default && right.HairstyleId == RelativeId.Default)
-        {
-            right = locRight;
-        }
-
-        return (left, right, false);
-    }
-
-    private (GirlStyleInfo, GirlStyleInfo, bool) ResolveLocationStyles(
-        LocationDefinition location, GirlDefinition leftDef, GirlDefinition rightDef)
-    {
-        var locationId = ModInterface.Data.GetDataId(GameDataType.Location, location.id);
-        var puzzle = Game.Session.Puzzle.puzzleStatus;
-
-        var left = ResolveSingleLocationStyle(puzzle.girlStatusLeft.playerFileGirl, leftDef, locationId, "left");
-        var right = ResolveSingleLocationStyle(puzzle.girlStatusRight.playerFileGirl, rightDef, locationId, "right");
-
-        return (left, right, false);
-    }
-
-    private GirlStyleInfo ResolveSingleLocationStyle(
-        PlayerFileGirl playerFile, GirlDefinition girlDef, RelativeId locationId, string sideLabel)
-    {
-        if (!playerFile.stylesOnDates)
-        {
-            var expansion = girlDef.GetExpansion();
-
-            if (expansion.GetCurrentBody().LocationIdToOutfitId.TryGetValue(locationId, out var style))
-            {
-                ModInterface.Log.Message($"Using location style for {sideLabel} girl: {style}");
-                return style;
-            }
-
-            ModInterface.Log.Message($"No location style found for {sideLabel} girl");
-            return null;
-        }
-
-        var fileStyle = BuildStyleFromFile(playerFile);
-        ModInterface.Log.Message($"Using file style for {sideLabel} girl: {fileStyle}");
-        return fileStyle;
-    }
-
-    private (GirlStyleInfo, GirlStyleInfo, bool) ResolveFileStyles()
-    {
-        var leftFile = Game.Session.Puzzle.puzzleStatus.girlStatusLeft.playerFileGirl;
-        var rightFile = Game.Session.Puzzle.puzzleStatus.girlStatusRight.playerFileGirl;
-
-        return (BuildStyleFromFile(leftFile), BuildStyleFromFile(rightFile), false);
-    }
-
-    public override void DepartTransition(RelativeId? _nextStateId, Action continueTransitionCallback)
-    {
-        if (_nextStateId.HasValue)
-        {
-            _pendingState = _nextStateId;
+            _pendingState = payload;
         }
         
         continueTransitionCallback();
@@ -215,63 +160,104 @@ public sealed class GameStatePuzzle : GameStateLocation
     private void On_ArrivalCompleted(ArrivalCompletedArgs args)
     {
         Game.Session.Puzzle.puzzleGrid.ailmentsContainer.Activate();
-        if (args.ArrivalCutscene == null)
-        {
-            if (!Game.Session.Puzzle.puzzleStatus.IsTutorial())
-            {
-                args.ArrivalCutscene = Game.Session.Puzzle.cutsceneIntro;
-            }
-            else
-            {
-                args.ArrivalCutscene = Game.Session.Puzzle.cutsceneTutorialIntro;
-            }
-        }
+        _puzzleState.OnArrivalCompleted(args);
     }
 
     private void On_LocationArrived(LocationArriveArgs args)
     {
-        // NOTE: this first Reset ran unconditionally in the old LocationArriving
-        // handler, while the Reset just below only fires when isEmpty/initialArrive.
-        // Kept both since they're not provably equivalent (the isEmpty check below
-        // can be false here while this one still needs to run, e.g. moving between
-        // locations mid-date) - but if you know puzzleStatus well enough to say the
-        // first one is always superseded, it can go.
-        if (args.girlPairDef != null)
+        // A puzzle is ended by EndPuzzle before the player leaves a date. One that is still active here was started in a state or at a
+        // location that never ended it, and PuzzleManager.StartPuzzle will skip starting this one (see ExpandedPuzzleManager).
+        if (Game.Session.Puzzle.isPuzzleActive)
         {
-            ResolveGirlDefinitions(args.girlPairDef, args.sidesFlipped, out var left, out var right);
-            Game.Session.Puzzle.puzzleStatus.Reset(left, right);
+            ModInterface.Log.Warning("Arriving at a puzzle while the previous puzzle is still active. StartPuzzle will be skipped for this arrival.");
         }
 
-        var locationManager = Game.Session.Location;
-
-        if ((args.initialArrive || Game.Session.Puzzle.puzzleStatus.isEmpty) && args.girlPairDef != null)
-        {
-            Game.Session.Puzzle.puzzleStatus.Reset(locationManager.currentGirlLeft, locationManager.currentGirlRight);
-        }
-
-        if (args.girlPairDef == Game.Session.Puzzle.bossGirlPairDefinition || args.girlPairDef == null)
-        {
-            List<GirlDefinition> allBySpecial = Game.Data.Girls.GetAllBySpecial(special: false);
-            ListUtils.ShuffleList(allBySpecial);
-            if (args.girlPairDef == Game.Session.Puzzle.bossGirlPairDefinition)
-            {
-                while (allBySpecial.Count > 8)
-                {
-                    allBySpecial.RemoveAt(allBySpecial.Count - 1);
-                }
-
-                allBySpecial.Add(args.girlPairDef.girlDefinitionOne);
-                allBySpecial.Add(args.girlPairDef.girlDefinitionTwo);
-                Game.Session.Puzzle.puzzleStatus.Reset(allBySpecial, nonstop: false);
-            }
-            else
-            {
-                Game.Session.Puzzle.puzzleStatus.Reset(allBySpecial, nonstop: true);
-            }
-        }
-
-        Game.Session.Puzzle.puzzleStatus.PopulateAilments();
+        _puzzleState.OnLocationArrived(args);
 
         FinishArrival(args);
     }
+
+    public void SetPuzzleState(RelativeId puzzleStateId)
+    {
+        _puzzleState?.Dispose();
+        _puzzleState = null;
+
+        if (!ModInterface.GameData.PuzzleStates.TryGetValue(puzzleStateId, out var puzzleStateFactory))
+        {
+            throw new ArgumentException(nameof(puzzleStateId));
+        }
+
+        _puzzleState = puzzleStateFactory.Create(this);
+        _puzzleStateId = puzzleStateId;
+    }
+
+    public override IGameStatePayload GeneratePayload() 
+        => new Payload(_puzzleStateId);
+
+    public int GetPostRewardFruitCount(int baseFruitCount, out bool puzzleFailed) 
+        => _puzzleState.GetPostRewardFruitCount(baseFruitCount, out puzzleFailed);
+
+    public void GetPostRewardFruits(int k, out ItemDefinition itemDefinition, out ItemDefinition itemDefinition2) 
+        => _puzzleState.GetPostRewardFruits(k, out itemDefinition, out itemDefinition2);
+
+    public bool AllowsMove(UiPuzzleSlot from, UiPuzzleSlot to) => _puzzleState.AllowsMove(from, to);
+
+    // ---- everything below is the puzzle state's, asked for by name ----
+
+    public bool UnlocksStylesAfterRoundClear => _puzzleState.UnlocksStylesAfterRoundClear;
+
+    public bool AllowsForfeit => _puzzleState.AllowsForfeit;
+
+    public bool IsRepeatDate => _puzzleState.IsRepeatDate;
+
+    public bool AllowsAction(PuzzleTutorialStepType action) => _puzzleState.AllowsAction(action);
+
+    public bool AllowsTokenPickup(UiPuzzleSlot slot) => _puzzleState.AllowsTokenPickup(slot);
+
+    public bool SuppressesDollDialog => _puzzleState.SuppressesDollDialog;
+
+    public bool TryGetHeaderLabel(out PuzzleHeaderLabel label) => _puzzleState.TryGetHeaderLabel(out label);
+
+    public void OnPhotoWindowClosed() => _puzzleState.OnPhotoWindowClosed();
+
+    public void OnPuzzleStarting() => _puzzleState.OnPuzzleStarting();
+
+    public void OnRoundOver(PuzzleRoundOverContext context) => _puzzleState.OnRoundOver(context);
+
+    public void OnNextRound() => _puzzleState.OnNextRound();
+
+    public void OnPuzzleStateChanged() => _puzzleState.OnPuzzleStateChanged();
+
+    /// <summary>
+    /// Called once the base game's bookkeeping for ending the puzzle is done (see ExpandedPuzzleManager). Where the player goes next depends on the kind of puzzle.
+    /// </summary>
+    public void OnPuzzleEnded(bool succeeded) => _puzzleState.OnPuzzleEnded(succeeded);
+
+    // ---- rules of the status ----
+
+    public int GetInitialMoves(SettingDifficulty difficulty) => _puzzleState.GetInitialMoves(difficulty);
+
+    public int GetMaxMoves(SettingDifficulty difficulty) => _puzzleState.GetMaxMoves(difficulty);
+
+    public int MinMovesRemaining => _puzzleState.MinMovesRemaining;
+
+    public bool ChecksStaminaFreezeOnStart => _puzzleState.ChecksStaminaFreezeOnStart;
+
+    public bool PopulatesRandomAilments => _puzzleState.PopulatesRandomAilments;
+
+    public bool IsBonusRound(int roundIndex, int girlsRemaining) => _puzzleState.IsBonusRound(roundIndex, girlsRemaining);
+
+    public void TakeRoundGirls(List<GirlDefinition> girlList, GirlDefinition[] roundGirls) => _puzzleState.TakeRoundGirls(girlList, roundGirls);
+
+    public void GetRoundGoal(int roundIndex, bool bonusRound, out int affectionGoal, out float bonusDrainDelay)
+        => _puzzleState.GetRoundGoal(roundIndex, bonusRound, out affectionGoal, out bonusDrainDelay);
+
+    public PuzzleStatusType ConditionDateType => _puzzleState.ConditionDateType;
+
+    public bool MatchesTutorialCondition(bool requireScripted) => _puzzleState.MatchesTutorialCondition(requireScripted);
+
+    public bool? LockedAltGirlFocus => _puzzleState.LockedAltGirlFocus;
+    public override bool AutosavesOnArrival => true;
+    public override bool ShowsHubMenu => false;
+    public override bool UseStylesOnDatesFlag => true;
 }

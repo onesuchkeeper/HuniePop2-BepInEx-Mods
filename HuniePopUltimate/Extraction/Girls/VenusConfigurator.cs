@@ -82,9 +82,9 @@ public class VenusConfigurator : GirlConfiguratorBase
 
     private static readonly (RelativeId, int, string name, string description)[] _baggageItemIds =
     [
-        //(Items.Venus.Baggage1, 9268), // Amethyst
-        //(Items.Venus.Baggage2, 9269), // Diamond
-        //(Items.Venus.Baggage3, ), // TODO
+        (Items.Venus.Baggage1, 9268, "Baggage A", "Placeholder"), // Amethyst
+        (Items.Venus.Baggage2, 9269, "Baggage B", "Placeholder"), // Diamond
+        (Items.Venus.Baggage3, 9269, "Baggage C", "Placeholder"), // TODO
     ];
 
     protected override IEnumerable<(RelativeId to, RelativeId from)> LocationGreetingMap
@@ -153,4 +153,10 @@ public class VenusConfigurator : GirlConfiguratorBase
     }
 
     public override bool IsTextPhotoIndexNsfw(int photoIndex) => photoIndex == 2;
+
+    /// <inheritdoc/>
+    public override void ConfigureGirl(GirlBodyDataMod hpBody, AssetBundle assetBundle, HpSpriteCache sprites, HpAudioCache audio, HpItemCache items)
+    {
+        ConfigureGirlDefault(hpBody, assetBundle, sprites, audio, items, Items.Venus);
+    }
 }

@@ -15,13 +15,13 @@ public class GameDefinitionProvider
 {
     private readonly GameData _gameData;
 
-    public Dictionary<RelativeId, UiDollSpecialEffect> DollSpecialEffects => _dollSpecialEffects;
+    public IReadOnlyDictionary<RelativeId, UiDollSpecialEffect> DollSpecialEffects => _dollSpecialEffects;
     internal readonly Dictionary<RelativeId, UiDollSpecialEffect> _dollSpecialEffects;
 
-    public Dictionary<RelativeId, IPuzzleResource> PuzzleResources => _puzzleResources;
+    public IReadOnlyDictionary<RelativeId, IPuzzleResource> PuzzleResources => _puzzleResources;
     internal readonly Dictionary<RelativeId, IPuzzleResource> _puzzleResources;
 
-    public Dictionary<RelativeId, ITokenHandler> TokenHandlers => _tokenHandlers;
+    public IReadOnlyDictionary<RelativeId, ITokenHandler> TokenHandlers => _tokenHandlers;
     internal readonly Dictionary<RelativeId, ITokenHandler> _tokenHandlers;
 
     public IReadOnlyDictionary<RelativeId, IAffection> Affections => _affections;
@@ -36,11 +36,14 @@ public class GameDefinitionProvider
     public IReadOnlyDictionary<RelativeId, IPuzzleStatusGirlState> PuzzleStatusGirlStates => _puzzleStatusGirlStates;
     internal readonly Dictionary<RelativeId, IPuzzleStatusGirlState> _puzzleStatusGirlStates;
 
-    public IReadOnlyDictionary<RelativeId, IGameState> GameStates => _gameStates;
-    internal readonly Dictionary<RelativeId, IGameState> _gameStates;
+    public GameStateFactoryRegistry GameStates => _gameStates;
+    internal readonly GameStateFactoryRegistry _gameStates;
+
+    public IReadOnlyDictionary<RelativeId, IPuzzleStateFactory> PuzzleStates => _puzzleStates;
+    internal readonly Dictionary<RelativeId, IPuzzleStateFactory> _puzzleStates;
 
     public IReadOnlyList<IExpInfo> ExpDisplays => _expDisplays;
-    internal readonly List<IExpInfo> _expDisplays = new List<IExpInfo>();
+    internal readonly List<IExpInfo> _expDisplays;
 
     /// <summary>
     /// Constructor
@@ -55,7 +58,8 @@ public class GameDefinitionProvider
         Dictionary<RelativeId, ITokenHandler> tokenHandlers,
         Dictionary<RelativeId, IPuzzleStatusGirlState> puzzleStatusGirlStates,
         Dictionary<RelativeId, UiDollSpecialEffect> dollSpecialEffects,
-        Dictionary<RelativeId, IGameState> gameStates,
+        GameStateFactoryRegistry gameStates,
+        Dictionary<RelativeId, IPuzzleStateFactory> puzzleStates,
         List<IExpInfo> expDisplays)
     {
         _itemStoreHandlers = itemStoreHandlers;
@@ -66,6 +70,7 @@ public class GameDefinitionProvider
         _puzzleStatusGirlStates = puzzleStatusGirlStates;
         _dollSpecialEffects = dollSpecialEffects;
         _gameStates = gameStates;
+        _puzzleStates = puzzleStates;
         _expDisplays = expDisplays;
         _gameData = gameData ?? throw new ArgumentNullException(nameof(gameData));
     }

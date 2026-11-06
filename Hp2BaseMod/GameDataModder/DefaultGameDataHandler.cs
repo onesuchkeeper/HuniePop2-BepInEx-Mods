@@ -56,17 +56,26 @@ internal static class DefaultGameDataHandler
         var itemGiftHandlers = gameDefinitionProvider._itemGiftHandlers;
         var itemStoreHandlers = gameDefinitionProvider._itemStoreHandlers;
         var gameStates = gameDefinitionProvider._gameStates;
+        var puzzleStates = gameDefinitionProvider._puzzleStates;
 
         // register default sub data
         using (ModInterface.Log.MakeIndent("registering default sub data"))
         {
             using (ModInterface.Log.MakeIndent("Game State"))
             {
-                gameStates[GameStateId.Hub] = new GameStateHub();
-                gameStates[GameStateId.Puzzle] = new GameStatePuzzle();
-                gameStates[GameStateId.Sim] = new GameStateSim();
-                gameStates[GameStateId.Special] = new GameStateSpecial();
-                gameStates[GameStateId.Title] = new GameStateTitle();
+                gameStates.Register(GameStateId.Hub, new GameStateHub.Factory());
+                gameStates.Register(GameStateId.Puzzle, new GameStatePuzzle.Factory());
+                gameStates.Register(GameStateId.Sim, new GameStateSim.Factory());
+                gameStates.Register(GameStateId.Special, new GameStateSpecial.Factory());
+                gameStates.Register(GameStateId.Title, new GameStateTitle.Factory());
+            }
+
+            using (ModInterface.Log.MakeIndent("Puzzle State"))
+            {
+                puzzleStates[PuzzleStateId.Normal] = new PuzzleStateNormal.Factory();
+                puzzleStates[PuzzleStateId.Boss] = new PuzzleStateBoss.Factory();
+                puzzleStates[PuzzleStateId.Nonstop] = new PuzzleStateNonstop.Factory();
+                puzzleStates[PuzzleStateId.Tutorial] = new PuzzleStateTutorial.Factory();
             }
 
             using (ModInterface.Log.MakeIndent("Affection"))
@@ -119,6 +128,7 @@ internal static class DefaultGameDataHandler
                 itemStoreHandlers[ItemTypes.Shoe] = new ShoeItemStoreHandler();
                 itemStoreHandlers[ItemTypes.Smoothie] = new SmoothieStoreHandler();
                 itemStoreHandlers[ItemTypes.Unique] = new UniqueItemStoreHandler();
+                itemStoreHandlers[ItemTypes.Misc] = new MiscItemStoreHandler();
             }
 
             using (ModInterface.Log.MakeIndent("Puzzle Status Girl States"))
@@ -298,27 +308,24 @@ internal static class DefaultGameDataHandler
                     ProcessLocationBundleList(def.departBundleList);
 
                     var expansion = def.GetExpansion();
+                    var locationId = new RelativeId(-1, def.id);
 
-                    if (def.locationType == LocationType.DATE)
+                    if (_specialDateLocationIds.Contains(def.id))
                     {
                         expansion.DefaultStyle = new RelativeId(-1, (int)def.dateGirlStyleType);
-
-                        if (!_specialDateLocationIds.Contains(def.id))
-                        {
-                            expansion.AllowNormal = true;
-                            expansion.PostBoss = false;
-                            expansion.AllowNonStop = true;
-                        }
-
-                        expansion.AllowNoPair = false;
+                        expansion.StaticBackground = true;
                     }
-                    else if (def.locationType == LocationType.HUB)
+                    else if (Locations.NormalDateLocIds.Contains(locationId))
                     {
-                        expansion.AllowNoPair = true;
+                        expansion.DefaultStyle = new RelativeId(-1, (int)def.dateGirlStyleType);
+                        expansion.StaticBackground = true;
+                        expansion.AllowNormal = true;
+                        expansion.PostBoss = false;
+                        expansion.AllowNonStop = true;
                     }
-                    else
+                    else if (Locations.SimLocIds.Contains(locationId))
                     {
-                        expansion.AllowNoPair = false;
+                        expansion.AllowSim = true;
                     }
 
                     if (_locationIdToDateTime.TryGetValue(def.id, out var time))
@@ -420,8 +427,8 @@ internal static class DefaultGameDataHandler
                         case ItemType.FOOD:
                             expansion.StoreHandler = itemStoreHandlers[ItemTypes.Food];
                             expansion.GiftHandler = item.noStaminaCost 
-                                ? itemGiftHandlers[ItemGiftHandlerId.Food]
-                                : itemGiftHandlers[ItemGiftHandlerId.StaminaFood];
+                                ? itemGiftHandlers[ItemGiftHandlerId.StaminaFood]
+                                : itemGiftHandlers[ItemGiftHandlerId.Food];
                             expansion.CategoryPrefix = "Food";
                             expansion.IsPerishable = false;
                             break;
@@ -461,13 +468,13 @@ internal static class DefaultGameDataHandler
 
             using (ModInterface.Log.MakeIndent("Token Handlers"))
             {
-                var defaultHandler = new BaseToken();
+                var defaultHandler = new BaseTokenHandler();
                 tokenHandlers[TokenHandlerId.Default] = defaultHandler;
 
-                var staminaHandler = new TokenStamina();
+                var staminaHandler = new TokenStaminaHandler();
                 tokenHandlers[TokenHandlerId.Stamina] = staminaHandler;
 
-                var movesHandler = new TokenMoves();
+                var movesHandler = new TokenMovesHandler();
                 tokenHandlers[TokenHandlerId.Moves] = movesHandler;
             }
 
@@ -501,6 +508,13 @@ internal static class DefaultGameDataHandler
         };
     }
 
+    private static LogicActionChangeState ToChangeState(LogicAction logicAction)
+    {
+        var targetLoc = logicAction.locationDefinition;
+        var targetStatePayload = ResolveGameStatePayload(new RelativeId(-1, targetLoc.id));
+        return new LogicActionChangeState(targetStatePayload);
+    }
+
     private static void ProcessLocationBundleList(List<LogicBundle> bundleList)
     {
         if (bundleList == null) return;
@@ -508,27 +522,25 @@ internal static class DefaultGameDataHandler
         foreach (var bundle in bundleList)
         {
             if (bundle?.actions == null) continue;
+            if (bundle.actions.Count == 0) continue;
 
-            for (int i = 0; i < bundle.actions.Count; i++)
+            var i = 1;
+            var firstAction = bundle.actions.First();
+
+            if (firstAction.type == LogicActionType.TRAVEL_TO)
+            {
+                bundle.actions.Insert(0, ToChangeState(firstAction));
+                i = 2;
+            }
+
+            for (; i < bundle.actions.Count; i++)
             {
                 var action = bundle.actions[i];
                 if (action == null) continue;
 
                 if (action.type == LogicActionType.TRAVEL_TO)
                 {
-                    // Guard against duplicate insertions
-                    if (i > 0 && bundle.actions[i - 1] is LogicActionChangeState)
-                    {
-                        continue;
-                    }
-
-                    // Resolve target location (falling back to current location if null)
-                    var targetLoc = action.locationDefinition;
-                    var targetStateId = ResolveGameStateId(targetLoc.locationType);
-
-                    var stateAction = new LogicActionChangeState(targetStateId);
-
-                    bundle.actions.Insert(i, stateAction);
+                    bundle.actions.Insert(i, ToChangeState(action));
                     i++; // Advance index past the newly inserted action
                 }
             }
@@ -540,11 +552,18 @@ internal static class DefaultGameDataHandler
                               .GetValue(AccessTools.DeclaredField(typeof(GameData), dataName)
                               .GetValue(gameData)) as Dictionary<int, T>;
 
-    private static RelativeId ResolveGameStateId(LocationType locationType) => locationType switch { 
-        LocationType.SIM => GameStateId.Sim, 
-        LocationType.DATE => GameStateId.Puzzle, 
-        LocationType.HUB => GameStateId.Hub, 
-        LocationType.SPECIAL => GameStateId.Special, 
-        _ => throw new Exception($"Unhandled {nameof(LocationType)} - {locationType}")
-    }; 
+    /// <summary>
+    /// The state the base game's logic means when it sends the player to one of the base game's locations. These locations are
+    /// all known, so each is answered by its id.
+    /// </summary>
+    private static IGameStatePayload ResolveGameStatePayload(RelativeId locationId)
+    {
+        if (locationId == Locations.OuterSpace) return new GameStatePuzzle.Payload(PuzzleStateId.Boss);
+        if (locationId == Locations.AirplaneBathroom) return new GameStatePuzzle.Payload(PuzzleStateId.Tutorial);
+        if (locationId == Locations.HotelRoom) return new GameStateHub.Payload();
+        if (Locations.SimLocIds.Contains(locationId)) return new GameStateSim.Payload(RelativeId.Default);
+        if (Locations.SpecialLocIds.Contains(locationId)) return new GameStateSpecial.Payload();
+
+        throw new Exception($"No game state is known for the base game location {locationId}");
+    }
 }

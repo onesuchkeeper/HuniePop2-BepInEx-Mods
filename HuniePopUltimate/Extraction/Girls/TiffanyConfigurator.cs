@@ -83,9 +83,9 @@ public class TiffanyConfigurator : GirlConfiguratorBase
 
     private static readonly (RelativeId, int, string name, string description)[] _baggageItemIds =
     [
-        (Items.Tiffany.Baggage1, 9202, "Mommy Issues", "Tiffany also considers [[romance]@Romance] to be her least favorite affection type."), // Pom-poms
-        (Items.Tiffany.Baggage2, 9203, "Perfectionist", "POWER tokens have a 50% chance to not be scored and remain on the grid while Tiffany waits for the best opportunity to use them."), // Cheer Uniform
-        (Items.Tiffany.Baggage3, 9203, "People Pleaser", "Tiffany gains 25% lass affection from matches of her date's least favorite affection type."), // TODO
+        (Items.Tiffany.Baggage1, 9202, "Baggage A", "Placeholder"), // Pom-poms
+        (Items.Tiffany.Baggage2, 9203, "Baggage B", "Placeholder"), // Cheer Uniform
+        (Items.Tiffany.Baggage3, 9203, "Baggage C", "Placeholder"), // TODO
     ];
 
     protected override IEnumerable<(RelativeId to, RelativeId from)> LocationGreetingMap
@@ -159,61 +159,7 @@ public class TiffanyConfigurator : GirlConfiguratorBase
 
     public override void ConfigureGirl(GirlBodyDataMod hpBody, AssetBundle assetBundle, HpSpriteCache sprites, HpAudioCache audio, HpItemCache items)
     {
-        Mod.LinesByDialogTriggerId ??= new();
-
-        var testAudioInfo = new AudioClipInfo() { 
-            IsExternal = true, 
-            Path = Path.Combine(Plugin.ROOT_DIR, "audio","TiffanyTest.wav")
-        };
-
-        base.ConfigureGirl(hpBody, assetBundle, sprites, audio, items);
-
-        Mod.TalkHandler = new TiffanyTalkHandler();
-
-        //Mommy Issues
-        ModInterface.DataMod.AddDataMod(new AilmentDataMod(Items.Tiffany.Baggage1, InsertStyle.append)
-        {
-            ItemDefinitionID = Items.Tiffany.Baggage1,
-            ScriptedAilmentFactory = (Ailment) => new AdditionalLeastFavoriteAilment(new HashSet<RelativeId>() { Hp2BaseMod.PuzzleAffectionId.Romance }),
-        });
-
-        //Perfectionist
-        ModInterface.DataMod.AddDataMod(new AilmentDataMod(Items.Tiffany.Baggage2, InsertStyle.append)
-        {
-            ItemDefinitionID = Items.Tiffany.Baggage2,
-            ScriptedAilmentFactory = (Ailment) => new DummyAilment(),//new PerfectionistAilment(Hp2BaseMod.DialogTriggers.Baggage2),
-        });
-
-        var perfectionistLines = Mod.LinesByDialogTriggerId.GetOrNew(Hp2BaseMod.DialogTriggers.Baggage2);
-
-        perfectionistLines.Add(new DialogLineDataMod(Cutscenes.NextDialogLineId)
-        {
-            Yuri = false,
-            DialogText = "Are you sure?",
-            AudioClipInfo = testAudioInfo
-        });
-
-        perfectionistLines.Add(new DialogLineDataMod(Cutscenes.NextDialogLineId)
-        {
-            Yuri = false,
-            DialogText = "Hold on a sec!",
-            AudioClipInfo = testAudioInfo
-        });
-
-        perfectionistLines.Add(new DialogLineDataMod(Cutscenes.NextDialogLineId)
-        {
-            Yuri = false,
-            DialogText = "Should we do that later?",
-            AudioClipInfo = testAudioInfo
-        });
-
-        //People Pleaser
-        ModInterface.DataMod.AddDataMod(new AilmentDataMod(Items.Tiffany.Baggage3, InsertStyle.append)
-        {
-            ItemDefinitionID = Items.Tiffany.Baggage3,
-            ScriptedAilmentFactory = (Ailment) => new DummyAilment(),//new PeoplePleaserAilment(),
-        });
-        TiffanyBaggageCutscenes.AddDataMods();
+        ConfigureGirlDefault(hpBody, assetBundle, sprites, audio, items, Items.Tiffany);
     }
 
     public override bool IsTextPhotoIndexNsfw(int photoIndex) => photoIndex == 2;

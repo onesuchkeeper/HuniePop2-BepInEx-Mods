@@ -9,10 +9,12 @@ namespace HuniePopUltimate;
 public class KyannaConfigurator : GirlConfiguratorBase
 {
     protected override string UniqueCategoryDescription => "Fitness";
-    protected override string ShoeCategoryDescription => "Idk";
+    protected override string ShoeCategoryDescription => "Strapped";
 
     protected override RelativeId GirlId => Girls.Kyanna;
     protected override string GirlAssetFileName => "kyanna";
+
+    public override string UnderwearName => "Ebony";
 
     protected override int Age => 23;
 
@@ -68,8 +70,8 @@ public class KyannaConfigurator : GirlConfiguratorBase
         // (Items.Kyanna.Unique4, 9213), // Luchador
         (Items.Kyanna.Unique1, 9122), // Water Bottle
         (Items.Kyanna.Unique2, 9123), // Cardio Weights
-        (Items.Kyanna.Unique3, 9214), // Skipping Rope
-        (Items.Kyanna.Unique4, 9215), // Kettle Bell
+        (Items.Kyanna.Unique3, 9124), // Skipping Rope
+        (Items.Kyanna.Unique4, 9125), // Kettle Bell
     ];
 
     protected override IEnumerable<(RelativeId id, string name, string description)> ShoeItems
@@ -87,12 +89,9 @@ public class KyannaConfigurator : GirlConfiguratorBase
 
     private static readonly (RelativeId, int, string name, string description)[] _baggageItemIds =
     [
-        //(Items.Kyanna.Baggage1, 9214), // Pinata
-        //(Items.Kyanna.Baggage2, 9215), // Vinuela
-
-        //(Items.Kyanna.Baggage1, 9216), // Boxing Gloves
-        //(Items.Kyanna.Baggage2, 9217), // Punching Bag
-        //(Items.Kyanna.Baggage3, ), // TODO
+        (Items.Kyanna.Baggage1, 9216, "Baggage A", "Placeholder"), // Boxing Gloves
+        (Items.Kyanna.Baggage2, 9217, "Baggage B", "Placeholder"), // Punching Bag
+        (Items.Kyanna.Baggage3, 9217, "Baggage C", "Placeholder"), // TODO
     ];
 
     protected override IEnumerable<(RelativeId to, RelativeId from)> LocationGreetingMap
@@ -101,7 +100,7 @@ public class KyannaConfigurator : GirlConfiguratorBase
     [
         (Locations.MassageSpa, LocationIds.Carnival),//don't get to go out
         (Locations.Aquarium, LocationIds.BotanicalGarden),//neat idea
-        (Locations.SecludedCabana, LocationIds.OutdoorLounge),
+        (Locations.SecludedCabana, LocationIds.OutdoorLounge),//seduced
         (Locations.PoolsideBar, LocationIds.HotSprings),//bikini
         (Locations.GolfCourse, LocationIds.TennisCourts),//emasculated
         (Locations.CruiseShip, LocationIds.HotSprings),//bikini
@@ -109,7 +108,7 @@ public class KyannaConfigurator : GirlConfiguratorBase
         (Locations.Casino, LocationIds.Casino),//gamble
         (Locations.PrivateTable, LocationIds.Restaurant),//nicer than food court
         (Locations.SecretGrotto, LocationIds.HotSprings),//bikini
-        (Locations.StripClub, LocationIds.Restaurant),//nicer than food court?
+        (Locations.StripClub, LocationIds.Restaurant),//nicer than food court
         (Locations.RoyalSuite, LocationIds.OutdoorLounge),//seduced
     ];
 
@@ -178,5 +177,11 @@ public class KyannaConfigurator : GirlConfiguratorBase
 
         cleanedDialogTriggerId = dialogTriggerId;
         return true;
+    }
+
+    /// <inheritdoc/>
+    public override void ConfigureGirl(GirlBodyDataMod hpBody, AssetBundle assetBundle, HpSpriteCache sprites, HpAudioCache audio, HpItemCache items)
+    {
+        ConfigureGirlDefault(hpBody, assetBundle, sprites, audio, items, Items.Kyanna);
     }
 }

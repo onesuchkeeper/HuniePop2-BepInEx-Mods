@@ -9,7 +9,7 @@ namespace HuniePopUltimate;
 public class AikoConfigurator : GirlConfiguratorBase
 {
     protected override string UniqueCategoryDescription => "Toys";
-    protected override string ShoeCategoryDescription => "Idk";
+    protected override string ShoeCategoryDescription => "Kittens";
 
     protected override RelativeId GirlId => Girls.Aiko;
     protected override string GirlAssetFileName => "aiko";
@@ -90,12 +90,9 @@ public class AikoConfigurator : GirlConfiguratorBase
 
     private static readonly (RelativeId, int, string name, string description)[] _baggageItemIds =
     [
-        //(Items.Aiko.Baggage1, 9208), // Kimono
-        //(Items.Aiko.Baggage2, 9209), // Samurai Helmet
-
-        //(Items.Aiko.Baggage1, 9120), // Board Game
-        //(Items.Aiko.Baggage2, 9116), // Old Fashioned Yoyo
-        //(Items.Aiko.Baggage3, ), // TODO
+        (Items.Aiko.Baggage1, 9120, "Baggage A", "Placeholder"), // Board Game
+        (Items.Aiko.Baggage2, 9116, "Baggage B", "Placeholder"), // Old Fashioned Yoyo
+        (Items.Aiko.Baggage3, 9116, "Baggage C", "Placeholder"), // Todo
     ];
 
     protected override IEnumerable<(RelativeId to, RelativeId from)> LocationGreetingMap
@@ -176,5 +173,11 @@ public class AikoConfigurator : GirlConfiguratorBase
 
         cleanedDialogTriggerId = dialogTriggerId;
         return true;
+    }
+
+    /// <inheritdoc/>
+    public override void ConfigureGirl(GirlBodyDataMod hpBody, AssetBundle assetBundle, HpSpriteCache sprites, HpAudioCache audio, HpItemCache items)
+    {
+        ConfigureGirlDefault(hpBody, assetBundle, sprites, audio, items, Items.Aiko);
     }
 }

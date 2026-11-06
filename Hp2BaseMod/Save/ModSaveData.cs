@@ -11,7 +11,7 @@ namespace Hp2BaseMod.Save
     /// possible so the player keeps their progress even when uninstalling mods
     /// </summary>
     [Serializable]
-    class ModSaveData
+    public class ModSaveData
     {
         private static readonly int DEFAULT_FILE_COUNT = 4;
 
@@ -39,6 +39,7 @@ namespace Hp2BaseMod.Save
             return ModFiles[index];
         }
 
+        [Obsolete("Here for legacy saves, use ModSaveMeta.SourceGUID_Id instead")]
         public Dictionary<string, int> SourceGUID_Id = new Dictionary<string, int>();
         public Dictionary<int, string> SourceSaves = new Dictionary<int, string>();
 
@@ -116,11 +117,13 @@ namespace Hp2BaseMod.Save
                 saveData.files.AddRange(AdditionalFiles);
             }
 
-            if (ModFiles != null && saveData.files != null)
+            ModFiles ??= new();
+
+            if (saveData.files != null)
             {
-                foreach (var (mod, file) in ModFiles.Zip(saveData.files, (mod, file) => (mod, file)))
+                for (var i = 0; i < saveData.files.Count; i++)
                 {
-                    mod.SetData(file);
+                    ModInterface.SaveManager.ProcessLoaded(i, saveData.files[i]);
                 }
             }
         }

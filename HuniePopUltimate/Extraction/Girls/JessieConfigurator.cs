@@ -33,7 +33,7 @@ public class JessieConfigurator : IGirlConfigurator
 
     public IEnumerable<(RelativeId, int)> ExtractItemIds => Enumerable.Empty<(RelativeId, int)>();
 
-    public string UnderwearName => "Underwear";
+    public string UnderwearName => "The Real Deal";
 
     public (RelativeId outfit, RelativeId hairstyle)[] MeetingCutsceneStyleSequence => null;
 

@@ -9,12 +9,19 @@ using Hp2BaseMod.Utility;
 
 namespace SingleDate;
 
+/// <summary>
+/// A cutscene step that opens the photo window with one of the girl's sex photos on a single date, and waits for the
+/// window to close. Photos come from <see cref="Plugin.AddGirlSexPhotos"/>: those for the current location, or all of
+/// them if none match, preferring ones she hasn't unlocked. The step completes immediately if there is nothing to show.
+/// </summary>
 public class ShowSexPhotoCutsceneStep : CutsceneStepSubDefinition, IFunctionalCutsceneStep
 {
+    // Private members of the base game's windows: the window manager's current window, the photos window's photo, and its refresh method.
     private static readonly FieldInfo f_currentWindow = AccessTools.Field(typeof(WindowManager), "_currentWindow");
     private static readonly FieldInfo f_bigPhotoDefinition = AccessTools.Field(typeof(UiWindowPhotos), "_bigPhotoDefinition");
     private static readonly MethodInfo m_refreshBigPhoto = AccessTools.Method(typeof(UiWindowPhotos), "RefreshBigPhoto");
 
+    /// <summary>Creates the step for the base mod's cutscene data. The step has no data of its own.</summary>
     public class Info : IGameDefinitionInfo<CutsceneStepSubDefinition>
     {
         public void SetData(ref CutsceneStepSubDefinition def, GameDefinitionProvider gameData, AssetProvider assetProvider, InsertStyle insertStyle)
@@ -31,8 +38,10 @@ public class ShowSexPhotoCutsceneStep : CutsceneStepSubDefinition, IFunctionalCu
         }
     }
 
+    /// <summary>Raised when the step is done.</summary>
     public event CutsceneStepComplete Complete;
 
+    /// <summary>Runs the step: picks and shows a photo and waits for the window to close, otherwise completes immediately.</summary>
     public void Act()
     {
         var playerFileGirlPair = Game.Persistence.playerFile.GetPlayerFileGirlPair(Game.Session.Location.currentGirlPair);
@@ -56,8 +65,10 @@ public class ShowSexPhotoCutsceneStep : CutsceneStepSubDefinition, IFunctionalCu
 
         var locId = ModInterface.Data.GetDataId(GameDataType.Location, Game.Session.Location.currentLocation.id);
 
+        // Photos that belong to this location.
         var sexPhotos = singleDateGirl.SexPhotos.Where(x => x.LocationId == locId).Select(x => x.PhotoId).ToArray();
 
+        // None for this location, use any of her photos.
         if (sexPhotos.Length == 0)
         {
             sexPhotos = singleDateGirl.SexPhotos.Select(x => x.PhotoId).ToArray();
@@ -69,11 +80,13 @@ public class ShowSexPhotoCutsceneStep : CutsceneStepSubDefinition, IFunctionalCu
             return;
         }
 
+        // Prefer photos she hasn't unlocked yet, otherwise repeat one.
         var photoPool = sexPhotos.Except(girlSave.UnlockedPhotos).ToArray();
         var bigPhotoId = photoPool.Length == 0
             ? sexPhotos.GetRandom()
             : photoPool.GetRandom();
 
+        // NOTE: the unlock is saved before the photo is confirmed to exist or show, unlike ShowDatePhotoCutsceneStep.
         girlSave.UnlockedPhotos ??= new();
         girlSave.UnlockedPhotos.Add(bigPhotoId);
 
@@ -94,6 +107,7 @@ public class ShowSexPhotoCutsceneStep : CutsceneStepSubDefinition, IFunctionalCu
         m_refreshBigPhoto.Invoke(window, null);
     }
 
+    /// <summary>The photo window closed, the step is done.</summary>
     private void OnWindowHideEvent()
     {
         Game.Manager.Windows.WindowHideEvent -= OnWindowHideEvent;

@@ -4,17 +4,82 @@ using UnityEngine;
 namespace Hp2BaseMod;
 
 /// <summary>
-/// Active for LocationType.SIM locations.
+/// Active while the player is with a pair at a location where they talk, give gifts and ask for a date.
 /// </summary>
 public sealed class GameStateSim : GameStateLocation
 {
+    public class Factory : IGameStateFactory<Payload>
+    {
+        public IGameState Create(Payload payload) => new GameStateSim();
+
+        public string GetProfileString(PlayerFile playerFile)
+        {
+            return playerFile.girlPairDefinition?.GetExpansion().GetNames(playerFile.sidesFlipped) ?? "Alone";
+        }
+
+        public bool ValidateSave(SaveFile saveFile, out string error)
+        {
+            if (ModInterface.Data.TryGetDataId(GameDataType.GirlPair, saveFile.girlPairId, out var pairId) 
+                && ModInterface.GameData.GetGirlPair(pairId) == null)
+            {
+                error = "Sim state requires a valid girlPair";
+                return false;
+            }
+
+            error = string.Empty;
+            return true;
+        }
+    }
+
+    [Serializable]
+    public class Payload(RelativeId pairId) : IGameStatePayload
+    {
+        public RelativeId PairId = pairId;
+    }
+
+    public override bool AutosavesOnArrival => true;
+
     public override RelativeId Id => GameStateId.Sim;
 
     public override bool IsSavable => true;
 
-    public override void Enter()
+    // ---- what the player can use here ----
+
+    public override bool HidesCellphone(UiCellphone cellphone) => false;
+
+    // the slots are ready once the talk and date bubbles are showing
+    public override FinderStatus GetFinderStatus()
+        => FinderStatus.Present(Game.Manager.Windows.IsWindowActive(Game.Session.Location.actionBubblesWindow, true, false), 0);
+
+    // picking a place just means leaving for it
+    public override bool OnFinderSlotChosen(UiCellphoneAppFinder app, UiAppFinderSlot slot) => false;
+
+    public override bool AllowsStore => true;
+    public override bool StoreShowsNotice => false;
+    public override bool AllowsPairApp => true;
+    public override bool HasGirlsPresent => true;
+    public override bool ShowsHubMenu => false;
+    public override bool UseStylesOnDatesFlag => false;
+
+    public override string GetGiftError(ItemDefinition item)
     {
-        base.Enter();
+        if (Game.Session.Location.currentGirlPair == null) return NoGirlsNearbyGiftError;
+        if (!Game.Manager.Windows.IsWindowActive(Game.Session.Location.actionBubblesWindow, true, false)) return TalkingGiftError;
+        return null;
+    }
+
+    public override bool DialogIgnoresCellphone => false;
+
+    // gifts can go to either girl, and nobody is the focused one
+    public override bool DollFocusIsInteractive => false;
+
+    public override bool HintsSimStaminaCost => true;
+    public override bool AllowsPause => true;
+
+    private bool _disposed;
+    public GameStateSim() 
+        : base()
+    {
         var locationManager = Game.Session.Location.GetExpansion();
         locationManager.PostLocationSettled += OnPostLocationSettled;
         locationManager.ResolveDollStyles += OnResolveDollStyles;
@@ -24,27 +89,24 @@ public sealed class GameStateSim : GameStateLocation
         ModInterface.Events.DateLocationSelected += On_DateLocationSelected;
     }
 
-    public override void Exit()
+    protected override void Dispose(bool disposing)
     {
-        base.Exit();
-        _pendingState = null;
-        var locationManager = Game.Session.Location.GetExpansion();
-        locationManager.PostLocationSettled -= OnPostLocationSettled;
-        locationManager.ResolveDollStyles -= OnResolveDollStyles;
-        locationManager.LocationArrived -= On_LocationArrived;
+        if (_disposed) return;
+        _disposed = true;
 
-        ModInterface.Events.FinderSlotSelected -= On_FinderSlotSelected;
-        ModInterface.Events.DateLocationSelected -= On_DateLocationSelected;
-    }
+        if (disposing)
+        {
+            _pendingState = null;
+            var locationManager = Game.Session.Location.GetExpansion();
+            locationManager.PostLocationSettled -= OnPostLocationSettled;
+            locationManager.ResolveDollStyles -= OnResolveDollStyles;
+            locationManager.LocationArrived -= On_LocationArrived;
 
-    public override string GetProfileString(PlayerFile playerFile)
-    {
-        var girlName = playerFile.girlPairDefinition.girlDefinitionOne.girlName;
-        var girlName2 = playerFile.girlPairDefinition.girlDefinitionTwo.girlName;
+            ModInterface.Events.FinderSlotSelected -= On_FinderSlotSelected;
+            ModInterface.Events.DateLocationSelected -= On_DateLocationSelected;
+        }
 
-        return playerFile.sidesFlipped 
-            ? girlName + " & " + girlName2
-            : girlName2 + " & " + girlName;
+        base.Dispose(disposing);
     }
 
     private void OnPostLocationSettled(LocationSettledArgs args)
@@ -72,30 +134,33 @@ public sealed class GameStateSim : GameStateLocation
         // a flag to the hub slot itself?
         if (slot.locationDefinition?.ModId() == Locations.HotelRoom)
         {
-            _pendingState = GameStateId.Hub;
+            _pendingState = new GameStateHub.Payload();
         }
         else
         {
-            _pendingState = GameStateId.Sim;
+            _pendingState = new Payload(slot.playerFileFinderSlot.girlPairDefinition.ModId());
         }
     }
 
     private void On_DateLocationSelected(DateLocationSelectedArgs args)
     {
-        _pendingState = GameStateId.Puzzle;
+        _pendingState = new GameStatePuzzle.Payload(PuzzleStateId.Normal);
     }
 
     private Action _continueTransitionCallback;
     private UiDoll _targetDoll;
 
-    public override void DepartTransition(RelativeId? _nextStateId, Action continueTransitionCallback)
+    public override void DepartTransition(IGameStatePayload payload, Action continueTransitionCallback)
     {
-        if (_nextStateId.HasValue)
+        if (payload != null)
         {
-            _pendingState = _nextStateId;
+            _pendingState = payload;
         }
 
-        var dialogTriggerDefinition = _pendingState == GameStateId.Puzzle
+        //TODO, see about moving this to the states?
+        //I don't like checking the type of the pending state here
+        //this didn't work...
+        var dialogTriggerDefinition = _pendingState?.GetType() == typeof(GameStatePuzzle.Payload)
             ? Game.Session.Location.dtAskDate
             : Game.Session.Location.dtValediction;
 
@@ -106,8 +171,8 @@ public sealed class GameStateSim : GameStateLocation
             _targetDoll = args.SelectedDoll ?? Game.Session.gameCanvas.GetDoll(MathUtils.RandomBool());
 
             _continueTransitionCallback = continueTransitionCallback;
-            _targetDoll.DialogBoxHiddenEvent += OnValedictionDialogRead;
             _targetDoll.ReadDialogTrigger(dialogTriggerDefinition, DialogLineFormat.ACTIVE, -1);
+            _targetDoll.DialogBoxHiddenEvent += OnValedictionDialogRead;
             return;
         }
         else
@@ -135,7 +200,9 @@ public sealed class GameStateSim : GameStateLocation
 
         if (args.girlPairDef != null)
         {
-            Game.Session.Puzzle.puzzleStatus.Reset(locationManager.currentGirlLeft, locationManager.currentGirlRight);
+            // there is no puzzle state to ask here, so the status is built with a normal date's rules
+            using var rules = new PuzzleStateNormal(this);
+            Game.Session.Puzzle.puzzleStatus.GetExpansion().Reset(rules, locationManager.currentGirlLeft, locationManager.currentGirlRight);
             Game.Session.Puzzle.puzzleStatus.girlStatusLeft.playerFileGirl.staminaFreeze = -1;
             Game.Session.Puzzle.puzzleStatus.girlStatusRight.playerFileGirl.staminaFreeze = -1;
         }
@@ -167,4 +234,6 @@ public sealed class GameStateSim : GameStateLocation
             }
         }
     }
+
+    public override IGameStatePayload GeneratePayload() => new Payload(Game.Persistence.playerFile.girlPairDefinition.ModId());
 }

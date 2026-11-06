@@ -80,9 +80,9 @@ public class NikkiConfigurator : GirlConfiguratorBase
 
     private static readonly (RelativeId, int, string name, string description)[] _baggageItemIds =
     [
-        //(Items.Nikki.Baggage1, 9232), // Handheld Game
-        //(Items.Nikki.Baggage2, 9233), // Arcade Cabinet
-        //(Items.Nikki.Baggage3, ), // TODO
+        (Items.Nikki.Baggage1, 9232, "Baggage A", "Placeholder"), // Handheld Game
+        (Items.Nikki.Baggage2, 9233, "Baggage B", "Placeholder"), // Arcade Cabinet
+        (Items.Nikki.Baggage3, 9233, "Baggage C", "Placeholder"), // TODO
     ];
 
     protected override IEnumerable<(RelativeId to, RelativeId from)> LocationGreetingMap
@@ -151,4 +151,10 @@ public class NikkiConfigurator : GirlConfiguratorBase
     }
 
     public override bool IsTextPhotoIndexNsfw(int photoIndex) => photoIndex == 3;
+
+    /// <inheritdoc/>
+    public override void ConfigureGirl(GirlBodyDataMod hpBody, AssetBundle assetBundle, HpSpriteCache sprites, HpAudioCache audio, HpItemCache items)
+    {
+        ConfigureGirlDefault(hpBody, assetBundle, sprites, audio, items, Items.Nikki);
+    }
 }

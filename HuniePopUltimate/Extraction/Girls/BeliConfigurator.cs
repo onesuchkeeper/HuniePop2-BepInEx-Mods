@@ -88,9 +88,9 @@ public class BeliConfigurator : GirlConfiguratorBase
 
     private static readonly (RelativeId, int, string name, string description)[] _baggageItemIds =
     [
-        //(Items.Beli.Baggage1, 9244), // Seashell
-        //(Items.Beli.Baggage2, 9245), // Four Leaf Clover
-        //(Items.Beli.Baggage3, ), // TODO
+        (Items.Beli.Baggage1, 9244, "Baggage A", "Placeholder"), // Seashell
+        (Items.Beli.Baggage2, 9245, "Baggage B", "Placeholder"), // Four Leaf Clover
+        (Items.Beli.Baggage3, 9245, "Baggage C", "Placeholder"), // TODO
     ];
 
     protected override IEnumerable<(RelativeId to, RelativeId from)> LocationGreetingMap
@@ -159,4 +159,10 @@ public class BeliConfigurator : GirlConfiguratorBase
     }
 
     public override bool IsTextPhotoIndexNsfw(int photoIndex) => photoIndex.InInclusiveRange(2,3);
+
+    /// <inheritdoc/>
+    public override void ConfigureGirl(GirlBodyDataMod hpBody, AssetBundle assetBundle, HpSpriteCache sprites, HpAudioCache audio, HpItemCache items)
+    {
+        ConfigureGirlDefault(hpBody, assetBundle, sprites, audio, items, Items.Beli);
+    }
 }

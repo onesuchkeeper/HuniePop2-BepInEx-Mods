@@ -12,7 +12,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
         [HarmonyPatch("Start")]
         [HarmonyPostfix]
         public static void PostStart(UiCellphoneAppFinder __instance)
-            => ExpandedUiCellphoneAppFinder.Get(__instance).OnStart();
+            => ExpandedUiCellphoneAppFinder.Get(__instance).Start_Postfix();
 
         [HarmonyPatch("OnDestroy")]
         [HarmonyPrefix]
@@ -24,6 +24,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
     public partial class ExpandedUiCellphoneAppFinder
     {
         private static readonly int FINDER_LOCATIONS_PER_PAGE = 8;
+        private static readonly string HUB_SLOT_TAG = "hub_slot";
   
         private Hp2ButtonWrapper _previousPage;
         private Hp2ButtonWrapper _nextPage;
@@ -32,9 +33,9 @@ namespace Hp2BaseModTweaks.CellphoneApps
         private int _pageMax;
         private LocationDefinition[] _simLocations;
 
-        internal void OnStart()
+        internal void Start_Postfix()
         {
-            _simLocations = Game.Data.Locations.GetAll().Where(x => x.locationType == LocationType.SIM).ToArray();
+            _simLocations = Game.Data.Locations.GetAll().Where(x => x.GetExpansion().AllowSim).ToArray();
 
             _pageMax = _simLocations.Length > 1
                 ? (_simLocations.Length - 1) / FINDER_LOCATIONS_PER_PAGE
@@ -95,12 +96,16 @@ namespace Hp2BaseModTweaks.CellphoneApps
                 {
                     slot.canvasGroup.alpha = 1f;
                     slot.canvasGroup.blocksRaycasts = true;
-                    slot.locationDefinition = _simLocations[locationIndex];
+                    var locationDef = _simLocations[locationIndex];
+                    slot.locationDefinition = locationDef;
                     slot.Populate(true);
 
-                    if (Game.Persistence.playerFile.GetPlayerFileFinderSlot(slot.locationDefinition)?.girlPairDefinition == null
-                        || (slot.locationDefinition.locationType == LocationType.SIM
-                            && slot.locationDefinition == Game.Session.Location.currentLocation))
+                    //either at this location or its unpopulated
+                    if ((
+                            Game.Persistence.playerFile.GetPlayerFileFinderSlot(locationDef)?.girlPairDefinition == null 
+                            && locationDef.ModId() != Locations.HotelRoom
+                        )
+                        || locationDef == Game.Session.Location.currentLocation)
                     {
                         slot.headSlotLeft.canvasGroup.alpha = 0.25f;
                         slot.headSlotRight.canvasGroup.alpha = 0.25f;
@@ -114,6 +119,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
                         slot.locationLabel.color = ColorUtils.ColorAlpha(slot.locationLabel.color, 0.4f);
                         slot.locationButton.Disable();
                     }
+                    //otherwise
                     else
                     {
                         slot.headSlotLeft.canvasGroup.alpha = 1f;

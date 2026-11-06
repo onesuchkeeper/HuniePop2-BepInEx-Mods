@@ -1,3 +1,5 @@
+// Hp2BaseMod 2026, By OneSuchKeeper
+
 using System;
 using System.Linq;
 using DG.Tweening;
@@ -10,8 +12,10 @@ namespace Hp2BaseMod.ModGameData;
 
 /// <summary>
 /// A cutscene step that changes location without any of the coupling of
-/// <see cref="LocationManager"/>. This changes location visually and in <see cref="Game.Persistence.PlayerFile.locationDefinition"/> 
-/// It does not handle any other transitions like moving dolls, triggering dialogue or toggling menus. It does not change game state. You must do that
+/// <see cref="LocationManager"/>. This changes location visually, in <see cref="Game.Persistence.PlayerFile.locationDefinition"/>
+/// and in the location manager's current location, so they all agree. It raises no events (no depart/arrive/PreLocationArrive) and never
+/// changes or queues game state.
+/// It does not handle any other transitions like moving dolls, triggering dialogue or toggling menus. You must do that
 /// via other cutscene steps if needed.
 /// </summary>
 public class ChangeLocationCutsceneStep : CutsceneStepSubDefinition, IFunctionalCutsceneStep
@@ -56,6 +60,7 @@ public class ChangeLocationCutsceneStep : CutsceneStepSubDefinition, IFunctional
             : Game.Persistence.playerFile.locationDefinition;
 
         Game.Persistence.playerFile.locationDefinition = locationDef;
+        Game.Session.Location.GetExpansion().SetCurrentLocationSilently(locationDef);
 
         // Depart
         Game.Session.gameCanvas.bgLocations.nextBg.art.Refresh(locationDef, Game.Persistence.playerFile.daytimeElapsed);
@@ -155,6 +160,8 @@ public class ChangeLocationCutsceneStep : CutsceneStepSubDefinition, IFunctional
 
     private void OnArriveComplete()
     {
-        Complete(this);
+        // Act() set isTraveling; clear it the way LocationManager.OnArrivalComplete would have.
+        Game.Session.Location.GetExpansion().EndTransitionlessTravel();
+        Complete?.Invoke(this);
     }
 }

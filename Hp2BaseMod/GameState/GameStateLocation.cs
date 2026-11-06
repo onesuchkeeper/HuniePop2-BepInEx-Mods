@@ -6,36 +6,106 @@ using Hp2BaseMod.GameDataInfo;
 
 namespace Hp2BaseMod;
 
-public abstract class GameStateLocation : IGameState
+public abstract class GameStateLocation : IGameStateLocation
 {
     public abstract RelativeId Id { get; }
 
     public abstract bool IsSavable { get; }
 
+    public virtual bool AllowGifts => true;
+
+    // ---- what the player can use here ----
+    //
+    // Abstract so that every state has to decide each of these. A state that doesn't answer would otherwise be handed a default
+    // that turns an app or a button off, which looks like a bug in the UI instead of a missing answer in the state.
+    // What each one means, who asks it and what the base states answer is on IGameState.
+
+    /// <summary>The "there are no girls here" reason, for states with no girls to give a gift to.</summary>
+    protected const string NoGirlsNearbyGiftError = "There are no girls nearby to give gifts to.";
+
+    /// <summary>The reason for a sim when the action bubbles aren't showing.</summary>
+    protected const string TalkingGiftError = "You can't give gifts while you're talking.";
+
+    /// <summary>The reason during a date.</summary>
+    protected const string DateGiftError = "Only date gifts can be given during a date.";
+
+    /// <inheritdoc cref="IGameState.GetGiftError"/>
+    public abstract string GetGiftError(ItemDefinition item);
+
+    /// <inheritdoc cref="IGameState.HidesCellphone"/>
+    public abstract bool HidesCellphone(UiCellphone cellphone);
+
+    /// <inheritdoc cref="IGameState.GetFinderStatus"/>
+    public abstract FinderStatus GetFinderStatus();
+
+    /// <inheritdoc cref="IGameState.OnFinderSlotChosen"/>
+    public abstract bool OnFinderSlotChosen(UiCellphoneAppFinder app, UiAppFinderSlot slot);
+
+    /// <inheritdoc cref="IGameState.AllowsStore"/>
+    public abstract bool AllowsStore { get; }
+
+    /// <inheritdoc cref="IGameState.StoreShowsNotice"/>
+    public abstract bool StoreShowsNotice { get; }
+
+    /// <inheritdoc cref="IGameState.AllowsPairApp"/>
+    public abstract bool AllowsPairApp { get; }
+
+    /// <inheritdoc cref="IGameState.HasGirlsPresent"/>
+    public abstract bool HasGirlsPresent { get; }
+
+    /// <inheritdoc cref="IGameState.DialogIgnoresCellphone"/>
+    public abstract bool DialogIgnoresCellphone { get; }
+
+    /// <inheritdoc cref="IGameState.DollFocusIsInteractive"/>
+    public abstract bool DollFocusIsInteractive { get; }
+
+    /// <inheritdoc cref="IGameState.HintsSimStaminaCost"/>
+    public abstract bool HintsSimStaminaCost { get; }
+
+    /// <inheritdoc cref="IGameState.AllowsPause"/>
+    public abstract bool AllowsPause { get; }
+
+    public abstract bool AutosavesOnArrival { get; }
+    public abstract bool ShowsHubMenu { get; }
+
+    public abstract bool UseStylesOnDatesFlag {get;}
+
     /// <summary>
     /// Set by a state to request a transition on the next arrival (e.g. a UI
     /// selection or a hub departure hook). Shared here so the location manager
-    /// can consume it uniformly for every state - see <see cref="ConsumePendingState"/>.
+    /// can consume it uniformly for every state - see <see cref="TryConsumePendingState"/>.
     /// </summary>
-    protected RelativeId? _pendingState;
-
-
-    public virtual void Enter()
+    protected IGameStatePayload _pendingState;
+    private bool _disposed;
+    public GameStateLocation()
     {
         ModInterface.Events.TitleCanvasReady += On_TitleCanvasReady;
     }
 
-    public virtual void Exit()
+    public void Dispose()
     {
-        ModInterface.Events.TitleCanvasReady -= On_TitleCanvasReady;
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (_disposed) return;
+        _disposed = true;
+
+        if (disposing)
+        {
+            //managed
+            ModInterface.Events.TitleCanvasReady -= On_TitleCanvasReady;
+        }
+
+        //unmanaged
     }
 
     private void On_TitleCanvasReady(UiTitleCanvas canvas)
     {
-        ModInterface.GameState.ChangeState(GameStateId.Title);
+        ModInterface.GameState.ChangeState(new GameStateTitle.Payload());
     }
-
-    public abstract string GetProfileString(PlayerFile playerFile);
 
     public bool ShouldApply(float chance) =>
         chance >= 1f || (chance > 0f && UnityEngine.Random.Range(0f, 1f) <= chance);
@@ -138,21 +208,34 @@ public abstract class GameStateLocation : IGameState
         ApplyStyleToDoll(rightStyle, Game.Session.gameCanvas.dollRight, rightDef);
     }
 
-    public abstract void DepartTransition(RelativeId? nextStateId, Action continueTransitionCallback);
+    public abstract void DepartTransition(IGameStatePayload payload, Action continueTransitionCallback);
 
     public void DepartTransition(Action continueTransitionCallback) => DepartTransition(null, continueTransitionCallback);
 
     /// <summary>
+    /// Requests a transition into <paramref name="stateId"/> on the next arrival. The location manager applies it before it raises
+    /// PreLocationArrive, so the new state is entered (and mods are notified via GameStateChanged) before any arrival event.
+    /// The last request before the arrival wins. Use this when code departs on behalf of the current state.
+    /// </summary>
+    public void QueueTransition(IGameStatePayload stateId) => _pendingState = stateId;
+
+    /// <summary>
     /// Called once by ExpandedLocationManager, immediately before it fires the
     /// single post-arrival event, so a queued transition takes effect first and
-    /// the *new* active state - not this one - is the one that receives the
+    /// the new active state is the one that receives the
     /// arrival event and runs its setup.
     /// </summary>
-    internal RelativeId? ConsumePendingState()
+    public bool TryConsumePendingState(out IGameStatePayload payload)
     {
-        var next = _pendingState;
+        if (_pendingState == null)
+        {
+            payload = null;
+            return false;
+        }
+
+        payload = _pendingState;
         _pendingState = null;
-        return next;
+        return true;
     }
 
     protected static void FinishArrival(LocationArriveArgs args, bool processArriveBundles = true)
@@ -165,4 +248,6 @@ public abstract class GameStateLocation : IGameState
 
         if (processArriveBundles) Game.Session.Logic.ProcessBundleList(args.locationDef.arriveBundleList);
     }
+
+    public abstract IGameStatePayload GeneratePayload();
 }

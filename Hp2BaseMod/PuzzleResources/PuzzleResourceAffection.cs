@@ -1,9 +1,14 @@
+// Hp2BaseMod 2026, By OneSuchKeeper
+
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
 namespace Hp2BaseMod;
 
+/// <summary>
+/// PuzzleResource for affection (Talent, Romance, Sexuality, Flirtation)
+/// </summary>
 public class PuzzleResourceAffection : BasePuzzleResource
 {
     private const int BASE_POWER_TOKEN_MULT = 3;

@@ -1,74 +1,54 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using HarmonyLib;
 using Hp2BaseMod;
 using Hp2BaseMod.Extension;
-using UnityEngine;
 
 namespace SingleDate;
 
+/// <summary>
+/// Handlers for the Hp2BaseMod events (<see cref="ModInterface.Events"/>) that SingleDate listens to for the whole run of
+/// the game. Subscriptions are made in <see cref="Plugin"/>.
+/// </summary>
+/// <remarks>
+/// What happens during a single date is in <see cref="SingleDateSim"/> and <see cref="SingleDatePuzzleState"/>. What is
+/// left here either has no state (the cellphone, the photo gallery), picks the state (<see cref="On_ResolveStatePayload"/>),
+/// or is the <see cref="Plugin.RequireLoversBeforeThreesome"/> rule for double dates.
+/// </remarks>
 internal static class ModEventHandles
 {
-    private static readonly FieldInfo f_altGirlFocused = AccessTools.Field(typeof(PuzzleStatus), "_altGirlFocused");
-
-    private static bool _singleDropZone = false;
-
-    internal static void On_LocationArriveSequence(LocationArriveSequenceArgs sequence)
+    /// <summary>
+    /// Every sim state for a single pair is a <see cref="SingleDateSim"/>. States, saves and logic actions ask for a
+    /// <see cref="GameStateSim.Payload"/> and this swaps it, so saves made before this state existed still load.
+    /// </summary>
+    internal static void On_ResolveStatePayload(ModEvents.ResolveStatePayloadArgs args)
     {
-        //doesn't print
-        ModInterface.Log.Message($"SingleDate On_LocationArriveSequence. IsSingleDate: {State.IsSingleDate}");
-        var rightOuter = Game.Session.gameCanvas.dollRight.GetPositionByType(DollPositionType.OUTER);
-        var rightInnerPos = Game.Session.gameCanvas.dollRight.GetPositionByType(DollPositionType.INNER);
-        var diff = rightInnerPos - rightOuter;
-
-        if (State.IsSingleDate)
+        if (args.Payload is GameStateSim.Payload simPayload
+            && State.IsSingle(ModInterface.GameData.GetGirlPair(simPayload.PairId)))
         {
-            sequence.LeftDollPosition = DollPositionType.HIDDEN;
-            sequence.RightDollPosition = DollPositionType.INNER;
-
-            if (!_singleDropZone)
-            {
-                _singleDropZone = true;
-                Game.Session.gameCanvas.dollRight.dropZone.transform.localPosition += new Vector3(diff.x, diff.y, 0);
-            }
-
-            Game.Session.gameCanvas.dollRight.slideLayer.anchoredPosition += diff;
-        }
-        else
-        {
-            if (_singleDropZone)
-            {
-                _singleDropZone = false;
-                Game.Session.gameCanvas.dollRight.dropZone.transform.localPosition -= new Vector3(diff.x, diff.y, 0);
-            }
+            ModInterface.Log.Message("Replacing base game sim with single date sim");
+            args.Payload = new SingleDateSim.Payload(simPayload.PairId);
         }
     }
 
-    internal static void On_RandomDollSelected(RandomDollSelectedArgs args)
-    {
-        if (!State.IsSingleDate) return;
-
-        ModInterface.Log.Message("Forcing focus for single date");
-
-        args.SelectedDoll = Game.Session.gameCanvas.dollRight;
-
-        //here we force the focus of the puzzle grid because the initial puzzle 'NextRound' occurs before the current pair is set
-        f_altGirlFocused.SetValue(Game.Session.Puzzle.puzzleStatus, true);
-    }
-
+    /// <summary>
+    /// Adjusts the cellphone finder's pools so single date pairs only appear as sex candidates when they should.
+    /// </summary>
+    /// <remarks>
+    /// <list type="bullet">
+    /// <item>A single pair is only allowed in the sex pool when its girl is one level below
+    /// <see cref="Plugin.MaxSingleGirlRelationshipLevel"/> (the level at which the sex date is available).</item>
+    /// <item>If <see cref="Plugin.RequireLoversBeforeThreesome"/> is on, a double pair is only allowed in the sex pool
+    /// when both girls have reached the max single date level.</item>
+    /// <item>Single pairs the base game considers attracted, but whose single date level is still below the sex date
+    /// level, are moved from the attracted pool to the compatible pool, so they keep showing up as regular dates.</item>
+    /// </list>
+    /// </remarks>
     internal static void On_FinderSlotsPopulate(FinderSlotPopulateEventArgs args)
     {
         var maxSingleGirlRelationshipLevel = Plugin.MaxSingleGirlRelationshipLevel.Value;
 
         args.SexPool?.RemoveAll(x => State.IsSingle(x.girlPairDefinition)
             && State.SaveFile.GetGirl(x.girlPairDefinition.girlDefinitionTwo.id)?.RelationshipLevel != maxSingleGirlRelationshipLevel - 1);
-
-        foreach (var id in args.SexPool)
-        {
-            ModInterface.Log.Message(id.ToString());
-        }
 
         if (Plugin.RequireLoversBeforeThreesome.Value)
         {
@@ -81,12 +61,34 @@ internal static class ModEventHandles
         args.AttractedPool.RemoveAll(x => IsIncompleteAttracted(x, maxSingleGirlRelationshipLevel));
     }
 
+    /// <summary>
+    /// True for a single pair that the base game has marked as attracted but whose single date level has not yet
+    /// reached the level below max (the level where the sex date unlocks). A girl with no save entry is not matched.
+    /// </summary>
     private static bool IsIncompleteAttracted(PlayerFileGirlPair filePair, int maxSingleGirlRelationshipLevel) => State.IsSingle(filePair.girlPairDefinition)
         && State.SaveFile.GetGirl(filePair.girlPairDefinition.girlDefinitionTwo.id)?.RelationshipLevel < (maxSingleGirlRelationshipLevel - 1);
 
+    /// <summary>
+    /// Adds every photo unlocked through single dates (across all girls in this save file) to the list of photos the
+    /// photo gallery shows as unlocked.
+    /// </summary>
+    internal static void On_RequestUnlockedPhotos(RequestUnlockedPhotosEventArgs args)
+    {
+        args.UnlockedPhotos ??= new List<PhotoDefinition>();
+        args.UnlockedPhotos.AddRange(State.SaveFile.Girls.Values.SelectManyNN(x => x.UnlockedPhotos).Select(ModInterface.GameData.GetPhoto));
+    }
+
+    // ---- Plugin.RequireLoversBeforeThreesome, for double dates. Single dates are in the states. ----
+
+    /// <summary>
+    /// On a double date with <see cref="Plugin.RequireLoversBeforeThreesome"/>: the bonus round and cutscene are denied
+    /// while either girl is below the max single date level.
+    /// </summary>
     internal static void On_PuzzleRoundOver(PuzzleRoundOverArgs args)
     {
-        if (Game.Session.Puzzle.puzzleStatus.statusType != PuzzleStatusType.NORMAL
+        if (!Plugin.RequireLoversBeforeThreesome.Value
+            || State.IsSingleDate
+            || Game.Session.Puzzle.puzzleStatus.statusType != PuzzleStatusType.NORMAL
             || Game.Session.Puzzle.puzzleGrid.roundState != PuzzleRoundState.SUCCESS)
         {
             return;
@@ -101,225 +103,65 @@ internal static class ModEventHandles
         }
 
         var maxSingleGirlRelationshipLevel = Plugin.MaxSingleGirlRelationshipLevel.Value;
-        var girlId = ModInterface.Data.GetDataId(GameDataType.Girl, playerFileGirlPair.girlPairDefinition.girlDefinitionTwo.id);
-        var girlSave = State.SaveFile.GetGirl(girlId);
+        var girlSaveOne = State.SaveFile.GetGirl(playerFileGirlPair.girlPairDefinition.girlDefinitionOne.id);
+        var girlSaveTwo = State.SaveFile.GetGirl(playerFileGirlPair.girlPairDefinition.girlDefinitionTwo.id);
 
-        if (State.IsSingleDate)
+        if ((girlSaveOne != null && girlSaveOne.RelationshipLevel < maxSingleGirlRelationshipLevel)
+            || (girlSaveTwo != null && girlSaveTwo.RelationshipLevel < maxSingleGirlRelationshipLevel))
         {
-            var oneUnderMaxLevel = girlSave?.RelationshipLevel >= maxSingleGirlRelationshipLevel - 1;
-
-            if ((Game.Session.Location.currentGirlPair.sexLocationDefinition == null
-                    || Game.Session.Location.currentGirlPair.sexLocationDefinition == Game.Session.Location.currentLocation)
-                && oneUnderMaxLevel
-                && Game.Session.Location.currentGirlPair.sexDaytime == (ClockDaytimeType)(Game.Persistence.playerFile.daytimeElapsed % 4))
-            {
-                girlSave.RelationshipLevel = maxSingleGirlRelationshipLevel;
-
-                ModInterface.Log.Message("Enable single date bonus round");
-                args.IsSexDate = true;
-                args.LevelUpType = PuzzleRoundOverArgs.CutsceneType.AttractToLovers;
-                args.IsGameOver = Game.Session.Puzzle.puzzleStatus.bonusRound;
-            }
-            else
-            {
-                if (!oneUnderMaxLevel)
-                {
-                    girlSave.RelationshipLevel++;
-                }
-
-                ModInterface.Log.Message("Single date deny bonus round");
-                if (args.LevelUpType == PuzzleRoundOverArgs.CutsceneType.AttractToLovers)
-                {
-                    args.LevelUpType = PuzzleRoundOverArgs.CutsceneType.None;
-                }
-                args.IsSexDate = false;
-                args.IsGameOver = true;
-            }
-        }
-        else if (Plugin.RequireLoversBeforeThreesome.Value)
-        {
-            var girlSaveOne = State.SaveFile.GetGirl(playerFileGirlPair.girlPairDefinition.girlDefinitionOne.id);
-            var girlSaveTwo = State.SaveFile.GetGirl(playerFileGirlPair.girlPairDefinition.girlDefinitionTwo.id);
-
-            if ((girlSaveOne != null && girlSaveOne.RelationshipLevel < maxSingleGirlRelationshipLevel)
-                || (girlSaveTwo != null && girlSaveTwo.RelationshipLevel < maxSingleGirlRelationshipLevel))
-            {
-                ModInterface.Log.Message("Deny double date bonus due to single date levels");
-                args.IsSexDate = false;
-                args.LevelUpType = PuzzleRoundOverArgs.CutsceneType.None;
-            }
+            ModInterface.Log.Message("Deny double date bonus due to single date levels");
+            args.IsSexDate = false;
+            args.LevelUpType = PuzzleRoundOverArgs.CutsceneType.None;
         }
     }
 
+    /// <summary>
+    /// On double dates with <see cref="Plugin.RequireLoversBeforeThreesome"/>, the pair's sex location is only used if both
+    /// girls are at max single date level, otherwise it is cleared.
+    /// </summary>
     internal static void On_DateLocationSelected(DateLocationSelectedArgs args)
     {
-        var playerFileGirlPair = Game.Persistence.playerFile.GetPlayerFileGirlPair(Game.Session.Location.currentGirlPair);
+        if (!Plugin.RequireLoversBeforeThreesome.Value || State.IsSingleDate) return;
 
-        if (playerFileGirlPair == null)
-        {
-            return;
-        }
+        var playerFileGirlPair = Game.Persistence.playerFile.GetPlayerFileGirlPair(Game.Session.Location.currentGirlPair);
+        if (playerFileGirlPair == null) return;
 
         var maxSingleGirlRelationshipLevel = Plugin.MaxSingleGirlRelationshipLevel.Value;
+        var girlSaveOne = State.SaveFile.GetGirl(playerFileGirlPair.girlPairDefinition.girlDefinitionOne.id);
+        var girlSaveTwo = State.SaveFile.GetGirl(playerFileGirlPair.girlPairDefinition.girlDefinitionTwo.id);
 
-        if (State.IsSingleDate)
+        if (girlSaveOne?.RelationshipLevel == maxSingleGirlRelationshipLevel
+            && girlSaveTwo?.RelationshipLevel == maxSingleGirlRelationshipLevel
+            && playerFileGirlPair.relationshipType == GirlPairRelationshipType.ATTRACTED
+            && Game.Persistence.playerFile.daytimeElapsed % 4 == (int)playerFileGirlPair.girlPairDefinition.sexDaytime)
         {
-            // Deny single dates if not enough stamina
-            var statusGirl = Game.Session.Puzzle.puzzleStatus.GetStatusGirl(true);
-            if (statusGirl.stamina < 1)
-            {
-                args.DenyDate = true;
-                // exhausted
-                Game.Session.gameCanvas.GetDoll(true).ReadDialogTrigger(ModInterface.GameData.GetDialogTrigger(Hp2BaseMod.DialogTriggers.StaminaInsufficient), DialogLineFormat.PASSIVE);
-                return;
-            }
-
-            args.LeftStaminaGain = 0;
-            args.RightStaminaGain = 0;
-
-            args.PlayerPoints = 5;
-            args.LeftPoints = 0;
-            args.RightPoints = 5;
-
-            var girlId = ModInterface.Data.GetDataId(GameDataType.Girl, playerFileGirlPair.girlPairDefinition.girlDefinitionTwo.id);
-            var girlSave = State.SaveFile.GetGirl(girlId);
-
-            if (playerFileGirlPair.relationshipType == GirlPairRelationshipType.ATTRACTED
-                && girlSave.RelationshipLevel == maxSingleGirlRelationshipLevel - 1
-                && Game.Persistence.playerFile.daytimeElapsed % 4 == (int)playerFileGirlPair.girlPairDefinition.sexDaytime
-                && Plugin.TryGetSingleDateGirl(girlId, out var singleDateGirl))
-            {
-                // pick a photo with a loc
-                if (singleDateGirl.SexPhotos.Any()
-                    && singleDateGirl.SexPhotos.Select(x => x.LocationId).ToArray().GetRandom() is var randomLocId
-                    && randomLocId != RelativeId.Default)
-                {
-                    args.Location = ModInterface.GameData.GetLocation(randomLocId);
-                }
-                // or if the photo doesn't have a loc pick randomly
-                else
-                {
-                    args.Location = playerFileGirlPair.girlPairDefinition.sexLocationDefinition;
-
-                    if (args.Location == null)
-                    {
-                        var time = (ClockDaytimeType)(Game.Persistence.playerFile.daytimeElapsed % 4);
-                        Game.Data.Locations.GetAllByLocationType(LocationType.DATE).Where(x =>
-                        {
-                            var expansion = x.GetExpansion();
-                            return expansion.IsValidForNormalDate(time)
-                                && !singleDateGirl.SexLocBlackList.Contains(ModInterface.Data.GetDataId(GameDataType.Location, x.id));
-                        }).ToArray().TryGetRandom(out args.Location);
-                    }
-                }
-
-                return;
-            }
-            else
-            {
-                args.Location = null;
-            }
+            args.Location = playerFileGirlPair.girlPairDefinition.sexLocationDefinition;
         }
-        else if (Plugin.RequireLoversBeforeThreesome.Value)
+        else
         {
-            var girlSaveOne = State.SaveFile.GetGirl(playerFileGirlPair.girlPairDefinition.girlDefinitionOne.id);
-            var girlSaveTwo = State.SaveFile.GetGirl(playerFileGirlPair.girlPairDefinition.girlDefinitionTwo.id);
-
-            if (girlSaveOne?.RelationshipLevel == maxSingleGirlRelationshipLevel
-                && girlSaveTwo?.RelationshipLevel == maxSingleGirlRelationshipLevel
-                && playerFileGirlPair.relationshipType == GirlPairRelationshipType.ATTRACTED
-                && Game.Persistence.playerFile.daytimeElapsed % 4 == (int)playerFileGirlPair.girlPairDefinition.sexDaytime)
-            {
-                args.Location = playerFileGirlPair.girlPairDefinition.sexLocationDefinition;
-                return;
-            }
-            else
-            {
-                args.Location = null;
-            }
+            args.Location = null;
         }
     }
 
-    internal static void On_RequestUnlockedPhotos(RequestUnlockedPhotosEventArgs args)
-    {
-        args.UnlockedPhotos ??= new List<PhotoDefinition>();
-        args.UnlockedPhotos.AddRange(State.SaveFile.Girls.Values.SelectManyNN(x => x.UnlockedPhotos).Select(ModInterface.GameData.GetPhoto));
-    }
-
+    /// <summary>
+    /// On a double date (with <see cref="Plugin.RequireLoversBeforeThreesome"/>), the sex style is used when both girls
+    /// are at max single date level.
+    /// </summary>
     internal static void On_PreDateDollsRefresh(PreDateDollResetArgs args)
     {
+        if (!Plugin.RequireLoversBeforeThreesome.Value || State.IsSingleDate) return;
+
         var playerFileGirlPair = Game.Persistence.playerFile.GetPlayerFileGirlPair(Game.Session.Location.currentGirlPair);
+        if (playerFileGirlPair == null) return;
+
         var maxSingleGirlRelationshipLevel = Plugin.MaxSingleGirlRelationshipLevel.Value;
+        var girlSaveOne = State.SaveFile.GetGirl(playerFileGirlPair.girlPairDefinition.girlDefinitionOne.id);
+        var girlSaveTwo = State.SaveFile.GetGirl(playerFileGirlPair.girlPairDefinition.girlDefinitionTwo.id);
 
-        if (State.IsSingleDate)
+        if ((girlSaveOne == null || girlSaveOne.RelationshipLevel == maxSingleGirlRelationshipLevel)
+            && (girlSaveTwo == null || girlSaveTwo.RelationshipLevel == maxSingleGirlRelationshipLevel))
         {
-            var girlSave = State.SaveFile.GetGirl(playerFileGirlPair.girlPairDefinition.girlDefinitionTwo.id);
-
-            // must be non default and at pre max level
-            var pairStyle = Game.Session.Location.currentGirlPair.GetExpansion().PairStyle;
-            if (pairStyle != null && pairStyle.SexGirlTwo.OutfitId != RelativeId.Default
-                && girlSave?.RelationshipLevel == maxSingleGirlRelationshipLevel - 1)
-            {
-                args.Style = PreDateDollResetArgs.StyleType.Sex;
-            }
-        }
-        else if (Plugin.RequireLoversBeforeThreesome.Value)
-        {
-            var girlSaveOne = State.SaveFile.GetGirl(playerFileGirlPair.girlPairDefinition.girlDefinitionOne.id);
-            var girlSaveTwo = State.SaveFile.GetGirl(playerFileGirlPair.girlPairDefinition.girlDefinitionTwo.id);
-
-            if ((girlSaveOne == null || girlSaveOne.RelationshipLevel == maxSingleGirlRelationshipLevel)
-                && (girlSaveTwo == null || girlSaveTwo.RelationshipLevel == maxSingleGirlRelationshipLevel))
-            {
-                args.Style = PreDateDollResetArgs.StyleType.Sex;
-            }
-        }
-    }
-
-    internal static void On_TalkFavQuestionResponse(TalkFavQuestionResponseArgs args)
-    {
-        if (!State.IsSingleDate) return;
-
-        args.OtherGirlResponds = false;
-    }
-
-    internal static void On_PreLocationArrive(LocationArriveArgs args)
-    {
-        if (!State.IsSingle(args.girlPairDef)) return;
-
-        args.sidesFlipped = false;
-        args.cellphoneOnLeft = true;
-        args.arrivalCutscene = UiPrefabs.SingleCutsceneMeeting;
-    }
-
-    internal static void On_PreLocationSettled(LocationSettledArgs args)
-    {
-        if (!State.IsSingleDate) return;
-
-        args.actionBubblesWindow = UiPrefabs.SingleDateBubbles;
-    }
-
-    internal static void On_RequestGirlStateTransition(GirlStateTransitionArgs args)
-    {
-        if (!State.IsSingleDate) return;
-
-        // Redirect standard Upset transitions to SingleDateUpset when on a single date
-        if (args.TargetStateId == Hp2BaseMod.PuzzleStatusGirlStateId.Upset)
-        {
-            args.TargetStateId = PuzzleStatusGirlStateId.SingleDateUpset;
-        }
-    }
-
-    internal static void On_PreAilmentEnable(AilmentTriggerArgs.PreAilmentEnable args)
-    {
-        if (!State.IsSingleDate) return;
-
-        var ailmentDef = args.Ailment.definition;
-        var id = args.Ailment.definition.ModId();
-        if (Plugin._singleDateDisabledAilments.Contains(id)) 
-        { 
-            ModInterface.Log.Message($"Preventing ailment {id} \"{ailmentDef.name}\" from being enabled during single date");
-            args.Cancel = true; 
+            args.Style = PreDateDollResetArgs.StyleType.Sex;
         }
     }
 }

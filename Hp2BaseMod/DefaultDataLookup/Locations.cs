@@ -37,6 +37,43 @@ namespace Hp2BaseMod
         public readonly static RelativeId VolcanoTop = new RelativeId(-1, 27);
         public readonly static RelativeId Poolside = new RelativeId(-1, 24);
 
+        /// <summary>
+        /// The base game's locations the finder offers for being with a pair.
+        /// </summary>
+        public static IEnumerable<RelativeId> SimLocIds
+        {
+            get
+            {
+                yield return TouristPlaza;
+                yield return Boardwalk;
+                yield return SurfShack;
+                yield return HotelCourtyard;
+                yield return GiftShop;
+                yield return Airport;
+                yield return HotelLobby;
+                yield return Marina;
+            }
+        }
+
+        /// <summary>
+        /// The base game's story locations, where a scripted event is in charge (see <see cref="GameStateSpecial"/>).
+        /// </summary>
+        public static IEnumerable<RelativeId> SpecialLocIds
+        {
+            get
+            {
+                yield return YourApartment;
+                yield return Poolside;
+                yield return AirplaneCabin;
+                yield return VolcanoTop;
+                yield return AirportSpecial;
+                yield return HotelLobbySpecial;
+            }
+        }
+
+        /// <summary>
+        /// The base game's dates a player can have again and again.
+        /// </summary>
         public static IEnumerable<RelativeId> NormalDateLocIds
         {
             get
