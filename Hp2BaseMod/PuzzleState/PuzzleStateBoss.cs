@@ -1,6 +1,7 @@
 // Hp2BaseMod 2026, By OneSuchKeeper
 
 using System;
+using Hp2BaseMod.Extension;
 
 namespace Hp2BaseMod;
 
@@ -109,12 +110,12 @@ public sealed class PuzzleStateBoss(IGameStateLocation owner) : PuzzleStateBase(
             {
                 // the boss pair's own round: beating it ends the puzzle and saves the story
                 context.RoundOverCutscene = Game.Session.Puzzle.cutsceneSuccessBonus;
-                if (playerFile.storyProgress <= 11)
+                if (playerFile.storyProgress <= PlayerFile.STORY_PROGRESS_NYMPHOJINN_FUCKED)
                 {
-                    playerFile.storyProgress = 12;
+                    playerFile.storyProgress = PlayerFile.STORY_PROGRESS_POOLSIDE_ENDING;
                 }
 
-                if (playerFile.storyProgress >= 12)
+                if (playerFile.storyProgress >= PlayerFile.STORY_PROGRESS_POOLSIDE_ENDING)
                 {
                     Game.Manager.Platform.UnlockAchievement("savior", true);
                     if (playerFile.settingDifficulty == SettingDifficulty.HARD)
@@ -133,7 +134,7 @@ public sealed class PuzzleStateBoss(IGameStateLocation owner) : PuzzleStateBase(
                 context.GameOver = false;
             }
         }
-        else if (playerFile.storyProgress < 12 && playerFile.GetFlagValue(Flags.NYMPHOJINN_FAILURE) < 0)
+        else if (playerFile.storyProgress < PlayerFile.STORY_PROGRESS_POOLSIDE_ENDING && playerFile.GetFlagValue(Flags.NYMPHOJINN_FAILURE) < 0)
         {
             playerFile.SetFlagValue(Flags.NYMPHOJINN_FAILURE, 0);
         }
@@ -153,7 +154,7 @@ public sealed class PuzzleStateBoss(IGameStateLocation owner) : PuzzleStateBase(
     {
         var playerFile = Game.Persistence.playerFile;
         var toPostBoss = succeeded
-            && (playerFile.storyProgress == 12 || playerFile.GetFlagValue(Flags.KYU_HOLE_SELECTION) < 0);
+            && (playerFile.storyProgress == PlayerFile.STORY_PROGRESS_POOLSIDE_ENDING || playerFile.GetFlagValue(Flags.KYU_HOLE_SELECTION) < 0);
 
         if (toPostBoss)
         {

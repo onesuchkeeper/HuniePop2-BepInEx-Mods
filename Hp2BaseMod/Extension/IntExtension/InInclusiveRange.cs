@@ -11,7 +11,7 @@ public static partial class IntExtension
     /// <param name="source">Tested value</param>
     /// <param name="min">Inclusive min value</param>
     /// <param name="max">Inclusive max value</param>
-    /// <returns>True if the tested value is in the set. False otherwise.</returns>
+    /// <returns>True if the tested value is in the set [min, max]. False otherwise.</returns>
     public static bool InInclusiveRange(this int source, int min, int max)
     {
         if (min > max)

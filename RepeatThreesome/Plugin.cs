@@ -154,7 +154,7 @@ internal class Plugin : Hp2BaseModPlugin
         foreach (var girlId in ModInterface.Data.GetIds(GameDataType.Girl).Where(x => x.SourceId == -1))
         {
             // polly has an alt
-            if (girlId == Girls.Polly)
+            if (girlId == GirlId.Polly)
             {
                 ModInterface.Log.Message($"Adding nude outfit for polly {girlId}");
 

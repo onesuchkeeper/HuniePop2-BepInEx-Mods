@@ -13,20 +13,44 @@ namespace Hp2BaseMod.GameDataInfo
     /// </summary>
     public class DialogLineDataMod : DataMod, IDialogLineDataMod
     {
+        /// <summary>
+        /// Default or male player text
+        /// </summary>
         public string DialogText;
 
+        /// <summary>
+        /// female player text
+        /// </summary>
         public string YuriDialogText;
 
+        /// <summary>
+        /// If line has female player specific text. See <see cref="YuriDialogText"/>.
+        /// </summary>
         public bool? Yuri;
 
+        /// <summary>
+        /// Audio specific for female player
+        /// </summary>
         public IGameDefinitionInfo<AudioClip> YuriAudioClipInfo;
 
+        /// <summary>
+        /// default of male audio
+        /// </summary>
         public IGameDefinitionInfo<AudioClip> AudioClipInfo;
 
+        /// <summary>
+        /// expression used at the start of the line
+        /// </summary>
         public DialogLineExpression StartExpression;
 
+        /// <summary>
+        /// expression used at the end of the line
+        /// </summary>
         public DialogLineExpression EndExpression;
 
+        /// <summary>
+        /// expressions used throught the line
+        /// </summary>
         public List<DialogLineExpression> Expressions;
 
         public DialogLineDataMod() { }

@@ -32,7 +32,7 @@ internal static partial class Styles
 
         //Hooters
 
-        ModInterface.DataMod.AddDataMod(new GirlDataMod(Girls.Sarah, InsertStyle.append)
+        ModInterface.DataMod.AddDataMod(new GirlDataMod(GirlId.Sarah, InsertStyle.append)
         {
             bodies = new List<IGirlBodyDataMod>()
             {

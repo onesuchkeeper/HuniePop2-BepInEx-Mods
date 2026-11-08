@@ -17,7 +17,7 @@ public class AikoConfigurator : GirlConfiguratorBase
     protected override int Age => 30;
     protected override bool HasDrinkRejectLines => false;
 
-    protected override RelativeId ItemEnergyId => EnergyTypes.Sexuality;
+    protected override RelativeId ItemEnergyId => EnergyId.Sexuality;
 
     public override string UnderwearName => "Naughty Teacher";
 
@@ -99,18 +99,18 @@ public class AikoConfigurator : GirlConfiguratorBase
         => _locationGreetingMap;
     private static readonly (RelativeId to, RelativeId from)[] _locationGreetingMap =
     [
-        (Locations.MassageSpa, LocationIds.BotanicalGarden),
-        (Locations.Aquarium, LocationIds.ScenicOverlook),
-        (Locations.SecludedCabana, LocationIds.OutdoorLounge),
-        (Locations.PoolsideBar, LocationIds.HotSprings),
-        (Locations.GolfCourse, LocationIds.BotanicalGarden),
-        (Locations.CruiseShip, LocationIds.WaterPark),
-        (Locations.RooftopLounge, LocationIds.ScenicOverlook),
-        (Locations.Casino, LocationIds.Carnival),
-        (Locations.PrivateTable, LocationIds.OutdoorLounge),
-        (Locations.SecretGrotto, LocationIds.HotSprings),
-        (Locations.StripClub, LocationIds.HikingTrail),
-        (Locations.RoyalSuite, LocationIds.Restaurant),
+        (LocationId.MassageSpa, LocationIds.BotanicalGarden),
+        (LocationId.Aquarium, LocationIds.ScenicOverlook),
+        (LocationId.SecludedCabana, LocationIds.OutdoorLounge),
+        (LocationId.PoolsideBar, LocationIds.HotSprings),
+        (LocationId.GolfCourse, LocationIds.BotanicalGarden),
+        (LocationId.CruiseShip, LocationIds.WaterPark),
+        (LocationId.RooftopLounge, LocationIds.ScenicOverlook),
+        (LocationId.Casino, LocationIds.Carnival),
+        (LocationId.PrivateTable, LocationIds.OutdoorLounge),
+        (LocationId.SecretGrotto, LocationIds.HotSprings),
+        (LocationId.StripClub, LocationIds.HikingTrail),
+        (LocationId.RoyalSuite, LocationIds.Restaurant),
     ];
 
     protected override IEnumerable<(RelativeId LocationId, GirlStyleInfo Style)> LocationStyleMap
@@ -118,34 +118,34 @@ public class AikoConfigurator : GirlConfiguratorBase
 
     private static readonly (RelativeId LocationId, GirlStyleInfo Style)[] _locationStyleMap =
     [
-        (LocationIds.BotanicalGarden, new GirlStyleInfo(Hp2BaseMod.Styles.Party)),
-        (LocationIds.HikingTrail, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)),
-        (LocationIds.FarmersMarket, new GirlStyleInfo(Hp2BaseMod.Styles.Party)),
-        (LocationIds.IceRink, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)),
-        (LocationIds.WaterPark, new GirlStyleInfo(Hp2BaseMod.Styles.Water)),
-        (LocationIds.TennisCourts, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)),
-        (LocationIds.ScenicOverlook, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)),
-        (LocationIds.Casino, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)),
-        (LocationIds.HotSprings, new GirlStyleInfo(Hp2BaseMod.Styles.Water)),
-        (LocationIds.OutdoorLounge, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)),
-        (LocationIds.Carnival, new GirlStyleInfo(Hp2BaseMod.Styles.Party)),
-        (LocationIds.Restaurant, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)),
-        (LocationIds.BedRoomDate, new GirlStyleInfo(Hp2BaseMod.Styles.Sexy)),
-        (Locations.MassageSpa, new GirlStyleInfo(Hp2BaseMod.Styles.Party)),
-        (Locations.Aquarium, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)),
-        (Locations.SecludedCabana, new GirlStyleInfo(Hp2BaseMod.Styles.Party)),
-        (Locations.PoolsideBar, new GirlStyleInfo(Hp2BaseMod.Styles.Water)),
-        (Locations.GolfCourse, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)),
-        (Locations.CruiseShip, new GirlStyleInfo(Hp2BaseMod.Styles.Water)),
-        (Locations.RooftopLounge, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)),
-        (Locations.Casino, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)),
-        (Locations.PrivateTable, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)),
-        (Locations.SecretGrotto, new GirlStyleInfo(Hp2BaseMod.Styles.Water)),
-        (Locations.RoyalSuite, new GirlStyleInfo(Hp2BaseMod.Styles.Sexy)),
-        (Locations.AirplaneBathroom, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)),
-        (Locations.OuterSpace, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)),
-        (Locations.StripClub, new GirlStyleInfo(Hp2BaseMod.Styles.Party)),
-        (Locations.VolcanoTop, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)),
+        (LocationIds.BotanicalGarden, new GirlStyleInfo(Hp2BaseMod.StyleId.Party)),
+        (LocationIds.HikingTrail, new GirlStyleInfo(Hp2BaseMod.StyleId.Romantic)),
+        (LocationIds.FarmersMarket, new GirlStyleInfo(Hp2BaseMod.StyleId.Party)),
+        (LocationIds.IceRink, new GirlStyleInfo(Hp2BaseMod.StyleId.Romantic)),
+        (LocationIds.WaterPark, new GirlStyleInfo(Hp2BaseMod.StyleId.Water)),
+        (LocationIds.TennisCourts, new GirlStyleInfo(Hp2BaseMod.StyleId.Romantic)),
+        (LocationIds.ScenicOverlook, new GirlStyleInfo(Hp2BaseMod.StyleId.Relaxing)),
+        (LocationIds.Casino, new GirlStyleInfo(Hp2BaseMod.StyleId.Activity)),
+        (LocationIds.HotSprings, new GirlStyleInfo(Hp2BaseMod.StyleId.Water)),
+        (LocationIds.OutdoorLounge, new GirlStyleInfo(Hp2BaseMod.StyleId.Relaxing)),
+        (LocationIds.Carnival, new GirlStyleInfo(Hp2BaseMod.StyleId.Party)),
+        (LocationIds.Restaurant, new GirlStyleInfo(Hp2BaseMod.StyleId.Relaxing)),
+        (LocationIds.BedRoomDate, new GirlStyleInfo(Hp2BaseMod.StyleId.Sexy)),
+        (LocationId.MassageSpa, new GirlStyleInfo(Hp2BaseMod.StyleId.Party)),
+        (LocationId.Aquarium, new GirlStyleInfo(Hp2BaseMod.StyleId.Activity)),
+        (LocationId.SecludedCabana, new GirlStyleInfo(Hp2BaseMod.StyleId.Party)),
+        (LocationId.PoolsideBar, new GirlStyleInfo(Hp2BaseMod.StyleId.Water)),
+        (LocationId.GolfCourse, new GirlStyleInfo(Hp2BaseMod.StyleId.Activity)),
+        (LocationId.CruiseShip, new GirlStyleInfo(Hp2BaseMod.StyleId.Water)),
+        (LocationId.RooftopLounge, new GirlStyleInfo(Hp2BaseMod.StyleId.Romantic)),
+        (LocationId.Casino, new GirlStyleInfo(Hp2BaseMod.StyleId.Romantic)),
+        (LocationId.PrivateTable, new GirlStyleInfo(Hp2BaseMod.StyleId.Relaxing)),
+        (LocationId.SecretGrotto, new GirlStyleInfo(Hp2BaseMod.StyleId.Water)),
+        (LocationId.RoyalSuite, new GirlStyleInfo(Hp2BaseMod.StyleId.Sexy)),
+        (LocationId.AirplaneBathroom, new GirlStyleInfo(Hp2BaseMod.StyleId.Relaxing)),
+        (LocationId.OuterSpace, new GirlStyleInfo(Hp2BaseMod.StyleId.Activity)),
+        (LocationId.StripClub, new GirlStyleInfo(Hp2BaseMod.StyleId.Party)),
+        (LocationId.VolcanoTop, new GirlStyleInfo(Hp2BaseMod.StyleId.Activity)),
     ];
 
     public AikoConfigurator(
@@ -161,11 +161,11 @@ public class AikoConfigurator : GirlConfiguratorBase
     {
         if (dialogTriggerId == DialogTriggers.LovesAccept)
         {
-            cleanedDialogTriggerId = Hp2BaseMod.DialogTriggers.UniqueAccept;
+            cleanedDialogTriggerId = Hp2BaseMod.DialogTriggerId.UniqueAccept;
             return true;
         }
 
-        if (dialogTriggerId == Hp2BaseMod.DialogTriggers.UniqueAccept)
+        if (dialogTriggerId == Hp2BaseMod.DialogTriggerId.UniqueAccept)
         {
             cleanedDialogTriggerId = default;
             return false;

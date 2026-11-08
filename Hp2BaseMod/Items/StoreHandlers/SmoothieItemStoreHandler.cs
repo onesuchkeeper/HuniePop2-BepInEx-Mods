@@ -43,7 +43,7 @@ public sealed class SmoothieStoreHandler : ItemStoreHandler
             }
         }
 
-        yield return new(ItemTypes.Smoothie, category);
+        yield return new(ItemTypeId.Smoothie, category);
     }
 
     public override void OnChosen(

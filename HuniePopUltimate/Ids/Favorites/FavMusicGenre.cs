@@ -9,7 +9,7 @@ public static class FavMusicGenre
 
     internal static void AddDataMods()
     {
-        ModInterface.DataMod.AddDataMod(new FavQuestionDataMod(Hp2BaseMod.Favorites.MusicGenre, Hp2BaseMod.Utility.InsertStyle.append)
+        ModInterface.DataMod.AddDataMod(new FavQuestionDataMod(Hp2BaseMod.FavoriteId.MusicGenre, Hp2BaseMod.Utility.InsertStyle.append)
         {
             QuestionAnswers = new() {
                 {Rave, "Rave"},

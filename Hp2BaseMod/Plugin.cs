@@ -85,19 +85,19 @@ public class Plugin : BaseUnityPlugin
                     ModInterface.Data.RegisterDefaultData(GameDataType.Token, token.LocalId);
                 }
 
-                ModInterface.Data.RegisterDefaultData(GameDataType.Fruit, FruitTypes.Talent.LocalId);
-                ModInterface.Data.RegisterDefaultData(GameDataType.Fruit, FruitTypes.Flirtation.LocalId);
-                ModInterface.Data.RegisterDefaultData(GameDataType.Fruit, FruitTypes.Romance.LocalId);
-                ModInterface.Data.RegisterDefaultData(GameDataType.Fruit, FruitTypes.Sexuality.LocalId);
+                ModInterface.Data.RegisterDefaultData(GameDataType.Fruit, FruitId.Talent.LocalId);
+                ModInterface.Data.RegisterDefaultData(GameDataType.Fruit, FruitId.Flirtation.LocalId);
+                ModInterface.Data.RegisterDefaultData(GameDataType.Fruit, FruitId.Romance.LocalId);
+                ModInterface.Data.RegisterDefaultData(GameDataType.Fruit, FruitId.Sexuality.LocalId);
 
                 ModInterface.Data.RegisterDefaultData(GameDataType.Affection, PuzzleAffectionId.Talent.LocalId);
                 ModInterface.Data.RegisterDefaultData(GameDataType.Affection, PuzzleAffectionId.Flirtation.LocalId);
                 ModInterface.Data.RegisterDefaultData(GameDataType.Affection, PuzzleAffectionId.Romance.LocalId);
                 ModInterface.Data.RegisterDefaultData(GameDataType.Affection, PuzzleAffectionId.Sexuality.LocalId);
 
-                ModInterface.Data.RegisterDefaultData(GameDataType.SpecialEffect, SpecialParts.KyuWingId.LocalId);
-                ModInterface.Data.RegisterDefaultData(GameDataType.SpecialEffect, SpecialParts.MoxieWingId.LocalId);
-                ModInterface.Data.RegisterDefaultData(GameDataType.SpecialEffect, SpecialParts.JewnWingId.LocalId);
+                ModInterface.Data.RegisterDefaultData(GameDataType.SpecialEffect, SpecialPartId.KyuWingId.LocalId);
+                ModInterface.Data.RegisterDefaultData(GameDataType.SpecialEffect, SpecialPartId.MoxieWingId.LocalId);
+                ModInterface.Data.RegisterDefaultData(GameDataType.SpecialEffect, SpecialPartId.JewnWingId.LocalId);
 
                 ModInterface.Assets.RequestInternal<Material>("UIDefault");
             }

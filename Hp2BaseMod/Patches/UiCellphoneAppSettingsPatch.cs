@@ -41,7 +41,7 @@ internal static class UiCellphoneAppSettingsPatch
             return false;
         }
 
-        if (playerFile.storyProgress >= 14)
+        if (playerFile.storyProgress >= PlayerFile.STORY_PROGRESS_COMPLETE)
         {
             __instance.postGameContainer.alpha = 1f;
             __instance.postGameContainer.blocksRaycasts = true;

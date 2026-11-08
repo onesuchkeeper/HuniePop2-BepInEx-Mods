@@ -9,7 +9,7 @@ public static class FavSundayMorning
 
     internal static void AddDataMods()
     {
-        ModInterface.DataMod.AddDataMod(new FavQuestionDataMod(Hp2BaseMod.Favorites.SundayMorning, Hp2BaseMod.Utility.InsertStyle.append)
+        ModInterface.DataMod.AddDataMod(new FavQuestionDataMod(Hp2BaseMod.FavoriteId.SundayMorning, Hp2BaseMod.Utility.InsertStyle.append)
         {
             QuestionAnswers = new() {
                 {VisitFriends, "Visit Friends"},

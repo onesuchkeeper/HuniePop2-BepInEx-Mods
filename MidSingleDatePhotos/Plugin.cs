@@ -50,18 +50,18 @@ internal class Plugin : BaseUnityPlugin
         ModInterface.TryGetInterModValue("OSK.BepInEx.SingleDate", "AddGirlDatePhotos",
             out Action<RelativeId, IEnumerable<(RelativeId, float)>> m_AddGirlDatePhotos);
 
-        AddPhoto("zoey", Girls.Zoey, m_AddGirlDatePhotos);
-        AddPhoto("ashley", Girls.Ashley, m_AddGirlDatePhotos);
-        AddPhoto("lola", Girls.Lola, m_AddGirlDatePhotos);
-        AddPhoto("lailani", Girls.Lailani, m_AddGirlDatePhotos);
-        AddPhoto("suki", Girls.Sarah, m_AddGirlDatePhotos);
-        AddPhoto("brooke", Girls.Brooke, m_AddGirlDatePhotos);
-        AddPhoto("jessie", Girls.Jessie, m_AddGirlDatePhotos);
-        AddPhoto("nora", Girls.Nora, m_AddGirlDatePhotos);
-        AddPhoto("abia", Girls.Abia, m_AddGirlDatePhotos);
-        AddPhoto("lillian", Girls.Lillian, m_AddGirlDatePhotos);
-        AddPhoto("candy", Girls.Candace, m_AddGirlDatePhotos);
-        AddPhoto("polly", Girls.Polly, m_AddGirlDatePhotos);
+        AddPhoto("zoey", GirlId.Zoey, m_AddGirlDatePhotos);
+        AddPhoto("ashley", GirlId.Ashley, m_AddGirlDatePhotos);
+        AddPhoto("lola", GirlId.Lola, m_AddGirlDatePhotos);
+        AddPhoto("lailani", GirlId.Lailani, m_AddGirlDatePhotos);
+        AddPhoto("suki", GirlId.Sarah, m_AddGirlDatePhotos);
+        AddPhoto("brooke", GirlId.Brooke, m_AddGirlDatePhotos);
+        AddPhoto("jessie", GirlId.Jessie, m_AddGirlDatePhotos);
+        AddPhoto("nora", GirlId.Nora, m_AddGirlDatePhotos);
+        AddPhoto("abia", GirlId.Abia, m_AddGirlDatePhotos);
+        AddPhoto("lillian", GirlId.Lillian, m_AddGirlDatePhotos);
+        AddPhoto("candy", GirlId.Candace, m_AddGirlDatePhotos);
+        AddPhoto("polly", GirlId.Polly, m_AddGirlDatePhotos);
 
         ModInterface.Events.RequestUnlockedPhotos += On_RequestUnlockedPhotos;
     }

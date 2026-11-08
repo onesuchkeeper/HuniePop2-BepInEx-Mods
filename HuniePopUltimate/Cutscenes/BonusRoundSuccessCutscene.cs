@@ -13,7 +13,7 @@ public static class BonusRoundSuccessCutscene
         {
             Steps = new()
             {
-                CutsceneStepUtility.MakeDialogTriggerInfo(Hp2BaseMod.DialogTriggers.SexClimax, CutsceneStepProceedType.INSTANT).TargetOrientation(DollOrientationType.RIGHT),
+                CutsceneStepUtility.MakeDialogTriggerInfo(Hp2BaseMod.DialogTriggerId.SexClimax, CutsceneStepProceedType.INSTANT).TargetOrientation(DollOrientationType.RIGHT),
                 CutsceneStepUtility.MakeBannerTextInfo("BannerTextSuccess", 0, CutsceneStepProceedType.AUTOMATIC),
                 CutsceneStepUtility.MakeWaitInfo(4.25f),
                 showSexPhotoCutsceneStep,

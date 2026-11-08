@@ -25,7 +25,7 @@ internal static partial class Styles
 
         //Chesticles
 
-        ModInterface.DataMod.AddDataMod(new GirlDataMod(Girls.Ashley, InsertStyle.append)
+        ModInterface.DataMod.AddDataMod(new GirlDataMod(GirlId.Ashley, InsertStyle.append)
         {
             bodies = new List<IGirlBodyDataMod>()
             {

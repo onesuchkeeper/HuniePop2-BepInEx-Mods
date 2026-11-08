@@ -141,13 +141,13 @@ public static class ModEventHandles
 
             AddPairMod(ClockDaytimeType.EVENING, Girls.Momo, Girls.Momo);
 
-            Pairs._kyuSingleDate = new RelativeId(Plugin.ModId, Hp2BaseMod.Girls.Kyu.LocalId);
-            Pairs._jessieSingleDate = new RelativeId(singleDateId, Hp2BaseMod.Girls.Jessie.LocalId);
-            Pairs._lolaSingleDate = new RelativeId(singleDateId, Hp2BaseMod.Girls.Lola.LocalId);
+            Pairs._kyuSingleDate = new RelativeId(Plugin.ModId, Hp2BaseMod.GirlId.Kyu.LocalId);
+            Pairs._jessieSingleDate = new RelativeId(singleDateId, Hp2BaseMod.GirlId.Jessie.LocalId);
+            Pairs._lolaSingleDate = new RelativeId(singleDateId, Hp2BaseMod.GirlId.Lola.LocalId);
 
-            AddPairMod(ClockDaytimeType.NIGHT, Hp2BaseMod.Girls.Lola, Pairs.LolaSingleDate);
-            AddPairMod(ClockDaytimeType.NIGHT, Hp2BaseMod.Girls.Jessie, Pairs.JessieSingleDate);
-            AddPairMod(ClockDaytimeType.NIGHT, Hp2BaseMod.Girls.Kyu, Pairs.KyuSingleDate);
+            AddPairMod(ClockDaytimeType.NIGHT, Hp2BaseMod.GirlId.Lola, Pairs.LolaSingleDate);
+            AddPairMod(ClockDaytimeType.NIGHT, Hp2BaseMod.GirlId.Jessie, Pairs.JessieSingleDate);
+            AddPairMod(ClockDaytimeType.NIGHT, Hp2BaseMod.GirlId.Kyu, Pairs.KyuSingleDate);
         }
     }
 
@@ -163,8 +163,8 @@ public static class ModEventHandles
         var celesteSave = playerFile.GetPlayerFileGirl(celesteDef);
         if (!celesteSave.playerMet)
         {
-            args.ItemCategories[ItemTypes.Unique].Pool.RemoveAll(x => Items.Celeste.IsUniqueItem(x.Value.Core.ModId()));
-            args.ItemCategories[ItemTypes.Shoe].Pool.RemoveAll(x => Items.Celeste.IsShoeItem(x.Value.Core.ModId()));
+            args.ItemCategories[ItemTypeId.Unique].Pool.RemoveAll(x => Items.Celeste.IsUniqueItem(x.Value.Core.ModId()));
+            args.ItemCategories[ItemTypeId.Shoe].Pool.RemoveAll(x => Items.Celeste.IsShoeItem(x.Value.Core.ModId()));
 
             if (UnityEngine.Random.Range(0, 5) == 0 
                 && !playerFile.IsItemInInventory(ModInterface.GameData.GetItem(Items.WeirdThing), false))
@@ -181,28 +181,28 @@ public static class ModEventHandles
             }
         }
 
-        var kyuDef = ModInterface.GameData.GetGirl(Hp2BaseMod.Girls.Kyu);
+        var kyuDef = ModInterface.GameData.GetGirl(Hp2BaseMod.GirlId.Kyu);
         var kyuSave = playerFile.GetPlayerFileGirl(kyuDef);
         if (!kyuSave.playerMet)
         {
-            args.ItemCategories[ItemTypes.Unique].Pool.RemoveAll(x => Items.Kyu.IsUniqueItem(x.Value.Core.ModId()));
-            args.ItemCategories[ItemTypes.Shoe].Pool.RemoveAll(x => Items.Kyu.IsShoeItem(x.Value.Core.ModId()));
+            args.ItemCategories[ItemTypeId.Unique].Pool.RemoveAll(x => Items.Kyu.IsUniqueItem(x.Value.Core.ModId()));
+            args.ItemCategories[ItemTypeId.Shoe].Pool.RemoveAll(x => Items.Kyu.IsShoeItem(x.Value.Core.ModId()));
         }
 
         var momoDef = ModInterface.GameData.GetGirl(Girls.Momo);
         var momoSave = playerFile.GetPlayerFileGirl(momoDef);
         if (!momoSave.playerMet)
         {
-            args.ItemCategories[ItemTypes.Unique].Pool.RemoveAll(x => Items.Momo.IsUniqueItem(x.Value.Core.ModId()));
-            args.ItemCategories[ItemTypes.Shoe].Pool.RemoveAll(x => Items.Momo.IsShoeItem(x.Value.Core.ModId()));
+            args.ItemCategories[ItemTypeId.Unique].Pool.RemoveAll(x => Items.Momo.IsUniqueItem(x.Value.Core.ModId()));
+            args.ItemCategories[ItemTypeId.Shoe].Pool.RemoveAll(x => Items.Momo.IsShoeItem(x.Value.Core.ModId()));
         }
 
         var venusDef = ModInterface.GameData.GetGirl(Girls.Venus);
         var venusSave = playerFile.GetPlayerFileGirl(venusDef);
         if (!venusSave.playerMet)
         {
-            args.ItemCategories[ItemTypes.Unique].Pool.RemoveAll(x => Items.Venus.IsUniqueItem(x.Value.Core.ModId()));
-            args.ItemCategories[ItemTypes.Shoe].Pool.RemoveAll(x => Items.Venus.IsShoeItem(x.Value.Core.ModId()));
+            args.ItemCategories[ItemTypeId.Unique].Pool.RemoveAll(x => Items.Venus.IsUniqueItem(x.Value.Core.ModId()));
+            args.ItemCategories[ItemTypeId.Shoe].Pool.RemoveAll(x => Items.Venus.IsShoeItem(x.Value.Core.ModId()));
         }
     }
 
@@ -280,7 +280,7 @@ public static class ModEventHandles
         // ideally I'd make a backup cutscene for this case, but I don't have voice acting...
         // so just un-meet her I guess. She will keep her exp, you just gotta do her cutscene again
         var lolaSaveFile = file.girls.FirstOrDefault(x
-            => ModInterface.Data.GetDataId(GameDataType.Girl, x.girlDefinition.id) == Hp2BaseMod.Girls.Lola);
+            => ModInterface.Data.GetDataId(GameDataType.Girl, x.girlDefinition.id) == Hp2BaseMod.GirlId.Lola);
 
         if (lolaSaveFile != null
             && !lolaSaveFile.playerMet)

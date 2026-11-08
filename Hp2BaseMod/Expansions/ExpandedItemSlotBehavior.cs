@@ -1,4 +1,3 @@
-using System;
 using HarmonyLib;
 using Hp2BaseMod.Extension;
 
@@ -26,8 +25,6 @@ public partial class ExpandedItemSlotBehavior
             => ExpandedItemSlotBehavior.Destroy(__instance);
     }
 
-    public event Action PreShowEvent;
-
     /// <summary>
     /// Replaces the base game's tooltip, which asked LocationManager.AtLocationType whether it was at the hub. That throws,
     /// and the base method must never run, so every case is handled here: the tooltip goes east when the slot asks for it
@@ -48,7 +45,7 @@ public partial class ExpandedItemSlotBehavior
 
         var tooltip = f_tooltip.GetValue<UiTooltipItem>(_core);
         tooltip.Populate(itemDef, direction);
-        PreShowEvent?.Invoke();
+        RaisePreShowEvent();
 
         tooltip.Show(_core.transform.position,
             MathUtils.DirectionToVector(direction)

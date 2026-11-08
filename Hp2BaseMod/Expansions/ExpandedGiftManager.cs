@@ -17,6 +17,33 @@ public partial class ExpandedGiftManager
         [HarmonyPrefix]
         private static bool GiveGift(GiftManager __instance, UiDoll doll, ItemDefinition itemDef, ref bool __result) 
             => ExpandedGiftManager.Get(__instance).GiveGift_Prefix(doll, itemDef, ref __result);
+
+        [HarmonyPatch(nameof(GiftManager.GetDirectGiftGiveError))]
+        [HarmonyPrefix]
+        private static bool GetDirectGiftGiveError_Prefix(GiftManager __instance, ItemDefinition itemDef, ref string __result)
+            => ExpandedGiftManager.Get(__instance).GetDirectGiftGiveError_Prefix(itemDef, ref __result);
+    }
+
+    private bool GetDirectGiftGiveError_Prefix(ItemDefinition itemDef, ref string __result)
+    {
+        if (itemDef == null)
+        {
+            __result = null;
+        }
+        else if (itemDef.itemType == ItemType.MISC)
+        {
+            __result = "This item can't be given as a gift.";
+        }
+        else if (itemDef.itemType == ItemType.DATE_GIFT)
+        {
+            __result = "Date gifts can't be given directly from the HunieBee.";
+        }
+        else
+        {
+            __result = ModInterface.GameState.CurrentState.GetGiftError(itemDef);
+        }
+
+        return false;
     }
 
     private bool GiveGift_Prefix(UiDoll doll, ItemDefinition itemDef, ref bool __result)

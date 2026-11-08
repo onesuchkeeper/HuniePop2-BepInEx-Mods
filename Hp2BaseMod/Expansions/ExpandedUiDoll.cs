@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using DG.Tweening;
 using HarmonyLib;
 using Hp2BaseMod.Extension;
+using Hp2BaseMod.Utility;
 using UnityEngine;
 
 namespace Hp2BaseMod;
@@ -98,6 +100,158 @@ public partial class ExpandedUiDoll
             // Dialog lines are now handled by the IPuzzleStatusGirlState instances. They will play lines when needed
             silent = true;
         }
+
+        [HarmonyPatch(nameof(UiDoll.ReadDialogLine))]
+        [HarmonyPrefix]
+        private static bool ReadDialogLine_Prefix(UiDoll __instance, DialogLine dialogLine, DialogLineFormat format, int priority)
+            => ExpandedUiDoll.Get(__instance).ReadDialogLine_Prefix(dialogLine, format, priority);
+
+        [HarmonyPatch(nameof(UiDoll.SetFocus))]
+        [HarmonyPrefix]
+        private static bool SetFocus(UiDoll __instance, bool focused, float duration)
+            => ExpandedUiDoll.Get(__instance).SetFocus_Prefix(focused, duration);
+    }
+
+    private bool SetFocus_Prefix(bool focused, float duration)
+    {
+        if (!focused == _isUnfocused) return false;
+
+        _isUnfocused = !focused;
+
+        if (ModInterface.GameState.CurrentState?.DollFocusIsInteractive ?? false)
+        {
+            _core.focusButton.image.raycastTarget = _isUnfocused;
+            _core.dropZoneCanvasGroup.blocksRaycasts = !_isUnfocused;
+        }
+        else
+        {
+            _core.focusButton.image.raycastTarget = false;
+            _core.dropZoneCanvasGroup.blocksRaycasts = true;
+        }
+
+        Game.Manager.Time.KillTween(_focusSequence, false, true);
+
+        var sequence = DOTween.Sequence().SetEase(Ease.InOutSine);
+        _focusSequence = sequence;
+
+        var mirror = _core.mirrored ? -1 : 1;
+
+        if (_isUnfocused)
+        {
+            sequence.Insert(0f, DOTween.To(() => _core.uiEffectGroup.effectFactor, x => _core.uiEffectGroup.effectFactor = x, 0.66f, duration).SetEase(Ease.Linear));
+            sequence.Insert(0f, _core.verticalLayer.DOAnchorPosX(100f, duration, false).SetEase(Ease.OutSine));
+            sequence.Insert(0f, _core.verticalLayer.DOAnchorPosY(-150f, duration, false).SetEase(Ease.InSine));
+
+            if (_core.unfocusedCover != null)
+            {
+                sequence.Insert(0f, _core.unfocusedCover.rectTransform.DOScaleX(4 * mirror, duration).SetEase(Ease.OutSine));
+                sequence.Insert(0f, _core.unfocusedCover.DOFade(0.3f, duration).SetEase(Ease.Linear));
+            }
+        }
+        else
+        {
+            sequence.Insert(0f, DOTween.To(() => _core.uiEffectGroup.effectFactor, x => _core.uiEffectGroup.effectFactor = x, 0f, duration).SetEase(Ease.Linear));
+            sequence.Insert(0f, _core.verticalLayer.DOAnchorPosX(0f, duration, false).SetEase(Ease.InSine));
+            sequence.Insert(0f, _core.verticalLayer.DOAnchorPosY(0f, duration, false).SetEase(Ease.OutSine));
+
+            if (_core.unfocusedCover != null)
+            {
+                sequence.Insert(0f, _core.unfocusedCover.rectTransform.DOScaleX(mirror, duration).SetEase(Ease.InSine));
+                sequence.Insert(0f, _core.unfocusedCover.DOFade(0f, duration).SetEase(Ease.Linear));
+            }
+        }
+
+        Game.Manager.Time.Play(sequence, _core.pauseDefinition, 0f);
+
+        RaiseFocusChangeEvent(_core);
+        return false;
+    }
+
+    private bool ReadDialogLine_Prefix(DialogLine dialogLine, DialogLineFormat format, int priority)
+    {
+        if (_girlDefinition == null) return false;
+
+        if (_currentDialogLine != null)
+        {
+            _core.StopDialogLine(true, true);
+        }
+
+        _currentDialogLine = dialogLine;
+
+        var yuri = dialogLine.yuri && Game.Persistence.playerFile.settingGender == SettingGender.FEMALE;
+        _currentDialogText = (yuri ? dialogLine.yuriDialogText : dialogLine.dialogText) + "▸▸▸▸▸";
+        _currentDialogFormat = format;
+        _currentDialogPriority = priority;
+        _clickSkippedDialog = false;
+
+        var audioClip = yuri ? dialogLine.yuriAudioClip : dialogLine.audioClip;
+        var horny = _hasMood && _moodExpression == GirlExpressionType.HORNY;
+
+        if (audioClip != null)
+        {
+            _dialogLineAudioLink = Game.Manager.Audio.Play(
+                AudioCategory.VOICE, audioClip, _core.pauseDefinition,
+                horny 
+                    ? _core.soulGirlDefinition.sexVoiceVolume 
+                    : _core.soulGirlDefinition.voiceVolume
+            );
+        }
+
+        var text = _currentDialogText;
+
+        _dialogTimestamp = Game.Manager.Time.Lifetime(_core.pauseDefinition);
+        _dialogDuration = audioClip != null ? Mathf.Max(audioClip.length, 0.25f) : Mathf.Max(text.Length * 0.05f, 0.25f);
+        _dialogLetterDuration = Mathf.Min(_dialogDuration / text.Length, 0.05f);
+        _dialogExpressionIndex = 0;
+
+        var state = ModInterface.GameState.CurrentState;
+        if (!Game.Session.gameCanvas.cellphone.IsShowing() || (state?.DialogIgnoresCellphone ?? false))
+        {
+            if (_core.slideLayer.anchoredPosition.x >= 0f)
+            {
+                ResizeDialogBox(_core.dialogBoxPosValues.y, DIALOG_BOX_WIDTH_BIG, DIALOG_TEXT_WIDTH_BIG);
+            }
+            else
+            {
+                ResizeDialogBox(_core.dialogBoxPosValues.z, DIALOG_BOX_WIDTH_BIG, DIALOG_TEXT_WIDTH_BIG);
+            }
+        }
+        else
+        {
+            ResizeDialogBox(_core.dialogBoxPosValues.x, DIALOG_BOX_WIDTH_SMALL, DIALOG_TEXT_WIDTH_SMALL);
+        }
+
+        _core.dialogText.text = PurifyDialogText(INLINE_STYLER_START + text + INLINE_STYLER_END);
+
+        var boxHeight = Mathf.Max(192f + (_core.dialogText.preferredHeight - 138f), 192f);
+
+        _core.ChangeExpression(dialogLine.startExpression.expressionType, dialogLine.startExpression.eyesClosed);
+        Game.Manager.Time.KillTween(_dialogBoxSequence, true, true);
+
+        if (!_isDialogBoxShowing && !_isDialogBoxLocked)
+        {
+            _core.dialogBox.rectTransform.sizeDelta = new Vector2(_core.dialogBox.rectTransform.sizeDelta.x, boxHeight);
+            _core.dialogBox.rectTransform.anchoredPosition = new Vector2(0f, (boxHeight - 192f) * 0.5f);
+        }
+        else
+        {
+            _core.dialogBoxLayerCanvasGroup.alpha = horny ? 0f : 0.5f;
+            _core.dialogBoxLayer.localScale = Vector3.one * 0.75f;
+        }
+
+        var sequence = DOTween.Sequence();
+        _dialogBoxSequence = sequence;
+        sequence.Insert(0f, _core.dialogBoxLayerCanvasGroup.DOFade(horny ? 0 : 1, 0.25f).SetEase(Ease.Linear));
+        sequence.Insert(0f, _core.dialogBoxLayer.DOScale(Vector3.one, 0.25f).SetEase(Ease.OutBack));
+        sequence.Insert(0f, _core.dialogBox.rectTransform.DOSizeDelta(new Vector2(_core.dialogBox.rectTransform.sizeDelta.x, boxHeight), 0.25f, false).SetEase(Ease.OutBack));
+        sequence.Insert(0f, _core.dialogBox.rectTransform.DOAnchorPos(new Vector2(0f, (boxHeight - 192f) * 0.5f), 0.25f, false).SetEase(Ease.OutBack));
+        Game.Manager.Time.Play(sequence, _core.pauseDefinition, 0f);
+
+        _isDialogBoxShowing = true;
+        _isDialogBoxLocked = false;
+
+        RaiseDialogLineStartedEvent(_core);
+        return false;
     }
 
     private UiDollSpecialEffect _specialEffect_hold;

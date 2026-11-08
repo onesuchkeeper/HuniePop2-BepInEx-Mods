@@ -125,7 +125,7 @@ public class Plugin : BaseUnityPlugin
 
             ModInterface.DataMod.AddDataMod(new LocationDataMod(Locations.HiddenWaterfall, InsertStyle.replace)
             {
-                DefaultStyle = Styles.Water,
+                DefaultStyle = StyleId.Water,
                 LocationName = "Hidden Waterfall",
                 AllowSim = true,
                 AllowNonStop = false,
@@ -169,7 +169,7 @@ public class Plugin : BaseUnityPlugin
         //others
         ModInterface.DataMod.AddDataMod(new LocationDataMod(Locations.Volcano, InsertStyle.replace)
         {
-            DefaultStyle = Styles.Activity,
+            DefaultStyle = StyleId.Activity,
             LocationName = "Volcano",
             NonStopOptionText = "Kyu. The [[highlight]VOLCANO]. IT'S A VOLCANO KYU. FUCKING FUCKIN' IN A FUCKING VOLCANO.",
             BgMusic = new AudioKlipInfo()
@@ -192,7 +192,7 @@ public class Plugin : BaseUnityPlugin
 
         ModInterface.DataMod.AddDataMod(new LocationDataMod(Locations.HotelRoom, InsertStyle.replace)
         {
-            DefaultStyle = Styles.Relaxing,
+            DefaultStyle = StyleId.Relaxing,
             LocationName = "Hotel Room",
             NonStopOptionText = "I dunno, I guess [[highlight]HERE] is good.",
             BgMusic = new AudioKlipInfo()
@@ -215,7 +215,7 @@ public class Plugin : BaseUnityPlugin
 
         ModInterface.DataMod.AddDataMod(new LocationDataMod(Locations.OuterSpace, InsertStyle.replace)
         {
-            DefaultStyle = Styles.Activity,
+            DefaultStyle = StyleId.Activity,
             LocationName = "Space",
             NonStopOptionText = "Hey, is [[highlight]SPACE] on the table? How the hell did we get there anyways?",
             BgMusic = new AudioKlipInfo()
@@ -245,7 +245,7 @@ public class Plugin : BaseUnityPlugin
 
         ModInterface.DataMod.AddDataMod(new LocationDataMod(Locations.AirplaneBathroom, InsertStyle.replace)
         {
-            DefaultStyle = Styles.Activity,
+            DefaultStyle = StyleId.Activity,
             LocationName = "Airplane Bathroom",
             NonStopOptionText = "I think the [[highlight]AIRPLANE BATHROOM] may have awoken something in me... Not sure how I feel about that...",
             BgMusic = new AudioKlipInfo()
@@ -276,7 +276,7 @@ public class Plugin : BaseUnityPlugin
         var airplaneCabinBg = new SpriteInfoInternal("loc_bg_special_airplanecabin_0");
         ModInterface.DataMod.AddDataMod(new LocationDataMod(Locations.AirplaneCabin, InsertStyle.replace)
         {
-            DefaultStyle = Styles.Activity,
+            DefaultStyle = StyleId.Activity,
             LocationName = "Airplane Cabin",
             NonStopOptionText = "Something about the cramped quarters and needless expense of a date in an [[highlight]AIRPLANE CABIN] just gets me going.",
             BgMusic = new AudioKlipInfo()
@@ -307,7 +307,7 @@ public class Plugin : BaseUnityPlugin
         var poolsideBg = new SpriteInfoInternal("loc_bg_special_poolside_0");
         ModInterface.DataMod.AddDataMod(new LocationDataMod(Locations.Poolside, InsertStyle.replace)
         {
-            DefaultStyle = Styles.Water,
+            DefaultStyle = StyleId.Water,
             LocationName = "Poolside",
             NonStopOptionText = "Maybe a trip to the [[highlight]POOLSIDE]?",
             BgMusic = new AudioKlipInfo()
@@ -335,7 +335,7 @@ public class Plugin : BaseUnityPlugin
         var apartmentBg = new SpriteInfoInternal("loc_bg_special_apartment_0");
         ModInterface.DataMod.AddDataMod(new LocationDataMod(Locations.Apartment, InsertStyle.replace)
         {
-            DefaultStyle = Styles.Romantic,
+            DefaultStyle = StyleId.Romantic,
             LocationName = "Your Apartment",
             NonStopOptionText = "I'm starting to get a little homesick, with some fairy magic we could pop on over to [[highlight]MY APARTMENT] right?",
             BgMusic = new AudioKlipInfo()

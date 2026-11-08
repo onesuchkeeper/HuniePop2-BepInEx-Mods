@@ -27,7 +27,7 @@ public static class SingleDateAttractCutscene
             Steps = new List<IGameDefinitionInfo<CutsceneStepSubDefinition>>()
             {
                 // big move dialogue
-                CutsceneStepUtility.MakeDialogTriggerInfo(Hp2BaseMod.DialogTriggers.BigMove).TargetOrientation(DollOrientationType.RIGHT),
+                CutsceneStepUtility.MakeDialogTriggerInfo(Hp2BaseMod.DialogTriggerId.BigMove).TargetOrientation(DollOrientationType.RIGHT),
                 CutsceneStepUtility.MakeWaitInfo(0.5f),
                 new ShowDatePhotoCutsceneStep.Info()
             }

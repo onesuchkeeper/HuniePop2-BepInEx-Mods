@@ -16,7 +16,7 @@ public class NikkiConfigurator : GirlConfiguratorBase
 
     protected override int Age => 20;
 
-    protected override RelativeId ItemEnergyId => EnergyTypes.Talent;
+    protected override RelativeId ItemEnergyId => EnergyId.Talent;
 
     protected override (int x, int y) BackPosition => (195, 440);
     protected override (int x, int y) HeadPosition => (230, 780);
@@ -89,18 +89,18 @@ public class NikkiConfigurator : GirlConfiguratorBase
         => _locationGreetingMap;
     private static readonly (RelativeId to, RelativeId from)[] _locationGreetingMap =
     [
-        (Locations.MassageSpa, LocationIds.OutdoorLounge),//not my scene
-        (Locations.Aquarium, LocationIds.OutdoorLounge),//not my scene
-        (Locations.SecludedCabana, LocationIds.WaterPark),//burn alive
-        (Locations.PoolsideBar, LocationIds.WaterPark),//burn alive
-        (Locations.GolfCourse, LocationIds.BotanicalGarden),//allergies
-        (Locations.CruiseShip, LocationIds.WaterPark),//burn alive
-        (Locations.RooftopLounge, LocationIds.ScenicOverlook),//romantic
-        (Locations.Casino, LocationIds.Casino),//not an arcade
-        (Locations.PrivateTable, LocationIds.Restaurant),//dishes gross
-        (Locations.SecretGrotto, LocationIds.HotSprings),//water nice
-        (Locations.StripClub, LocationIds.IceRink),//might be fun
-        (Locations.RoyalSuite, LocationIds.OutdoorLounge),//not my scene
+        (LocationId.MassageSpa, LocationIds.OutdoorLounge),//not my scene
+        (LocationId.Aquarium, LocationIds.OutdoorLounge),//not my scene
+        (LocationId.SecludedCabana, LocationIds.WaterPark),//burn alive
+        (LocationId.PoolsideBar, LocationIds.WaterPark),//burn alive
+        (LocationId.GolfCourse, LocationIds.BotanicalGarden),//allergies
+        (LocationId.CruiseShip, LocationIds.WaterPark),//burn alive
+        (LocationId.RooftopLounge, LocationIds.ScenicOverlook),//romantic
+        (LocationId.Casino, LocationIds.Casino),//not an arcade
+        (LocationId.PrivateTable, LocationIds.Restaurant),//dishes gross
+        (LocationId.SecretGrotto, LocationIds.HotSprings),//water nice
+        (LocationId.StripClub, LocationIds.IceRink),//might be fun
+        (LocationId.RoyalSuite, LocationIds.OutdoorLounge),//not my scene
     ];
 
     protected override IEnumerable<(RelativeId LocationId, GirlStyleInfo Style)> LocationStyleMap
@@ -108,39 +108,39 @@ public class NikkiConfigurator : GirlConfiguratorBase
 
     private static readonly (RelativeId LocationId, GirlStyleInfo Style)[] _locationStyleMap =
     [
-        (LocationIds.BotanicalGarden, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)),
-        (LocationIds.HikingTrail, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)),
-        (LocationIds.FarmersMarket, new GirlStyleInfo(Hp2BaseMod.Styles.Party)),
+        (LocationIds.BotanicalGarden, new GirlStyleInfo(Hp2BaseMod.StyleId.Relaxing)),
+        (LocationIds.HikingTrail, new GirlStyleInfo(Hp2BaseMod.StyleId.Romantic)),
+        (LocationIds.FarmersMarket, new GirlStyleInfo(Hp2BaseMod.StyleId.Party)),
 
-        (LocationIds.IceRink, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)),
-        (LocationIds.WaterPark, new GirlStyleInfo(Hp2BaseMod.Styles.Water)),
-        (LocationIds.TennisCourts, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)),
+        (LocationIds.IceRink, new GirlStyleInfo(Hp2BaseMod.StyleId.Romantic)),
+        (LocationIds.WaterPark, new GirlStyleInfo(Hp2BaseMod.StyleId.Water)),
+        (LocationIds.TennisCourts, new GirlStyleInfo(Hp2BaseMod.StyleId.Romantic)),
 
-        (LocationIds.ScenicOverlook, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)),
-        (LocationIds.Casino, new GirlStyleInfo(Hp2BaseMod.Styles.Party)),
-        (LocationIds.HotSprings, new GirlStyleInfo(Hp2BaseMod.Styles.Water)),
+        (LocationIds.ScenicOverlook, new GirlStyleInfo(Hp2BaseMod.StyleId.Activity)),
+        (LocationIds.Casino, new GirlStyleInfo(Hp2BaseMod.StyleId.Party)),
+        (LocationIds.HotSprings, new GirlStyleInfo(Hp2BaseMod.StyleId.Water)),
 
-        (LocationIds.OutdoorLounge, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)),
-        (LocationIds.Carnival, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)),
-        (LocationIds.Restaurant, new GirlStyleInfo(Hp2BaseMod.Styles.Party)),
+        (LocationIds.OutdoorLounge, new GirlStyleInfo(Hp2BaseMod.StyleId.Relaxing)),
+        (LocationIds.Carnival, new GirlStyleInfo(Hp2BaseMod.StyleId.Relaxing)),
+        (LocationIds.Restaurant, new GirlStyleInfo(Hp2BaseMod.StyleId.Party)),
 
-        (LocationIds.BedRoomDate, new GirlStyleInfo(Hp2BaseMod.Styles.Sexy)),
+        (LocationIds.BedRoomDate, new GirlStyleInfo(Hp2BaseMod.StyleId.Sexy)),
 
-        (Locations.MassageSpa, new GirlStyleInfo(Hp2BaseMod.Styles.Party)),
-        (Locations.Aquarium, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)),
-        (Locations.SecludedCabana, new GirlStyleInfo(Hp2BaseMod.Styles.Party)),
-        (Locations.PoolsideBar, new GirlStyleInfo(Hp2BaseMod.Styles.Water)),
-        (Locations.GolfCourse, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)),
-        (Locations.CruiseShip, new GirlStyleInfo(Hp2BaseMod.Styles.Water)),
-        (Locations.RooftopLounge, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)),
-        (Locations.Casino, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)),
-        (Locations.PrivateTable, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)),
-        (Locations.SecretGrotto, new GirlStyleInfo(Hp2BaseMod.Styles.Water)),
-        (Locations.RoyalSuite, new GirlStyleInfo(Hp2BaseMod.Styles.Sexy)),
-        (Locations.AirplaneBathroom, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)),
-        (Locations.OuterSpace, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)),
-        (Locations.StripClub, new GirlStyleInfo(Hp2BaseMod.Styles.Party)),
-        (Locations.VolcanoTop, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)),
+        (LocationId.MassageSpa, new GirlStyleInfo(Hp2BaseMod.StyleId.Party)),
+        (LocationId.Aquarium, new GirlStyleInfo(Hp2BaseMod.StyleId.Activity)),
+        (LocationId.SecludedCabana, new GirlStyleInfo(Hp2BaseMod.StyleId.Party)),
+        (LocationId.PoolsideBar, new GirlStyleInfo(Hp2BaseMod.StyleId.Water)),
+        (LocationId.GolfCourse, new GirlStyleInfo(Hp2BaseMod.StyleId.Activity)),
+        (LocationId.CruiseShip, new GirlStyleInfo(Hp2BaseMod.StyleId.Water)),
+        (LocationId.RooftopLounge, new GirlStyleInfo(Hp2BaseMod.StyleId.Romantic)),
+        (LocationId.Casino, new GirlStyleInfo(Hp2BaseMod.StyleId.Romantic)),
+        (LocationId.PrivateTable, new GirlStyleInfo(Hp2BaseMod.StyleId.Relaxing)),
+        (LocationId.SecretGrotto, new GirlStyleInfo(Hp2BaseMod.StyleId.Water)),
+        (LocationId.RoyalSuite, new GirlStyleInfo(Hp2BaseMod.StyleId.Sexy)),
+        (LocationId.AirplaneBathroom, new GirlStyleInfo(Hp2BaseMod.StyleId.Relaxing)),
+        (LocationId.OuterSpace, new GirlStyleInfo(Hp2BaseMod.StyleId.Activity)),
+        (LocationId.StripClub, new GirlStyleInfo(Hp2BaseMod.StyleId.Party)),
+        (LocationId.VolcanoTop, new GirlStyleInfo(Hp2BaseMod.StyleId.Activity)),
     ];
 
     public NikkiConfigurator(

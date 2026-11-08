@@ -137,9 +137,9 @@ namespace Hp2BaseMod.GameDataInfo
 
             if (HerQuestions != null)
             {
-                var herQuestionDt = gameDataProvider.GetDialogTrigger(DialogTriggers.HerQuestion);
-                var herQuestionGoodResponseDt = gameDataProvider.GetDialogTrigger(DialogTriggers.HerQuestionGoodResponse);
-                var herQuestionBadResponseDt = gameDataProvider.GetDialogTrigger(DialogTriggers.HerQuestionBadResponse);
+                var herQuestionDt = gameDataProvider.GetDialogTrigger(DialogTriggerId.HerQuestion);
+                var herQuestionGoodResponseDt = gameDataProvider.GetDialogTrigger(DialogTriggerId.HerQuestionGoodResponse);
+                var herQuestionBadResponseDt = gameDataProvider.GetDialogTrigger(DialogTriggerId.HerQuestionBadResponse);
 
                 var herQuestionDtSet = herQuestionDt.GetExpansion().GetLineSetOrNew(herQuestionDt, Id);
                 var herQuestionGoodResponseDtSet = herQuestionGoodResponseDt.GetExpansion().GetLineSetOrNew(herQuestionGoodResponseDt, Id);
@@ -203,7 +203,7 @@ namespace Hp2BaseMod.GameDataInfo
 
             if (FavoriteDialogLines != null)
             {
-                var favQuestionResponse = gameDataProvider.GetDialogTrigger(DialogTriggers.FavQuestionResponse);
+                var favQuestionResponse = gameDataProvider.GetDialogTrigger(DialogTriggerId.FavQuestionResponse);
 
                 if (favQuestionResponse == null)
                 {
@@ -223,7 +223,7 @@ namespace Hp2BaseMod.GameDataInfo
 
             if (LocationGreetingDialogLines != null)
             {
-                var dateGreeting = gameDataProvider.GetDialogTrigger(DialogTriggers.DateGreeting);
+                var dateGreeting = gameDataProvider.GetDialogTrigger(DialogTriggerId.DateGreeting);
 
                 if (dateGreeting == null)
                 {

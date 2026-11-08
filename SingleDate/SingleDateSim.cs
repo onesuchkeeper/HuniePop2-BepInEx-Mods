@@ -184,7 +184,7 @@ public sealed class SingleDateSim : GameStateLocation
     private void On_FinderSlotSelected(UiAppFinderSlot slot)
     {
         // The resolver turns this into a SingleDateSim.Payload if the pair is a single pair.
-        _pendingState = slot.locationDefinition?.ModId() == Locations.HotelRoom
+        _pendingState = slot.locationDefinition?.ModId() == LocationId.HotelRoom
             ? new GameStateHub.Payload()
             : new GameStateSim.Payload(slot.playerFileFinderSlot.girlPairDefinition.ModId());
     }
@@ -252,7 +252,7 @@ public sealed class SingleDateSim : GameStateLocation
             args.DenyDate = true;
             // exhausted
             Game.Session.gameCanvas.GetDoll(true).ReadDialogTrigger(
-                ModInterface.GameData.GetDialogTrigger(Hp2BaseMod.DialogTriggers.StaminaInsufficient),
+                ModInterface.GameData.GetDialogTrigger(Hp2BaseMod.DialogTriggerId.StaminaInsufficient),
                 DialogLineFormat.PASSIVE);
             return;
         }

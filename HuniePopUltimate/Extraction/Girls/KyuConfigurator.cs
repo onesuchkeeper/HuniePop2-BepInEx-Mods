@@ -13,14 +13,14 @@ public class KyuConfigurator : GirlConfiguratorBase
     protected override string ShoeCategoryDescription => "Ballet Flats";
 
     protected override bool HasUiSprites => false;
-    protected override RelativeId GirlId => Hp2BaseMod.Girls.Kyu;
+    protected override RelativeId GirlId => Hp2BaseMod.GirlId.Kyu;
     protected override string GirlAssetFileName => "kyu";
 
     protected override int Age => 386;
 
     public override string UnderwearName => "Pink, Bitch";
 
-    protected override RelativeId ItemEnergyId => EnergyTypes.Flirtation;
+    protected override RelativeId ItemEnergyId => EnergyId.Flirtation;
 
     protected override (int x, int y) BackPosition => (245, 454);
     protected override (int x, int y) HeadPosition => (230, 780);
@@ -93,18 +93,18 @@ public class KyuConfigurator : GirlConfiguratorBase
         => _locationGreetingMap;
     private static readonly (RelativeId to, RelativeId from)[] _locationGreetingMap =
     [
-        (Locations.MassageSpa, LocationIds.ScenicOverlook),//seduce
-        (Locations.Aquarium, LocationIds.FarmersMarket),//nothing i like
-        (Locations.SecludedCabana, LocationIds.ScenicOverlook),//seduce
-        (Locations.PoolsideBar, LocationIds.WaterPark),//leaf bikini
-        (Locations.GolfCourse, LocationIds.TennisCourts),//don't know about this game
-        (Locations.CruiseShip, LocationIds.WaterPark),//leaf bikini
-        (Locations.RooftopLounge, LocationIds.ScenicOverlook),//seduce
-        (Locations.Casino, LocationIds.Casino),//hunie
-        (Locations.PrivateTable, LocationIds.Restaurant),//eating alone
-        (Locations.SecretGrotto, LocationIds.HotSprings),//staple
-        (Locations.StripClub, LocationIds.Carnival),//fit in
-        (Locations.RoyalSuite, LocationIds.ScenicOverlook),//seduce
+        (LocationId.MassageSpa, LocationIds.ScenicOverlook),//seduce
+        (LocationId.Aquarium, LocationIds.FarmersMarket),//nothing i like
+        (LocationId.SecludedCabana, LocationIds.ScenicOverlook),//seduce
+        (LocationId.PoolsideBar, LocationIds.WaterPark),//leaf bikini
+        (LocationId.GolfCourse, LocationIds.TennisCourts),//don't know about this game
+        (LocationId.CruiseShip, LocationIds.WaterPark),//leaf bikini
+        (LocationId.RooftopLounge, LocationIds.ScenicOverlook),//seduce
+        (LocationId.Casino, LocationIds.Casino),//hunie
+        (LocationId.PrivateTable, LocationIds.Restaurant),//eating alone
+        (LocationId.SecretGrotto, LocationIds.HotSprings),//staple
+        (LocationId.StripClub, LocationIds.Carnival),//fit in
+        (LocationId.RoyalSuite, LocationIds.ScenicOverlook),//seduce
     ];
 
     protected override IEnumerable<(RelativeId LocationId, GirlStyleInfo Style)> LocationStyleMap
@@ -112,39 +112,39 @@ public class KyuConfigurator : GirlConfiguratorBase
 
     private static readonly (RelativeId LocationId, GirlStyleInfo Style)[] _locationStyleMap =
     [
-        (LocationIds.BotanicalGarden, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)),
-        (LocationIds.HikingTrail, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)),
-        (LocationIds.FarmersMarket, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)),
+        (LocationIds.BotanicalGarden, new GirlStyleInfo(Hp2BaseMod.StyleId.Activity)),
+        (LocationIds.HikingTrail, new GirlStyleInfo(Hp2BaseMod.StyleId.Relaxing)),
+        (LocationIds.FarmersMarket, new GirlStyleInfo(Hp2BaseMod.StyleId.Romantic)),
 
-        (LocationIds.IceRink, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)),
-        (LocationIds.WaterPark, new GirlStyleInfo(Hp2BaseMod.Styles.Water)),
-        (LocationIds.TennisCourts, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)),
+        (LocationIds.IceRink, new GirlStyleInfo(Hp2BaseMod.StyleId.Relaxing)),
+        (LocationIds.WaterPark, new GirlStyleInfo(Hp2BaseMod.StyleId.Water)),
+        (LocationIds.TennisCourts, new GirlStyleInfo(Hp2BaseMod.StyleId.Romantic)),
 
-        (LocationIds.ScenicOverlook, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)),
-        (LocationIds.Casino, new GirlStyleInfo(Hp2BaseMod.Styles.Party)),
-        (LocationIds.HotSprings, new GirlStyleInfo(Hp2BaseMod.Styles.Water)),
+        (LocationIds.ScenicOverlook, new GirlStyleInfo(Hp2BaseMod.StyleId.Romantic)),
+        (LocationIds.Casino, new GirlStyleInfo(Hp2BaseMod.StyleId.Party)),
+        (LocationIds.HotSprings, new GirlStyleInfo(Hp2BaseMod.StyleId.Water)),
 
-        (LocationIds.OutdoorLounge, new GirlStyleInfo(Hp2BaseMod.Styles.Party)),
-        (LocationIds.Carnival, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)),
-        (LocationIds.Restaurant, new GirlStyleInfo(Hp2BaseMod.Styles.Party)),
+        (LocationIds.OutdoorLounge, new GirlStyleInfo(Hp2BaseMod.StyleId.Party)),
+        (LocationIds.Carnival, new GirlStyleInfo(Hp2BaseMod.StyleId.Relaxing)),
+        (LocationIds.Restaurant, new GirlStyleInfo(Hp2BaseMod.StyleId.Party)),
 
-        (LocationIds.BedRoomDate, new GirlStyleInfo(Hp2BaseMod.Styles.Sexy)),
+        (LocationIds.BedRoomDate, new GirlStyleInfo(Hp2BaseMod.StyleId.Sexy)),
 
-        (Locations.MassageSpa, new GirlStyleInfo(Hp2BaseMod.Styles.Party)),
-        (Locations.Aquarium, new GirlStyleInfo(Hp2BaseMod.Styles.Party, Styles.KyuDisguise)),
-        (Locations.SecludedCabana, new GirlStyleInfo(Hp2BaseMod.Styles.Party)),
-        (Locations.PoolsideBar, new GirlStyleInfo(Hp2BaseMod.Styles.Water)),
-        (Locations.GolfCourse, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)),
-        (Locations.CruiseShip, new GirlStyleInfo(Hp2BaseMod.Styles.Water)),
-        (Locations.RooftopLounge, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)),
-        (Locations.Casino, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)),
-        (Locations.PrivateTable, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)),
-        (Locations.SecretGrotto, new GirlStyleInfo(Hp2BaseMod.Styles.Water)),
-        (Locations.RoyalSuite, new GirlStyleInfo(Hp2BaseMod.Styles.Sexy)),
-        (Locations.AirplaneBathroom, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)),
-        (Locations.OuterSpace, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)),
-        (Locations.StripClub, new GirlStyleInfo(Hp2BaseMod.Styles.Party)),
-        (Locations.VolcanoTop, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)),
+        (LocationId.MassageSpa, new GirlStyleInfo(Hp2BaseMod.StyleId.Party)),
+        (LocationId.Aquarium, new GirlStyleInfo(Hp2BaseMod.StyleId.Party, Styles.KyuDisguise)),
+        (LocationId.SecludedCabana, new GirlStyleInfo(Hp2BaseMod.StyleId.Party)),
+        (LocationId.PoolsideBar, new GirlStyleInfo(Hp2BaseMod.StyleId.Water)),
+        (LocationId.GolfCourse, new GirlStyleInfo(Hp2BaseMod.StyleId.Activity)),
+        (LocationId.CruiseShip, new GirlStyleInfo(Hp2BaseMod.StyleId.Water)),
+        (LocationId.RooftopLounge, new GirlStyleInfo(Hp2BaseMod.StyleId.Romantic)),
+        (LocationId.Casino, new GirlStyleInfo(Hp2BaseMod.StyleId.Romantic)),
+        (LocationId.PrivateTable, new GirlStyleInfo(Hp2BaseMod.StyleId.Relaxing)),
+        (LocationId.SecretGrotto, new GirlStyleInfo(Hp2BaseMod.StyleId.Water)),
+        (LocationId.RoyalSuite, new GirlStyleInfo(Hp2BaseMod.StyleId.Sexy)),
+        (LocationId.AirplaneBathroom, new GirlStyleInfo(Hp2BaseMod.StyleId.Relaxing)),
+        (LocationId.OuterSpace, new GirlStyleInfo(Hp2BaseMod.StyleId.Activity)),
+        (LocationId.StripClub, new GirlStyleInfo(Hp2BaseMod.StyleId.Party)),
+        (LocationId.VolcanoTop, new GirlStyleInfo(Hp2BaseMod.StyleId.Activity)),
     ];
 
     public KyuConfigurator(
@@ -159,7 +159,7 @@ public class KyuConfigurator : GirlConfiguratorBase
         ConfigureGirlDefault(hpBody, assetBundle, sprites, audio, items, Items.Kyu);
         if (Plugin.HasKyuOldPhoto) AddSexPhotos([(Photos.KyuOld, RelativeId.Default)]);
         Mod.SpecialCharacter = false;
-        hpBody.SpecialEffect = SpecialParts.KyuWingId;
+        hpBody.SpecialEffect = SpecialPartId.KyuWingId;
     }
 
     public override bool IsTextPhotoIndexNsfw(int photoIndex) => photoIndex.InInclusiveRange(1,3);

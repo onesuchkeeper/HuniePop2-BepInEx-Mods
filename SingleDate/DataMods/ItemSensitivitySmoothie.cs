@@ -50,7 +50,7 @@ internal static class ItemSensitivitySmoothie
             // No store section preference.
             StoreSectionPreference = false,
             ItemGiftHandlerId = ItemGiftHandlers.SensitivitySmoothie,
-            ItemStoreHandlerId = ItemTypes.Smoothie,
+            ItemStoreHandlerId = ItemTypeId.Smoothie,
         });
 
         ModInterface.DataMod.AddDataMod(new ItemDataMod(_expId, InsertStyle.replace)

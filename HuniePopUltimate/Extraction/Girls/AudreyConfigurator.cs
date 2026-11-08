@@ -20,7 +20,7 @@ public class AudreyConfigurator : GirlConfiguratorBase
     protected override int Age => 21;
     protected override bool HasDrinkRejectLines => false;
 
-    protected override RelativeId ItemEnergyId => EnergyTypes.Sexuality;
+    protected override RelativeId ItemEnergyId => EnergyId.Sexuality;
 
     public override string UnderwearName => "Pure Sin";
 
@@ -98,18 +98,18 @@ public class AudreyConfigurator : GirlConfiguratorBase
         => _locationGreetingMap;
     private static readonly (RelativeId to, RelativeId from)[] _locationGreetingMap =
     [
-        (Locations.MassageSpa, LocationIds.HotSprings),// get used to this
-        (Locations.Aquarium, LocationIds.ScenicOverlook),// gaaaayyy
-        (Locations.SecludedCabana, LocationIds.OutdoorLounge),
-        (Locations.PoolsideBar, LocationIds.IceRink),//cold
-        (Locations.GolfCourse, LocationIds.TennisCourts),//sweaty
-        (Locations.CruiseShip, LocationIds.WaterPark),//sunscreen
-        (Locations.RooftopLounge, LocationIds.Restaurant),//really impressive
-        (Locations.Casino, LocationIds.Casino),//smoke in here
-        (Locations.PrivateTable, LocationIds.Carnival),//idea of a date
-        (Locations.SecretGrotto, LocationIds.HotSprings),//get used to this
-        (Locations.StripClub, LocationIds.Casino),//smoke in here
-        (Locations.RoyalSuite, LocationIds.BotanicalGarden),//im here what now
+        (LocationId.MassageSpa, LocationIds.HotSprings),// get used to this
+        (LocationId.Aquarium, LocationIds.ScenicOverlook),// gaaaayyy
+        (LocationId.SecludedCabana, LocationIds.OutdoorLounge),
+        (LocationId.PoolsideBar, LocationIds.IceRink),//cold
+        (LocationId.GolfCourse, LocationIds.TennisCourts),//sweaty
+        (LocationId.CruiseShip, LocationIds.WaterPark),//sunscreen
+        (LocationId.RooftopLounge, LocationIds.Restaurant),//really impressive
+        (LocationId.Casino, LocationIds.Casino),//smoke in here
+        (LocationId.PrivateTable, LocationIds.Carnival),//idea of a date
+        (LocationId.SecretGrotto, LocationIds.HotSprings),//get used to this
+        (LocationId.StripClub, LocationIds.Casino),//smoke in here
+        (LocationId.RoyalSuite, LocationIds.BotanicalGarden),//im here what now
     ];
 
     protected override IEnumerable<(RelativeId LocationId, GirlStyleInfo Style)> LocationStyleMap
@@ -117,39 +117,39 @@ public class AudreyConfigurator : GirlConfiguratorBase
 
     private static readonly (RelativeId LocationId, GirlStyleInfo Style)[] _locationStyleMap =
     [
-        (LocationIds.BotanicalGarden, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)),
-        (LocationIds.HikingTrail, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)),
-        (LocationIds.FarmersMarket, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)),
+        (LocationIds.BotanicalGarden, new GirlStyleInfo(Hp2BaseMod.StyleId.Activity)),
+        (LocationIds.HikingTrail, new GirlStyleInfo(Hp2BaseMod.StyleId.Activity)),
+        (LocationIds.FarmersMarket, new GirlStyleInfo(Hp2BaseMod.StyleId.Activity)),
 
-        (LocationIds.IceRink, new GirlStyleInfo(Hp2BaseMod.Styles.Party)),
-        (LocationIds.WaterPark, new GirlStyleInfo(Hp2BaseMod.Styles.Water)),
-        (LocationIds.TennisCourts, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)),
+        (LocationIds.IceRink, new GirlStyleInfo(Hp2BaseMod.StyleId.Party)),
+        (LocationIds.WaterPark, new GirlStyleInfo(Hp2BaseMod.StyleId.Water)),
+        (LocationIds.TennisCourts, new GirlStyleInfo(Hp2BaseMod.StyleId.Relaxing)),
 
-        (LocationIds.ScenicOverlook, new GirlStyleInfo(Hp2BaseMod.Styles.Party)),
-        (LocationIds.Casino, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)),
-        (LocationIds.HotSprings, new GirlStyleInfo(Hp2BaseMod.Styles.Water)),
+        (LocationIds.ScenicOverlook, new GirlStyleInfo(Hp2BaseMod.StyleId.Party)),
+        (LocationIds.Casino, new GirlStyleInfo(Hp2BaseMod.StyleId.Romantic)),
+        (LocationIds.HotSprings, new GirlStyleInfo(Hp2BaseMod.StyleId.Water)),
 
-        (LocationIds.OutdoorLounge, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)),
-        (LocationIds.Carnival, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)),
-        (LocationIds.Restaurant, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)),
+        (LocationIds.OutdoorLounge, new GirlStyleInfo(Hp2BaseMod.StyleId.Relaxing)),
+        (LocationIds.Carnival, new GirlStyleInfo(Hp2BaseMod.StyleId.Activity)),
+        (LocationIds.Restaurant, new GirlStyleInfo(Hp2BaseMod.StyleId.Romantic)),
 
-        (LocationIds.BedRoomDate, new GirlStyleInfo(Hp2BaseMod.Styles.Sexy)),
+        (LocationIds.BedRoomDate, new GirlStyleInfo(Hp2BaseMod.StyleId.Sexy)),
 
-        (Locations.MassageSpa, new GirlStyleInfo(Hp2BaseMod.Styles.Party)),
-        (Locations.Aquarium, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)),
-        (Locations.SecludedCabana, new GirlStyleInfo(Hp2BaseMod.Styles.Party)),
-        (Locations.PoolsideBar, new GirlStyleInfo(Hp2BaseMod.Styles.Water)),
-        (Locations.GolfCourse, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)),
-        (Locations.CruiseShip, new GirlStyleInfo(Hp2BaseMod.Styles.Water)),
-        (Locations.RooftopLounge, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)),
-        (Locations.Casino, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)),
-        (Locations.PrivateTable, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)),
-        (Locations.SecretGrotto, new GirlStyleInfo(Hp2BaseMod.Styles.Water)),
-        (Locations.RoyalSuite, new GirlStyleInfo(Hp2BaseMod.Styles.Sexy)),
-        (Locations.AirplaneBathroom, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)),
-        (Locations.OuterSpace, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)),
-        (Locations.StripClub, new GirlStyleInfo(Hp2BaseMod.Styles.Party)),
-        (Locations.VolcanoTop, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)),
+        (LocationId.MassageSpa, new GirlStyleInfo(Hp2BaseMod.StyleId.Party)),
+        (LocationId.Aquarium, new GirlStyleInfo(Hp2BaseMod.StyleId.Activity)),
+        (LocationId.SecludedCabana, new GirlStyleInfo(Hp2BaseMod.StyleId.Party)),
+        (LocationId.PoolsideBar, new GirlStyleInfo(Hp2BaseMod.StyleId.Water)),
+        (LocationId.GolfCourse, new GirlStyleInfo(Hp2BaseMod.StyleId.Activity)),
+        (LocationId.CruiseShip, new GirlStyleInfo(Hp2BaseMod.StyleId.Water)),
+        (LocationId.RooftopLounge, new GirlStyleInfo(Hp2BaseMod.StyleId.Romantic)),
+        (LocationId.Casino, new GirlStyleInfo(Hp2BaseMod.StyleId.Romantic)),
+        (LocationId.PrivateTable, new GirlStyleInfo(Hp2BaseMod.StyleId.Relaxing)),
+        (LocationId.SecretGrotto, new GirlStyleInfo(Hp2BaseMod.StyleId.Water)),
+        (LocationId.RoyalSuite, new GirlStyleInfo(Hp2BaseMod.StyleId.Sexy)),
+        (LocationId.AirplaneBathroom, new GirlStyleInfo(Hp2BaseMod.StyleId.Relaxing)),
+        (LocationId.OuterSpace, new GirlStyleInfo(Hp2BaseMod.StyleId.Activity)),
+        (LocationId.StripClub, new GirlStyleInfo(Hp2BaseMod.StyleId.Party)),
+        (LocationId.VolcanoTop, new GirlStyleInfo(Hp2BaseMod.StyleId.Activity)),
     ];
 
     public AudreyConfigurator(
@@ -169,16 +169,16 @@ public class AudreyConfigurator : GirlConfiguratorBase
         var hairThingy = (GirlSpecialPartDataMod)hpBody.specialParts[1];
         hairThingy.RequiredHairstyles = new List<RelativeId>()
         {
-            Hp2BaseMod.Styles.Activity
+            Hp2BaseMod.StyleId.Activity
         };
 
         hairThingy.RequiredOutfits = new List<RelativeId>()
         {
-            Hp2BaseMod.Styles.Activity,
+            Hp2BaseMod.StyleId.Activity,
         };
 
-        hpBody.DefaultHairstyleId = Hp2BaseMod.Styles.Activity;
-        hpBody.DefaultOutfitId = Hp2BaseMod.Styles.Activity;
+        hpBody.DefaultHairstyleId = Hp2BaseMod.StyleId.Activity;
+        hpBody.DefaultOutfitId = Hp2BaseMod.StyleId.Activity;
     }
 
     public override bool IsTextPhotoIndexNsfw(int photoIndex) => false;

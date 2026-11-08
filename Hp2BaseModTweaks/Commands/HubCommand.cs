@@ -27,7 +27,7 @@ public class HubCommand : ICommand
         }
 
         var file = Game.Persistence.playerData.files[index];
-        file.locationDefinition = ModInterface.GameData.GetLocation(Locations.HotelRoom);
+        file.locationDefinition = ModInterface.GameData.GetLocation(LocationId.HotelRoom);
         file.girlPairDefinition = null;
         ModInterface.Save.ModFiles[index].GameStatePayload = new GameStateHub.Payload();
 

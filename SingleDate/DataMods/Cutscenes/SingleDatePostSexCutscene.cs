@@ -20,8 +20,8 @@ public static class SingleDatePostSexCutscene
             Steps = new List<IGameDefinitionInfo<CutsceneStepSubDefinition>>()
             {
                 //moan 
-                CutsceneStepUtility.MakeDialogTriggerInfo(Hp2BaseMod.DialogTriggers.SexMoans1).TargetOrientation(DollOrientationType.RIGHT),
-                CutsceneStepUtility.MakeDialogTriggerInfo(Hp2BaseMod.DialogTriggers.DateSuccess).TargetOrientation(DollOrientationType.RIGHT),
+                CutsceneStepUtility.MakeDialogTriggerInfo(Hp2BaseMod.DialogTriggerId.SexMoans1).TargetOrientation(DollOrientationType.RIGHT),
+                CutsceneStepUtility.MakeDialogTriggerInfo(Hp2BaseMod.DialogTriggerId.DateSuccess).TargetOrientation(DollOrientationType.RIGHT),
                 CutsceneStepUtility.MakeWaitInfo(0.5f),
             }
         });

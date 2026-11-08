@@ -56,9 +56,9 @@ public static class RandomizeUtil
 
         var normalGirls = Game.Data.Girls.GetAllBySpecial(false);
 
-        normalGirls.Remove(ModInterface.GameData.GetGirl(Girls.Kyu));
-        normalGirls.Remove(ModInterface.GameData.GetGirl(Girls.Moxie));
-        normalGirls.Remove(ModInterface.GameData.GetGirl(Girls.Jewn));
+        normalGirls.Remove(ModInterface.GameData.GetGirl(GirlId.Kyu));
+        normalGirls.Remove(ModInterface.GameData.GetGirl(GirlId.Moxie));
+        normalGirls.Remove(ModInterface.GameData.GetGirl(GirlId.Jewn));
 
         var normalPairs = Game.Data.GirlPairs.GetAll().Where(x =>
             x.girlDefinitionOne != null
@@ -259,7 +259,7 @@ public static class RandomizeUtil
 
         //swap lola in tutorial pair 
         var swapPool = normalGirls.ToList();
-        var lolaDef = ModInterface.GameData.GetGirl(Girls.Lola);
+        var lolaDef = ModInterface.GameData.GetGirl(GirlId.Lola);
         normalGirls.Remove(lolaDef);
         var lolaSwap = swapPool.PopRandom(random);
 
@@ -508,7 +508,7 @@ public static class RandomizeUtil
 
             //some dt's are pools, others are indexed, there is no
             //way to tell them apart cuz why would there be?
-            if (DialogTriggers.IsPool(ModInterface.Data.GetDataId(GameDataType.DialogTrigger, dt.id)))
+            if (DialogTriggerId.IsPool(ModInterface.Data.GetDataId(GameDataType.DialogTrigger, dt.id)))
             {
                 if (!specialLines.Any()) dt.dialogLineSets[specialDtIndex] = otherSet;
                 else if (!otherLines.Any()) dt.dialogLineSets[otherDtIndex] = specialSet;

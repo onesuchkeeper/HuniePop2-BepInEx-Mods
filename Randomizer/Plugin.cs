@@ -89,13 +89,13 @@ public partial class Plugin : Hp2BaseModPlugin
 
         if (Plugin.IncludeKyu.Value)
         {
-            _swapHandlers.Add(Girls.Kyu, (a, b) => RandomizeUtil.SwapKyu(a, b, SwappedSpecialKeepWings.Value));
+            _swapHandlers.Add(GirlId.Kyu, (a, b) => RandomizeUtil.SwapKyu(a, b, SwappedSpecialKeepWings.Value));
         }
 
         if (Plugin.IncludeNymphojinn.Value)
         {
-            _swapHandlers.Add(Girls.Moxie, (a, b) => RandomizeUtil.SwapNymphojinn(a, b, SwappedSpecialKeepWings.Value));
-            _swapHandlers.Add(Girls.Jewn, (a, b) => RandomizeUtil.SwapNymphojinn(a, b, SwappedSpecialKeepWings.Value));
+            _swapHandlers.Add(GirlId.Moxie, (a, b) => RandomizeUtil.SwapNymphojinn(a, b, SwappedSpecialKeepWings.Value));
+            _swapHandlers.Add(GirlId.Jewn, (a, b) => RandomizeUtil.SwapNymphojinn(a, b, SwappedSpecialKeepWings.Value));
         }
 
         ModInterface.Events.PostDataMods += () => RandomizeUtil.Randomize(_swapHandlers.Select(x => (x.Key, x.Value)));

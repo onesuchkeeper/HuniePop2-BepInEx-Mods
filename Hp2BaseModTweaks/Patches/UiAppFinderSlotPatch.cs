@@ -13,7 +13,7 @@ internal static class UiAppFinderSlotPatch
     public static void Populate(UiAppFinderSlot __instance, bool settled)
     {
         // show hub girl even if not met
-        if (__instance.locationDefinition.ModId() == Locations.HotelRoom)
+        if (__instance.locationDefinition.ModId() == LocationId.HotelRoom)
         {
             var pairs = Game.Persistence.playerFile.finderSlots.Select(x => x.girlPairDefinition).AddItem(Game.Session.Location.currentGirlPair);
 

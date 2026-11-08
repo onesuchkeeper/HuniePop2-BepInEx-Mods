@@ -46,15 +46,15 @@ public static class Girls
             case 4://audrey
                 return Girls.Audrey;
             case 5://lola
-                return Hp2BaseMod.Girls.Lola;
+                return Hp2BaseMod.GirlId.Lola;
             case 6://nikki
                 return Girls.Nikki;
             case 7://jessie
-                return Hp2BaseMod.Girls.Jessie;
+                return Hp2BaseMod.GirlId.Jessie;
             case 8://beli
                 return Girls.Beli;
             case 9://kyu
-                return Hp2BaseMod.Girls.Kyu;
+                return Hp2BaseMod.GirlId.Kyu;
             case 10://momo
                 return Girls.Momo;
             case 11://celeste
@@ -91,10 +91,10 @@ public static class Girls
             case 9037: return Audrey;
             case 9038: return Beli;
             case 9039: return Celeste;
-            case 9040: return Hp2BaseMod.Girls.Jessie;
+            case 9040: return Hp2BaseMod.GirlId.Jessie;
             case 9041: return Kyanna;
-            case 9042: return Hp2BaseMod.Girls.Kyu;
-            case 9043: return Hp2BaseMod.Girls.Lola;
+            case 9042: return Hp2BaseMod.GirlId.Kyu;
+            case 9043: return Hp2BaseMod.GirlId.Lola;
             case 9044: return Momo;
             case 9045: return Nikki;
             case 9046: return Tiffany;
@@ -110,11 +110,11 @@ public static class Girls
         {Girls.Aiko, "Aiko"},
         {Girls.Kyanna, "Kyanna"},
         {Girls.Audrey, "Audrey"},
-        {Hp2BaseMod.Girls.Lola, "Lola"},
+        {Hp2BaseMod.GirlId.Lola, "Lola"},
         {Girls.Nikki, "Nikki"},
-        {Hp2BaseMod.Girls.Jessie, "Jessie"},
+        {Hp2BaseMod.GirlId.Jessie, "Jessie"},
         {Girls.Beli, "Beli"},
-        {Hp2BaseMod.Girls.Kyu, "Kyu"},
+        {Hp2BaseMod.GirlId.Kyu, "Kyu"},
         {Girls.Momo, "Momo"},
         {Girls.Celeste, "Celeste"},
         {Girls.Venus, "Venus"}

@@ -51,9 +51,9 @@ public abstract class GirlConfiguratorBase : IGirlConfigurator
     /// <inheritdoc/>
     public virtual (RelativeId outfit, RelativeId hairstyle)[] MeetingCutsceneStyleSequence => _meetingCutsceneStyleSequence;
     private static readonly (RelativeId outfit, RelativeId hairstyle)[] _meetingCutsceneStyleSequence = [
-        (Hp2BaseMod.Styles.Activity, Hp2BaseMod.Styles.Activity),
-        (Hp2BaseMod.Styles.Activity, Hp2BaseMod.Styles.Activity),
-        (Hp2BaseMod.Styles.Activity, Hp2BaseMod.Styles.Activity),
+        (Hp2BaseMod.StyleId.Activity, Hp2BaseMod.StyleId.Activity),
+        (Hp2BaseMod.StyleId.Activity, Hp2BaseMod.StyleId.Activity),
+        (Hp2BaseMod.StyleId.Activity, Hp2BaseMod.StyleId.Activity),
     ];
 
     /// <inheritdoc/>
@@ -219,7 +219,7 @@ public abstract class GirlConfiguratorBase : IGirlConfigurator
             ItemName = itemName,
             CategoryDescription = ShoeCategoryDescription,
             ItemDescription = itemDescription,
-            ItemStoreHandlerId = Hp2BaseMod.ItemTypes.Shoe,
+            ItemStoreHandlerId = Hp2BaseMod.ItemTypeId.Shoe,
             ItemGiftHandlerId = Hp2BaseMod.ItemGiftHandlerId.Shoes,
             EnergyDefinitionID = ItemEnergyId,
             GirlDefinitionID = GirlId,
@@ -236,7 +236,7 @@ public abstract class GirlConfiguratorBase : IGirlConfigurator
     private void ConfigureUniqueMod(
         ItemDataMod mod)
     {
-        mod.ItemStoreHandlerId = Hp2BaseMod.ItemTypes.Unique;
+        mod.ItemStoreHandlerId = Hp2BaseMod.ItemTypeId.Unique;
         mod.ItemGiftHandlerId = Hp2BaseMod.ItemGiftHandlerId.Uniques;
         mod.EnergyDefinitionID = ItemEnergyId;
         mod.GirlDefinitionID = GirlId;
@@ -274,9 +274,9 @@ public abstract class GirlConfiguratorBase : IGirlConfigurator
     /// </summary>
     private void RemapSmoothieRejectionLines()
     {
-        var rejectSmoothie = _mod.LinesByDialogTriggerId[Hp2BaseMod.DialogTriggers.SmoothieReject];
-        var acceptSmoothie = _mod.LinesByDialogTriggerId[Hp2BaseMod.DialogTriggers.SmoothieAccept];
-        var rejectFood = _mod.LinesByDialogTriggerId[Hp2BaseMod.DialogTriggers.FoodReject];
+        var rejectSmoothie = _mod.LinesByDialogTriggerId[Hp2BaseMod.DialogTriggerId.SmoothieReject];
+        var acceptSmoothie = _mod.LinesByDialogTriggerId[Hp2BaseMod.DialogTriggerId.SmoothieAccept];
+        var rejectFood = _mod.LinesByDialogTriggerId[Hp2BaseMod.DialogTriggerId.FoodReject];
         acceptSmoothie.AddRange(rejectSmoothie);
         rejectSmoothie.Clear();
         rejectSmoothie.AddRange(rejectFood);

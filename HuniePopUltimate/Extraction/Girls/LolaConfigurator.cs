@@ -38,7 +38,7 @@ public class LolaConfigurator : IGirlConfigurator
 
     public LolaConfigurator()
     {
-        _mod = new GirlDataMod(Hp2BaseMod.Girls.Lola, InsertStyle.append);
+        _mod = new GirlDataMod(Hp2BaseMod.GirlId.Lola, InsertStyle.append);
         ModInterface.DataMod.AddDataMod(_mod);
     }
 
@@ -73,39 +73,39 @@ public class LolaConfigurator : IGirlConfigurator
         hpBody.HeadPosition = new VectorInfo(230, 780);
 
         hpBody.LocationIdToStyleInfo = new Dictionary<RelativeId, GirlStyleInfo>() {
-            {LocationIds.BotanicalGarden, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)},
-            {LocationIds.HikingTrail, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
-            {LocationIds.FarmersMarket, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
+            {LocationIds.BotanicalGarden, new GirlStyleInfo(Hp2BaseMod.StyleId.Romantic)},
+            {LocationIds.HikingTrail, new GirlStyleInfo(Hp2BaseMod.StyleId.Party)},
+            {LocationIds.FarmersMarket, new GirlStyleInfo(Hp2BaseMod.StyleId.Party)},
 
-            {LocationIds.IceRink, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)},
-            {LocationIds.WaterPark, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
-            {LocationIds.TennisCourts, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
+            {LocationIds.IceRink, new GirlStyleInfo(Hp2BaseMod.StyleId.Romantic)},
+            {LocationIds.WaterPark, new GirlStyleInfo(Hp2BaseMod.StyleId.Water)},
+            {LocationIds.TennisCourts, new GirlStyleInfo(Hp2BaseMod.StyleId.Party)},
 
-            {LocationIds.ScenicOverlook, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)},
-            {LocationIds.Casino, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)},
-            {LocationIds.HotSprings, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
+            {LocationIds.ScenicOverlook, new GirlStyleInfo(Hp2BaseMod.StyleId.Romantic)},
+            {LocationIds.Casino, new GirlStyleInfo(Hp2BaseMod.StyleId.Relaxing)},
+            {LocationIds.HotSprings, new GirlStyleInfo(Hp2BaseMod.StyleId.Water)},
 
-            {LocationIds.OutdoorLounge, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)},
-            {LocationIds.Carnival, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)},
-            {LocationIds.Restaurant, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)},
+            {LocationIds.OutdoorLounge, new GirlStyleInfo(Hp2BaseMod.StyleId.Relaxing)},
+            {LocationIds.Carnival, new GirlStyleInfo(Hp2BaseMod.StyleId.Activity)},
+            {LocationIds.Restaurant, new GirlStyleInfo(Hp2BaseMod.StyleId.Relaxing)},
 
-            {LocationIds.BedRoomDate, new GirlStyleInfo(Hp2BaseMod.Styles.Sexy)},
+            {LocationIds.BedRoomDate, new GirlStyleInfo(Hp2BaseMod.StyleId.Sexy)},
 
-            {Locations.MassageSpa, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
-            {Locations.Aquarium, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)},
-            {Locations.SecludedCabana, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
-            {Locations.PoolsideBar, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
-            {Locations.GolfCourse, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)},
-            {Locations.CruiseShip, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
-            {Locations.RooftopLounge, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)},
-            {Locations.Casino, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)},
-            {Locations.PrivateTable, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)},
-            {Locations.SecretGrotto, new GirlStyleInfo(Hp2BaseMod.Styles.Water)},
-            {Locations.RoyalSuite, new GirlStyleInfo(Hp2BaseMod.Styles.Sexy)},
-            {Locations.AirplaneBathroom, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)},
-            {Locations.OuterSpace, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)},
-            {Locations.StripClub, new GirlStyleInfo(Hp2BaseMod.Styles.Party)},
-            {Locations.VolcanoTop, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)}
+            {LocationId.MassageSpa, new GirlStyleInfo(Hp2BaseMod.StyleId.Party)},
+            {LocationId.Aquarium, new GirlStyleInfo(Hp2BaseMod.StyleId.Activity)},
+            {LocationId.SecludedCabana, new GirlStyleInfo(Hp2BaseMod.StyleId.Party)},
+            {LocationId.PoolsideBar, new GirlStyleInfo(Hp2BaseMod.StyleId.Water)},
+            {LocationId.GolfCourse, new GirlStyleInfo(Hp2BaseMod.StyleId.Activity)},
+            {LocationId.CruiseShip, new GirlStyleInfo(Hp2BaseMod.StyleId.Water)},
+            {LocationId.RooftopLounge, new GirlStyleInfo(Hp2BaseMod.StyleId.Romantic)},
+            {LocationId.Casino, new GirlStyleInfo(Hp2BaseMod.StyleId.Romantic)},
+            {LocationId.PrivateTable, new GirlStyleInfo(Hp2BaseMod.StyleId.Relaxing)},
+            {LocationId.SecretGrotto, new GirlStyleInfo(Hp2BaseMod.StyleId.Water)},
+            {LocationId.RoyalSuite, new GirlStyleInfo(Hp2BaseMod.StyleId.Sexy)},
+            {LocationId.AirplaneBathroom, new GirlStyleInfo(Hp2BaseMod.StyleId.Relaxing)},
+            {LocationId.OuterSpace, new GirlStyleInfo(Hp2BaseMod.StyleId.Activity)},
+            {LocationId.StripClub, new GirlStyleInfo(Hp2BaseMod.StyleId.Party)},
+            {LocationId.VolcanoTop, new GirlStyleInfo(Hp2BaseMod.StyleId.Activity)}
         };
     }
 
@@ -120,8 +120,8 @@ public class LolaConfigurator : IGirlConfigurator
         }
 
         cleanedDialogTriggerId = dialogTriggerId;
-        return dialogTriggerId != Hp2BaseMod.DialogTriggers.UniqueAccept 
-            && dialogTriggerId != Hp2BaseMod.DialogTriggers.StaminaExhausted
-            && dialogTriggerId != Hp2BaseMod.DialogTriggers.ShoesAccept;
+        return dialogTriggerId != Hp2BaseMod.DialogTriggerId.UniqueAccept 
+            && dialogTriggerId != Hp2BaseMod.DialogTriggerId.StaminaExhausted
+            && dialogTriggerId != Hp2BaseMod.DialogTriggerId.ShoesAccept;
     }
 }

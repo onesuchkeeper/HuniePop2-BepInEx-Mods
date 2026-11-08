@@ -137,7 +137,7 @@ public sealed class GameStatePuzzle : GameStateLocation, IPuzzleState
     {
         // I'd like a better way to check this. Maybe I could add
         // a flag to the hub slot itself?
-        if (slot.locationDefinition?.ModId() == Locations.HotelRoom)
+        if (slot.locationDefinition?.ModId() == LocationId.HotelRoom)
         {
             _pendingState = new GameStateHub.Payload();
         }

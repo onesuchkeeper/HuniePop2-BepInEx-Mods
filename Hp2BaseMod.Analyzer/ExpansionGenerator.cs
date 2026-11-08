@@ -111,6 +111,11 @@ internal static class ExpansionGenerator
                 var fieldPlans = BuildFieldPlans(baseType, generatingAssembly, attributeLocation, extraDiagnostics);
                 var propertyPlans = BuildPropertyPlans(baseType, generatingAssembly, attributeLocation, extraDiagnostics);
                 var methodPlans = BuildMethodPlans(baseType, generatingAssembly, attributeLocation, extraDiagnostics);
+                var takenNames = new HashSet<string>(
+                    fieldPlans.Select(p => p.OriginalName)
+                        .Concat(propertyPlans.Select(p => p.OriginalName))
+                        .Concat(methodPlans.Select(p => p.OriginalName)));
+                var eventPlans = BuildEventPlans(baseType, generatingAssembly, attributeLocation, extraDiagnostics, takenNames);
 
                 foreach (var diagnostic in extraDiagnostics)
                 {
@@ -121,7 +126,7 @@ internal static class ExpansionGenerator
                 // generator's output has not been added to the compilation yet - so any member
                 // found now is genuinely developer-authored, and its location is safe to report.
                 var relativeIdType = hasModId ? compilation.GetTypeByMetadataName("Hp2BaseMod.RelativeId") : null;
-                var conflicts = FindConflicts(classSymbol, baseType, relativeIdType, fieldPlans, propertyPlans, methodPlans, hasModId, hasCoreInterface);
+                var conflicts = FindConflicts(classSymbol, baseType, relativeIdType, fieldPlans, propertyPlans, methodPlans, eventPlans, hasModId, hasCoreInterface);
 
                 foreach (var conflict in conflicts)
                 {
@@ -138,7 +143,7 @@ internal static class ExpansionGenerator
 
                 var skip = new HashSet<string>(conflicts.Select(c => c.Key));
 
-                var source = GenerateSource(classSymbol, baseType, fieldPlans, propertyPlans, methodPlans, hasModId, hasOnDestroy, hasOnInit, hasCoreInterface, chainToBaseConstructor, skip);
+                var source = GenerateSource(classSymbol, baseType, fieldPlans, propertyPlans, methodPlans, eventPlans, hasModId, hasOnDestroy, hasOnInit, hasCoreInterface, chainToBaseConstructor, skip);
                 var fileName = BuildFileName(classSymbol);
 
                 context.AddSource(fileName, source);
@@ -426,6 +431,25 @@ internal static class ExpansionGenerator
         public bool SignatureAccessible { get; }
     }
 
+    private readonly struct EventPlan
+    {
+        public EventPlan(string originalName, string eventVariableName, string raiseMethodName, IEventSymbol symbol)
+        {
+            OriginalName = originalName;
+            EventVariableName = eventVariableName;
+            RaiseMethodName = raiseMethodName;
+            Symbol = symbol;
+        }
+
+        public string OriginalName { get; }
+
+        public string EventVariableName { get; }
+
+        public string RaiseMethodName { get; }
+
+        public IEventSymbol Symbol { get; }
+    }
+
     // True for a private/protected member declared directly on the base type that is a candidate
     // for exposure: excludes anything compiler-generated (property/event backing fields, and the
     // like), since those aren't members the developer actually wrote and wrapping them would
@@ -515,6 +539,15 @@ internal static class ExpansionGenerator
             }
 
             if (!IsValidExposableIdentifier(field.Name))
+            {
+                continue;
+            }
+
+            // A field-like event's backing delegate field carries the event's own name and (when
+            // imported from metadata) isn't flagged implicit. It belongs to the event's Raise method,
+            // not a field wrapper: exposing it as a settable property would let callers replace every
+            // subscriber, which is not what an event allows.
+            if (IsEventBackingField(baseType, field))
             {
                 continue;
             }
@@ -699,6 +732,103 @@ internal static class ExpansionGenerator
         return plans;
     }
 
+    // Every event the base type declares gets a "Raise<Event>" method on the Expansion class with
+    // the exact signature of the event's delegate, for raising it from outside the base class.
+    // Even a public event can't be raised that way, so there is always something worth wrapping.
+    // The signature is written out in generated code, so the delegate type, its return type and
+    // every parameter type must be nameable from there. There is deliberately no untyped fallback:
+    // an event whose signature isn't accessible is reported and skipped.
+    //
+    // takenNames holds the names of the other generated wrappers (fields, properties, methods):
+    // a base method that happens to be called "Raise<Event>" would otherwise produce two members
+    // with the same name, so the raise method gets an "Event" suffix instead.
+    private static List<EventPlan> BuildEventPlans(
+        INamedTypeSymbol baseType,
+        IAssemblySymbol generatingAssembly,
+        Location diagnosticLocation,
+        List<Diagnostic> diagnostics,
+        HashSet<string> takenNames)
+    {
+        var plans = new List<EventPlan>();
+
+        foreach (var member in baseType.GetMembers())
+        {
+            if (member is not IEventSymbol eventSymbol || eventSymbol.IsImplicitlyDeclared)
+            {
+                continue;
+            }
+
+            if (!IsValidExposableIdentifier(eventSymbol.Name))
+            {
+                continue;
+            }
+
+            var delegateType = eventSymbol.Type as INamedTypeSymbol;
+            var invoke = delegateType?.DelegateInvokeMethod;
+            if (invoke == null)
+            {
+                continue;
+            }
+
+            var accessible = !invoke.ReturnsByRef
+                && IsTypeUsableInGeneratedCode(delegateType, generatingAssembly)
+                && IsTypeUsableInGeneratedCode(invoke.ReturnType, generatingAssembly);
+
+            if (accessible)
+            {
+                foreach (var parameter in invoke.Parameters)
+                {
+                    if (!IsTypeUsableInGeneratedCode(parameter.Type, generatingAssembly))
+                    {
+                        accessible = false;
+                        break;
+                    }
+                }
+            }
+
+            if (!accessible)
+            {
+                diagnostics.Add(BuildDiagnostic(
+                    DiagnosticStrings.ID_EXPANSION_EVENT_TYPE_INACCESSIBLE,
+                    "Event signature not accessible",
+                    DiagnosticStrings.MESSAGE_EXPANSION_EVENT_TYPE_INACCESSIBLE,
+                    DiagnosticSeverity.Warning,
+                    diagnosticLocation,
+                    eventSymbol.Name,
+                    baseType.Name));
+                continue;
+            }
+
+            var trimmedName = TrimLeadingUnderscores(eventSymbol.Name);
+            var raiseMethodName = "Raise" + trimmedName;
+            if (takenNames.Contains(raiseMethodName))
+            {
+                raiseMethodName += "Event";
+            }
+
+            plans.Add(new EventPlan(eventSymbol.Name, "e_" + trimmedName, raiseMethodName, eventSymbol));
+        }
+
+        return plans;
+    }
+
+    // Parameterless GetMembers() + manual filter for the same metadata-import reason as
+    // GetMembersInHierarchy.
+    private static bool IsEventBackingField(INamedTypeSymbol baseType, IFieldSymbol field)
+    {
+        foreach (var member in baseType.GetMembers())
+        {
+            if (member is IEventSymbol eventSymbol &&
+                eventSymbol.Name == field.Name &&
+                SymbolEqualityComparer.Default.Equals(eventSymbol.Type, field.Type))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private readonly struct MemberConflict
     {
         public MemberConflict(string key, string memberName, Location location)
@@ -722,6 +852,7 @@ internal static class ExpansionGenerator
         List<FieldPlan> fieldPlans,
         List<PropertyPlan> propertyPlans,
         List<MethodPlan> methodPlans,
+        List<EventPlan> eventPlans,
         bool hasModId,
         bool hasCoreInterface)
     {
@@ -776,6 +907,12 @@ internal static class ExpansionGenerator
                     AddMethodConflict(classSymbol, methodPlan.Symbol.Name, parameterTypes, "wrapper:" + methodPlan.MethodVariableName, conflicts);
                 }
             }
+        }
+
+        foreach (var eventPlan in eventPlans)
+        {
+            AddUniqueMemberConflict(classSymbol, eventPlan.EventVariableName, "eventfield:" + eventPlan.OriginalName, conflicts);
+            AddUniqueMemberConflict(classSymbol, eventPlan.RaiseMethodName, "eventraise:" + eventPlan.OriginalName, conflicts);
         }
 
         return conflicts;
@@ -881,6 +1018,7 @@ internal static class ExpansionGenerator
         List<FieldPlan> fieldPlans,
         List<PropertyPlan> propertyPlans,
         List<MethodPlan> methodPlans,
+        List<EventPlan> eventPlans,
         bool hasModId,
         bool hasOnDestroy,
         bool hasOnInit,
@@ -914,7 +1052,7 @@ internal static class ExpansionGenerator
 
         AppendExtensionClass(sb, indent, accessibility, extensionClassName, baseTypeName, expansionTypeName, hasModId);
         sb.AppendLine();
-        AppendExpansionClass(sb, indent, accessibility, expansionTypeName, baseTypeName, fieldPlans, propertyPlans, methodPlans, hasModId, hasOnDestroy, hasOnInit, hasCoreInterface, chainToBaseConstructor, skip);
+        AppendExpansionClass(sb, indent, accessibility, expansionTypeName, baseTypeName, fieldPlans, propertyPlans, methodPlans, eventPlans, hasModId, hasOnDestroy, hasOnInit, hasCoreInterface, chainToBaseConstructor, skip);
 
         if (hasNamespace)
         {
@@ -960,6 +1098,7 @@ internal static class ExpansionGenerator
         List<FieldPlan> fieldPlans,
         List<PropertyPlan> propertyPlans,
         List<MethodPlan> methodPlans,
+        List<EventPlan> eventPlans,
         bool hasModId,
         bool hasOnDestroy,
         bool hasOnInit,
@@ -1028,6 +1167,11 @@ internal static class ExpansionGenerator
         foreach (var methodPlan in methodPlans)
         {
             AppendMethodAccessor(sb, indent, baseTypeName, methodPlan, coreExpr, skip);
+        }
+
+        foreach (var eventPlan in eventPlans)
+        {
+            AppendEventRaiser(sb, indent, baseTypeName, eventPlan, coreExpr, skip);
         }
 
         // Constructor. The public signature ("(core)" or "(core, id)") is unaffected by base-
@@ -1301,6 +1445,106 @@ internal static class ExpansionGenerator
         if (!method.ReturnsVoid)
         {
             sb.Append(indent).Append("        return (").Append(returnTypeName).AppendLine(")result;");
+        }
+
+        sb.Append(indent).AppendLine("    }");
+    }
+
+    // For each event: a static FieldInfo for the event's compiler-generated backing delegate field
+    // (the same cached-AccessTools pattern the field/property/method wrappers use), plus a
+    // "Raise<Event>" method taking exactly the delegate's parameters and returning its return type.
+    // It reads the current invocation list and invokes it, so the compiler checks every argument
+    // at the call site. Nobody subscribed is a no-op (default value for a non-void delegate).
+    // An event with custom add/remove accessors has no backing field; the lookup then yields null
+    // and raising throws NullReferenceException, since there is no delegate to invoke.
+    // A static event passes a null target instead of the core reference, and its raise method is static.
+    private static void AppendEventRaiser(
+        StringBuilder sb,
+        string indent,
+        string baseTypeName,
+        EventPlan eventPlan,
+        string coreExpr,
+        HashSet<string> skip)
+    {
+        if (!skip.Contains("eventfield:" + eventPlan.OriginalName))
+        {
+            sb.AppendLine();
+            sb.Append(indent).Append("    private static readonly FieldInfo ").Append(eventPlan.EventVariableName).Append(" = AccessTools.Field(typeof(").Append(baseTypeName).Append("), \"").Append(eventPlan.OriginalName).AppendLine("\");");
+        }
+
+        if (skip.Contains("eventraise:" + eventPlan.OriginalName))
+        {
+            return;
+        }
+
+        var delegateType = (INamedTypeSymbol)eventPlan.Symbol.Type;
+        var invoke = delegateType.DelegateInvokeMethod;
+        var delegateTypeName = delegateType.ToDisplayString(TypeNameFormat);
+        var returnTypeName = invoke.ReturnType.ToDisplayString(TypeNameFormat);
+        var isStatic = eventPlan.Symbol.IsStatic;
+        var target = isStatic ? "null" : coreExpr;
+
+        var declaration = new StringBuilder();
+        var arguments = new StringBuilder();
+        var outParameters = new List<string>();
+
+        for (var i = 0; i < invoke.Parameters.Length; i++)
+        {
+            var parameter = invoke.Parameters[i];
+            var name = SyntaxFacts.GetKeywordKind(parameter.Name) != SyntaxKind.None ? "@" + parameter.Name : parameter.Name;
+
+            string refPrefix;
+            switch (parameter.RefKind)
+            {
+                case RefKind.Ref:
+                    refPrefix = "ref ";
+                    break;
+                case RefKind.Out:
+                    refPrefix = "out ";
+                    outParameters.Add(name);
+                    break;
+                case RefKind.In:
+                    refPrefix = "in ";
+                    break;
+                default:
+                    refPrefix = "";
+                    break;
+            }
+
+            if (i > 0)
+            {
+                declaration.Append(", ");
+                arguments.Append(", ");
+            }
+
+            declaration.Append(parameter.IsParams ? "params " : "").Append(refPrefix).Append(parameter.Type.ToDisplayString(TypeNameFormat)).Append(' ').Append(name);
+            arguments.Append(refPrefix).Append(name);
+        }
+
+        sb.AppendLine();
+        sb.Append(indent).Append("    public ").Append(isStatic ? "static " : "").Append(returnTypeName).Append(' ').Append(eventPlan.RaiseMethodName).Append('(').Append(declaration).AppendLine(")");
+        sb.Append(indent).AppendLine("    {");
+
+        // An out parameter must be assigned on every path, including the no-subscribers one.
+        foreach (var outParameter in outParameters)
+        {
+            sb.Append(indent).Append("        ").Append(outParameter).AppendLine(" = default!;");
+        }
+
+        sb.Append(indent).Append("        var __handlers = ").Append(eventPlan.EventVariableName).Append(".GetValue(").Append(target).Append(") as ").Append(delegateTypeName).AppendLine(";");
+
+        if (invoke.ReturnsVoid)
+        {
+            sb.Append(indent).Append("        __handlers?.Invoke(").Append(arguments).AppendLine(");");
+        }
+        else
+        {
+            sb.Append(indent).AppendLine("        if (__handlers == null)");
+            sb.Append(indent).AppendLine("        {");
+            sb.Append(indent).AppendLine("            return default!;");
+            sb.Append(indent).AppendLine("        }");
+            sb.AppendLine();
+            sb.Append(indent).Append("        return __handlers.Invoke(").Append(arguments).AppendLine(");");
         }
 
         sb.Append(indent).AppendLine("    }");

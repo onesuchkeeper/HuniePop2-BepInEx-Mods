@@ -197,7 +197,7 @@ public class ModSaveFile
             throw new Exception($"Cannot default to hub, no \"hub\" game state found!");
         }
 
-        LocationId = Locations.HotelRoom;
+        LocationId = Hp2BaseMod.LocationId.HotelRoom;
         GirlPairId = null;
 
         GameStatePayload = new GameStateHub.Payload();

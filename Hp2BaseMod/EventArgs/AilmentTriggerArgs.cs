@@ -211,7 +211,7 @@ public abstract class AilmentTriggerArgs(ExpandedUiPuzzleGrid uiPuzzleGrid, Puzz
     {
         /// <summary>
         /// The match being processed. tokenDefinition reflects any MatchModifier substitution
-        /// already applied — this is the effective token, not necessarily the original.
+        /// already applied. this is the effective token, not necessarily the original.
         /// </summary>
         public PuzzleMatch Match { get; } = match;
 
@@ -224,7 +224,7 @@ public abstract class AilmentTriggerArgs(ExpandedUiPuzzleGrid uiPuzzleGrid, Puzz
 
         /// <summary>
         /// The ordered, shuffled list of slots participating in this match.
-        /// Matches the slot ordering used for reward distribution — same order
+        /// Matches the slot ordering used for reward distribution. same order
         /// the formula iterates when assigning per-slot reward values.
         /// Read-only after OnPreMatchReward.
         /// </summary>

@@ -12,7 +12,7 @@ public sealed class DateGiftStoreHandler : ItemStoreHandler
     public override IEnumerable<KeyValuePair<RelativeId, Category<ExpandedItemDefinition>>> CreateStoreCategories(PlayerFile playerFile)
     {
         yield return new(
-            ItemTypes.DateGift,
+            ItemTypeId.DateGift,
             new Category<ExpandedItemDefinition>
             {
                 TargetCount = TargetCount,

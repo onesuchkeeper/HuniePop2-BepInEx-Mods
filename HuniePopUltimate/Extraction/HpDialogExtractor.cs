@@ -44,7 +44,7 @@ public class HpDialogExtractor
             case "AskDate":
                 if (lineSets.Length > 0)
                 {
-                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.AskDate, lineSets[0], file);
+                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggerId.AskDate, lineSets[0], file);
                 }
                 break;
             case "DateGreeting":
@@ -65,8 +65,8 @@ public class HpDialogExtractor
                     // 0 - success
                     // 1 - fail
                     // 2 - goToBonus round - repurposed for cutscenes
-                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.DateSuccess, lineSets[0], file);
-                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.DateFailure, lineSets[1], file);
+                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggerId.DateSuccess, lineSets[0], file);
+                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggerId.DateFailure, lineSets[1], file);
                     ExtractDialogLineSet(DialogTriggers.PreBedroom, lineSets[2], file);
                 }
                 break;
@@ -75,10 +75,10 @@ public class HpDialogExtractor
                 {
                     // 0 - success
                     // 1 - fail
-                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.DateGiftAccept, lineSets[0], file);
-                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.DateGiftSexy, lineSets[0], file);
-                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.DateGiftWeird, lineSets[0], file);
-                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.DateGiftReject, lineSets[1], file);
+                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggerId.DateGiftAccept, lineSets[0], file);
+                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggerId.DateGiftSexy, lineSets[0], file);
+                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggerId.DateGiftWeird, lineSets[0], file);
+                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggerId.DateGiftReject, lineSets[1], file);
                 }
                 break;
             case "GivenDrink":
@@ -88,9 +88,9 @@ public class HpDialogExtractor
                     // 1 - appetite == 0, too hungry
                     // 2 - not at drinking location
                     // 3 - default
-                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.SmoothieAccept, lineSets[3], file);
-                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.SmoothieFull, lineSets[1], file);
-                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.SmoothieReject, lineSets[2], file);
+                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggerId.SmoothieAccept, lineSets[3], file);
+                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggerId.SmoothieFull, lineSets[1], file);
+                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggerId.SmoothieReject, lineSets[2], file);
                 }
                 break;
             case "GivenFood":
@@ -100,8 +100,8 @@ public class HpDialogExtractor
                     // 1 - loves
                     // 2 - likes
                     // 3 - default
-                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.FoodAccept, lineSets[2], file);
-                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.FoodReject, lineSets[3], file);
+                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggerId.FoodAccept, lineSets[2], file);
+                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggerId.FoodReject, lineSets[3], file);
                 }
                 break;
             case "GivenGift":
@@ -116,13 +116,13 @@ public class HpDialogExtractor
 
                     ExtractDialogLineSet(DialogTriggers.LovesAccept, lineSets[0], file);
 
-                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.UniqueAccept, lineSets[3], file);
-                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.UniqueReject, lineSets[4], file);
+                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggerId.UniqueAccept, lineSets[3], file);
+                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggerId.UniqueReject, lineSets[4], file);
 
-                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.ShoesAccept, lineSets[1], file);
-                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.ShoesReject, lineSets[4], file);
-                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.ShellAccept, lineSets[2], file);
-                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.ShellReject, lineSets[4], file);
+                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggerId.ShoesAccept, lineSets[1], file);
+                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggerId.ShoesReject, lineSets[4], file);
+                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggerId.ShellAccept, lineSets[2], file);
+                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggerId.ShellReject, lineSets[4], file);
                 }
                 break;
             case "Greeting":
@@ -130,24 +130,24 @@ public class HpDialogExtractor
                 {
                     // 0 - morning / 1 - afternoon / 2 - evening / 3 - night
                     // 4 - post sex (use in cutscene)
-                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.GreetingMorning, lineSets[0], file);
-                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.GreetingAfternoon, lineSets[1], file);
-                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.GreetingEvening, lineSets[2], file);
-                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.GreetingNight, lineSets[3], file);
+                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggerId.GreetingMorning, lineSets[0], file);
+                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggerId.GreetingAfternoon, lineSets[1], file);
+                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggerId.GreetingEvening, lineSets[2], file);
+                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggerId.GreetingNight, lineSets[3], file);
                     ExtractDialogLineSet(DialogTriggers.PostSex, lineSets[4], file);
                 }
                 break;
             case "InventoryFull":
                 if (lineSets.Length > 0)
                 {
-                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.InventoryFull, lineSets[0], file);
+                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggerId.InventoryFull, lineSets[0], file);
                 }
                 break;
             case "IsTooHungry":
                 if (lineSets.Length > 0)
                 {
-                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.StaminaInsufficient, lineSets[0], file);
-                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.StaminaExhausted, lineSets[0], file);
+                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggerId.StaminaInsufficient, lineSets[0], file);
+                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggerId.StaminaExhausted, lineSets[0], file);
                 }
                 break;
             case "KyuSpecial":
@@ -160,30 +160,30 @@ public class HpDialogExtractor
                 {
                     // 0 - big move
                     // 1 - broken heart
-                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.BigMove, lineSets[0], file);
-                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.StaminaRecovered, lineSets[0], file);
-                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.BrokenRecovered, lineSets[0], file);
-                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.BrokenExhausted, lineSets[1], file);
+                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggerId.BigMove, lineSets[0], file);
+                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggerId.StaminaRecovered, lineSets[0], file);
+                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggerId.BrokenRecovered, lineSets[0], file);
+                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggerId.BrokenExhausted, lineSets[1], file);
                 }
                 break;
             case "SexualSounds":
                 if (lineSets.Length > 4)
                 {
                     // 0-3 - sex moans, 4 - climax
-                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.SexMoans1, lineSets[0], file);
-                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.SexMoans2, lineSets[1], file);
-                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.SexMoans3, lineSets[2], file);
-                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.SexMoans4, lineSets[3], file);
-                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.SexClimax, lineSets[4], file);
+                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggerId.SexMoans1, lineSets[0], file);
+                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggerId.SexMoans2, lineSets[1], file);
+                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggerId.SexMoans3, lineSets[2], file);
+                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggerId.SexMoans4, lineSets[3], file);
+                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggerId.SexClimax, lineSets[4], file);
                 }
                 break;
             case "Valediction": // leave without dating
                 if (lineSets.Length > 3)
                 {
                     // 0 morning / 1 afternoon / 2 evening / 3 night
-                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.Valediction, lineSets[0], file);
-                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.Valediction, lineSets[1], file);
-                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.Valediction, lineSets[2], file);
+                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggerId.Valediction, lineSets[0], file);
+                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggerId.Valediction, lineSets[1], file);
+                    ExtractDialogLineSet(Hp2BaseMod.DialogTriggerId.Valediction, lineSets[2], file);
                     //in hp2 valediction is one pool, leaving out night lines from hp1 since they don't make sense
                     //at other times of the day
                 }
@@ -191,22 +191,22 @@ public class HpDialogExtractor
             case "QueryDuplicate":
                 break;
             case "QueryIntro":
-                ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.FavQuestionIntro, lineSets[0], file);
+                ExtractDialogLineSet(Hp2BaseMod.DialogTriggerId.FavQuestionIntro, lineSets[0], file);
                 break;
             case "QuestionBadChoice":
-                ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.HerQuestionBadResponse, lineSets[0], file);
+                ExtractDialogLineSet(Hp2BaseMod.DialogTriggerId.HerQuestionBadResponse, lineSets[0], file);
                 break;
             case "QuestionCorrect":
-                ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.HerQuestionGoodResponse, lineSets[0], file);
+                ExtractDialogLineSet(Hp2BaseMod.DialogTriggerId.HerQuestionGoodResponse, lineSets[0], file);
                 break;
             case "QuestionIncorrect":
-                ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.HerQuestionBadResponse, lineSets[0], file);
+                ExtractDialogLineSet(Hp2BaseMod.DialogTriggerId.HerQuestionBadResponse, lineSets[0], file);
                 break;
             case "QuestionIntro":
-                ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.HerQuestionIntro, lineSets[0], file);
+                ExtractDialogLineSet(Hp2BaseMod.DialogTriggerId.HerQuestionIntro, lineSets[0], file);
                 break;
             case "QuizCorrect":
-                ExtractDialogLineSet(Hp2BaseMod.DialogTriggers.FavQuestionAgreement, lineSets[0], file);
+                ExtractDialogLineSet(Hp2BaseMod.DialogTriggerId.FavQuestionAgreement, lineSets[0], file);
                 break;
             case "QuizIncorrect":
                 break;

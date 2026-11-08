@@ -58,7 +58,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
             // If the initial girl is modded it is not handled properly, so default
             // and repopulate afterwards
             _initialWardrobeGirlId = Game.Persistence.playerFile.GetFlagValue(Flags.WARDROBE_GIRL_ID);
-            Game.Persistence.playerFile.SetFlagValue(Flags.WARDROBE_GIRL_ID, Girls.Ashley.LocalId);
+            Game.Persistence.playerFile.SetFlagValue(Flags.WARDROBE_GIRL_ID, GirlId.Ashley.LocalId);
 
             _metGirls = Game.Persistence.playerFile.girls.Where(x => x.playerMet).OrderBy(x => x.girlDefinition.id).ToArray();
 
@@ -183,8 +183,8 @@ namespace Hp2BaseModTweaks.CellphoneApps
             MakeRandomizeStyleUi(rightColumn_rt);
 
             // sub to expansions
-            ExpandedUiAppStyleSelectList.Get(_core.selectListOutfit).ListItemSelectedEvent += On_ListItemSelected;
-            ExpandedUiAppStyleSelectList.Get(_core.selectListHairstyle).ListItemSelectedEvent += On_ListItemSelected;
+            _core.selectListOutfit.ListItemSelectedEvent += On_ListItemSelected;
+            _core.selectListHairstyle.ListItemSelectedEvent += On_ListItemSelected;
 
             // body selection ui
             _bodySelector = UiCellphoneBodySelector.Create(wearOnDatesCheckBox.GetComponent<UiAppCheckBox>().valueLabel.font, cellphoneButtonPressedKlip);
@@ -281,8 +281,8 @@ namespace Hp2BaseModTweaks.CellphoneApps
             _unpairRandomizeStylesCheckBox.CheckBoxChangedEvent -= On_UnpairRandomizeStylesCheckBox_CheckBoxChangedEvent;
             _allowNsfwCheckBox.CheckBoxChangedEvent -= On_AllowRandomNsfwStylesCheckBox_CheckBoxChangedEvent;
 
-            ExpandedUiAppStyleSelectList.Get(_core.selectListOutfit).ListItemSelectedEvent -= On_ListItemSelected;
-            ExpandedUiAppStyleSelectList.Get(_core.selectListHairstyle).ListItemSelectedEvent -= On_ListItemSelected;
+            _core.selectListOutfit.ListItemSelectedEvent -= On_ListItemSelected;
+            _core.selectListHairstyle.ListItemSelectedEvent -= On_ListItemSelected;
 
             _bodySelector.BodyChanged -= On_BodySelector_BodyChanged;
             UnityEngine.Object.Destroy(_bodySelector.gameObject);
@@ -300,8 +300,8 @@ namespace Hp2BaseModTweaks.CellphoneApps
 
             if (wardrobeGirlDef == null)
             {
-                wardrobeGirlId = ModInterface.Data.GetRuntimeDataId(GameDataType.Girl, Girls.Ashley);
-                wardrobeGirlDef = ModInterface.GameData.GetGirl(Girls.Ashley);
+                wardrobeGirlId = ModInterface.Data.GetRuntimeDataId(GameDataType.Girl, GirlId.Ashley);
+                wardrobeGirlDef = ModInterface.GameData.GetGirl(GirlId.Ashley);
                 Game.Persistence.playerFile.SetFlagValue(Flags.WARDROBE_GIRL_ID, wardrobeGirlId);
             }
             var playerFileGirl = Game.Persistence.playerFile.GetPlayerFileGirl(wardrobeGirlDef);

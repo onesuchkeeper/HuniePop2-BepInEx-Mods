@@ -24,21 +24,21 @@ internal static class PuzzleManager_OnRoundOver
 
         if (status.statusType == PuzzleStatusType.BOSS
             && status.bonusRound
-            && Game.Persistence.playerFile.IsProgressPoolsideEnding())
+            && Game.Persistence.playerFile.storyProgress >= PlayerFile.STORY_PROGRESS_POOLSIDE_ENDING)
         {
-            var moxieFile = GetPlayerFileGirl(Game.Persistence.playerFile, ModInterface.GameData.GetGirl(Girls.Moxie));
+            var moxieFile = GetPlayerFileGirl(Game.Persistence.playerFile, ModInterface.GameData.GetGirl(GirlId.Moxie));
             moxieFile.playerMet = true;
             moxieFile.UnlockOutfit(0);
             moxieFile.UnlockHairstyle(0);
             var unlocked = StyleUnlockUtility.UnlockRandomStyle(moxieFile, false);
 
-            var jewnFile = GetPlayerFileGirl(Game.Persistence.playerFile, ModInterface.GameData.GetGirl(Girls.Jewn));
+            var jewnFile = GetPlayerFileGirl(Game.Persistence.playerFile, ModInterface.GameData.GetGirl(GirlId.Jewn));
             jewnFile.playerMet = true;
             jewnFile.UnlockOutfit(0);
             jewnFile.UnlockHairstyle(0);
             StyleUnlockUtility.UnlockRandomStyle(jewnFile, unlocked);
 
-            var kyuFile = GetPlayerFileGirl(Game.Persistence.playerFile, ModInterface.GameData.GetGirl(Girls.Kyu));
+            var kyuFile = GetPlayerFileGirl(Game.Persistence.playerFile, ModInterface.GameData.GetGirl(GirlId.Kyu));
             kyuFile.playerMet = true;
             kyuFile.UnlockOutfit(1);
             kyuFile.UnlockHairstyle(1);

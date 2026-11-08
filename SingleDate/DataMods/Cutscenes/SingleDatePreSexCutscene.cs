@@ -19,7 +19,7 @@ public static class SingleDatePreSexCutscene
             Steps = new List<IGameDefinitionInfo<CutsceneStepSubDefinition>>()
             {
                 //moan
-                CutsceneStepUtility.MakeDialogTriggerInfo(Hp2BaseMod.DialogTriggers.SexMoans1).TargetOrientation(DollOrientationType.RIGHT),
+                CutsceneStepUtility.MakeDialogTriggerInfo(Hp2BaseMod.DialogTriggerId.SexMoans1).TargetOrientation(DollOrientationType.RIGHT),
             }
         });
     }

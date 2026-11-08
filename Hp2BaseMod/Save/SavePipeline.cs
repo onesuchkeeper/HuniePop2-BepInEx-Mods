@@ -50,12 +50,12 @@ internal abstract class SavePipeline
         var wardrobeFlag = saveFile.flags.FirstOrDefault(x => x.flagName == Flags.WARDROBE_GIRL_ID);
         if (wardrobeFlag != null && !ModInterface.Data.TryGetDataId(GameDataType.Girl, wardrobeFlag.flagValue, out _))
         {
-            wardrobeFlag.flagValue = Girls.Ashley.LocalId;
+            wardrobeFlag.flagValue = GirlId.Ashley.LocalId;
         }
 
         if (!ModInterface.Data.TryGetDataId(GameDataType.Girl, saveFile.fileIconGirlId, out _))
         {
-            saveFile.fileIconGirlId = Girls.Kyu.LocalId;
+            saveFile.fileIconGirlId = GirlId.Kyu.LocalId;
         }
 
         // location and pair are validated together with the game state in ModSaveFile.ResolveGameState

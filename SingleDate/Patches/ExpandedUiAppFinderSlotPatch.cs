@@ -91,7 +91,7 @@ internal partial class ExpandedUiAppFinderSlot
         }
 
         // Empty slots (no pair) are blanked, except at the hub.
-        if (_core.locationDefinition.ModId() != Locations.HotelRoom
+        if (_core.locationDefinition.ModId() != LocationId.HotelRoom
             && pairDef == null)
         {
             _core.headSlotLeft.Populate(null);

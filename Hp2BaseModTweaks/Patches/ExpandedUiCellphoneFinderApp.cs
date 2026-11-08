@@ -103,7 +103,7 @@ namespace Hp2BaseModTweaks.CellphoneApps
                     //either at this location or its unpopulated
                     if ((
                             Game.Persistence.playerFile.GetPlayerFileFinderSlot(locationDef)?.girlPairDefinition == null 
-                            && locationDef.ModId() != Locations.HotelRoom
+                            && locationDef.ModId() != LocationId.HotelRoom
                         )
                         || locationDef == Game.Session.Location.currentLocation)
                     {

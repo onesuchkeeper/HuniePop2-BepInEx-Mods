@@ -18,7 +18,7 @@ public static class BonusRoundSuccessCutscene
         {
             Steps = new()
             {
-                CutsceneStepUtility.MakeDialogTriggerInfo(DialogTriggers.SexClimax, CutsceneStepProceedType.INSTANT).TargetOrientation(DollOrientationType.RIGHT),
+                CutsceneStepUtility.MakeDialogTriggerInfo(DialogTriggerId.SexClimax, CutsceneStepProceedType.INSTANT).TargetOrientation(DollOrientationType.RIGHT),
                 CutsceneStepUtility.MakeBannerTextInfo("BannerTextSuccess", 0, CutsceneStepProceedType.AUTOMATIC),
                 // Let the climax line and banner play before the photo.
                 CutsceneStepUtility.MakeWaitInfo(1.8f),

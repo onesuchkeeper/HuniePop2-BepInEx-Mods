@@ -2,6 +2,7 @@
 
 using UnityEngine;
 using Hp2BaseMod.GameDataInfo;
+using Hp2BaseMod.Extension;
 
 namespace Hp2BaseMod;
 
@@ -60,7 +61,7 @@ public class PuzzleStateNormal(IGameStateLocation owner) : PuzzleStateBase(owner
             float goal = 200f;
             float step = 25f;
             int levelUps = Mathf.Min(playerFile.relationshipUpCount, 47);
-            if (playerFile.storyProgress >= 14 && playerFile.GetFlagValue(Flags.ALPHA_MODE) <= 0)
+            if (playerFile.storyProgress >= PlayerFile.STORY_PROGRESS_COMPLETE && playerFile.GetFlagValue(Flags.ALPHA_MODE) <= 0)
             {
                 levelUps += playerFile.alphaDateCount + 1;
             }
@@ -89,7 +90,7 @@ public class PuzzleStateNormal(IGameStateLocation owner) : PuzzleStateBase(owner
     public override bool TryGetHeaderLabel(out PuzzleHeaderLabel label)
     {
         var playerFile = Game.Persistence.playerFile;
-        if (playerFile.storyProgress >= 14 && playerFile.GetFlagValue(Flags.ALPHA_MODE) <= 0)
+        if (playerFile.storyProgress >= PlayerFile.STORY_PROGRESS_COMPLETE && playerFile.GetFlagValue(Flags.ALPHA_MODE) <= 0)
         {
             label = new PuzzleHeaderLabel(PuzzleHeaderIcon.Alpha, "DATE #" + (Game.Session.Puzzle.puzzleStatus.alphaDateIndex + 1));
             return true;
@@ -109,10 +110,12 @@ public class PuzzleStateNormal(IGameStateLocation owner) : PuzzleStateBase(owner
             var pair = Game.Session.Location.currentGirlPair;
             if (pair == null) return false;
 
-            var pairFile = Game.Persistence.playerFile.GetPlayerFileGirlPair(pair);
+            var playerFile = Game.Persistence.playerFile;
+
+            var pairFile = playerFile.GetPlayerFileGirlPair(pair);
             return pairFile != null
                 && pairFile.relationshipType == GirlPairRelationshipType.LOVERS
-                && Game.Persistence.playerFile.storyProgress < 14;
+                && playerFile.storyProgress < PlayerFile.STORY_PROGRESS_COMPLETE;
         }
     }
 
@@ -245,7 +248,7 @@ public class PuzzleStateNormal(IGameStateLocation owner) : PuzzleStateBase(owner
         }
 
         // post game dates are counted
-        if (context.GameOver && playerFile.storyProgress >= 14 && playerFile.GetFlagValue(Flags.ALPHA_MODE) <= 0)
+        if (context.GameOver && playerFile.storyProgress >= PlayerFile.STORY_PROGRESS_COMPLETE && playerFile.GetFlagValue(Flags.ALPHA_MODE) <= 0)
         {
             playerFile.alphaDateCount++;
             if (playerFile.alphaDateCount >= 8)

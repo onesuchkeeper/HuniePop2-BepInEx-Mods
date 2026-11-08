@@ -114,13 +114,6 @@ public partial class ExpandedUiPuzzleGrid
     /// </summary>
     public bool SuppressUpsetWarning { get; set; }
 
-    /// <summary>
-    /// Fired at the end of every move resolution, regardless of validity or outcome.
-    /// Mirrors UiPuzzleGrid.MoveCompleteEvent but accessible to scripted ailments
-    /// and other library consumers without patching.
-    /// </summary>
-    public event Action MoveCompleteEvent;
-
     private IPuzzleState _puzzleState;
 
     /// <summary>
@@ -167,16 +160,14 @@ public partial class ExpandedUiPuzzleGrid
         var statusExp = _status.GetExpansion();
         statusExp.SuppressStateDialog = false;
 
-        _core.MoveCompleteEvent += RaiseMoveCompleteEvent;
+        _core.MoveCompleteEvent += OnMoveCompleteEvent;
     }
 
-    private void RaiseMoveCompleteEvent()
+    private void OnMoveCompleteEvent()
     {
         // Notify both girls' state machines on move completion
         _status.girlStatusLeft?.GetExpansion().OnMoveCompleted();
         _status.girlStatusRight?.GetExpansion().OnMoveCompleted();
-        
-        MoveCompleteEvent?.Invoke();
     }
 
     private void EndPuzzle()
@@ -184,7 +175,7 @@ public partial class ExpandedUiPuzzleGrid
         var statusExp = _status.GetExpansion();
         statusExp.SuppressStateDialog = true;
 
-        _core.MoveCompleteEvent -= RaiseMoveCompleteEvent;
+        _core.MoveCompleteEvent -= OnMoveCompleteEvent;
 
         _puzzleState = null;
     }
@@ -278,7 +269,7 @@ public partial class ExpandedUiPuzzleGrid
                     && !Game.Session.Dialog.IsAnyDollTalking(false))
                 {
                     status.DisableAilments();
-                    UiPatchUtil.Raise(_core, nameof(UiPuzzleGrid.RoundOverEvent));
+                    RaiseRoundOverEvent();
                     _roundOver = false;
                 }
 
@@ -495,8 +486,7 @@ public partial class ExpandedUiPuzzleGrid
             _core.ChangeState(PuzzleGameState.RESETTING);
         }
 
-        // the base game's event, which the expansion forwards (RaiseMoveCompleteEvent) as well as anything else listening
-        UiPatchUtil.Raise(_core, nameof(UiPuzzleGrid.MoveCompleteEvent));
+        RaiseMoveCompleteEvent();
     }
 
     private void OnSlotEnter()

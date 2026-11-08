@@ -117,7 +117,7 @@ public class HpCutsceneExtractor
 
         while (true)
         {
-            yield return (Hp2BaseMod.Styles.Activity, Hp2BaseMod.Styles.Activity);
+            yield return (Hp2BaseMod.StyleId.Activity, Hp2BaseMod.StyleId.Activity);
         }
     }
 

@@ -150,7 +150,7 @@ public partial class Plugin : Hp2BaseModPlugin
         var sexLocs = new List<RelativeId>
         {
             LocationIds.BedRoomDate,
-            Locations.RoyalSuite,
+            LocationId.RoyalSuite,
         };
 
         if (Chainloader.PluginInfos.ContainsKey(EXTRA_LOCATIONS_GUID))

@@ -90,13 +90,13 @@ namespace Hp2BaseMod.GameDataInfo
             switch (def.itemType)
             {
                 case ItemType.DATE_GIFT:
-                    ItemStoreHandlerId = Hp2BaseMod.ItemTypes.DateGift;
+                    ItemStoreHandlerId = Hp2BaseMod.ItemTypeId.DateGift;
                     ItemGiftHandlerId = Hp2BaseMod.ItemGiftHandlerId.DateGift;
                     CategoryPrefix = "Date Gift";
                     IsPerishable = false;
                     break;
                 case ItemType.FOOD:
-                    ItemStoreHandlerId = Hp2BaseMod.ItemTypes.Food;
+                    ItemStoreHandlerId = Hp2BaseMod.ItemTypeId.Food;
                     ItemGiftHandlerId = def.noStaminaCost 
                         ? Hp2BaseMod.ItemGiftHandlerId.StaminaFood
                         : Hp2BaseMod.ItemGiftHandlerId.Food;
@@ -104,7 +104,7 @@ namespace Hp2BaseMod.GameDataInfo
                     IsPerishable = true;
                     break;
                 case ItemType.SMOOTHIE:
-                    ItemStoreHandlerId = Hp2BaseMod.ItemTypes.Smoothie;
+                    ItemStoreHandlerId = Hp2BaseMod.ItemTypeId.Smoothie;
                     switch (def.affectionType)
                     {
                         case PuzzleAffectionType.TALENT:
@@ -124,13 +124,13 @@ namespace Hp2BaseMod.GameDataInfo
                     IsPerishable = true;
                     break;
                 case ItemType.UNIQUE_GIFT:
-                    ItemStoreHandlerId = Hp2BaseMod.ItemTypes.Unique;
+                    ItemStoreHandlerId = Hp2BaseMod.ItemTypeId.Unique;
                     ItemGiftHandlerId = Hp2BaseMod.ItemGiftHandlerId.Uniques;
                     CategoryPrefix = "Unique Gift";
                     IsPerishable = false;
                     break;
                 case ItemType.SHOES:
-                    ItemStoreHandlerId = Hp2BaseMod.ItemTypes.Shoe;
+                    ItemStoreHandlerId = Hp2BaseMod.ItemTypeId.Shoe;
                     ItemGiftHandlerId = Hp2BaseMod.ItemGiftHandlerId.Shoes;
                     CategoryPrefix = "Shoes";
                     IsPerishable = false;

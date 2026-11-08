@@ -35,6 +35,9 @@ namespace Hp2BaseMod.Analyzer
         public const string ID_EXPANSION_MEMBER_TYPE_INACCESSIBLE = "HP014";
         public const string MESSAGE_EXPANSION_MEMBER_TYPE_INACCESSIBLE = "'{0}' on '{1}' has a parameter or return type that isn't accessible from the generated code. Falling back to the raw {2} instead of a typed wrapper.";
 
+        public const string ID_EXPANSION_EVENT_TYPE_INACCESSIBLE = "HP016";
+        public const string MESSAGE_EXPANSION_EVENT_TYPE_INACCESSIBLE = "Event '{0}' on '{1}' has a delegate type, return type or parameter type that isn't accessible from the generated code, so no Raise method was generated for it.";
+
         public const string ID_EXPANSION_MEMBER_KIND_MISMATCH = "HP015";
         public const string MESSAGE_EXPANSION_MEMBER_KIND_MISMATCH = "'{0}' on '{1}' exists, but is a {2}, not the kind of member this list expects. Fields expects a field; Methods expects an ordinary method (not a property/event accessor or explicit interface implementation).";
     }

@@ -19,7 +19,7 @@ public static class SingleDateMeetingCutscene
             Steps = new List<IGameDefinitionInfo<CutsceneStepSubDefinition>>()
             {
                 // The right (and only) girl says her afternoon greeting.
-                CutsceneStepUtility.MakeDialogTriggerInfo(Hp2BaseMod.DialogTriggers.GreetingAfternoon).TargetOrientation(DollOrientationType.RIGHT),
+                CutsceneStepUtility.MakeDialogTriggerInfo(Hp2BaseMod.DialogTriggerId.GreetingAfternoon).TargetOrientation(DollOrientationType.RIGHT),
             }
         });
     }

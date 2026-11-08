@@ -44,7 +44,7 @@ public sealed class UniqueItemStoreHandler : GirlItemStoreHandler
                 category.Pool);
         }
 
-        yield return new(ItemTypes.Unique, category);
+        yield return new(ItemTypeId.Unique, category);
     }
 
     public override bool ShowWithStoreFilter(ItemType highlightedItemType) 

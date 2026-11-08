@@ -31,6 +31,11 @@ public partial class ExpandedHubManager
         [HarmonyPrefix]
         public static void StartHub_Prefix(HubManager __instance)
             => ExpandedHubManager.Get(__instance).StartHub_Prefix();
+
+        [HarmonyPatch(nameof(HubManager.CanPause))]
+        [HarmonyPrefix]
+        private static bool CanPause_Prefix(HubManager __instance, out bool __result)
+            => ExpandedHubManager.Get(__instance).CanPause_Prefix(out __result);
     }
 
     /// <summary>
@@ -42,6 +47,12 @@ public partial class ExpandedHubManager
 
     // Temporary tracing of the hub steps this class intercepts. Set to false once the hub flows are verified.
     private const bool DebugHubSteps = true;
+
+    private bool CanPause_Prefix(out bool __result)
+    {
+        __result = ModInterface.GameState.CurrentState.AllowsPause;
+        return false;
+    }
 
     /// <summary>
     /// Replaces the base game's PrepHub, which showed the hub's menu when the location was the hub's. The hub's menu is the
@@ -84,14 +95,14 @@ public partial class ExpandedHubManager
             Game.Manager.Time.KillTween(_hubSequence, true, true);
             _hubSequence = DOTween.Sequence();
 
-            if (Game.Persistence.playerFile.IsProgressVolcano())
+            if (Game.Persistence.playerFile.storyProgress >= PlayerFile.STORY_PROGRESS_VOLCANO)
             {
                 Game.Persistence.playerFile.PushDaytimeTo(ClockDaytimeType.NIGHT);
 
                 // Outer space with the boss pair is the boss DATE (a date location, so the Puzzle state), also when repeating it.
                 // The volcano is the story scene that leads up to it: a special location, so the Special state. Its bundles send
                 // the player on to outer space, which changes to the Puzzle state on that arrival.
-                var isBossDate = Game.Persistence.playerFile.IsProgressNymphojinnPreDate();
+                var isBossDate =  Game.Persistence.playerFile.storyProgress >= 10;
                 var targetLoc = isBossDate ? _core.spaceLocationDefinition : _core.volcanoLocationDefinition;
                 var targetPair = isBossDate ? Game.Session.Puzzle.bossGirlPairDefinition : null;
 
@@ -124,7 +135,7 @@ public partial class ExpandedHubManager
                         {
                             var expansion = x.GetExpansion();
                             return expansion.AllowNonStop
-                                && (Game.Persistence.playerFile.IsProgressPoolsideEnding() || !expansion.PostBoss)
+                                && (Game.Persistence.playerFile.storyProgress >= PlayerFile.STORY_PROGRESS_POOLSIDE_ENDING || !expansion.PostBoss)
                                 && (expansion.DateTimes?.Contains(time) ?? true);
                         });
 

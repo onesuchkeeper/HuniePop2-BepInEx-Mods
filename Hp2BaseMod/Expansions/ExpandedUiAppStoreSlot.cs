@@ -11,11 +11,6 @@ public partial class ExpandedUiAppStoreSlot
     [HarmonyPatch(typeof(UiAppStoreSlot))]
     private static class Patch
     {
-        [HarmonyPatch("Start")]
-        [HarmonyPostfix]
-        private static void Start(UiAppStoreSlot __instance)
-            => ExpandedUiAppStoreSlot.Get(__instance).Start_Postfix();
-
         [HarmonyPatch("OnDestroy")]
         [HarmonyPostfix]
         private static void OnDestroy(UiAppStoreSlot __instance)
@@ -54,15 +49,5 @@ public partial class ExpandedUiAppStoreSlot
 				_core.countLabelPro.alpha = 0.75f;
 			}
 		}
-    }
-
-    private void Start_Postfix()
-    {
-        ExpandedItemSlotBehavior.Get(_core.itemSlot).PreShowEvent += OnTooltipPreShow;
-    }
-
-    private void OnDestroy()
-    {
-        ExpandedItemSlotBehavior.Get(_core.itemSlot).PreShowEvent -= OnTooltipPreShow;
     }
 }

@@ -58,21 +58,21 @@ public static class UiPrefabs
 
         if (Directory.Exists(_charmsDir))
         {
-            Plugin.SetGirlCharm(Hp2BaseMod.Girls.Abia, GetCharmSprite("Abia"));
-            Plugin.SetGirlCharm(Hp2BaseMod.Girls.Ashley, GetCharmSprite("Ashley"));
-            Plugin.SetGirlCharm(Hp2BaseMod.Girls.Brooke, GetCharmSprite("Brooke"));
-            Plugin.SetGirlCharm(Hp2BaseMod.Girls.Candace, GetCharmSprite("Candace"));
-            Plugin.SetGirlCharm(Hp2BaseMod.Girls.Jessie, GetCharmSprite("Jessie"));
-            Plugin.SetGirlCharm(Hp2BaseMod.Girls.Jewn, GetCharmSprite("Jewn"));
-            Plugin.SetGirlCharm(Hp2BaseMod.Girls.Kyu, GetCharmSprite("Kyu"));
-            Plugin.SetGirlCharm(Hp2BaseMod.Girls.Lailani, GetCharmSprite("Lailani"));
-            Plugin.SetGirlCharm(Hp2BaseMod.Girls.Lillian, GetCharmSprite("Lillian"));
-            Plugin.SetGirlCharm(Hp2BaseMod.Girls.Lola, GetCharmSprite("Lola"));
-            Plugin.SetGirlCharm(Hp2BaseMod.Girls.Moxie, GetCharmSprite("Moxie"));
-            Plugin.SetGirlCharm(Hp2BaseMod.Girls.Nora, GetCharmSprite("Nora"));
-            Plugin.SetGirlCharm(Hp2BaseMod.Girls.Polly, GetCharmSprite("Polly"));
-            Plugin.SetGirlCharm(Hp2BaseMod.Girls.Sarah, GetCharmSprite("Sarah"));
-            Plugin.SetGirlCharm(Hp2BaseMod.Girls.Zoey, GetCharmSprite("Zoey"));
+            Plugin.SetGirlCharm(Hp2BaseMod.GirlId.Abia, GetCharmSprite("Abia"));
+            Plugin.SetGirlCharm(Hp2BaseMod.GirlId.Ashley, GetCharmSprite("Ashley"));
+            Plugin.SetGirlCharm(Hp2BaseMod.GirlId.Brooke, GetCharmSprite("Brooke"));
+            Plugin.SetGirlCharm(Hp2BaseMod.GirlId.Candace, GetCharmSprite("Candace"));
+            Plugin.SetGirlCharm(Hp2BaseMod.GirlId.Jessie, GetCharmSprite("Jessie"));
+            Plugin.SetGirlCharm(Hp2BaseMod.GirlId.Jewn, GetCharmSprite("Jewn"));
+            Plugin.SetGirlCharm(Hp2BaseMod.GirlId.Kyu, GetCharmSprite("Kyu"));
+            Plugin.SetGirlCharm(Hp2BaseMod.GirlId.Lailani, GetCharmSprite("Lailani"));
+            Plugin.SetGirlCharm(Hp2BaseMod.GirlId.Lillian, GetCharmSprite("Lillian"));
+            Plugin.SetGirlCharm(Hp2BaseMod.GirlId.Lola, GetCharmSprite("Lola"));
+            Plugin.SetGirlCharm(Hp2BaseMod.GirlId.Moxie, GetCharmSprite("Moxie"));
+            Plugin.SetGirlCharm(Hp2BaseMod.GirlId.Nora, GetCharmSprite("Nora"));
+            Plugin.SetGirlCharm(Hp2BaseMod.GirlId.Polly, GetCharmSprite("Polly"));
+            Plugin.SetGirlCharm(Hp2BaseMod.GirlId.Sarah, GetCharmSprite("Sarah"));
+            Plugin.SetGirlCharm(Hp2BaseMod.GirlId.Zoey, GetCharmSprite("Zoey"));
         }
 
         _defaultCharmSprite = assetBundle.LoadAsset<Sprite>("DefaultCharm");

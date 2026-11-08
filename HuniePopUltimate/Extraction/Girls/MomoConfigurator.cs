@@ -17,7 +17,7 @@ public class MomoConfigurator : GirlConfiguratorBase
 
     protected override int Age => 33;
 
-    protected override RelativeId ItemEnergyId => EnergyTypes.Romance;
+    protected override RelativeId ItemEnergyId => EnergyId.Romance;
 
     public override string UnderwearName => "Satin Strands";
 
@@ -92,18 +92,18 @@ public class MomoConfigurator : GirlConfiguratorBase
         => _locationGreetingMap;
     private static readonly (RelativeId to, RelativeId from)[] _locationGreetingMap =
     [
-        (Locations.MassageSpa, LocationIds.OutdoorLounge),//happy to be here
-        (Locations.Aquarium, LocationIds.Carnival),//fish game
-        (Locations.SecludedCabana, LocationIds.OutdoorLounge),//happy to be here
-        (Locations.PoolsideBar, LocationIds.WaterPark),//ear get wet
-        (Locations.GolfCourse, LocationIds.TennisCourts),//chase ball
-        (Locations.CruiseShip, LocationIds.WaterPark),//ear get wet
-        (Locations.RooftopLounge, LocationIds.ScenicOverlook),
-        (Locations.Casino, LocationIds.Carnival),//ask for id
-        (Locations.PrivateTable, LocationIds.Restaurant),//dessert
-        (Locations.SecretGrotto, LocationIds.HotSprings),//lot of water
-        (Locations.StripClub, LocationIds.Casino),//id
-        (Locations.RoyalSuite, LocationIds.OutdoorLounge),//happy to be here
+        (LocationId.MassageSpa, LocationIds.OutdoorLounge),//happy to be here
+        (LocationId.Aquarium, LocationIds.Carnival),//fish game
+        (LocationId.SecludedCabana, LocationIds.OutdoorLounge),//happy to be here
+        (LocationId.PoolsideBar, LocationIds.WaterPark),//ear get wet
+        (LocationId.GolfCourse, LocationIds.TennisCourts),//chase ball
+        (LocationId.CruiseShip, LocationIds.WaterPark),//ear get wet
+        (LocationId.RooftopLounge, LocationIds.ScenicOverlook),
+        (LocationId.Casino, LocationIds.Carnival),//ask for id
+        (LocationId.PrivateTable, LocationIds.Restaurant),//dessert
+        (LocationId.SecretGrotto, LocationIds.HotSprings),//lot of water
+        (LocationId.StripClub, LocationIds.Casino),//id
+        (LocationId.RoyalSuite, LocationIds.OutdoorLounge),//happy to be here
     ];
 
     protected override IEnumerable<(RelativeId LocationId, GirlStyleInfo Style)> LocationStyleMap
@@ -111,39 +111,39 @@ public class MomoConfigurator : GirlConfiguratorBase
 
     private static readonly (RelativeId LocationId, GirlStyleInfo Style)[] _locationStyleMap =
     [
-        (LocationIds.BotanicalGarden, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)),
-        (LocationIds.HikingTrail, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)),
-        (LocationIds.FarmersMarket, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)),
+        (LocationIds.BotanicalGarden, new GirlStyleInfo(Hp2BaseMod.StyleId.Romantic)),
+        (LocationIds.HikingTrail, new GirlStyleInfo(Hp2BaseMod.StyleId.Activity)),
+        (LocationIds.FarmersMarket, new GirlStyleInfo(Hp2BaseMod.StyleId.Relaxing)),
 
-        (LocationIds.IceRink, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)),
-        (LocationIds.WaterPark, new GirlStyleInfo(Hp2BaseMod.Styles.Water)),
-        (LocationIds.TennisCourts, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)),
+        (LocationIds.IceRink, new GirlStyleInfo(Hp2BaseMod.StyleId.Romantic)),
+        (LocationIds.WaterPark, new GirlStyleInfo(Hp2BaseMod.StyleId.Water)),
+        (LocationIds.TennisCourts, new GirlStyleInfo(Hp2BaseMod.StyleId.Relaxing)),
 
-        (LocationIds.ScenicOverlook, new GirlStyleInfo(Hp2BaseMod.Styles.Party)),
-        (LocationIds.Casino, new GirlStyleInfo(Hp2BaseMod.Styles.Party)),
-        (LocationIds.HotSprings, new GirlStyleInfo(Hp2BaseMod.Styles.Water)),
+        (LocationIds.ScenicOverlook, new GirlStyleInfo(Hp2BaseMod.StyleId.Party)),
+        (LocationIds.Casino, new GirlStyleInfo(Hp2BaseMod.StyleId.Party)),
+        (LocationIds.HotSprings, new GirlStyleInfo(Hp2BaseMod.StyleId.Water)),
 
-        (LocationIds.OutdoorLounge, new GirlStyleInfo(Hp2BaseMod.Styles.Party)),
-        (LocationIds.Carnival, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)),
-        (LocationIds.Restaurant, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)),
+        (LocationIds.OutdoorLounge, new GirlStyleInfo(Hp2BaseMod.StyleId.Party)),
+        (LocationIds.Carnival, new GirlStyleInfo(Hp2BaseMod.StyleId.Romantic)),
+        (LocationIds.Restaurant, new GirlStyleInfo(Hp2BaseMod.StyleId.Relaxing)),
 
-        (LocationIds.BedRoomDate, new GirlStyleInfo(Hp2BaseMod.Styles.Sexy)),
+        (LocationIds.BedRoomDate, new GirlStyleInfo(Hp2BaseMod.StyleId.Sexy)),
 
-        (Locations.MassageSpa, new GirlStyleInfo(Hp2BaseMod.Styles.Party)),
-        (Locations.Aquarium, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)),
-        (Locations.SecludedCabana, new GirlStyleInfo(Hp2BaseMod.Styles.Party)),
-        (Locations.PoolsideBar, new GirlStyleInfo(Hp2BaseMod.Styles.Water)),
-        (Locations.GolfCourse, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)),
-        (Locations.CruiseShip, new GirlStyleInfo(Hp2BaseMod.Styles.Water)),
-        (Locations.RooftopLounge, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)),
-        (Locations.Casino, new GirlStyleInfo(Hp2BaseMod.Styles.Romantic)),
-        (Locations.PrivateTable, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)),
-        (Locations.SecretGrotto, new GirlStyleInfo(Hp2BaseMod.Styles.Water)),
-        (Locations.RoyalSuite, new GirlStyleInfo(Hp2BaseMod.Styles.Sexy)),
-        (Locations.AirplaneBathroom, new GirlStyleInfo(Hp2BaseMod.Styles.Relaxing)),
-        (Locations.OuterSpace, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)),
-        (Locations.StripClub, new GirlStyleInfo(Hp2BaseMod.Styles.Party)),
-        (Locations.VolcanoTop, new GirlStyleInfo(Hp2BaseMod.Styles.Activity)),
+        (LocationId.MassageSpa, new GirlStyleInfo(Hp2BaseMod.StyleId.Party)),
+        (LocationId.Aquarium, new GirlStyleInfo(Hp2BaseMod.StyleId.Activity)),
+        (LocationId.SecludedCabana, new GirlStyleInfo(Hp2BaseMod.StyleId.Party)),
+        (LocationId.PoolsideBar, new GirlStyleInfo(Hp2BaseMod.StyleId.Water)),
+        (LocationId.GolfCourse, new GirlStyleInfo(Hp2BaseMod.StyleId.Activity)),
+        (LocationId.CruiseShip, new GirlStyleInfo(Hp2BaseMod.StyleId.Water)),
+        (LocationId.RooftopLounge, new GirlStyleInfo(Hp2BaseMod.StyleId.Romantic)),
+        (LocationId.Casino, new GirlStyleInfo(Hp2BaseMod.StyleId.Romantic)),
+        (LocationId.PrivateTable, new GirlStyleInfo(Hp2BaseMod.StyleId.Relaxing)),
+        (LocationId.SecretGrotto, new GirlStyleInfo(Hp2BaseMod.StyleId.Water)),
+        (LocationId.RoyalSuite, new GirlStyleInfo(Hp2BaseMod.StyleId.Sexy)),
+        (LocationId.AirplaneBathroom, new GirlStyleInfo(Hp2BaseMod.StyleId.Relaxing)),
+        (LocationId.OuterSpace, new GirlStyleInfo(Hp2BaseMod.StyleId.Activity)),
+        (LocationId.StripClub, new GirlStyleInfo(Hp2BaseMod.StyleId.Party)),
+        (LocationId.VolcanoTop, new GirlStyleInfo(Hp2BaseMod.StyleId.Activity)),
     ];
 
     public MomoConfigurator(

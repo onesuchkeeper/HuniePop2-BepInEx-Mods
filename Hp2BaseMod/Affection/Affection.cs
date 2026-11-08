@@ -27,7 +27,7 @@ public class Affection : IAffection
     /// Constructor
     /// </summary>
     /// <param name="id">The affection's Id</param>
-    /// <param name="name">The name of the affection</param>
+    /// <param name="name">The name of the affection displayed to the user.</param>
     /// <param name="fruitIds">Ids of fruit items, used for <see cref="GetRandomFruit"/> .</param>
     public Affection(RelativeId id, string name, RelativeId[] fruitIds)
     {

@@ -221,7 +221,7 @@ public class CharmAnimationRegistry
     
             seq.Append(c.Transform.DOScaleX(c.Dir * 0.5f, 0.4f).SetEase(Ease.OutElastic));
             seq.Join(c.Transform.DOScaleY(1.3f, 0.4f).SetEase(Ease.OutElastic));
-        }, new HashSet<RelativeId> { Hp2BaseMod.Girls.Sarah });
+        }, new HashSet<RelativeId> { Hp2BaseMod.GirlId.Sarah });
     
         // Lillian
         AddAnimation(1f, (seq, c) =>
@@ -245,12 +245,12 @@ public class CharmAnimationRegistry
     
             seq.Append(c.Transform.DOScaleY(1f, 1.2f).SetEase(Ease.InOutElastic));
             seq.Join(c.Transform.DOScaleX(1f * c.Dir, 1.2f).SetEase(Ease.InOutElastic));
-        }, new HashSet<RelativeId> { Hp2BaseMod.Girls.Lillian });
+        }, new HashSet<RelativeId> { Hp2BaseMod.GirlId.Lillian });
     
         // Abia
         AddAnimation(1f, (seq, c) =>
         {
             seq.Append(c.Transform.DOShakeAnchorPos(4f, 30));
-        }, new HashSet<RelativeId> { Hp2BaseMod.Girls.Abia });
+        }, new HashSet<RelativeId> { Hp2BaseMod.GirlId.Abia });
     }
 }

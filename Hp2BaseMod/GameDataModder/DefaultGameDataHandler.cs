@@ -123,12 +123,12 @@ internal static class DefaultGameDataHandler
                 itemGiftHandlers[ItemGiftHandlerId.Uniques] = new UniqueItemHandler();
                 itemGiftHandlers[ItemGiftHandlerId.Misc] = new NonGiftItemHandler();
 
-                itemStoreHandlers[ItemTypes.DateGift] = new DateGiftStoreHandler();
-                itemStoreHandlers[ItemTypes.Food] = new FoodStoreHandler();
-                itemStoreHandlers[ItemTypes.Shoe] = new ShoeItemStoreHandler();
-                itemStoreHandlers[ItemTypes.Smoothie] = new SmoothieStoreHandler();
-                itemStoreHandlers[ItemTypes.Unique] = new UniqueItemStoreHandler();
-                itemStoreHandlers[ItemTypes.Misc] = new MiscItemStoreHandler();
+                itemStoreHandlers[ItemTypeId.DateGift] = new DateGiftStoreHandler();
+                itemStoreHandlers[ItemTypeId.Food] = new FoodStoreHandler();
+                itemStoreHandlers[ItemTypeId.Shoe] = new ShoeItemStoreHandler();
+                itemStoreHandlers[ItemTypeId.Smoothie] = new SmoothieStoreHandler();
+                itemStoreHandlers[ItemTypeId.Unique] = new UniqueItemStoreHandler();
+                itemStoreHandlers[ItemTypeId.Misc] = new MiscItemStoreHandler();
             }
 
             using (ModInterface.Log.MakeIndent("Puzzle Status Girl States"))
@@ -141,14 +141,14 @@ internal static class DefaultGameDataHandler
 
             using (ModInterface.Log.MakeIndent("girls"))
             {
-                var herQuestionsDt = dialogTriggerDataDict[DialogTriggers.HerQuestion.LocalId];
+                var herQuestionsDt = dialogTriggerDataDict[DialogTriggerId.HerQuestion.LocalId];
                 var herQuestionsDtExp = herQuestionsDt.GetExpansion();
-                var herQuestionsGoodRespDt = dialogTriggerDataDict[DialogTriggers.HerQuestionGoodResponse.LocalId];
+                var herQuestionsGoodRespDt = dialogTriggerDataDict[DialogTriggerId.HerQuestionGoodResponse.LocalId];
                 var herQuestionsGoodRespDtExp = herQuestionsGoodRespDt.GetExpansion();
-                var herQuestionsBadRespDt = dialogTriggerDataDict[DialogTriggers.HerQuestionBadResponse.LocalId];
+                var herQuestionsBadRespDt = dialogTriggerDataDict[DialogTriggerId.HerQuestionBadResponse.LocalId];
                 var herQuestionsBadRespDtExp = herQuestionsBadRespDt.GetExpansion();
 
-                var dateGreetingDt = dialogTriggerDataDict[DialogTriggers.DateGreeting.LocalId];
+                var dateGreetingDt = dialogTriggerDataDict[DialogTriggerId.DateGreeting.LocalId];
                 var dateGreetingDtExp = dateGreetingDt.GetExpansion();
 
                 ExpandedGirlDefinition.DialogTriggerIndexes.MapRelativeIdRange(girlDataDict.Count, 1);
@@ -199,7 +199,7 @@ internal static class DefaultGameDataHandler
                                 break;
                         }
 
-                        if (id == Girls.Zoey)
+                        if (id == GirlId.Zoey)
                         {
                             expansion.TalkHandler = new TelepathGirlTalkHandler();
                         }
@@ -212,19 +212,19 @@ internal static class DefaultGameDataHandler
                         {
                             BodyName = "HuniePop 2",
                             LocationIdToOutfitId = new() {
-                                {Locations.MassageSpa, new GirlStyleInfo(Styles.Relaxing)},
-                                {Locations.Aquarium, new GirlStyleInfo(Styles.Activity)},
-                                {Locations.SecludedCabana, new GirlStyleInfo(Styles.Relaxing)},
-                                {Locations.PoolsideBar, new GirlStyleInfo(Styles.Water)},
-                                {Locations.GolfCourse, new GirlStyleInfo(Styles.Activity)},
-                                {Locations.CruiseShip, new GirlStyleInfo(Styles.Water)},
-                                {Locations.RooftopLounge, new GirlStyleInfo(Styles.Romantic)},
-                                {Locations.Casino, new GirlStyleInfo(Styles.Party)},
-                                {Locations.PrivateTable, new GirlStyleInfo(Styles.Romantic)},
-                                {Locations.SecretGrotto, new GirlStyleInfo(Styles.Water)},
-                                {Locations.RoyalSuite, new GirlStyleInfo(Styles.Sexy)},
-                                {Locations.AirplaneBathroom, new GirlStyleInfo(Styles.Activity)},
-                                {Locations.OuterSpace, new GirlStyleInfo(Styles.Sexy)},
+                                {LocationId.MassageSpa, new GirlStyleInfo(StyleId.Relaxing)},
+                                {LocationId.Aquarium, new GirlStyleInfo(StyleId.Activity)},
+                                {LocationId.SecludedCabana, new GirlStyleInfo(StyleId.Relaxing)},
+                                {LocationId.PoolsideBar, new GirlStyleInfo(StyleId.Water)},
+                                {LocationId.GolfCourse, new GirlStyleInfo(StyleId.Activity)},
+                                {LocationId.CruiseShip, new GirlStyleInfo(StyleId.Water)},
+                                {LocationId.RooftopLounge, new GirlStyleInfo(StyleId.Romantic)},
+                                {LocationId.Casino, new GirlStyleInfo(StyleId.Party)},
+                                {LocationId.PrivateTable, new GirlStyleInfo(StyleId.Romantic)},
+                                {LocationId.SecretGrotto, new GirlStyleInfo(StyleId.Water)},
+                                {LocationId.RoyalSuite, new GirlStyleInfo(StyleId.Sexy)},
+                                {LocationId.AirplaneBathroom, new GirlStyleInfo(StyleId.Activity)},
+                                {LocationId.OuterSpace, new GirlStyleInfo(StyleId.Sexy)},
                             }
                         };
                         expansion.Bodies.Add(new RelativeId(-1, 0), body);
@@ -253,20 +253,20 @@ internal static class DefaultGameDataHandler
                         i = 0;
                         girl.outfits.ForEach(x => defaultStyleExpansion(x.GetExpansion(), i++));
 
-                        if (id == Girls.Kyu)
+                        if (id == GirlId.Kyu)
                         {
                             body.BackPos = girl.specialEffectOffset;
-                            dollSpecialEffects[SpecialParts.KyuWingId] = girl.specialEffectPrefab;
+                            dollSpecialEffects[SpecialPartId.KyuWingId] = girl.specialEffectPrefab;
                         }
                         else
                         {
-                            if (id == Girls.Moxie)
+                            if (id == GirlId.Moxie)
                             {
-                                dollSpecialEffects[SpecialParts.MoxieWingId] = girl.specialEffectPrefab;
+                                dollSpecialEffects[SpecialPartId.MoxieWingId] = girl.specialEffectPrefab;
                             }
-                            else if (id == Girls.Jewn)
+                            else if (id == GirlId.Jewn)
                             {
-                                dollSpecialEffects[SpecialParts.JewnWingId] = girl.specialEffectPrefab;
+                                dollSpecialEffects[SpecialPartId.JewnWingId] = girl.specialEffectPrefab;
                             }
 
                             body.HeadPos = girl.specialEffectOffset;
@@ -315,7 +315,7 @@ internal static class DefaultGameDataHandler
                         expansion.DefaultStyle = new RelativeId(-1, (int)def.dateGirlStyleType);
                         expansion.StaticBackground = true;
                     }
-                    else if (Locations.NormalDateLocIds.Contains(locationId))
+                    else if (LocationId.NormalDateLocIds.Contains(locationId))
                     {
                         expansion.DefaultStyle = new RelativeId(-1, (int)def.dateGirlStyleType);
                         expansion.StaticBackground = true;
@@ -323,7 +323,7 @@ internal static class DefaultGameDataHandler
                         expansion.PostBoss = false;
                         expansion.AllowNonStop = true;
                     }
-                    else if (Locations.SimLocIds.Contains(locationId))
+                    else if (LocationId.SimLocIds.Contains(locationId))
                     {
                         expansion.AllowSim = true;
                     }
@@ -375,14 +375,14 @@ internal static class DefaultGameDataHandler
                     switch (item.itemType)
                     {
                         case ItemType.DATE_GIFT:
-                            expansion.StoreHandler = itemStoreHandlers[ItemTypes.DateGift];
+                            expansion.StoreHandler = itemStoreHandlers[ItemTypeId.DateGift];
                             expansion.GiftHandler = itemGiftHandlers[ItemGiftHandlerId.DateGift];
                             item.storeCost = 6;
                             expansion.CategoryPrefix = "Date Gift";
                             expansion.IsPerishable = false;
                             break;
                         case ItemType.SMOOTHIE:
-                            expansion.StoreHandler = itemStoreHandlers[ItemTypes.Smoothie];
+                            expansion.StoreHandler = itemStoreHandlers[ItemTypeId.Smoothie];
                             switch (item.affectionType)
                             {
                                 case PuzzleAffectionType.TALENT:
@@ -409,7 +409,7 @@ internal static class DefaultGameDataHandler
                             expansion.IsPerishable = true;
                             break;
                         case ItemType.SHOES:
-                            expansion.StoreHandler = itemStoreHandlers[ItemTypes.Shoe];
+                            expansion.StoreHandler = itemStoreHandlers[ItemTypeId.Shoe];
                             expansion.GiftHandler = itemGiftHandlers[ItemGiftHandlerId.Shoes];
                             item.storeCost = 4;
                             item.storeSectionPreference = true;
@@ -417,7 +417,7 @@ internal static class DefaultGameDataHandler
                             expansion.IsPerishable = false;
                             break;
                         case ItemType.UNIQUE_GIFT:
-                            expansion.StoreHandler = itemStoreHandlers[ItemTypes.Unique];
+                            expansion.StoreHandler = itemStoreHandlers[ItemTypeId.Unique];
                             expansion.GiftHandler = itemGiftHandlers[ItemGiftHandlerId.Uniques];
                             item.storeCost = 4;
                             item.storeSectionPreference = true;
@@ -425,7 +425,7 @@ internal static class DefaultGameDataHandler
                             expansion.IsPerishable = false;
                             break;
                         case ItemType.FOOD:
-                            expansion.StoreHandler = itemStoreHandlers[ItemTypes.Food];
+                            expansion.StoreHandler = itemStoreHandlers[ItemTypeId.Food];
                             expansion.GiftHandler = item.noStaminaCost 
                                 ? itemGiftHandlers[ItemGiftHandlerId.StaminaFood]
                                 : itemGiftHandlers[ItemGiftHandlerId.Food];
@@ -558,11 +558,11 @@ internal static class DefaultGameDataHandler
     /// </summary>
     private static IGameStatePayload ResolveGameStatePayload(RelativeId locationId)
     {
-        if (locationId == Locations.OuterSpace) return new GameStatePuzzle.Payload(PuzzleStateId.Boss);
-        if (locationId == Locations.AirplaneBathroom) return new GameStatePuzzle.Payload(PuzzleStateId.Tutorial);
-        if (locationId == Locations.HotelRoom) return new GameStateHub.Payload();
-        if (Locations.SimLocIds.Contains(locationId)) return new GameStateSim.Payload(RelativeId.Default);
-        if (Locations.SpecialLocIds.Contains(locationId)) return new GameStateSpecial.Payload();
+        if (locationId == LocationId.OuterSpace) return new GameStatePuzzle.Payload(PuzzleStateId.Boss);
+        if (locationId == LocationId.AirplaneBathroom) return new GameStatePuzzle.Payload(PuzzleStateId.Tutorial);
+        if (locationId == LocationId.HotelRoom) return new GameStateHub.Payload();
+        if (LocationId.SimLocIds.Contains(locationId)) return new GameStateSim.Payload(RelativeId.Default);
+        if (LocationId.SpecialLocIds.Contains(locationId)) return new GameStateSpecial.Payload();
 
         throw new Exception($"No game state is known for the base game location {locationId}");
     }

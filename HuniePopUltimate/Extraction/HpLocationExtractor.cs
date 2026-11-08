@@ -16,19 +16,19 @@ public class HpLocationExtractor
 {
     private static readonly Dictionary<RelativeId, RelativeId> DEFAULT_STYLES = new()
     {
-        {LocationIds.Beach, Hp2BaseMod.Styles.Water},
-        {LocationIds.BotanicalGarden, Hp2BaseMod.Styles.Activity},
-        {LocationIds.HikingTrail, Hp2BaseMod.Styles.Activity},
-        {LocationIds.FarmersMarket, Hp2BaseMod.Styles.Activity},
-        {LocationIds.IceRink, Hp2BaseMod.Styles.Activity},
-        {LocationIds.WaterPark, Hp2BaseMod.Styles.Water},
-        {LocationIds.TennisCourts, Hp2BaseMod.Styles.Activity},
-        {LocationIds.HotSprings, Hp2BaseMod.Styles.Water},
-        {LocationIds.ScenicOverlook, Hp2BaseMod.Styles.Romantic},
-        {LocationIds.Casino, Hp2BaseMod.Styles.Party},
-        {LocationIds.OutdoorLounge, Hp2BaseMod.Styles.Romantic},
-        {LocationIds.Carnival, Hp2BaseMod.Styles.Activity},
-        {LocationIds.Restaurant, Hp2BaseMod.Styles.Romantic},
+        {LocationIds.Beach, Hp2BaseMod.StyleId.Water},
+        {LocationIds.BotanicalGarden, Hp2BaseMod.StyleId.Activity},
+        {LocationIds.HikingTrail, Hp2BaseMod.StyleId.Activity},
+        {LocationIds.FarmersMarket, Hp2BaseMod.StyleId.Activity},
+        {LocationIds.IceRink, Hp2BaseMod.StyleId.Activity},
+        {LocationIds.WaterPark, Hp2BaseMod.StyleId.Water},
+        {LocationIds.TennisCourts, Hp2BaseMod.StyleId.Activity},
+        {LocationIds.HotSprings, Hp2BaseMod.StyleId.Water},
+        {LocationIds.ScenicOverlook, Hp2BaseMod.StyleId.Romantic},
+        {LocationIds.Casino, Hp2BaseMod.StyleId.Party},
+        {LocationIds.OutdoorLounge, Hp2BaseMod.StyleId.Romantic},
+        {LocationIds.Carnival, Hp2BaseMod.StyleId.Activity},
+        {LocationIds.Restaurant, Hp2BaseMod.StyleId.Romantic},
     };
 
     private static readonly ITextureRenderStep[] FINDER_ICON_STEPS =

@@ -191,7 +191,7 @@ public partial class Plugin : Hp2BaseModPlugin
     {
         if (ModInterface.GameData.IsCodeUnlocked(ToggleCodeMods.FairyWingsCodeId))
         {
-            var kyu = ModInterface.GameData.GetGirl(Girls.Kyu);
+            var kyu = ModInterface.GameData.GetGirl(GirlId.Kyu);
             var kyuWings = kyu?.GetExpansion().GetCurrentBody()?.SpecialEffectPrefab
                 ?? kyu?.specialEffectPrefab;
 
@@ -275,20 +275,20 @@ public partial class Plugin : Hp2BaseModPlugin
             });
         }
 
-        MakeBackPosMod(Girls.Abia, 253, 473);
-        MakeBackPosMod(Girls.Ashley, 227, 540);
-        MakeBackPosMod(Girls.Brooke, 263, 496);
-        MakeBackPosMod(Girls.Candace, 228, 518);
-        MakeBackPosMod(Girls.Jessie, 227, 514);
-        MakeBackPosMod(Girls.Jewn, 258, 495);
-        MakeBackPosMod(Girls.Lailani, 275, 487);
-        MakeBackPosMod(Girls.Lillian, 263, 494);
-        MakeBackPosMod(Girls.Lola, 264, 511);
-        MakeBackPosMod(Girls.Moxie, 232, 482);
-        MakeBackPosMod(Girls.Nora, 298, 522);
-        MakeBackPosMod(Girls.Polly, 264, 505);
-        MakeBackPosMod(Girls.Sarah, 264, 473);
-        MakeBackPosMod(Girls.Zoey, 272, 466);
+        MakeBackPosMod(GirlId.Abia, 253, 473);
+        MakeBackPosMod(GirlId.Ashley, 227, 540);
+        MakeBackPosMod(GirlId.Brooke, 263, 496);
+        MakeBackPosMod(GirlId.Candace, 228, 518);
+        MakeBackPosMod(GirlId.Jessie, 227, 514);
+        MakeBackPosMod(GirlId.Jewn, 258, 495);
+        MakeBackPosMod(GirlId.Lailani, 275, 487);
+        MakeBackPosMod(GirlId.Lillian, 263, 494);
+        MakeBackPosMod(GirlId.Lola, 264, 511);
+        MakeBackPosMod(GirlId.Moxie, 232, 482);
+        MakeBackPosMod(GirlId.Nora, 298, 522);
+        MakeBackPosMod(GirlId.Polly, 264, 505);
+        MakeBackPosMod(GirlId.Sarah, 264, 473);
+        MakeBackPosMod(GirlId.Zoey, 272, 466);
 
         var kyuEyesGlowNeutralPartId = new RelativeId(ModId, 0);
         var kyuEyesGlowNeutralPart = new GirlPartDataMod(kyuEyesGlowNeutralPartId, InsertStyle.replace)
@@ -317,44 +317,44 @@ public partial class Plugin : Hp2BaseModPlugin
             SpriteInfo = new SpriteInfoTexture(new TextureInfoExternal(Path.Combine(ImagesDir, "kyu_eyesglow_horny.png"), true))
         };
 
-        ModInterface.DataMod.AddDataMod(new GirlDataMod(Girls.Kyu, InsertStyle.append)
+        ModInterface.DataMod.AddDataMod(new GirlDataMod(GirlId.Kyu, InsertStyle.append)
         {
             bodies = new()
             {
                 new KyuBodyDataMod(new GirlBodyDataMod(new RelativeId(-1, 0), InsertStyle.append)
                 {
                     expressions = new List<IBodySubDataMod<GirlExpressionSubDefinition>>() {
-                        new GirlExpressionDataMod(GirlExpressions.Neutral, InsertStyle.append){
+                        new GirlExpressionDataMod(GirlExpressionId.Neutral, InsertStyle.append){
                             PartEyesGlow = kyuEyesGlowNeutralPart
                         },
-                        new GirlExpressionDataMod(GirlExpressions.Annoyed, InsertStyle.append){
+                        new GirlExpressionDataMod(GirlExpressionId.Annoyed, InsertStyle.append){
                             PartEyesGlow = kyuEyesGlowAnnoyedPart
                         },
-                        new GirlExpressionDataMod(GirlExpressions.Horny, InsertStyle.append){
+                        new GirlExpressionDataMod(GirlExpressionId.Horny, InsertStyle.append){
                             PartEyesGlow = kyuEyesGlowHornyPart
                         },
-                        new GirlExpressionDataMod(GirlExpressions.Disappointed, InsertStyle.append){
+                        new GirlExpressionDataMod(GirlExpressionId.Disappointed, InsertStyle.append){
                             PartEyesGlow = kyuEyesGlowNeutralPart
                         },
-                        new GirlExpressionDataMod(GirlExpressions.Excited, InsertStyle.append){
+                        new GirlExpressionDataMod(GirlExpressionId.Excited, InsertStyle.append){
                             PartEyesGlow = kyuEyesGlowNeutralPart
                         },
-                        new GirlExpressionDataMod(GirlExpressions.Confused, InsertStyle.append){
+                        new GirlExpressionDataMod(GirlExpressionId.Confused, InsertStyle.append){
                             PartEyesGlow = kyuEyesGlowNeutralPart
                         },
-                        new GirlExpressionDataMod(GirlExpressions.Inquisitive, InsertStyle.append){
+                        new GirlExpressionDataMod(GirlExpressionId.Inquisitive, InsertStyle.append){
                             PartEyesGlow = kyuEyesGlowNeutralPart
                         },
-                        new GirlExpressionDataMod(GirlExpressions.Sarcastic, InsertStyle.append){
+                        new GirlExpressionDataMod(GirlExpressionId.Sarcastic, InsertStyle.append){
                             PartEyesGlow = kyuEyesGlowNeutralPart
                         },
-                        new GirlExpressionDataMod(GirlExpressions.Shy, InsertStyle.append){
+                        new GirlExpressionDataMod(GirlExpressionId.Shy, InsertStyle.append){
                             PartEyesGlow = kyuEyesGlowNeutralPart
                         },
-                        new GirlExpressionDataMod(GirlExpressions.Exhausted, InsertStyle.append){
+                        new GirlExpressionDataMod(GirlExpressionId.Exhausted, InsertStyle.append){
                             PartEyesGlow = kyuEyesGlowAnnoyedPart
                         },
-                        new GirlExpressionDataMod(GirlExpressions.Upset, InsertStyle.append){
+                        new GirlExpressionDataMod(GirlExpressionId.Upset, InsertStyle.append){
                             PartEyesGlow = kyuEyesGlowAnnoyedPart
                         },
                     },
@@ -370,14 +370,14 @@ public partial class Plugin : Hp2BaseModPlugin
 
         if (Directory.Exists(_digitalArtCollectionDir.Value))
         {
-            CellphoneSprites.AddUiCellphoneSprites("Jewn", Girls.Jewn, new Vector2(2636, 1990), new Vector2(3911, 4711));
-            CellphoneSprites.AddUiCellphoneSprites("Moxie", Girls.Moxie, new Vector2(2411, 2287), new Vector2(3900, 5068));
+            CellphoneSprites.AddUiCellphoneSprites("Jewn", GirlId.Jewn, new Vector2(2636, 1990), new Vector2(3911, 4711));
+            CellphoneSprites.AddUiCellphoneSprites("Moxie", GirlId.Moxie, new Vector2(2411, 2287), new Vector2(3900, 5068));
         }
     }
 
     private void On_RequestUnlockedPhotos(RequestUnlockedPhotosEventArgs args)
     {
-        if (Game.Persistence.playerFile.IsProgressPostGame()
+        if (Game.Persistence.playerFile.storyProgress >= PlayerFile.STORY_PROGRESS_POST_GAME
             && ModInterface.GameData.IsCodeUnlocked(ToggleCodeMods.KyuHoleCodeId))
         {
             args.UnlockedPhotos ??= new List<PhotoDefinition>();
@@ -394,7 +394,7 @@ public partial class Plugin : Hp2BaseModPlugin
             .Where(x => x != null && x.partIndexEyesGlow == -1)
             .ForEach(x => x.partIndexEyesGlow = x.partIndexEyes);
 
-        var kyu = ModInterface.GameData.GetGirl(Girls.Kyu).GetExpansion();
+        var kyu = ModInterface.GameData.GetGirl(GirlId.Kyu).GetExpansion();
     }
 
     private void On_PostCodeSubmitted(CodeDefinition codeDefinition)

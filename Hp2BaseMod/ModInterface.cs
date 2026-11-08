@@ -357,12 +357,12 @@ public static class ModInterface
                         .Select(x => x.girlPairDefinition.photoDefinition)
                         .Append(Game.Session.Hub.tutorialPhotoDef);
 
-        if (Game.Persistence.playerFile.IsProgressPoolsideEnding())
+        if (Game.Persistence.playerFile.storyProgress >= PlayerFile.STORY_PROGRESS_POOLSIDE_ENDING)
         {
             earnedPhotos = earnedPhotos.Concat(Game.Session.Hub.nymphojinnPhotoDefs);
         }
 
-        if (Game.Persistence.playerFile.IsProgressPostGame())
+        if (Game.Persistence.playerFile.storyProgress >= PlayerFile.STORY_PROGRESS_POST_GAME)
         {
             var kyuHole = Game.Persistence.playerFile.GetFlagValue(Flags.KYU_HOLE_SELECTION);
             earnedPhotos = earnedPhotos.Append(Game.Session.Hub.kyuPhotoDefs[Mathf.Clamp(kyuHole, 0, Game.Session.Hub.kyuPhotoDefs.Length - 1)]);

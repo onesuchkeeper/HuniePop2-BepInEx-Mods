@@ -14,17 +14,17 @@ public class HpPartsExtractor
 {
     public static readonly List<RelativeId> StyleSequence = new()
     {
-        Hp2BaseMod.Styles.Activity,
-        Hp2BaseMod.Styles.Relaxing,
-        Hp2BaseMod.Styles.Romantic,
-        Hp2BaseMod.Styles.Party,
-        Hp2BaseMod.Styles.Water,
-        Hp2BaseMod.Styles.Sexy,
+        Hp2BaseMod.StyleId.Activity,
+        Hp2BaseMod.StyleId.Relaxing,
+        Hp2BaseMod.StyleId.Romantic,
+        Hp2BaseMod.StyleId.Party,
+        Hp2BaseMod.StyleId.Water,
+        Hp2BaseMod.StyleId.Sexy,
         Styles.Topless,
-        Hp2BaseMod.Styles.Bonus1,
-        Hp2BaseMod.Styles.Bonus2,
-        Hp2BaseMod.Styles.Bonus3,
-        Hp2BaseMod.Styles.Bonus4,
+        Hp2BaseMod.StyleId.Bonus1,
+        Hp2BaseMod.StyleId.Bonus2,
+        Hp2BaseMod.StyleId.Bonus3,
+        Hp2BaseMod.StyleId.Bonus4,
     };
 
     private readonly HpSpriteCache _sprites;

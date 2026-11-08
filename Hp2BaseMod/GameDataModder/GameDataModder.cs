@@ -104,7 +104,7 @@ namespace Hp2BaseMod
 
                 using (ModInterface.Log.MakeIndent("verifying gamedata integrity"))
                 {
-                    var lailani = gameDataProvider.GetGirl(Girls.Lailani);
+                    var lailani = gameDataProvider.GetGirl(GirlId.Lailani);
 
                     using (ModInterface.Log.MakeIndent("girls"))
                     {

@@ -167,7 +167,7 @@ public partial class ExpandedLocationManager
         if (locationDef == null)
         {
             ModInterface.Log.Error("Location def was set to null pre arrival, defaulting to hub");
-            locationDef = ModInterface.GameData.GetLocation(Locations.HotelRoom);
+            locationDef = ModInterface.GameData.GetLocation(LocationId.HotelRoom);
             girlPairDef = null;
         }
 

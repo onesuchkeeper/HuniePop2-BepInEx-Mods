@@ -34,23 +34,23 @@ public class KyuBodyDataMod : IGirlBodyDataMod
     {
         _decorated.SetData(def, gameData, assetProvider, girlDef);
         
-        girlDef.GetExpansion().GetOutfit(def, Hp2BaseMod.Styles.Activity).outfitName = "Fairy Uniform";
-        girlDef.GetExpansion().GetHairstyle(def, Hp2BaseMod.Styles.Activity).hairstyleName = "Wing Clips";
+        girlDef.GetExpansion().GetOutfit(def, Hp2BaseMod.StyleId.Activity).outfitName = "Fairy Uniform";
+        girlDef.GetExpansion().GetHairstyle(def, Hp2BaseMod.StyleId.Activity).hairstyleName = "Wing Clips";
 
-        girlDef.GetExpansion().GetOutfit(def, Hp2BaseMod.Styles.Relaxing).outfitName = "Studio Rep";
-        girlDef.GetExpansion().GetHairstyle(def, Hp2BaseMod.Styles.Relaxing).hairstyleName = "Cum Slut";
+        girlDef.GetExpansion().GetOutfit(def, Hp2BaseMod.StyleId.Relaxing).outfitName = "Studio Rep";
+        girlDef.GetExpansion().GetHairstyle(def, Hp2BaseMod.StyleId.Relaxing).hairstyleName = "Cum Slut";
 
-        girlDef.GetExpansion().GetOutfit(def, Hp2BaseMod.Styles.Party).outfitName= "Sailor Skank";
-        girlDef.GetExpansion().GetHairstyle(def, Hp2BaseMod.Styles.Party).hairstyleName = "Power Band";
+        girlDef.GetExpansion().GetOutfit(def, Hp2BaseMod.StyleId.Party).outfitName= "Sailor Skank";
+        girlDef.GetExpansion().GetHairstyle(def, Hp2BaseMod.StyleId.Party).hairstyleName = "Power Band";
 
-        girlDef.GetExpansion().GetOutfit(def, Hp2BaseMod.Styles.Romantic).outfitName = "Star Saviour";
-        girlDef.GetExpansion().GetHairstyle(def, Hp2BaseMod.Styles.Romantic).hairstyleName = "Platinum Princess";
+        girlDef.GetExpansion().GetOutfit(def, Hp2BaseMod.StyleId.Romantic).outfitName = "Star Saviour";
+        girlDef.GetExpansion().GetHairstyle(def, Hp2BaseMod.StyleId.Romantic).hairstyleName = "Platinum Princess";
         
-        girlDef.GetExpansion().GetOutfit(def, Hp2BaseMod.Styles.Sexy).outfitName = "Aurora Mist";
-        girlDef.GetExpansion().GetHairstyle(def, Hp2BaseMod.Styles.Sexy).hairstyleName = "Such A Vibe";
+        girlDef.GetExpansion().GetOutfit(def, Hp2BaseMod.StyleId.Sexy).outfitName = "Aurora Mist";
+        girlDef.GetExpansion().GetHairstyle(def, Hp2BaseMod.StyleId.Sexy).hairstyleName = "Such A Vibe";
             
-        girlDef.GetExpansion().GetOutfit(def, Hp2BaseMod.Styles.Water).outfitName = "Floral Fairy";
-        girlDef.GetExpansion().GetHairstyle(def, Hp2BaseMod.Styles.Water).hairstyleName = "Canopy";
+        girlDef.GetExpansion().GetOutfit(def, Hp2BaseMod.StyleId.Water).outfitName = "Floral Fairy";
+        girlDef.GetExpansion().GetHairstyle(def, Hp2BaseMod.StyleId.Water).hairstyleName = "Canopy";
             
     }
 }

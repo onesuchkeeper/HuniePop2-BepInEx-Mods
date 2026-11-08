@@ -155,15 +155,15 @@ internal partial class Plugin : Hp2BaseModPlugin
         AddPhotoMod(Photos.ZoeySex, "zoey");
 
         // Register the sex photos with each girl, all taking place in the Royal Suite.
-        AddGirlSexPhotos(Hp2BaseMod.Girls.Abia, [(Photos.AbiaSex, Locations.RoyalSuite)]);
-        AddGirlSexPhotos(Hp2BaseMod.Girls.Brooke, [(Photos.BrookeSex, Locations.RoyalSuite)]);
-        AddGirlSexPhotos(Hp2BaseMod.Girls.Candace, [(Photos.CandaceSex, Locations.RoyalSuite)]);
-        AddGirlSexPhotos(Hp2BaseMod.Girls.Lailani, [(Photos.LailaniSex, Locations.RoyalSuite)]);
-        AddGirlSexPhotos(Hp2BaseMod.Girls.Lillian, [(Photos.LillianSex, Locations.RoyalSuite)]);
-        AddGirlSexPhotos(Hp2BaseMod.Girls.Nora, [(Photos.NoraSex, Locations.RoyalSuite)]);
-        AddGirlSexPhotos(Hp2BaseMod.Girls.Polly, [(Photos.PollySex, Locations.RoyalSuite)]);
-        AddGirlSexPhotos(Hp2BaseMod.Girls.Sarah, [(Photos.SarahSex, Locations.RoyalSuite)]);
-        AddGirlSexPhotos(Hp2BaseMod.Girls.Zoey, [(Photos.ZoeySex, Locations.RoyalSuite)]);
+        AddGirlSexPhotos(Hp2BaseMod.GirlId.Abia, [(Photos.AbiaSex, LocationId.RoyalSuite)]);
+        AddGirlSexPhotos(Hp2BaseMod.GirlId.Brooke, [(Photos.BrookeSex, LocationId.RoyalSuite)]);
+        AddGirlSexPhotos(Hp2BaseMod.GirlId.Candace, [(Photos.CandaceSex, LocationId.RoyalSuite)]);
+        AddGirlSexPhotos(Hp2BaseMod.GirlId.Lailani, [(Photos.LailaniSex, LocationId.RoyalSuite)]);
+        AddGirlSexPhotos(Hp2BaseMod.GirlId.Lillian, [(Photos.LillianSex, LocationId.RoyalSuite)]);
+        AddGirlSexPhotos(Hp2BaseMod.GirlId.Nora, [(Photos.NoraSex, LocationId.RoyalSuite)]);
+        AddGirlSexPhotos(Hp2BaseMod.GirlId.Polly, [(Photos.PollySex, LocationId.RoyalSuite)]);
+        AddGirlSexPhotos(Hp2BaseMod.GirlId.Sarah, [(Photos.SarahSex, LocationId.RoyalSuite)]);
+        AddGirlSexPhotos(Hp2BaseMod.GirlId.Zoey, [(Photos.ZoeySex, LocationId.RoyalSuite)]);
 
         // Load UI sprites and charms.
         UiPrefabs.InitExternals(_assetBundle);
@@ -365,7 +365,7 @@ internal partial class Plugin : Hp2BaseModPlugin
                 MeetingLocationDefinitionID = new RelativeId(-1, 1 + (i % 8)),
                 // The sex date is at night in the Royal Suite unless a girl's sex photos say otherwise (see AddGirlSexPhotos).
                 SexDayTime = ClockDaytimeType.NIGHT,
-                SexLocationDefinitionID = Locations.RoyalSuite,
+                SexLocationDefinitionID = LocationId.RoyalSuite,
                 IntroRelationshipCutsceneDefinitionID = CutsceneIds.Meeting,
                 AttractRelationshipCutsceneDefinitionID = CutsceneIds.Attract,
                 PreSexRelationshipCutsceneDefinitionID = CutsceneIds.PreSex,

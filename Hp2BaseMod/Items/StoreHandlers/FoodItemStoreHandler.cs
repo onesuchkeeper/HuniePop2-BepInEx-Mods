@@ -16,7 +16,7 @@ public sealed class FoodStoreHandler : ItemStoreHandler
         var foods = Game.Data.Items.GetAll().Select(x => x.GetExpansion()).Where(x => x.StoreHandler == this);
 
         yield return new(
-            ItemTypes.Food,
+            ItemTypeId.Food,
             new Category<ExpandedItemDefinition>
             {
                 TargetCount = int.MaxValue,
@@ -28,7 +28,7 @@ public sealed class FoodStoreHandler : ItemStoreHandler
             });
 
         yield return new(
-            ItemTypes.StaminaFood,
+            ItemTypeId.StaminaFood,
             new Category<ExpandedItemDefinition>
             {
                 TargetCount = StaminaFoodTargetCount,

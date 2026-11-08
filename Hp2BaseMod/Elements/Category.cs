@@ -4,6 +4,10 @@ using System.Linq;
 
 namespace Hp2BaseMod.Elements;
 
+/// <summary>
+/// Used for selecting from random pools
+/// </summary>
+/// <typeparam name="T"></typeparam>
 public class Category<T>
 {
     public class Entry

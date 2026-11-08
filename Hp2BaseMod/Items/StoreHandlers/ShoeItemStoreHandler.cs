@@ -44,7 +44,7 @@ public sealed class ShoeItemStoreHandler : GirlItemStoreHandler
                 category.Pool);
         }
 
-        yield return new(ItemTypes.Shoe, category);
+        yield return new(ItemTypeId.Shoe, category);
     }
 
     public override bool ShowWithStoreFilter(ItemType highlightedItemType) 

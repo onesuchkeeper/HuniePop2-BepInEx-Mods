@@ -39,8 +39,6 @@ namespace Hp2BaseModTweaks
     {
         private static readonly Vector3 ITEM_SPACING = new Vector3(0, -33.3333f, 0);
 
-        public event UiAppStyleSelectList.UiAppStyleSelectListDelegate ListItemSelectedEvent;
-
         private UiAppSelectListItem _listItemTemplate;
         private RectTransform _scrollRectTransform;
         private RectTransform _paddingRectTransform;
@@ -159,7 +157,7 @@ namespace Hp2BaseModTweaks
                 }
             }
 
-            var postGame = Game.Persistence.playerFile.IsProgressComplete();
+            var postGame = Game.Persistence.playerFile.storyProgress >= PlayerFile.STORY_PROGRESS_COMPLETE;
             var purchaseItems = new List<UiAppSelectListItem>();
             var codeItems = new List<UiAppSelectListItem>();
             var shownItems = new List<UiAppSelectListItem>();
@@ -402,8 +400,7 @@ namespace Hp2BaseModTweaks
 
             m_Refresh.Invoke(_core, null);
 
-            ListItemSelectedEvent?.Invoke(_core, true);
-
+            RaiseListItemSelectedEvent(_core, true);
             return false;
         }
     }

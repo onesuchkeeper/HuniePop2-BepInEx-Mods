@@ -7,11 +7,6 @@ namespace Hp2BaseModTweaks;
 [HarmonyPatch(typeof(UiAppLevelMeter))]
 internal static class UiAppLevelMeterPatch
 {
-    [HarmonyPatch("Start")]
-    [HarmonyPostfix]
-    public static void Start(UiAppLevelMeter __instance)
-        => ExpandedUiAppLevelMeter.Get(__instance).Start_Postfix();
-
     [HarmonyPatch("OnDestroy")]
     [HarmonyPrefix]
     public static void OnDestroy(UiAppLevelMeter __instance)
@@ -32,16 +27,6 @@ internal static class UiAppLevelMeterPatch
 public partial class ExpandedUiAppLevelMeter
 {
     public IExpInfo ExpDisplay;
-
-    internal void Start_Postfix()
-    {
-        ExpandedItemSlotBehavior.Get(_core.smoothieSlot.itemSlot).PreShowEvent += OnTooltipPreShow;
-    }
-
-    private void OnDestroy()
-    {
-        ExpandedItemSlotBehavior.Get(_core.smoothieSlot.itemSlot).PreShowEvent -= OnTooltipPreShow;
-    }
 
     internal void Populate()
     {

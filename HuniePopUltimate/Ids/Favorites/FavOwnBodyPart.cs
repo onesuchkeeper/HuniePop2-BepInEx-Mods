@@ -11,7 +11,7 @@ public static class FavOwnBodyPart
 
     internal static void AddDataMods()
     {
-        ModInterface.DataMod.AddDataMod(new FavQuestionDataMod(Hp2BaseMod.Favorites.BodyPart, Hp2BaseMod.Utility.InsertStyle.append)
+        ModInterface.DataMod.AddDataMod(new FavQuestionDataMod(Hp2BaseMod.FavoriteId.BodyPart, Hp2BaseMod.Utility.InsertStyle.append)
         {
             QuestionAnswers = new() {
                 {Hair, "Hair"},

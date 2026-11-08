@@ -53,7 +53,7 @@ public partial class ExpandedLocationDefinition
     /// </summary>
     public bool IsValidForNormalDate(ClockDaytimeType time)
         => AllowNormal
-            && (!PostBoss || Game.Persistence.playerFile.IsProgressPoolsideEnding())
+            && (!PostBoss || Game.Persistence.playerFile.storyProgress >= PlayerFile.STORY_PROGRESS_POOLSIDE_ENDING)
             && DateTimes?.Contains(time) == true;
     
     public RelativeId? DefaultStyle;
